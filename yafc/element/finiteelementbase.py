@@ -7,8 +7,60 @@ class UndefinedError(Exception):
 class PointSetBase(object):
     """A way of specifying a known set of points, perhaps with some
     (tensor) structure."""
-    pass
 
+    def __init__(self):
+        pass
+
+    @property
+    def points(self):
+        """Return a flattened numpy array of points.
+
+        The array has shape (num_points, topological_dim).
+        """
+
+        raise NotImplementedError
+
+
+class PointSet(PointSetBase):
+    """A basic pointset with no internal structure."""
+
+    def __init__(self, points):
+        self._points = points
+
+    @property
+    def points(self):
+        """Return a flattened numpy array of points.
+
+        The array has shape (num_points, topological_dim).
+        """
+
+        return self._points
+
+
+class Recipe(object):
+    """AST snippets and data corresponding to some form of finite element evaluation."""
+    def __init__(self, indices, instructions, params):
+        self._indices = indices
+        self._instructions = instructions
+        self._params = params
+
+    @property
+    def indices(self):
+        '''The free indices in this :class:`Recipe`.'''
+
+        return self._indices
+
+    @property
+    def instructions(self):
+        '''The actual instructions making up this :class:`Recipe`.'''
+
+        return self._instructions
+
+    @property
+    def params(self):
+        '''The input fields of this :class:`Recipe`.'''
+
+        return self._params
 
 class FiniteElementBase(object):
 
@@ -56,7 +108,7 @@ class FiniteElementBase(object):
 
         raise NotImplementedError
 
-    def field_evaluation(self, points, derivative=None):
+    def field_evaluation(self, points, static_data, derivative=None):
         '''Return code for evaluating a known field at known points on the
         reference element.
 
@@ -68,7 +120,7 @@ class FiniteElementBase(object):
 
         raise NotImplementedError
 
-    def basis_evaluation(self, points, derivative=None):
+    def basis_evaluation(self, points, static_data, derivative=None):
         '''Return code for evaluating a known field at known points on the
         reference element.
 
@@ -84,14 +136,14 @@ class FiniteElementBase(object):
 
         raise NotImplementedError
 
-    def moment_evaluation(self, weights, points, derivative=None):
+    def moment_evaluation(self, weights, points, static_data, derivative=None):
         '''Return code for evaluating f * v * dx where f is an expression and
         v is a test function.
         '''
 
         raise NotImplementedError
 
-    def dual_evaluation(self):
+    def dual_evaluation(self, static_data):
         '''Return code for evaluating an expression at the dual set.
 
         Note: what does the expression need to look like?
