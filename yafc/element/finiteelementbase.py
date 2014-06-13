@@ -1,3 +1,5 @@
+import numpy
+
 
 class UndefinedError(Exception):
     def __init__(self, *args, **kwargs):
@@ -25,7 +27,7 @@ class PointSet(PointSetBase):
     """A basic pointset with no internal structure."""
 
     def __init__(self, points):
-        self._points = points
+        self._points = numpy.array(points)
 
     @property
     def points(self):
@@ -62,11 +64,15 @@ class Recipe(object):
 
         return self._params
 
+
 class FiniteElementBase(object):
 
     def __init__(self):
 
-        raise NotImplementedError
+        self._id = FiniteElementBase._count
+        FiniteElementBase._count += 1
+
+    _count = 0
 
     @property
     def cell(self):

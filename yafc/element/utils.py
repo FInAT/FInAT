@@ -17,7 +17,6 @@ class Bar(Foo):
 
 Now, Bar.foo.__doc__ == Bar().foo.__doc__ == Foo.foo.__doc__ == "Frobber"
 """
-
 import pymbolic.primitives as p
 from functools import wraps
 
@@ -43,7 +42,7 @@ class DocInherit(object):
 
         overridden = getattr(super(cls, obj), self.name, None)
 
-        @wraps(self.mthd, assigned=('__name__','__module__'))
+        @wraps(self.mthd, assigned=('__name__', '__module__'))
         def f(*args, **kwargs):
             return self.mthd(obj, *args, **kwargs)
 
@@ -71,28 +70,20 @@ class DocInherit(object):
 doc_inherit = DocInherit
 
 
-class KernelDataDictionary(dict):
-
-    def __init__(self):
-        self._identifiers = {}
-        self.prefix = 'i'
-
-    def new_identifier(self, prefix=None):
-
-        prefix = prefix or self.prefix
-
-        '''Returns an identifier, guaranteed to be unique'''
-        if prefix in self._identifiers:
-            self._identifiers[prefix] += 1
-        else:
-            self._identifiers[prefix] = 0
-        return p.Variable(prefix + str(self._identifiers[prefix]))
-
-
 class KernelData(object):
     def __init__(self):
 
-        self.static = KernelDataDictionary()
-        self.params.prefix = 'phi'
-        self.params = KernelDataDictionary()
-        self.params.prefix = 'w'
+        self.static = {}
+        self.params = {}
+
+
+class IndexSum(p._MultiChildExpression):
+    def __init__(self, index, body):
+
+        self.children = (index, body)
+
+    def __getinitargs__(self):
+        return self.children
+
+    def __str__(self):
+        return "IndexSum(%s, %s)" % self.children
