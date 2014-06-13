@@ -17,6 +17,14 @@ class IndexBase(p.Variable):
         '''A slice indicating the values this index can take.'''
         return self._extent
 
+    @property
+    def _str_extent(self):
+
+        return "%s=(%s:%s:%s)" % (str(self),
+                                  self._extent.start or 0,
+                                  self._extent.stop,
+                                  self._extent.step or 1)
+
 
 class PointIndex(IndexBase):
     '''An index running over a set of points, for example quadrature points.'''

@@ -78,12 +78,13 @@ class KernelData(object):
 
 
 class IndexSum(p._MultiChildExpression):
-    def __init__(self, index, body):
+    def __init__(self, indices, body):
 
-        self.children = (index, body)
+        self.children = (indices, body)
 
     def __getinitargs__(self):
         return self.children
 
     def __str__(self):
-        return "IndexSum(%s, %s)" % self.children
+        return "IndexSum(%s, %s)" % (self.children[0]._str_extent,
+                                     self.children[1])

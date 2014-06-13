@@ -4,6 +4,7 @@ from utils import doc_inherit, IndexSum
 import FIAT
 import indices
 
+
 class Lagrange(FiniteElementBase):
     def __init__(self, cell, degree):
         super(Lagrange, self).__init__()
