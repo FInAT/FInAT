@@ -44,7 +44,7 @@ class Recipe(object):
     def __init__(self, indices, instructions, params):
         self._indices = indices
         self._instructions = instructions
-        self._params = params
+        self._depends = depends
 
     @property
     def indices(self):
@@ -59,10 +59,10 @@ class Recipe(object):
         return self._instructions
 
     @property
-    def params(self):
+    def depends(self):
         '''The input fields of this :class:`Recipe`.'''
 
-        return self._params
+        return self._depends
 
 
 class FiniteElementBase(object):
@@ -142,8 +142,8 @@ class FiniteElementBase(object):
 
         raise NotImplementedError
 
-    def moment_evaluation(self, weights, points, static_data, derivative=None):
-        '''Return code for evaluating f * v * dx where f is an expression and
+    def moment_evaluation(self, value, weights, points, static_data, derivative=None):
+        '''Return code for evaluating value * v * dx where
         v is a test function.
         '''
 

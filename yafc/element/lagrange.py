@@ -56,8 +56,9 @@ class Lagrange(FiniteElementBase):
             raise ValueError(
                 "Lagrange elements do not have a %s operation") % derivative
 
-    @doc_inherit
-    def basis_evaluation(self, points, kernel_data, derivative=None):
+    def _tabulation_variable(self, points, kernel_data, derivative):
+        # Produce the variable for the tabulation of the basis
+        # functions or their derivative. Also return the relevant indices.
 
         # updates the requisite static data, which in this case
         # is just the matrix.
@@ -71,11 +72,9 @@ class Lagrange(FiniteElementBase):
         else:
             phi = p.Variable('phi_e' if derivative is None else "dphi_e"
                              + str(self._id))
-            # FIXME: for derivative != None, we've got to reengineer this.
             data = self._tabulate(points, derivative)
             static_data[static_key] = (phi, lambda: data)
 
-        # Note for derivative you get a spatial index in here too.
         i = indices.BasisFunctionIndex(fiat_element.space_dimension())
         q = indices.PointIndex(points.points.shape[0])
 
@@ -85,46 +84,70 @@ class Lagrange(FiniteElementBase):
             alpha = indices.DimensionIndex(points.points.shape[1])
             ind = [alpha] + ind
 
+        return phi, ind
+
+    def _weights_variable(self, weights, kernel_data):
+        # Produce a variable for the quadrature weights.
+        static_key = (id(weights), )
+
+        static_data = kernel_data.static
+
+        if static_key in static_data:
+            w = static_data[static_key][0]
+        else:
+            w = p.Variable('w')
+            data = weights.points.points
+            static_data[static_key] = (w, lambda: data)
+
+        return w
+
+    @doc_inherit
+    def basis_evaluation(self, points, kernel_data, derivative=None):
+
+        phi, ind = self._tabulation_variable(points, kernel_data, derivative)
+
         instructions = [phi[ind]]
 
-        params = []
+        depends = []
 
-        return Recipe(ind, instructions, params)
+        return Recipe(ind, instructions, depends)
 
     @doc_inherit
     def field_evaluation(self, field_var, points,
                          kernel_data, derivative=None):
 
-        # updates the requisite static data, which in this case
-        # is just the matrix.
-        static_key = (id(self), id(points), id(derivative))
+        phi, ind = self._tabulation_variable(points, kernel_data, derivative)
 
-        static_data = kernel_data.static
-        fiat_element = self._fiat_element
-
-        if static_key in static_data:
-            phi = static_data[static_key][0]
+        if derivative is None:
+            free_ind = [ind[-1]]
         else:
-            phi = p.Variable('phi_e' if derivative is None else "dphi_e"
-                             + str(self._id))
-            # FIXME: for derivative != None, we've got to reengineer this.
-            data = self._tabulate(points, derivative)
-            static_data[static_key] = (phi, lambda: data)
+            free_ind = [ind[0], ind[-1]]
 
-        # Note for derivative you get a spatial index in here too.
-        i = indices.BasisFunctionIndex(fiat_element.space_dimension())
-        q = indices.PointIndex(points.points.shape[0])
+        i = ind[-2]
 
-        ind = [q]
-        data_ind = [i, q]
+        instructions = [IndexSum(i, field_var[i] * phi[ind])]
 
-        if derivative is grad:
-            alpha = indices.DimensionIndex(points.points.shape[1])
-            ind = [alpha] + ind
-            data_ind = [alpha] + data_ind
+        depends = [field_var]
 
-        instructions = [IndexSum(i, field_var[i] * phi[data_ind])]
+        return Recipe(free_ind, instructions, depends)
 
-        params = [field_var]
+    @doc_inherit
+    def moment_evaluation(self, value, weights, points,
+                          kernel_data, derivative=None):
 
-        return Recipe(ind, instructions, params)
+        phi, ind = self._tabulation_variable(points, kernel_data, derivative)
+        w = self._weights_variable(weights, kernel_data)
+
+        q = ind[-1]
+        if derivative is None:
+            sum_ind = [q]
+        else:
+            sum_ind = [ind[0], q]
+
+        i = ind[-2]
+
+        instructions = [IndexSum(sum_ind, value[sum_ind] * w[q] * phi[ind])]
+
+        depends = [value]
+
+        return Recipe([i], instructions, depends)
