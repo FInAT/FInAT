@@ -3,6 +3,8 @@ from finiteelementbase import FiniteElementBase, Recipe
 from utils import doc_inherit, IndexSum
 import FIAT
 import indices
+from derivatives import div, grad, curl
+import numpy as np
 
 
 class Lagrange(FiniteElementBase):
@@ -38,6 +40,22 @@ class Lagrange(FiniteElementBase):
 
         return self._fiat_element.entity_support_dofs()
 
+    def _tabulate(self, points, derivative):
+
+        if derivative is None:
+            return fiat_element.tabulate(0, points.points)[
+                tuple([0]*points.points.shape[1])]
+        elif derivative is grad:
+            tab = fiat_element.tabulate(1, points.points)
+
+            indices = np.eye(points.points.shape[1], dtype=int)
+
+            return np.array([tab[tuple(i)] for i in indices])
+
+        else:
+            raise ValueError(
+                "Lagrange elements do not have a %s operation") % derivative
+
     @doc_inherit
     def basis_evaluation(self, points, kernel_data, derivative=None):
 
@@ -51,10 +69,10 @@ class Lagrange(FiniteElementBase):
         if static_key in static_data:
             phi = static_data[static_key][0]
         else:
-            phi = p.Variable('phi_e' + str(self._id))
+            phi = p.Variable('phi_e' if derivative is None else "dphi_e"
+                             + str(self._id))
             # FIXME: for derivative != None, we've got to reengineer this.
-            data = fiat_element.tabulate(0, points.points)[
-                tuple([0]*points.points.shape[1])]
+            data = self._tabulate(points, derivative)
             static_data[static_key] = (phi, lambda: data)
 
         # Note for derivative you get a spatial index in here too.
@@ -63,7 +81,11 @@ class Lagrange(FiniteElementBase):
 
         ind = [i, q]
 
-        instructions = [phi[i, q]]
+        if derivative is grad:
+            alpha = indices.DimensionIndex(points.points.shape[1])
+            ind = [alpha] + ind
+
+        instructions = [phi[ind]]
 
         params = []
 
@@ -83,10 +105,10 @@ class Lagrange(FiniteElementBase):
         if static_key in static_data:
             phi = static_data[static_key][0]
         else:
-            phi = p.Variable('phi_e' + str(self._id))
+            phi = p.Variable('phi_e' if derivative is None else "dphi_e"
+                             + str(self._id))
             # FIXME: for derivative != None, we've got to reengineer this.
-            data = fiat_element.tabulate(0, points.points)[
-                tuple([0]*points.points.shape[1])]
+            data = self._tabulate(points, derivative)
             static_data[static_key] = (phi, lambda: data)
 
         # Note for derivative you get a spatial index in here too.
@@ -94,8 +116,14 @@ class Lagrange(FiniteElementBase):
         q = indices.PointIndex(points.points.shape[0])
 
         ind = [q]
+        data_ind = [i, q]
 
-        instructions = [IndexSum(i, field_var[i] * phi[i, q])]
+        if derivative is grad:
+            alpha = indices.DimensionIndex(points.points.shape[1])
+            ind = [alpha] + ind
+            data_ind = [alpha] + data_ind
+
+        instructions = [IndexSum(i, field_var[i] * phi[data_ind])]
 
         params = [field_var]
 
