@@ -41,7 +41,7 @@ class PointSet(PointSetBase):
 
 class Recipe(object):
     """AST snippets and data corresponding to some form of finite element evaluation."""
-    def __init__(self, indices, instructions, params):
+    def __init__(self, indices, instructions, depends):
         self._indices = indices
         self._instructions = instructions
         self._depends = depends

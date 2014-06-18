@@ -43,7 +43,7 @@ class Lagrange(FiniteElementBase):
     def _tabulate(self, points, derivative):
 
         if derivative is None:
-            return fiat_element.tabulate(0, points.points)[
+            return self._fiat_element.tabulate(0, points.points)[
                 tuple([0]*points.points.shape[1])]
         elif derivative is grad:
             tab = fiat_element.tabulate(1, points.points)
@@ -96,7 +96,7 @@ class Lagrange(FiniteElementBase):
             w = static_data[static_key][0]
         else:
             w = p.Variable('w')
-            data = weights.points.points
+            data = weights.points
             static_data[static_key] = (w, lambda: data)
 
         return w
@@ -125,7 +125,7 @@ class Lagrange(FiniteElementBase):
 
         i = ind[-2]
 
-        instructions = [IndexSum(i, field_var[i] * phi[ind])]
+        instructions = [IndexSum([i], field_var[i] * phi[ind])]
 
         depends = [field_var]
 

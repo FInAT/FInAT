@@ -86,5 +86,5 @@ class IndexSum(p._MultiChildExpression):
         return self.children
 
     def __str__(self):
-        return "IndexSum(%s, %s)" % (self.children[0]._str_extent,
+        return "IndexSum(%s, %s)" % (str([x._str_extent for x in self.children[0]]),
                                      self.children[1])
