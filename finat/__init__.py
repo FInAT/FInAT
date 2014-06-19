@@ -1,4 +1,4 @@
 
 from lagrange import Lagrange
-from finiteelementbase import PointSet
+from points import PointSet
 from utils import KernelData

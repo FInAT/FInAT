@@ -1,5 +1,6 @@
 import pymbolic.primitives as p
-from finiteelementbase import FiniteElementBase, Recipe
+from finiteelementbase import FiniteElementBase
+from ast import Recipe
 from utils import doc_inherit, IndexSum
 import FIAT
 import indices
