@@ -38,9 +38,16 @@ class PointSet(PointSetBase):
 
         return self._points
 
+    def __getitem__(self, i):
+        if isinstance(i, int):
+            return PointSet([self.points[i]])
+        else:
+            return PointSet(self.points[i])
+
 
 class Recipe(object):
-    """AST snippets and data corresponding to some form of finite element evaluation."""
+    """AST snippets and data corresponding to some form of finite element
+    evaluation."""
     def __init__(self, indices, instructions, depends):
         self._indices = indices
         self._instructions = instructions

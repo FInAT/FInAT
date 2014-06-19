@@ -1,3 +1,7 @@
+import pymbolic.primitives as p
+from functools import wraps
+
+
 """
 from http://stackoverflow.com/questions/2025562/inherit-docstrings-in-python-class-inheritance
 
@@ -17,8 +21,6 @@ class Bar(Foo):
 
 Now, Bar.foo.__doc__ == Bar().foo.__doc__ == Foo.foo.__doc__ == "Frobber"
 """
-import pymbolic.primitives as p
-from functools import wraps
 
 
 class DocInherit(object):

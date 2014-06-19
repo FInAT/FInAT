@@ -12,11 +12,14 @@ def lagrange():
     return finat.Lagrange(cell, 1)
 
 
-def test_build_lagrange(lagrange):
-
+@pytest.fixture
+def points(lagrange):
     lattice = lagrange.cell.make_lattice(1)
 
-    points = finat.PointSet(lattice)
+    return finat.PointSet(lattice)
+
+
+def test_build_lagrange(lagrange, points):
 
     kernel_data = finat.KernelData()
 
@@ -27,16 +30,10 @@ def test_build_lagrange(lagrange):
     print [data() for (name, data) in kernel_data.static.values()]
     print
 
-    assert False
-
     assert lagrange
 
 
-def test_lagrange_field(lagrange):
-
-    lattice = lagrange.cell.make_lattice(1)
-
-    points = finat.PointSet(lattice)
+def test_lagrange_field(lagrange, points):
 
     kernel_data = finat.KernelData()
 
@@ -46,8 +43,6 @@ def test_lagrange_field(lagrange):
 
     print recipe.instructions[0]
     print [data() for (name, data) in kernel_data.static.values()]
-
-    assert False
 
     assert lagrange
 
@@ -72,9 +67,25 @@ def test_lagrange_moment(lagrange):
     print recipe.instructions[0]
     print [data() for (name, data) in kernel_data.static.values()]
 
-    assert False
-
     assert lagrange
+
+
+def test_lagrange_tabulate(lagrange, points):
+
+    tab = lagrange._tabulate(points, None)
+
+    assert (np.eye(3) - tab < 1.e-16).all()
+
+
+def test_lagrange_tabulate_grad(lagrange, points):
+
+    tab = lagrange._tabulate(points, finat.derivatives.grad)
+
+    ans = np.array([[-1.0, 1.0, 0.0],
+                    [-1.0, 0.0, 1.0]])
+
+    assert (tab.shape == (2, 3, 3))
+    assert (ans - tab[:, :, 0] < 1.e-16).all()
 
 
 def test_lagrange_lattice(lagrange):

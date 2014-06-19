@@ -46,22 +46,23 @@ class Lagrange(FiniteElementBase):
             return self._fiat_element.tabulate(0, points.points)[
                 tuple([0] * points.points.shape[1])]
         elif derivative is grad:
-            tab = fiat_element.tabulate(1, points.points)
+            tab = self._fiat_element.tabulate(1, points.points)
 
-            indices = np.eye(points.points.shape[1], dtype=int)
+            ind = np.eye(points.points.shape[1], dtype=int)
 
-            return np.array([tab[tuple(i)] for i in indices])
+            return np.array([tab[tuple(i)] for i in ind])
 
         else:
             raise ValueError(
                 "Lagrange elements do not have a %s operation") % derivative
 
     def _tabulation_variable(self, points, kernel_data, derivative):
-        # Produce the variable for the tabulation of the basis
-        # functions or their derivative. Also return the relevant indices.
+        '''Produce the variable for the tabulation of the basis
+        functions or their derivative. Also return the relevant indices.
 
-        # updates the requisite static data, which in this case
-        # is just the matrix.
+        updates the requisite static data, which in this case
+        is just the matrix.
+        '''
         static_key = (id(self), id(points), id(derivative))
 
         static_data = kernel_data.static
@@ -87,7 +88,7 @@ class Lagrange(FiniteElementBase):
         return phi, ind
 
     def _weights_variable(self, weights, kernel_data):
-        # Produce a variable for the quadrature weights.
+        '''Produce a variable for the quadrature weights.'''
         static_key = (id(weights), )
 
         static_data = kernel_data.static
