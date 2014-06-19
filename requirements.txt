@@ -1,0 +1,4 @@
+git+https://bitbucket.org/mapdes/fiat.git#egg=fiat
+hg+https://bitbucket.org/khinsen/scientificpython
+pytest-pep8
+numpy>=1.6.1
