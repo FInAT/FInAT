@@ -44,7 +44,7 @@ class Lagrange(FiniteElementBase):
 
         if derivative is None:
             return self._fiat_element.tabulate(0, points.points)[
-                tuple([0]*points.points.shape[1])]
+                tuple([0] * points.points.shape[1])]
         elif derivative is grad:
             tab = fiat_element.tabulate(1, points.points)
 
