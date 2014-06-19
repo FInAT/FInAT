@@ -1,6 +1,6 @@
 import pytest
 import FIAT
-import yafc
+import finat
 import pymbolic.primitives as p
 import numpy as np
 
@@ -8,16 +8,16 @@ import numpy as np
 def lagrange():
     cell = FIAT.reference_element.UFCTriangle()
 
-    return yafc.element.Lagrange(cell, 1)
+    return finat.element.Lagrange(cell, 1)
 
 
 def test_build_lagrange(lagrange):
 
     lattice = lagrange.cell.make_lattice(1)
 
-    points = yafc.element.PointSet(lattice)
+    points = finat.element.PointSet(lattice)
 
-    kernel_data = yafc.element.KernelData()
+    kernel_data = finat.element.KernelData()
 
     recipe = lagrange.basis_evaluation(points,
                                        kernel_data)
@@ -35,9 +35,9 @@ def test_lagrange_field(lagrange):
 
     lattice = lagrange.cell.make_lattice(1)
 
-    points = yafc.element.PointSet(lattice)
+    points = finat.element.PointSet(lattice)
 
-    kernel_data = yafc.element.KernelData()
+    kernel_data = finat.element.KernelData()
 
     recipe = lagrange.field_evaluation(p.Variable("u"),
                                        points,
@@ -56,11 +56,11 @@ def test_lagrange_moment(lagrange):
 
     # trivial weights so that I don't have to wrap a quadrature rule here.
     # not hard to fix, but I want to get the rule running
-    weights = yafc.element.PointSet( np.ones( (len(lattice),) ) )
+    weights = finat.element.PointSet( np.ones( (len(lattice),) ) )
 
-    points = yafc.element.PointSet(lattice)
+    points = finat.element.PointSet(lattice)
 
-    kernel_data = yafc.element.KernelData()
+    kernel_data = finat.element.KernelData()
 
     recipe = lagrange.moment_evaluation(p.Variable("f"),
                                         weights,
@@ -79,7 +79,7 @@ def test_lagrange_lattice(lagrange):
 
     lattice = lagrange.cell.make_lattice(1)
 
-    points = yafc.element.PointSet(lattice)
+    points = finat.element.PointSet(lattice)
 
     assert (points.points == lattice).all()
 
