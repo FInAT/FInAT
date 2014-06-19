@@ -19,18 +19,17 @@ def points(lagrange):
     return finat.PointSet(lattice)
 
 
-def test_build_lagrange(lagrange, points):
+@pytest.mark.parametrize(['derivative'],
+                         [[None], [finat.grad]])
+def test_build_lagrange(lagrange, points, derivative):
 
     kernel_data = finat.KernelData()
 
     recipe = lagrange.basis_evaluation(points,
-                                       kernel_data)
+                                       kernel_data, derivative)
+    sh = np.array([i.extent.stop for i in recipe.indices])
 
-    print recipe.instructions[0]
-    print [data() for (name, data) in kernel_data.static.values()]
-    print
-
-    assert lagrange
+    assert not all(sh - kernel_data.static.values()[0][1]().shape)
 
 
 def test_lagrange_field(lagrange, points):
