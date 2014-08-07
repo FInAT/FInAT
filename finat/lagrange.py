@@ -143,8 +143,11 @@ class Lagrange(FiniteElementBase):
         q = ind[-1]
         if derivative is None:
             sum_ind = [q]
-        else:
+        elif derivative == grad:
             sum_ind = [ind[0], q]
+        else:
+            raise ValueError(
+                "Lagrange elements do not have a %s operation") % derivative
 
         i = ind[-2]
 
@@ -153,3 +156,11 @@ class Lagrange(FiniteElementBase):
         depends = [value]
 
         return Recipe([i], instructions, depends)
+
+    @doc_inherit
+    def pullback(self, phi, kernel_data, derivative=None):
+
+        if derivative is None:
+            return phi
+        if derivative == grad:
+            return None  # dot(Jinv, grad(phi))
