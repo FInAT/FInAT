@@ -49,7 +49,6 @@ class PointSet(PointSetBase):
 
         return w
 
-
     def __getitem__(self, i):
         if isinstance(i, int):
             return PointSet([self.points[i]])

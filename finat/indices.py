@@ -35,6 +35,7 @@ class IndexBase(p.Variable):
         else:
             raise AttributeError()
 
+
 class PointIndex(IndexBase):
     '''An index running over a set of points, for example quadrature points.'''
     def __init__(self, extent):

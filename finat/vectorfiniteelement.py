@@ -4,6 +4,7 @@ from utils import doc_inherit, IndexSum
 from ast import Recipe
 import indices
 
+
 class VectorFiniteElement(FiniteElementBase):
     def __init__(self, element, dimension):
         super(VectorFiniteElement, self).__init__()
@@ -80,12 +81,13 @@ class VectorFiniteElement(FiniteElementBase):
 
         return Recipe(free_ind, instructions, depends)
 
-    @doc_inherit(self, phi, kernel_data, derivative=None):
+    @doc_inherit
+    def pullback(self, phi, kernel_data, derivative=None):
 
         if derivative is None:
             return phi
         elif derivative == grad:
-            return None # IndexSum(alpha, Jinv[:, alpha] * grad(phi)[:,alpha])
+            return None  # IndexSum(alpha, Jinv[:, alpha] * grad(phi)[:,alpha])
         else:
             raise ValueError(
                 "Lagrange elements do not have a %s operation") % derivative
