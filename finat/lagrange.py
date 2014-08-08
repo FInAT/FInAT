@@ -88,21 +88,6 @@ class Lagrange(FiniteElementBase):
 
         return phi, ind
 
-    def _weights_variable(self, weights, kernel_data):
-        '''Produce a variable for the quadrature weights.'''
-        static_key = (id(weights), )
-
-        static_data = kernel_data.static
-
-        if static_key in static_data:
-            w = static_data[static_key][0]
-        else:
-            w = p.Variable('w')
-            data = weights.points
-            static_data[static_key] = (w, lambda: data)
-
-        return w
-
     @doc_inherit
     def basis_evaluation(self, points, kernel_data, derivative=None):
 
@@ -138,7 +123,7 @@ class Lagrange(FiniteElementBase):
                           kernel_data, derivative=None):
 
         phi, ind = self._tabulation_variable(points, kernel_data, derivative)
-        w = self._weights_variable(weights, kernel_data)
+        w = weights.kernel_variable("w", kernel_data)
 
         q = ind[-1]
         if derivative is None:
@@ -162,5 +147,8 @@ class Lagrange(FiniteElementBase):
 
         if derivative is None:
             return phi
-        if derivative == grad:
+        elif derivative == grad:
             return None  # dot(Jinv, grad(phi))
+        else:
+            raise ValueError(
+                "Lagrange elements do not have a %s operation") % derivative

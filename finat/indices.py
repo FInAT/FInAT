@@ -1,4 +1,5 @@
 import pymbolic.primitives as p
+from pymbolic.mapper.stringifier import StringifyMapper
 
 
 class IndexBase(p.Variable):
@@ -25,6 +26,14 @@ class IndexBase(p.Variable):
                                   self._extent.stop,
                                   self._extent.step or 1)
 
+    mapper_method = intern("map_index")
+
+    def get_mapper_method(self, mapper):
+
+        if isinstance(mapper, StringifyMapper):
+            return mapper.map_variable
+        else:
+            raise AttributeError()
 
 class PointIndex(IndexBase):
     '''An index running over a set of points, for example quadrature points.'''
