@@ -18,6 +18,8 @@ class VectorFiniteElement(FiniteElementBase):
 
     @doc_inherit
     def basis_evaluation(self, points, kernel_data, derivative=None):
+        # This is incorrect. We only get the scalar value. We need to
+        # bring in some sort of delta in order to get the right rank.
 
         # Produce the base scalar recipe
         sr = self._base_element.basis_evaluation(points, kernel_data, derivative)
