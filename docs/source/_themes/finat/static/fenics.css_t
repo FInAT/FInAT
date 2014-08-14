@@ -244,11 +244,11 @@ div.note {
 	background: #e1ecfe url(dialog-note.png) no-repeat 10px 8px;
 }
 
-#firedrake-package #id1 {
+#finat-package #id1 {
     display: none;
 }
 
-#firedrake-package h2 {
+#finat-package h2 {
     background-color: #fafafa;                   
     border: 2px solid #000080;
 	border-right-style: none;
@@ -256,7 +256,7 @@ div.note {
 	padding: 10px 20px 10px 60px;
 }
 
-#firedrake-package div.section>dl {
+#finat-package div.section>dl {
     border: 2px solid #ddd;
 	border-right-style: none;
 	border-bottom-style: none;
@@ -630,7 +630,7 @@ display: none;
   margin-right: 1em;
 }
 
-#the-firedrake-team td {
+#the-finat-team td {
   text-align: center;
 }
 
@@ -661,12 +661,12 @@ img[alt="build status"] {
 }
 
 /* Equispace the logos. */
-#firedrake-is-supported-by tr {
+#finat-is-supported-by tr {
     width: 100%;
 }
 
 /* Equispace the logos. */
-#firedrake-is-supported-by td {
+#finat-is-supported-by td {
     width: 25%;
     text-align: center;
 }
