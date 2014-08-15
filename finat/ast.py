@@ -30,7 +30,7 @@ class Recipe(object):
     evaluation."""
     def __init__(self, indices, instructions, depends):
         self._indices = tuple(indices)
-        self._instructions = tuple(instructions)
+        self._instructions = instructions
         self._depends = tuple(depends)
 
     @property
@@ -87,6 +87,9 @@ class Recipe(object):
 
         return self.replace_indices(replacements)
 
+    def __str__(self):
+        return "Recipe(%s, %s)" % (self._indices, self._instructions)
+
     def replace_indices(self, replacements):
         """Return a copy of this :class:`Recipe` with some of the indices
         substituted."""
@@ -129,7 +132,7 @@ class ForAll(p._MultiChildExpression):
         return self.children
 
     def __str__(self):
-        return "Forall(%s, %s)" % (str([x._str_extent for x in self.children[0]]),
+        return "ForAll(%s, %s)" % (str([x._str_extent for x in self.children[0]]),
                                    self.children[1])
 
 
