@@ -81,8 +81,19 @@ class FiniteElementBase(object):
         raise NotImplementedError
 
     def moment_evaluation(self, value, weights, points, static_data, derivative=None):
-        '''Return code for evaluating value * v * dx where
-        v is a test function.
+        '''Return code for evaluating:
+
+        .. math::
+
+            \int \mathrm{value} : v\, \mathrm{d}x
+
+        where :math:`v` is a test function or the derivative of a test
+        function, and : is the inner product operator.
+
+        :param value: an expression. The free indices in value must match those in v.
+        :param weights: a point set of quadrature weights.
+        :param static_data: the :class:`.KernelData` object corresponding to the current kernel.
+        :param derivative: the derivative to take of the test function.
         '''
 
         raise NotImplementedError

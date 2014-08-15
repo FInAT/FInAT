@@ -1,4 +1,3 @@
-import pymbolic.primitives as p
 from functools import wraps
 
 
@@ -77,16 +76,3 @@ class KernelData(object):
 
         self.static = {}
         self.params = {}
-
-
-class IndexSum(p._MultiChildExpression):
-    def __init__(self, indices, body):
-
-        self.children = (indices, body)
-
-    def __getinitargs__(self):
-        return self.children
-
-    def __str__(self):
-        return "IndexSum(%s, %s)" % (str([x._str_extent for x in self.children[0]]),
-                                     self.children[1])

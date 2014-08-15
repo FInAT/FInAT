@@ -1,7 +1,7 @@
 import pymbolic.primitives as p
 from finiteelementbase import FiniteElementBase
-from ast import Recipe
-from utils import doc_inherit, IndexSum
+from ast import Recipe, IndexSum
+from utils import doc_inherit
 import FIAT
 import indices
 from derivatives import div, grad, curl

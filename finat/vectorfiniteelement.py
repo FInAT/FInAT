@@ -1,12 +1,35 @@
 from finiteelementbase import FiniteElementBase
 from derivatives import div, grad, curl
-from utils import doc_inherit, IndexSum
-from ast import Recipe
+from utils import doc_inherit
+from ast import Recipe, IndexSum, Delta
 import indices
 
 
 class VectorFiniteElement(FiniteElementBase):
+
     def __init__(self, element, dimension):
+        r"""A Finite element whose basis functions have the form:
+
+        .. math::
+
+            \boldsymbol\phi_{\alpha,i} = \mathbf{e}_{\alpha}\phi_i
+
+        Where :math:`\{\mathbf{e}_\alpha,\, \alpha=0\ldots\mathrm{dim}\}` is
+        the basis for :math:`\mathbb{R}^{\mathrm{dim}}` and
+        :math:`\{\phi_i\}` is the basis for the corresponding scalar
+        finite element space.
+
+        :param element: The scalar finite element.
+        :param dimension: The geometric dimension of the vector element.
+
+        :math:`\boldsymbol\phi_{\alpha,i}` is, of course, vector-valued. If
+        we subscript the vector-value with :math:`\beta` then we can write:
+        
+        .. math::
+           \boldsymbol\phi_{\beta,(\alpha,i)} = \delta_{\beta,\alpha}\phi_i
+
+        This form enables the simplification of the loop nests which
+        will eventually be created, so it is the form we employ here.  """
         super(VectorFiniteElement, self).__init__()
 
         self._cell = element._cell
@@ -24,12 +47,18 @@ class VectorFiniteElement(FiniteElementBase):
         # Produce the base scalar recipe
         sr = self._base_element.basis_evaluation(points, kernel_data, derivative)
 
+        # Additional basis function index along the vector dimension.
+        alpha = indices.BasisFunctionIndex(points.points.shape[1])
         # Additional dimension index along the vector dimension. Note
         # to self: is this the right order or does this index come
         # after any derivative index?
-        alpha = indices.DimensionIndex(points.points.shape[1])
+        beta = indices.DimensionIndex(points.points.shape[1])
 
-        return Recipe([alpha] + sr.indices, sr.instructions, sr.depends)
+        d, b, p = sr.split_indices
+
+        return Recipe((beta,) + d + (alpha,) + b + p,
+                      Delta((beta, alpha), sr),
+                      sr.depends)
 
     @doc_inherit
     def field_evaluation(self, field_var, points,
@@ -38,13 +67,14 @@ class VectorFiniteElement(FiniteElementBase):
         basis = self._base_element.basis_evaluation(self, points,
                                                     kernel_data, derivative)
 
-        alpha = indices.DimensionIndex(points.points.shape[1])
+        alpha = indices.BasisFunctionIndex(points.points.shape[1])
+        beta = indices.DimensionIndex(points.points.shape[1])
         ind = basis.indices
 
         if derivative is None:
-            free_ind = [alpha, ind[-1]]
+            free_ind = [beta, alpha, ind[-1]]
         else:
-            free_ind = [alpha, ind[0], ind[-1]]
+            free_ind = [beta, alpha, ind[0], ind[-1]]
 
         i = ind[-2]
 
