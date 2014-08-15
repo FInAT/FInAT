@@ -24,7 +24,7 @@ class VectorFiniteElement(FiniteElementBase):
 
         :math:`\boldsymbol\phi_{\alpha,i}` is, of course, vector-valued. If
         we subscript the vector-value with :math:`\beta` then we can write:
-        
+
         .. math::
            \boldsymbol\phi_{\beta,(\alpha,i)} = \delta_{\beta,\alpha}\phi_i
 

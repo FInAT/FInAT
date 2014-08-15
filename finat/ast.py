@@ -2,6 +2,7 @@ import pymbolic.primitives as p
 from pymbolic.mapper import IdentityMapper
 from indices import DimensionIndex, BasisFunctionIndex, PointIndex
 
+
 class _IndexMapper(IdentityMapper):
     def __init__(self, replacements):
         super(_IndexMapper, self).__init__()
@@ -135,8 +136,9 @@ class ForAll(p._MultiChildExpression):
 class Wave(p._MultiChildExpression):
     """A symbolic expression with loop-carried dependencies."""
 
-    def __init__(self, index, variables, base, expr):
+    def __init__(self, index, base, expr):
         pass
+
 
 class Delta(p._MultiChildExpression):
     """The Kronecker delta expressed as a ternary operator:
