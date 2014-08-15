@@ -64,21 +64,18 @@ class VectorFiniteElement(FiniteElementBase):
     def field_evaluation(self, field_var, points,
                          kernel_data, derivative=None):
 
-        basis = self._base_element.basis_evaluation(self, points,
+        basis = self._base_element.basis_evaluation(points,
                                                     kernel_data, derivative)
 
-        alpha = indices.BasisFunctionIndex(points.points.shape[1])
-        beta = indices.DimensionIndex(points.points.shape[1])
-        ind = basis.indices
+        alpha = indices.DimensionIndex(points.points.shape[1])
 
-        if derivative is None:
-            free_ind = [beta, alpha, ind[-1]]
-        else:
-            free_ind = [beta, alpha, ind[0], ind[-1]]
+        d, b, p = basis.split_indices
 
-        i = ind[-2]
+        free_ind = (alpha,) + d + p
 
-        instructions = [IndexSum(i, field_var[i, alpha] * basis[ind])]
+        i = b[0]
+
+        instructions = IndexSum(i, field_var[i, alpha] * basis)
 
         depends = [field_var]
 

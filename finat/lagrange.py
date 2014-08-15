@@ -80,11 +80,11 @@ class Lagrange(FiniteElementBase):
         i = indices.BasisFunctionIndex(fiat_element.space_dimension())
         q = indices.PointIndex(points.points.shape[0])
 
-        ind = [i, q]
+        ind = (i, q)
 
         if derivative is grad:
             alpha = indices.DimensionIndex(points.points.shape[1])
-            ind = [alpha] + ind
+            ind = (alpha,) + ind
 
         return phi, ind
 
@@ -106,13 +106,13 @@ class Lagrange(FiniteElementBase):
         phi, ind = self._tabulation_variable(points, kernel_data, derivative)
 
         if derivative is None:
-            free_ind = [ind[-1]]
+            free_ind = (ind[-1],)
         else:
-            free_ind = [ind[0], ind[-1]]
+            free_ind = (ind[0], ind[-1])
 
         i = ind[-2]
 
-        instructions = [IndexSum([i], field_var[i] * phi[ind])]
+        instructions = [IndexSum((i,), field_var[i] * phi[ind])]
 
         depends = [field_var]
 

@@ -1,6 +1,7 @@
 import pymbolic.primitives as p
 from pymbolic.mapper import IdentityMapper
-from indices import DimensionIndex, BasisFunctionIndex, PointIndex
+from pymbolic.mapper.stringifier import StringifyMapper, PREC_NONE
+from indices import IndexBase, DimensionIndex, BasisFunctionIndex, PointIndex
 
 
 class _IndexMapper(IdentityMapper):
@@ -24,14 +25,24 @@ class _IndexMapper(IdentityMapper):
             return super(_IndexMapper, self).map_foreign(expr, *args)
 
 
-# Probably Recipe should be a pymbolic.Expression
-class Recipe(object):
+class _StringifyMapper(StringifyMapper):
+
+    def map_recipe(self, expr, enclosing_prec):
+        return self.format("Recipe(%s, %s)",
+                           self.rec(expr.indices, PREC_NONE),
+                           self.rec(expr.instructions, PREC_NONE))
+
+
+class Recipe(p.Expression):
     """AST snippets and data corresponding to some form of finite element
     evaluation."""
     def __init__(self, indices, instructions, depends):
         self._indices = tuple(indices)
         self._instructions = instructions
         self._depends = tuple(depends)
+        self.children = instructions
+
+    mapper_method = "map_recipe"
 
     @property
     def indices(self):
@@ -70,6 +81,9 @@ class Recipe(object):
 
         return self._depends
 
+    def __getinitargs__(self):
+        return self._indices, self._instructions, self._depends
+
     def __getitem__(self, index):
 
         replacements = {}
@@ -86,6 +100,9 @@ class Recipe(object):
             replacements[self.indices[0]] = index
 
         return self.replace_indices(replacements)
+
+    def stringifier(self):
+        return _StringifyMapper
 
     def __str__(self):
         return "Recipe(%s, %s)" % (self._indices, self._instructions)
@@ -104,6 +121,11 @@ class IndexSum(p._MultiChildExpression):
     :param body: the expression to sum.
     """
     def __init__(self, indices, body):
+
+        if isinstance(indices[0], IndexBase):
+            indices = tuple(indices)
+        else:
+            indices = (indices,)
 
         self.children = (indices, body)
 
