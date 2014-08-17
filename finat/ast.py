@@ -1,3 +1,6 @@
+"""This module defines the additional Pymbolic nodes which are
+required to define Finite Element expressions in FInAT.
+"""
 import pymbolic.primitives as p
 from pymbolic.mapper import IdentityMapper
 from pymbolic.mapper.stringifier import StringifyMapper, PREC_NONE
@@ -165,6 +168,32 @@ class Wave(p._MultiChildExpression):
         pass
 
 
+class Let(p._MultiChildExpression):
+    """A Let expression enables local variable bindings in an
+expression. This feature is lifted more or less directly from
+Scheme.
+
+:param bindings: A tuple of pairs. The first entry in each pair is a
+    :class:`pymbolic.Variable` to be defined as the second entry, which
+    must be an expression.
+:param body: The expression making up the body of the expression. The
+    value of the Let expression is the value of this expression.
+
+    """
+
+    def __init__(self, bindings, body):
+        try:
+            for b in bindings:
+                assert len(b) == 2
+        except:
+            raise FInATSyntaxError("Let bindings must be a tuple of pairs")
+
+        super(Wave, self).__init__((bindings, body))
+
+    def __str__(self):
+        return "Let(%s)" % self.children
+
+
 class Delta(p._MultiChildExpression):
     """The Kronecker delta expressed as a ternary operator:
 
@@ -172,17 +201,27 @@ class Delta(p._MultiChildExpression):
 
     \delta[i_0,i_1]*\mathrm{body}.
 
-:params indices: a sequence of indices.
-:params body: an expression.
+:param indices: a sequence of indices.
+:param body: an expression.
 
-The body expression will be returned if the values of the indices match. Otherwise 0 will be returned.
+The body expression will be returned if the values of the indices
+match. Otherwise 0 will be returned.
+
     """
     def __init__(self, indices, body):
+        if len(indices != 2):
+            raise FInATSyntaxError(
+                "Delta statement requires exactly two indices")
 
-        self.children = (indices, body)
+        super(Delta, self).__init__((indices, body))
 
     def __getinitargs__(self):
         return self.children
 
     def __str__(self):
         return "Delta(%s, %s)" % self.children
+
+
+class FInATSyntaxError(Exception):
+    """Exception raised when the syntax rules of the FInAT ast are violated."""
+    pass
