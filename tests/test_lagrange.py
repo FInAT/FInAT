@@ -27,7 +27,7 @@ def test_build_lagrange(lagrange, points, derivative):
 
     recipe = lagrange.basis_evaluation(points,
                                        kernel_data, derivative)
-    sh = np.array([i.extent.stop for i in recipe.indices])
+    sh = np.array([i.extent.stop for j in recipe.indices for i in j])
 
     assert not all(sh - kernel_data.static.values()[0][1]().shape)
 
@@ -40,7 +40,7 @@ def test_lagrange_field(lagrange, points):
                                        points,
                                        kernel_data)
 
-    print recipe.instructions[0]
+    print recipe.expression
     print [data() for (name, data) in kernel_data.static.values()]
 
     assert lagrange
@@ -58,15 +58,42 @@ def test_lagrange_moment(lagrange):
 
     kernel_data = finat.KernelData()
 
-    recipe = lagrange.moment_evaluation(p.Variable("f"),
+    q = finat.indices.PointIndex(3)
+
+    v = finat.ast.Recipe(((), (), (q,)), p.Variable("f")[q])
+
+    recipe = lagrange.moment_evaluation(v,
                                         weights,
                                         points,
                                         kernel_data)
 
-    print recipe.instructions[0]
+    print recipe.expression
     print [data() for (name, data) in kernel_data.static.values()]
 
     assert lagrange
+
+
+def test_lagrange_2form_moment(lagrange):
+
+    lattice = lagrange.cell.make_lattice(1)
+
+    # trivial weights so that I don't have to wrap a quadrature rule here.
+    # not hard to fix, but I want to get the rule running
+    weights = finat.PointSet(np.ones((len(lattice),)))
+
+    points = finat.PointSet(lattice)
+
+    kernel_data = finat.KernelData()
+
+    trial = lagrange.basis_evaluation(points, kernel_data)
+
+    recipe = lagrange.moment_evaluation(trial,
+                                        weights,
+                                        points,
+                                        kernel_data)
+
+    print recipe
+    assert recipe
 
 
 def test_lagrange_tabulate(lagrange, points):

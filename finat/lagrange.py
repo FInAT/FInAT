@@ -57,11 +57,11 @@ class Lagrange(FiniteElementBase):
             raise ValueError(
                 "Lagrange elements do not have a %s operation") % derivative
 
-    def _tabulation_variable(self, points, kernel_data, derivative):
+    def basis_evaluation(self, points, kernel_data, derivative=None):
         '''Produce the variable for the tabulation of the basis
         functions or their derivative. Also return the relevant indices.
 
-        updates the requisite static data, which in this case
+        updates the requisite static kernel data, which in this case
         is just the matrix.
         '''
         static_key = (id(self), id(points), id(derivative))
@@ -80,67 +80,42 @@ class Lagrange(FiniteElementBase):
         i = indices.BasisFunctionIndex(fiat_element.space_dimension())
         q = indices.PointIndex(points.points.shape[0])
 
-        ind = (i, q)
-
         if derivative is grad:
             alpha = indices.DimensionIndex(points.points.shape[1])
-            ind = (alpha,) + ind
+            ind = ((alpha,), (i,), (q,))
+        else:
+            ind = ((), (i,), (q,))
 
-        return phi, ind
-
-    @doc_inherit
-    def basis_evaluation(self, points, kernel_data, derivative=None):
-
-        phi, ind = self._tabulation_variable(points, kernel_data, derivative)
-
-        instructions = [phi[ind]]
-
-        depends = []
-
-        return Recipe(ind, instructions, depends)
+        return Recipe(indices=ind, expression=phi[ind[0] + ind[1] + ind[2]])
 
     @doc_inherit
     def field_evaluation(self, field_var, points,
                          kernel_data, derivative=None):
 
-        phi, ind = self._tabulation_variable(points, kernel_data, derivative)
+        basis = self.basis_evaluation(points, kernel_data, derivative)
+        (d, b, p) = basis.indices
+        phi = basis.expression
 
-        if derivative is None:
-            free_ind = (ind[-1],)
-        else:
-            free_ind = (ind[0], ind[-1])
+        expr = IndexSum(b, field_var[b[0]] * phi)
 
-        i = ind[-2]
-
-        instructions = [IndexSum((i,), field_var[i] * phi[ind])]
-
-        depends = [field_var]
-
-        return Recipe(free_ind, instructions, depends)
+        return Recipe((d, (), p), expr)
 
     @doc_inherit
     def moment_evaluation(self, value, weights, points,
                           kernel_data, derivative=None):
 
-        phi, ind = self._tabulation_variable(points, kernel_data, derivative)
+        basis = self.basis_evaluation(points, kernel_data, derivative)
+        (d, b, p) = basis.indices
+        phi = basis.expression
+
+        (d_, b_, p_) = value.indices
+        psi = value.replace_indices(zip(d_ + p_, d + p)).expression
+
         w = weights.kernel_variable("w", kernel_data)
 
-        q = ind[-1]
-        if derivative is None:
-            sum_ind = [q]
-        elif derivative == grad:
-            sum_ind = [ind[0], q]
-        else:
-            raise ValueError(
-                "Lagrange elements do not have a %s operation") % derivative
+        expr = IndexSum(d + p, psi * phi * w[p])
 
-        i = ind[-2]
-
-        instructions = [IndexSum(sum_ind, value[sum_ind] * w[q] * phi[ind])]
-
-        depends = [value]
-
-        return Recipe([i], instructions, depends)
+        return Recipe(((), b + b_, ()), expr)
 
     @doc_inherit
     def pullback(self, phi, kernel_data, derivative=None):

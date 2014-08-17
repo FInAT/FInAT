@@ -13,19 +13,17 @@ class _IndexMapper(IdentityMapper):
 
         self.replacements = replacements
 
-    def map_index(self, expr):
+    def map_index(self, expr, *args):
         '''Replace indices if they are in the replacements list'''
+        print expr, self.replacements
         try:
             return(self.replacements[expr])
-        except IndexError:
+        except KeyError:
             return expr
 
-    def map_foreign(self, expr, *args):
-
-        if isinstance(expr, Recipe):
-            return Recipe.replace_indices(self.replacements)
-        else:
-            return super(_IndexMapper, self).map_foreign(expr, *args)
+    def map_recipe(self, expr, *args):
+        return Recipe(self.rec(expr.indices),
+                      self.rec(expr.expression))
 
 
 class _StringifyMapper(StringifyMapper):
@@ -33,59 +31,35 @@ class _StringifyMapper(StringifyMapper):
     def map_recipe(self, expr, enclosing_prec):
         return self.format("Recipe(%s, %s)",
                            self.rec(expr.indices, PREC_NONE),
-                           self.rec(expr.instructions, PREC_NONE))
+                           self.rec(expr.expression, PREC_NONE))
 
 
 class Recipe(p.Expression):
     """AST snippets and data corresponding to some form of finite element
-    evaluation."""
-    def __init__(self, indices, instructions, depends):
-        self._indices = tuple(indices)
-        self._instructions = instructions
-        self._depends = tuple(depends)
-        self.children = instructions
+    evaluation.
+
+    A :class:`Recipe` associates an ordered set of indices with an
+    expression.
+
+    :param indices: A 3-tuple containing the ordered free indices in the
+        expression. The first entry is a tuple of :class:`DimensionIndex`,
+        the second is a tuple of :class:`BasisFunctionIndex`, and
+        the third is a tuple of :class:`PointIndex`.
+        Any of the tuples may be empty.
+    :param expression: The expression returned by this :class:`Recipe`.
+    """
+    def __init__(self, indices, expression):
+        try:
+            assert len(indices) == 3
+        except:
+            raise FInATSyntaxError("Indices must be a triple of tuples")
+        self.indices = tuple(indices)
+        self.expression = expression
 
     mapper_method = "map_recipe"
 
-    @property
-    def indices(self):
-        '''The free indices in this :class:`Recipe`.'''
-
-        return self._indices
-
-    @property
-    def split_indices(self):
-        '''The free indices in this :class:`Recipe` split into dimension
-        indices, basis function indices, and point indices.'''
-
-        d = []
-        b = []
-        p = []
-
-        for i in self._indices:
-            if isinstance(i, DimensionIndex):
-                d.append(i)
-            elif isinstance(i, BasisFunctionIndex):
-                b.append(i)
-            if isinstance(i, PointIndex):
-                p.append(i)
-
-        return map(tuple, (d, b, p))
-
-    @property
-    def instructions(self):
-        '''The actual instructions making up this :class:`Recipe`.'''
-
-        return self._instructions
-
-    @property
-    def depends(self):
-        '''The input fields of this :class:`Recipe`.'''
-
-        return self._depends
-
     def __getinitargs__(self):
-        return self._indices, self._instructions, self._depends
+        return self.indices, self.expression
 
     def __getitem__(self, index):
 
@@ -108,11 +82,14 @@ class Recipe(p.Expression):
         return _StringifyMapper
 
     def __str__(self):
-        return "Recipe(%s, %s)" % (self._indices, self._instructions)
+        return "Recipe(%s, %s)" % (self.indices, self.expression)
 
     def replace_indices(self, replacements):
         """Return a copy of this :class:`Recipe` with some of the indices
         substituted."""
+
+        if not isinstance(replacements, dict):
+            replacements = {a: b for (a, b) in replacements}
 
         return _IndexMapper(replacements)(self)
 
@@ -136,7 +113,7 @@ class IndexSum(p._MultiChildExpression):
         return self.children
 
     def __str__(self):
-        return "IndexSum(%s, %s)" % (str([x._str_extent for x in self.children[0]]),
+        return "IndexSum(%s, %s)" % (tuple(map(str, self.children[0])),
                                      self.children[1])
 
 
@@ -164,7 +141,7 @@ class ForAll(p._MultiChildExpression):
 class Wave(p._MultiChildExpression):
     """A symbolic expression with loop-carried dependencies."""
 
-    def __init__(self, index, base, expr):
+    def __init__(self, var, index, base, expr):
         pass
 
 

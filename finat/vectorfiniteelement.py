@@ -12,9 +12,9 @@ class VectorFiniteElement(FiniteElementBase):
 
         .. math::
 
-            \boldsymbol\phi_{\alpha,i} = \mathbf{e}_{\alpha}\phi_i
+            \boldsymbol\phi_{\beta,i} = \mathbf{e}_{\beta}\phi_i
 
-        Where :math:`\{\mathbf{e}_\alpha,\, \alpha=0\ldots\mathrm{dim}\}` is
+        Where :math:`\{\mathbf{e}_\beta,\, \beta=0\ldots\mathrm{dim}\}` is
         the basis for :math:`\mathbb{R}^{\mathrm{dim}}` and
         :math:`\{\phi_i\}` is the basis for the corresponding scalar
         finite element space.
@@ -22,14 +22,14 @@ class VectorFiniteElement(FiniteElementBase):
         :param element: The scalar finite element.
         :param dimension: The geometric dimension of the vector element.
 
-        :math:`\boldsymbol\phi_{\alpha,i}` is, of course, vector-valued. If
-        we subscript the vector-value with :math:`\beta` then we can write:
+        :math:`\boldsymbol\phi_{i,\beta}` is, of course, vector-valued. If
+        we subscript the vector-value with :math:`\alpha` then we can write:
 
         .. math::
-           \boldsymbol\phi_{\beta,(\alpha,i)} = \delta_{\beta,\alpha}\phi_i
+           \boldsymbol\phi_{\alpha,(i,\beta)} = \delta_{\alpha,\beta}\phi_i
 
         This form enables the simplification of the loop nests which
-        will eventually be created, so it is the form we employ here.  """
+        will eventually be created, so it is the form we employ here."""
         super(VectorFiniteElement, self).__init__()
 
         self._cell = element._cell
@@ -39,76 +39,82 @@ class VectorFiniteElement(FiniteElementBase):
 
         self._base_element = element
 
-    @doc_inherit
     def basis_evaluation(self, points, kernel_data, derivative=None):
-        # This is incorrect. We only get the scalar value. We need to
-        # bring in some sort of delta in order to get the right rank.
+        r"""Produce the recipe for basis function evaluation at a set of points
+:math:`q`:
+
+        .. math::
+           \boldsymbol\phi_{\alpha,(i,\beta),q} = \delta_{\alpha,\beta}\phi_{i,q}
+
+        """
 
         # Produce the base scalar recipe
-        sr = self._base_element.basis_evaluation(points, kernel_data, derivative)
+        sr = self._base_element.basis_evaluation(points, kernel_data,
+                                                 derivative)
+        phi = sr.expression
+        d, b, p = sr.indices
 
-        # Additional basis function index along the vector dimension.
-        alpha = indices.BasisFunctionIndex(points.points.shape[1])
         # Additional dimension index along the vector dimension. Note
         # to self: is this the right order or does this index come
         # after any derivative index?
-        beta = indices.DimensionIndex(points.points.shape[1])
+        alpha = (indices.DimensionIndex(self._dimension),)
+        # Additional basis function index along the vector dimension.
+        beta = (indices.BasisFunctionIndex(self._dimension),)
 
-        d, b, p = sr.split_indices
+        return Recipe((alpha + d, b + beta, p), Delta(alpha + beta, phi))
 
-        return Recipe((beta,) + d + (alpha,) + b + p,
-                      Delta((beta, alpha), sr),
-                      sr.depends)
-
-    @doc_inherit
     def field_evaluation(self, field_var, points,
                          kernel_data, derivative=None):
+        r"""Produce the recipe for the evaluation of a field f at a set of
+points :math:`q`:
 
-        basis = self._base_element.basis_evaluation(points,
-                                                    kernel_data, derivative)
+        .. math::
+           \boldsymbol{f}_{\alpha,q} = \sum_i f_{i,\alpha}\phi_{i,q}
 
-        alpha = indices.DimensionIndex(points.points.shape[1])
+        """
+        # Produce the base scalar recipe
+        sr = self._base_element.basis_evaluation(points, kernel_data,
+                                                 derivative)
+        phi = sr.expression
+        d, b, p = sr.indices
 
-        d, b, p = basis.split_indices
+        # Additional basis function index along the vector dimension.
+        alpha = (indices.DimensionIndex(self._dimension),)
 
-        free_ind = (alpha,) + d + p
+        expression = IndexSum(b, field_var[b + alpha] * phi)
 
-        i = b[0]
+        return Recipe((alpha + d, (), p), expression)
 
-        instructions = IndexSum(i, field_var[i, alpha] * basis)
-
-        depends = [field_var]
-
-        return Recipe(free_ind, instructions, depends)
-
-    @doc_inherit
     def moment_evaluation(self, value, weights, points,
                           kernel_data, derivative=None):
+        r"""Produce the recipe for the evaluation of the moment of
+        :math:`u_{\alpha,q}` against a test function :math:`v_{\beta,q}`.
 
-        basis = self._base_element.basis_evaluation(self, points,
-                                                    kernel_data, derivative)
+        .. math::
+           \int u_{\alpha,q} : \phi_{\alpha,(i,\beta),q}\, \mathrm{d}x =
+           \sum_q u_{\alpha}\phi_{i,q}w_q
+
+        Appropriate code is also generated in the more general cases
+        where derivatives are involved and where the value contains
+        test functions.
+        """
+
+        # Produce the base scalar recipe
+        sr = self._base_element.basis_evaluation(points, kernel_data,
+                                                 derivative)
+        phi = sr.expression
+        d, b, p = sr.indices
+
+        beta = (indices.BasisFunctionIndex(self._dimension),)
+
+        (d_, b_, p_) = value.indices
+        psi = value.replace_indices(zip(d_ + p_, beta + d + p)).expression
+
         w = weights.kernel_variable("w", kernel_data)
-        ind = basis.indices
 
-        q = ind[-1]
-        alpha = indices.DimensionIndex(points.points.shape[1])
+        expression = IndexSum(d + p, psi * phi * w[p])
 
-        if derivative is None:
-            sum_ind = [q]
-        elif derivative == grad:
-            sum_ind = [ind[0], q]
-        else:
-            raise NotImplementedError()
-
-        value_ind = [alpha] + sum_ind
-
-        instructions = [IndexSum(sum_ind, value[value_ind] * w[q] * basis[ind])]
-
-        depends = [value]
-
-        free_ind = [alpha, ind[-2]]
-
-        return Recipe(free_ind, instructions, depends)
+        return Recipe(((), b + beta + b_, ()), expression)
 
     @doc_inherit
     def pullback(self, phi, kernel_data, derivative=None):
