@@ -15,15 +15,22 @@ class _IndexMapper(IdentityMapper):
 
     def map_index(self, expr, *args):
         '''Replace indices if they are in the replacements list'''
-        print expr, self.replacements
+
         try:
             return(self.replacements[expr])
         except KeyError:
             return expr
 
     def map_recipe(self, expr, *args):
-        return Recipe(self.rec(expr.indices),
-                      self.rec(expr.expression))
+        return expr.__class__(self.rec(expr.indices, *args),
+                              self.rec(expr.expression, *args))
+
+    def map_delta(self, expr, *args):
+        return expr.__class__(*(self.rec(c, *args) for c in expr.children))
+
+    map_let = map_delta
+    map_for_all = map_delta
+    map_wave = map_delta
 
 
 class _StringifyMapper(StringifyMapper):
@@ -32,6 +39,10 @@ class _StringifyMapper(StringifyMapper):
         return self.format("Recipe(%s, %s)",
                            self.rec(expr.indices, PREC_NONE),
                            self.rec(expr.expression, PREC_NONE))
+
+    def map_delta(self, expr, *args):
+        return self.format("Delta(%s, %s)",
+                           *(self.rec(c, *args) for c in expr.children))
 
 
 class Recipe(p.Expression):
@@ -116,6 +127,8 @@ class IndexSum(p._MultiChildExpression):
         return "IndexSum(%s, %s)" % (tuple(map(str, self.children[0])),
                                      self.children[1])
 
+    mapper_method = "map_index_sum"
+
 
 class ForAll(p._MultiChildExpression):
     """A symbolic expression to indicate that the body will actually be
@@ -136,6 +149,8 @@ class ForAll(p._MultiChildExpression):
     def __str__(self):
         return "ForAll(%s, %s)" % (str([x._str_extent for x in self.children[0]]),
                                    self.children[1])
+
+    mapper_method = "map_for_all"
 
 
 class Wave(p._MultiChildExpression):
@@ -170,6 +185,8 @@ Scheme.
     def __str__(self):
         return "Let(%s)" % self.children
 
+    mapper_method = "map_let"
+
 
 class Delta(p._MultiChildExpression):
     """The Kronecker delta expressed as a ternary operator:
@@ -186,7 +203,7 @@ match. Otherwise 0 will be returned.
 
     """
     def __init__(self, indices, body):
-        if len(indices != 2):
+        if len(indices) != 2:
             raise FInATSyntaxError(
                 "Delta statement requires exactly two indices")
 
@@ -197,6 +214,11 @@ match. Otherwise 0 will be returned.
 
     def __str__(self):
         return "Delta(%s, %s)" % self.children
+
+    mapper_method = "map_delta"
+
+    def stringifier(self):
+        return _StringifyMapper
 
 
 class FInATSyntaxError(Exception):
