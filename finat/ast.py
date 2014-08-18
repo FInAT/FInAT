@@ -42,7 +42,12 @@ class _StringifyMapper(StringifyMapper):
 
     def map_delta(self, expr, *args):
         return self.format("Delta(%s, %s)",
-                           *(self.rec(c, *args) for c in expr.children))
+                           *[self.rec(c, *args) for c in expr.children])
+
+    def map_index_sum(self, expr, *args):
+        return self.format("IndexSum((%s), %s)",
+                           " ".join(self.rec(c, *args) + "," for c in expr.children[0]),
+                           self.rec(expr.children[1], *args))
 
 
 class Recipe(p.Expression):
@@ -91,9 +96,6 @@ class Recipe(p.Expression):
 
     def stringifier(self):
         return _StringifyMapper
-
-    def __str__(self):
-        return "Recipe(%s, %s)" % (self.indices, self.expression)
 
     def replace_indices(self, replacements):
         """Return a copy of this :class:`Recipe` with some of the indices
