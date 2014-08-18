@@ -35,6 +35,8 @@ def test_build_lagrange(lagrange, coords, points, derivative):
                                        kernel_data, derivative)
     sh = np.array([i.extent.stop for j in recipe.indices for i in j])
 
+    print recipe
+    assert False
     assert not all(sh - kernel_data.static.values()[0][1]().shape)
 
 

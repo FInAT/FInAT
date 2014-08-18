@@ -66,7 +66,7 @@ class DimensionIndex(IndexBase):
     geometric or vector components.'''
     def __init__(self, extent):
 
-        name = 'alpha_' + str(DimensionIndex._count)
+        name = u'\u03B1_'.encode("utf-8") + str(DimensionIndex._count)
         DimensionIndex._count += 1
 
         super(DimensionIndex, self).__init__(extent, name)

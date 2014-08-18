@@ -71,8 +71,8 @@ class Lagrange(FiniteElementBase):
         if static_key in static_data:
             phi = static_data[static_key][0]
         else:
-            phi = p.Variable(('phi_e' if derivative is None else "dphi_e")
-                             + str(self._id))
+            phi = p.Variable((u'\u03C6_e'.encode("utf-8") if derivative is None
+                             else u"d\u03C6_e".encode("utf-8")) + str(self._id))
             data = self._tabulate(points, derivative)
             static_data[static_key] = (phi, lambda: data)
 
