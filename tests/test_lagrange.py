@@ -36,7 +36,6 @@ def test_build_lagrange(lagrange, coords, points, derivative):
     sh = np.array([i.extent.stop for j in recipe.indices for i in j])
 
     print recipe
-    assert False
     assert not all(sh - kernel_data.static.values()[0][1]().shape)
 
 
@@ -119,7 +118,7 @@ def test_lagrange_tabulate_grad(lagrange, points):
                     [-1.0, 0.0, 1.0]])
 
     assert (tab.shape == (2, 3, 3))
-    assert (np.abs(ans - tab[:, :, 0]) < 1.e-15).all()
+    assert (np.abs(ans - tab[:, :, 0]) < 1.e-14).all()
 
 
 def test_lagrange_lattice(lagrange):
