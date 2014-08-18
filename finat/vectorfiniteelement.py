@@ -1,6 +1,5 @@
 from finiteelementbase import FiniteElementBase
 from derivatives import div, grad, curl
-from utils import doc_inherit
 from ast import Recipe, IndexSum, Delta
 import indices
 
@@ -116,7 +115,6 @@ points :math:`q`:
 
         return Recipe(((), b + beta + b_, ()), expression)
 
-    @doc_inherit
     def pullback(self, phi, kernel_data, derivative=None):
 
         if derivative is None:

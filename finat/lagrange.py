@@ -1,7 +1,6 @@
 import pymbolic.primitives as p
 from finiteelementbase import FiniteElementBase
 from ast import Recipe, IndexSum
-from utils import doc_inherit
 import FIAT
 import indices
 from derivatives import div, grad, curl
@@ -95,7 +94,6 @@ class Lagrange(FiniteElementBase):
 
         return Recipe(indices=ind, expression=expr)
 
-    @doc_inherit
     def field_evaluation(self, field_var, points,
                          kernel_data, derivative=None, pullback=True):
 
@@ -107,7 +105,6 @@ class Lagrange(FiniteElementBase):
 
         return Recipe((d, (), p), expr)
 
-    @doc_inherit
     def moment_evaluation(self, value, weights, points,
                           kernel_data, derivative=None, pullback=True):
 
@@ -124,7 +121,6 @@ class Lagrange(FiniteElementBase):
 
         return Recipe(((), b + b_, ()), expr)
 
-    @doc_inherit
     def pullback(self, phi, kernel_data, derivative=None):
 
         if derivative is None:
