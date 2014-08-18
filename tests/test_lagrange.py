@@ -19,11 +19,17 @@ def points(lagrange):
     return finat.PointSet(lattice)
 
 
+@pytest.fixture
+def coords(lagrange):
+
+    return finat.VectorFiniteElement(lagrange, 2)
+
+
 @pytest.mark.parametrize(['derivative'],
                          [[None], [finat.grad]])
-def test_build_lagrange(lagrange, points, derivative):
+def test_build_lagrange(lagrange, coords, points, derivative):
 
-    kernel_data = finat.KernelData()
+    kernel_data = finat.KernelData(coords)
 
     recipe = lagrange.basis_evaluation(points,
                                        kernel_data, derivative)
@@ -32,9 +38,9 @@ def test_build_lagrange(lagrange, points, derivative):
     assert not all(sh - kernel_data.static.values()[0][1]().shape)
 
 
-def test_lagrange_field(lagrange, points):
+def test_lagrange_field(lagrange, coords, points):
 
-    kernel_data = finat.KernelData()
+    kernel_data = finat.KernelData(coords)
 
     recipe = lagrange.field_evaluation(p.Variable("u"),
                                        points,
@@ -46,7 +52,7 @@ def test_lagrange_field(lagrange, points):
     assert lagrange
 
 
-def test_lagrange_moment(lagrange):
+def test_lagrange_moment(lagrange, coords):
 
     lattice = lagrange.cell.make_lattice(1)
 
@@ -56,7 +62,7 @@ def test_lagrange_moment(lagrange):
 
     points = finat.PointSet(lattice)
 
-    kernel_data = finat.KernelData()
+    kernel_data = finat.KernelData(coords)
 
     q = finat.indices.PointIndex(3)
 
@@ -73,7 +79,7 @@ def test_lagrange_moment(lagrange):
     assert lagrange
 
 
-def test_lagrange_2form_moment(lagrange):
+def test_lagrange_2form_moment(lagrange, coords):
 
     lattice = lagrange.cell.make_lattice(1)
 
@@ -83,7 +89,7 @@ def test_lagrange_2form_moment(lagrange):
 
     points = finat.PointSet(lattice)
 
-    kernel_data = finat.KernelData()
+    kernel_data = finat.KernelData(coords)
 
     trial = lagrange.basis_evaluation(points, kernel_data)
 
