@@ -117,7 +117,7 @@ def test_lagrange_tabulate_grad(lagrange, points):
                     [-1.0, 0.0, 1.0]])
 
     assert (tab.shape == (2, 3, 3))
-    assert (ans - tab[:, :, 0] < 1.e-15).all()
+    assert (np.abs(ans - tab[:, :, 0]) < 1.e-15).all()
 
 
 def test_lagrange_lattice(lagrange):
