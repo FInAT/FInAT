@@ -28,6 +28,14 @@ finat.finiteelementbase module
     :undoc-members:
     :show-inheritance:
 
+finat.hdiv module
+-----------------
+
+.. automodule:: finat.hdiv
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 finat.indices module
 --------------------
 

@@ -294,6 +294,35 @@ substituted.</p>
 <div class="section" id="module-finat.finiteelementbase">
 <span id="finat-finiteelementbase-module"></span><h2>finat.finiteelementbase module<a class="headerlink" href="#module-finat.finiteelementbase" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
+<dt id="finat.finiteelementbase.FiatElement">
+<em class="property">class </em><tt class="descclassname">finat.finiteelementbase.</tt><tt class="descname">FiatElement</tt><span class="sig-paren">(</span><em>cell</em>, <em>degree</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/finiteelementbase.html#FiatElement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.finiteelementbase.FiatElement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#finat.finiteelementbase.FiniteElementBase" title="finat.finiteelementbase.FiniteElementBase"><tt class="xref py py-class docutils literal"><span class="pre">finat.finiteelementbase.FiniteElementBase</span></tt></a></p>
+<p>A finite element for which the tabulation is provided by FIAT.</p>
+<dl class="attribute">
+<dt id="finat.finiteelementbase.FiatElement.entity_closure_dofs">
+<tt class="descname">entity_closure_dofs</tt><a class="reference internal" href="_modules/finat/finiteelementbase.html#FiatElement.entity_closure_dofs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.finiteelementbase.FiatElement.entity_closure_dofs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the map of topological entities to degrees of
+freedom on the closure of those entities for the finite element.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="finat.finiteelementbase.FiatElement.entity_dofs">
+<tt class="descname">entity_dofs</tt><a class="reference internal" href="_modules/finat/finiteelementbase.html#FiatElement.entity_dofs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.finiteelementbase.FiatElement.entity_dofs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the map of topological entities to degrees of
+freedom for the finite element.</p>
+<p>Note that entity numbering needs to take into account the tensor case.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="finat.finiteelementbase.FiatElement.facet_support_dofs">
+<tt class="descname">facet_support_dofs</tt><a class="reference internal" href="_modules/finat/finiteelementbase.html#FiatElement.facet_support_dofs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.finiteelementbase.FiatElement.facet_support_dofs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the map of facet id to the degrees of freedom for which the
+corresponding basis functions take non-zero values.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="finat.finiteelementbase.FiniteElementBase">
 <em class="property">class </em><tt class="descclassname">finat.finiteelementbase.</tt><tt class="descname">FiniteElementBase</tt><a class="reference internal" href="_modules/finat/finiteelementbase.html#FiniteElementBase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.finiteelementbase.FiniteElementBase" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
@@ -396,6 +425,21 @@ under this derivative.</p>
 </dd></dl>
 
 </div>
+<div class="section" id="module-finat.hdiv">
+<span id="finat-hdiv-module"></span><h2>finat.hdiv module<a class="headerlink" href="#module-finat.hdiv" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="finat.hdiv.HDivElement">
+<em class="property">class </em><tt class="descclassname">finat.hdiv.</tt><tt class="descname">HDivElement</tt><span class="sig-paren">(</span><em>cell</em>, <em>degree</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/hdiv.html#HDivElement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.hdiv.HDivElement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#finat.finiteelementbase.FiatElement" title="finat.finiteelementbase.FiatElement"><tt class="xref py py-class docutils literal"><span class="pre">finat.finiteelementbase.FiatElement</span></tt></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="finat.hdiv.RaviartThomas">
+<em class="property">class </em><tt class="descclassname">finat.hdiv.</tt><tt class="descname">RaviartThomas</tt><span class="sig-paren">(</span><em>cell</em>, <em>degree</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/hdiv.html#RaviartThomas"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.hdiv.RaviartThomas" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#finat.hdiv.HDivElement" title="finat.hdiv.HDivElement"><tt class="xref py py-class docutils literal"><span class="pre">finat.hdiv.HDivElement</span></tt></a></p>
+</dd></dl>
+
+</div>
 <div class="section" id="module-finat.indices">
 <span id="finat-indices-module"></span><h2>finat.indices module<a class="headerlink" href="#module-finat.indices" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
@@ -448,53 +492,43 @@ geometric or vector components.</p>
 <div class="section" id="module-finat.lagrange">
 <span id="finat-lagrange-module"></span><h2>finat.lagrange module<a class="headerlink" href="#module-finat.lagrange" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
+<dt id="finat.lagrange.DiscontinuousLagrange">
+<em class="property">class </em><tt class="descclassname">finat.lagrange.</tt><tt class="descname">DiscontinuousLagrange</tt><span class="sig-paren">(</span><em>cell</em>, <em>degree</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/lagrange.html#DiscontinuousLagrange"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.lagrange.DiscontinuousLagrange" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#finat.lagrange.ScalarElement" title="finat.lagrange.ScalarElement"><tt class="xref py py-class docutils literal"><span class="pre">finat.lagrange.ScalarElement</span></tt></a></p>
+</dd></dl>
+
+<dl class="class">
 <dt id="finat.lagrange.Lagrange">
 <em class="property">class </em><tt class="descclassname">finat.lagrange.</tt><tt class="descname">Lagrange</tt><span class="sig-paren">(</span><em>cell</em>, <em>degree</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/lagrange.html#Lagrange"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.lagrange.Lagrange" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#finat.finiteelementbase.FiniteElementBase" title="finat.finiteelementbase.FiniteElementBase"><tt class="xref py py-class docutils literal"><span class="pre">finat.finiteelementbase.FiniteElementBase</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#finat.lagrange.ScalarElement" title="finat.lagrange.ScalarElement"><tt class="xref py py-class docutils literal"><span class="pre">finat.lagrange.ScalarElement</span></tt></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="finat.lagrange.ScalarElement">
+<em class="property">class </em><tt class="descclassname">finat.lagrange.</tt><tt class="descname">ScalarElement</tt><span class="sig-paren">(</span><em>cell</em>, <em>degree</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/lagrange.html#ScalarElement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.lagrange.ScalarElement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#finat.finiteelementbase.FiatElement" title="finat.finiteelementbase.FiatElement"><tt class="xref py py-class docutils literal"><span class="pre">finat.finiteelementbase.FiatElement</span></tt></a></p>
 <dl class="method">
-<dt id="finat.lagrange.Lagrange.basis_evaluation">
-<tt class="descname">basis_evaluation</tt><span class="sig-paren">(</span><em>points</em>, <em>kernel_data</em>, <em>derivative=None</em>, <em>pullback=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/lagrange.html#Lagrange.basis_evaluation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.lagrange.Lagrange.basis_evaluation" title="Permalink to this definition">¶</a></dt>
+<dt id="finat.lagrange.ScalarElement.basis_evaluation">
+<tt class="descname">basis_evaluation</tt><span class="sig-paren">(</span><em>points</em>, <em>kernel_data</em>, <em>derivative=None</em>, <em>pullback=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/lagrange.html#ScalarElement.basis_evaluation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.lagrange.ScalarElement.basis_evaluation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Produce the variable for the tabulation of the basis
 functions or their derivative. Also return the relevant indices.</p>
 <p>updates the requisite static kernel data, which in this case
 is just the matrix.</p>
 </dd></dl>
 
-<dl class="attribute">
-<dt id="finat.lagrange.Lagrange.entity_closure_dofs">
-<tt class="descname">entity_closure_dofs</tt><a class="reference internal" href="_modules/finat/lagrange.html#Lagrange.entity_closure_dofs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.lagrange.Lagrange.entity_closure_dofs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the map of topological entities to degrees of
-freedom on the closure of those entities for the finite element.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="finat.lagrange.Lagrange.entity_dofs">
-<tt class="descname">entity_dofs</tt><a class="reference internal" href="_modules/finat/lagrange.html#Lagrange.entity_dofs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.lagrange.Lagrange.entity_dofs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the map of topological entities to degrees of
-freedom for the finite element.</p>
-<p>Note that entity numbering needs to take into account the tensor case.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="finat.lagrange.Lagrange.facet_support_dofs">
-<tt class="descname">facet_support_dofs</tt><a class="reference internal" href="_modules/finat/lagrange.html#Lagrange.facet_support_dofs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.lagrange.Lagrange.facet_support_dofs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the map of facet id to the degrees of freedom for which the
-corresponding basis functions take non-zero values.</p>
-</dd></dl>
-
 <dl class="method">
-<dt id="finat.lagrange.Lagrange.field_evaluation">
-<tt class="descname">field_evaluation</tt><span class="sig-paren">(</span><em>field_var</em>, <em>points</em>, <em>kernel_data</em>, <em>derivative=None</em>, <em>pullback=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/lagrange.html#Lagrange.field_evaluation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.lagrange.Lagrange.field_evaluation" title="Permalink to this definition">¶</a></dt>
+<dt id="finat.lagrange.ScalarElement.field_evaluation">
+<tt class="descname">field_evaluation</tt><span class="sig-paren">(</span><em>field_var</em>, <em>points</em>, <em>kernel_data</em>, <em>derivative=None</em>, <em>pullback=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/lagrange.html#ScalarElement.field_evaluation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.lagrange.ScalarElement.field_evaluation" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="finat.lagrange.Lagrange.moment_evaluation">
-<tt class="descname">moment_evaluation</tt><span class="sig-paren">(</span><em>value</em>, <em>weights</em>, <em>points</em>, <em>kernel_data</em>, <em>derivative=None</em>, <em>pullback=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/lagrange.html#Lagrange.moment_evaluation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.lagrange.Lagrange.moment_evaluation" title="Permalink to this definition">¶</a></dt>
+<dt id="finat.lagrange.ScalarElement.moment_evaluation">
+<tt class="descname">moment_evaluation</tt><span class="sig-paren">(</span><em>value</em>, <em>weights</em>, <em>points</em>, <em>kernel_data</em>, <em>derivative=None</em>, <em>pullback=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/lagrange.html#ScalarElement.moment_evaluation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.lagrange.ScalarElement.moment_evaluation" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="finat.lagrange.Lagrange.pullback">
-<tt class="descname">pullback</tt><span class="sig-paren">(</span><em>phi</em>, <em>kernel_data</em>, <em>derivative=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/lagrange.html#Lagrange.pullback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.lagrange.Lagrange.pullback" title="Permalink to this definition">¶</a></dt>
+<dt id="finat.lagrange.ScalarElement.pullback">
+<tt class="descname">pullback</tt><span class="sig-paren">(</span><em>phi</em>, <em>kernel_data</em>, <em>derivative=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/lagrange.html#ScalarElement.pullback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.lagrange.ScalarElement.pullback" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -643,7 +677,7 @@ points <span class="math">\(q\)</span>:</p>
 \sum_{\alpha q} u_{\alpha q}\epsilon_{\alpha\beta\gamma}\nabla\phi_{\gamma i q}w_q \qquad\textrm{(3D)}\]\[\int u \nabla \cdot \boldsymbol\phi_{(i \beta)}\  \mathrm{d}x =
 \sum_{q} u_q\nabla\phi_{\beta i q}w_q\]</div>
 <p>Appropriate code is also generated where the value contains
-test functions.</p>
+trial functions.</p>
 </dd></dl>
 
 <dl class="method">
