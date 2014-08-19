@@ -1,0 +1,185 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>finat.finiteelementbase &mdash; FInAT 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/fenics.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="FInAT 0.1 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+<!--[if lte IE 6]>
+<link rel="stylesheet" href="../../_static/ie6.css" type="text/css" media="screen" charset="utf-8" />
+<![endif]-->
+
+<link rel="stylesheet" href="../../_static/featured.css">
+
+
+<link rel="shortcut icon" href="../../_static/icon.ico" />
+
+
+  </head>
+  <body role="document">
+<div class="wrapper">
+  <a href="../../index.html"><img src="../../_static/banner.png" width="900px" alt="FInAT Project Banner" /></a>
+  <div id="access">
+    <div class="menu">
+      <ul>
+          <li class="page_item"><a href="https://github.com/FInAT/finat" title="GitHub">GitHub</a></li>
+<!--          <li class="page_item"><a href="../../documentation.html" title="Documentation for FInAT">Documentation</a></li>
+          <li class="page_item"><a href="../../download.html" title="Obtain the FInAT code">Download</a></li>
+          <li class="page_item"><a href="../../team.html" title="The guilty parties">Team</a></li>
+          <li class="page_item"><a href="../../publications.html" title="Publications">Publications</a></li>
+          <li class="page_item"><a href="../../funding.html" title="Our financial supporters">Funding</a></li>
+          <li class="page_item"><a href="../../contact.html" title="Getting in touch">Contact</a></li>
+          <li class="page_item"><a href="http://buildbot-ocean.ese.ic.ac.uk:8080/builders/FInAT-trunk" title="Buildbot">Buildbot</a></li>-->
+      </ul>
+    </div><!-- .menu -->
+  </div><!-- #access -->
+</div><!-- #wrapper -->
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for finat.finiteelementbase</h1><div class="highlight"><pre>
+<div class="viewcode-block" id="UndefinedError"><a class="viewcode-back" href="../../finat.html#finat.finiteelementbase.UndefinedError">[docs]</a><span class="k">class</span> <span class="nc">UndefinedError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="ne">Exception</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="FiniteElementBase"><a class="viewcode-back" href="../../finat.html#finat.finiteelementbase.FiniteElementBase">[docs]</a><span class="k">class</span> <span class="nc">FiniteElementBase</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">=</span> <span class="n">FiniteElementBase</span><span class="o">.</span><span class="n">_count</span>
+        <span class="n">FiniteElementBase</span><span class="o">.</span><span class="n">_count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="n">_count</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="FiniteElementBase.cell"><a class="viewcode-back" href="../../finat.html#finat.finiteelementbase.FiniteElementBase.cell">[docs]</a>    <span class="k">def</span> <span class="nf">cell</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Return the reference cell on which we are defined.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cell</span>
+</div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="FiniteElementBase.degree"><a class="viewcode-back" href="../../finat.html#finat.finiteelementbase.FiniteElementBase.degree">[docs]</a>    <span class="k">def</span> <span class="nf">degree</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Return the degree of the embedding polynomial space.</span>
+
+<span class="sd">        In the tensor case this is a tuple.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_degree</span>
+</div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="FiniteElementBase.entity_dofs"><a class="viewcode-back" href="../../finat.html#finat.finiteelementbase.FiniteElementBase.entity_dofs">[docs]</a>    <span class="k">def</span> <span class="nf">entity_dofs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Return the map of topological entities to degrees of</span>
+<span class="sd">        freedom for the finite element.</span>
+
+<span class="sd">        Note that entity numbering needs to take into account the tensor case.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+</div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="FiniteElementBase.entity_closure_dofs"><a class="viewcode-back" href="../../finat.html#finat.finiteelementbase.FiniteElementBase.entity_closure_dofs">[docs]</a>    <span class="k">def</span> <span class="nf">entity_closure_dofs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Return the map of topological entities to degrees of</span>
+<span class="sd">        freedom on the closure of those entities for the finite element.&#39;&#39;&#39;</span>
+
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+</div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="FiniteElementBase.facet_support_dofs"><a class="viewcode-back" href="../../finat.html#finat.finiteelementbase.FiniteElementBase.facet_support_dofs">[docs]</a>    <span class="k">def</span> <span class="nf">facet_support_dofs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Return the map of facet id to the degrees of freedom for which the</span>
+<span class="sd">        corresponding basis functions take non-zero values.&#39;&#39;&#39;</span>
+
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+</div>
+<div class="viewcode-block" id="FiniteElementBase.field_evaluation"><a class="viewcode-back" href="../../finat.html#finat.finiteelementbase.FiniteElementBase.field_evaluation">[docs]</a>    <span class="k">def</span> <span class="nf">field_evaluation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">static_data</span><span class="p">,</span> <span class="n">derivative</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Return code for evaluating a known field at known points on the</span>
+<span class="sd">        reference element.</span>
+
+<span class="sd">        Derivative is an atomic derivative operation.</span>
+
+<span class="sd">        Points is some description of the points to evaluate at</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+</div>
+<div class="viewcode-block" id="FiniteElementBase.basis_evaluation"><a class="viewcode-back" href="../../finat.html#finat.finiteelementbase.FiniteElementBase.basis_evaluation">[docs]</a>    <span class="k">def</span> <span class="nf">basis_evaluation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">static_data</span><span class="p">,</span> <span class="n">derivative</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Return code for evaluating a known field at known points on the</span>
+<span class="sd">        reference element.</span>
+
+<span class="sd">        Points is some description of the points to evaluate at</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+</div>
+<div class="viewcode-block" id="FiniteElementBase.pullback"><a class="viewcode-back" href="../../finat.html#finat.finiteelementbase.FiniteElementBase.pullback">[docs]</a>    <span class="k">def</span> <span class="nf">pullback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">derivative</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Return symbolic information about how this element pulls back</span>
+<span class="sd">        under this derivative.&#39;&#39;&#39;</span>
+
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+</div>
+<div class="viewcode-block" id="FiniteElementBase.moment_evaluation"><a class="viewcode-back" href="../../finat.html#finat.finiteelementbase.FiniteElementBase.moment_evaluation">[docs]</a>    <span class="k">def</span> <span class="nf">moment_evaluation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">static_data</span><span class="p">,</span> <span class="n">derivative</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Return code for evaluating:</span>
+
+<span class="sd">        .. math::</span>
+
+<span class="sd">            \int \mathrm{value} : v\, \mathrm{d}x</span>
+
+<span class="sd">        where :math:`v` is a test function or the derivative of a test</span>
+<span class="sd">        function, and : is the inner product operator.</span>
+
+<span class="sd">        :param value: an expression. The free indices in value must match those in v.</span>
+<span class="sd">        :param weights: a point set of quadrature weights.</span>
+<span class="sd">        :param static_data: the :class:`.KernelData` object corresponding to the current kernel.</span>
+<span class="sd">        :param derivative: the derivative to take of the test function.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+</div>
+<div class="viewcode-block" id="FiniteElementBase.dual_evaluation"><a class="viewcode-back" href="../../finat.html#finat.finiteelementbase.FiniteElementBase.dual_evaluation">[docs]</a>    <span class="k">def</span> <span class="nf">dual_evaluation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">static_data</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Return code for evaluating an expression at the dual set.</span>
+
+<span class="sd">        Note: what does the expression need to look like?</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2014, David A. Ham and Robert C. Kirby.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3a0.
+    </div>
+  </body>
+</html>

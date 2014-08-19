@@ -1,0 +1,134 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>finat.points &mdash; FInAT 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/fenics.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="FInAT 0.1 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+<!--[if lte IE 6]>
+<link rel="stylesheet" href="../../_static/ie6.css" type="text/css" media="screen" charset="utf-8" />
+<![endif]-->
+
+<link rel="stylesheet" href="../../_static/featured.css">
+
+
+<link rel="shortcut icon" href="../../_static/icon.ico" />
+
+
+  </head>
+  <body role="document">
+<div class="wrapper">
+  <a href="../../index.html"><img src="../../_static/banner.png" width="900px" alt="FInAT Project Banner" /></a>
+  <div id="access">
+    <div class="menu">
+      <ul>
+          <li class="page_item"><a href="https://github.com/FInAT/finat" title="GitHub">GitHub</a></li>
+<!--          <li class="page_item"><a href="../../documentation.html" title="Documentation for FInAT">Documentation</a></li>
+          <li class="page_item"><a href="../../download.html" title="Obtain the FInAT code">Download</a></li>
+          <li class="page_item"><a href="../../team.html" title="The guilty parties">Team</a></li>
+          <li class="page_item"><a href="../../publications.html" title="Publications">Publications</a></li>
+          <li class="page_item"><a href="../../funding.html" title="Our financial supporters">Funding</a></li>
+          <li class="page_item"><a href="../../contact.html" title="Getting in touch">Contact</a></li>
+          <li class="page_item"><a href="http://buildbot-ocean.ese.ic.ac.uk:8080/builders/FInAT-trunk" title="Buildbot">Buildbot</a></li>-->
+      </ul>
+    </div><!-- .menu -->
+  </div><!-- #access -->
+</div><!-- #wrapper -->
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for finat.points</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">pymbolic.primitives</span> <span class="kn">as</span> <span class="nn">p</span>
+
+
+<div class="viewcode-block" id="PointSetBase"><a class="viewcode-back" href="../../finat.html#finat.points.PointSetBase">[docs]</a><span class="k">class</span> <span class="nc">PointSetBase</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A way of specifying a known set of points, perhaps with some</span>
+<span class="sd">    (tensor) structure.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="PointSetBase.points"><a class="viewcode-back" href="../../finat.html#finat.points.PointSetBase.points">[docs]</a>    <span class="k">def</span> <span class="nf">points</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a flattened numpy array of points.</span>
+
+<span class="sd">        The array has shape (num_points, topological_dim).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+</div></div>
+<div class="viewcode-block" id="PointSet"><a class="viewcode-back" href="../../finat.html#finat.points.PointSet">[docs]</a><span class="k">class</span> <span class="nc">PointSet</span><span class="p">(</span><span class="n">PointSetBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A basic pointset with no internal structure.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_points</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="PointSet.points"><a class="viewcode-back" href="../../finat.html#finat.points.PointSet.points">[docs]</a>    <span class="k">def</span> <span class="nf">points</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a flattened numpy array of points.</span>
+
+<span class="sd">        The array has shape (num_points, topological_dim).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_points</span>
+</div>
+<div class="viewcode-block" id="PointSet.kernel_variable"><a class="viewcode-back" href="../../finat.html#finat.points.PointSet.kernel_variable">[docs]</a>    <span class="k">def</span> <span class="nf">kernel_variable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">kernel_data</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Produce a variable in the kernel data for this point set.&#39;&#39;&#39;</span>
+        <span class="n">static_key</span> <span class="o">=</span> <span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="p">)</span>
+
+        <span class="n">static_data</span> <span class="o">=</span> <span class="n">kernel_data</span><span class="o">.</span><span class="n">static</span>
+
+        <span class="k">if</span> <span class="n">static_key</span> <span class="ow">in</span> <span class="n">static_data</span><span class="p">:</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="n">static_data</span><span class="p">[</span><span class="n">static_key</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_points</span>
+            <span class="n">static_data</span><span class="p">[</span><span class="n">static_key</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">data</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">w</span>
+</div>
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">PointSet</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="n">i</span><span class="p">]])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">PointSet</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="n">i</span><span class="p">])</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2014, David A. Ham and Robert C. Kirby.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3a0.
+    </div>
+  </body>
+</html>

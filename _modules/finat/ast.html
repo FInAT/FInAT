@@ -1,0 +1,340 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>finat.ast &mdash; FInAT 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/fenics.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="FInAT 0.1 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+<!--[if lte IE 6]>
+<link rel="stylesheet" href="../../_static/ie6.css" type="text/css" media="screen" charset="utf-8" />
+<![endif]-->
+
+<link rel="stylesheet" href="../../_static/featured.css">
+
+
+<link rel="shortcut icon" href="../../_static/icon.ico" />
+
+
+  </head>
+  <body role="document">
+<div class="wrapper">
+  <a href="../../index.html"><img src="../../_static/banner.png" width="900px" alt="FInAT Project Banner" /></a>
+  <div id="access">
+    <div class="menu">
+      <ul>
+          <li class="page_item"><a href="https://github.com/FInAT/finat" title="GitHub">GitHub</a></li>
+<!--          <li class="page_item"><a href="../../documentation.html" title="Documentation for FInAT">Documentation</a></li>
+          <li class="page_item"><a href="../../download.html" title="Obtain the FInAT code">Download</a></li>
+          <li class="page_item"><a href="../../team.html" title="The guilty parties">Team</a></li>
+          <li class="page_item"><a href="../../publications.html" title="Publications">Publications</a></li>
+          <li class="page_item"><a href="../../funding.html" title="Our financial supporters">Funding</a></li>
+          <li class="page_item"><a href="../../contact.html" title="Getting in touch">Contact</a></li>
+          <li class="page_item"><a href="http://buildbot-ocean.ese.ic.ac.uk:8080/builders/FInAT-trunk" title="Buildbot">Buildbot</a></li>-->
+      </ul>
+    </div><!-- .menu -->
+  </div><!-- #access -->
+</div><!-- #wrapper -->
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for finat.ast</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;This module defines the additional Pymbolic nodes which are</span>
+<span class="sd">required to define Finite Element expressions in FInAT.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">pymbolic.primitives</span> <span class="kn">as</span> <span class="nn">p</span>
+<span class="kn">from</span> <span class="nn">pymbolic.mapper</span> <span class="kn">import</span> <span class="n">IdentityMapper</span>
+<span class="kn">from</span> <span class="nn">pymbolic.mapper.stringifier</span> <span class="kn">import</span> <span class="n">StringifyMapper</span><span class="p">,</span> <span class="n">PREC_NONE</span>
+<span class="kn">from</span> <span class="nn">indices</span> <span class="kn">import</span> <span class="n">IndexBase</span><span class="p">,</span> <span class="n">DimensionIndex</span><span class="p">,</span> <span class="n">BasisFunctionIndex</span><span class="p">,</span> <span class="n">PointIndex</span>
+
+
+<span class="k">class</span> <span class="nc">_IndexMapper</span><span class="p">(</span><span class="n">IdentityMapper</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">replacements</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">_IndexMapper</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">replacements</span> <span class="o">=</span> <span class="n">replacements</span>
+
+    <span class="k">def</span> <span class="nf">map_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Replace indices if they are in the replacements list&#39;&#39;&#39;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">replacements</span><span class="p">[</span><span class="n">expr</span><span class="p">])</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">expr</span>
+
+    <span class="k">def</span> <span class="nf">map_recipe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">expr</span><span class="o">.</span><span class="n">__class__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rec</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">indices</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">),</span>
+                              <span class="bp">self</span><span class="o">.</span><span class="n">rec</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">expression</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">map_delta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">expr</span><span class="o">.</span><span class="n">__class__</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rec</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">expr</span><span class="o">.</span><span class="n">children</span><span class="p">))</span>
+
+    <span class="n">map_let</span> <span class="o">=</span> <span class="n">map_delta</span>
+    <span class="n">map_for_all</span> <span class="o">=</span> <span class="n">map_delta</span>
+    <span class="n">map_wave</span> <span class="o">=</span> <span class="n">map_delta</span>
+    <span class="n">map_index_sum</span> <span class="o">=</span> <span class="n">map_delta</span>
+    <span class="n">map_levi_civita</span> <span class="o">=</span> <span class="n">map_delta</span>
+
+
+<span class="k">class</span> <span class="nc">_StringifyMapper</span><span class="p">(</span><span class="n">StringifyMapper</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">map_recipe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">enclosing_prec</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;Recipe(</span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">)&quot;</span><span class="p">,</span>
+                           <span class="bp">self</span><span class="o">.</span><span class="n">rec</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">indices</span><span class="p">,</span> <span class="n">PREC_NONE</span><span class="p">),</span>
+                           <span class="bp">self</span><span class="o">.</span><span class="n">rec</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">expression</span><span class="p">,</span> <span class="n">PREC_NONE</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">map_delta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;Delta(</span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">)&quot;</span><span class="p">,</span>
+                           <span class="o">*</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rec</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">expr</span><span class="o">.</span><span class="n">children</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">map_index_sum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;IndexSum((</span><span class="si">%s</span><span class="s">), </span><span class="si">%s</span><span class="s">)&quot;</span><span class="p">,</span>
+                           <span class="s">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rec</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;,&quot;</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">expr</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                           <span class="bp">self</span><span class="o">.</span><span class="n">rec</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="o">*</span><span class="n">args</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">map_levi_civita</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;LeviCivita(</span><span class="si">%s</span><span class="s">)&quot;</span><span class="p">,</span>
+                           <span class="bp">self</span><span class="o">.</span><span class="n">join_rec</span><span class="p">(</span><span class="s">&quot;, &quot;</span><span class="p">,</span> <span class="n">expr</span><span class="o">.</span><span class="n">children</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="Recipe"><a class="viewcode-back" href="../../finat.html#finat.ast.Recipe">[docs]</a><span class="k">class</span> <span class="nc">Recipe</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">Expression</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;AST snippets and data corresponding to some form of finite element</span>
+<span class="sd">    evaluation.</span>
+
+<span class="sd">    A :class:`Recipe` associates an ordered set of indices with an</span>
+<span class="sd">    expression.</span>
+
+<span class="sd">    :param indices: A 3-tuple containing the ordered free indices in the</span>
+<span class="sd">        expression. The first entry is a tuple of :class:`DimensionIndex`,</span>
+<span class="sd">        the second is a tuple of :class:`BasisFunctionIndex`, and</span>
+<span class="sd">        the third is a tuple of :class:`PointIndex`.</span>
+<span class="sd">        Any of the tuples may be empty.</span>
+<span class="sd">    :param expression: The expression returned by this :class:`Recipe`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">expression</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">FInATSyntaxError</span><span class="p">(</span><span class="s">&quot;Indices must be a triple of tuples&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">indices</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expression</span> <span class="o">=</span> <span class="n">expression</span>
+
+    <span class="n">mapper_method</span> <span class="o">=</span> <span class="s">&quot;map_recipe&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__getinitargs__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">expression</span>
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+
+        <span class="n">replacements</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">index</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="n">index</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="nb">slice</span><span class="p">(</span><span class="bp">None</span><span class="p">):</span>
+                    <span class="c"># Don&#39;t touch colon indices.</span>
+                    <span class="k">pass</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">replacements</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="n">index</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="c"># Index wasn&#39;t iterable.</span>
+            <span class="n">replacements</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">index</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">replace_indices</span><span class="p">(</span><span class="n">replacements</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Recipe.stringifier"><a class="viewcode-back" href="../../finat.html#finat.ast.Recipe.stringifier">[docs]</a>    <span class="k">def</span> <span class="nf">stringifier</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">_StringifyMapper</span>
+</div>
+<div class="viewcode-block" id="Recipe.replace_indices"><a class="viewcode-back" href="../../finat.html#finat.ast.Recipe.replace_indices">[docs]</a>    <span class="k">def</span> <span class="nf">replace_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">replacements</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a copy of this :class:`Recipe` with some of the indices</span>
+<span class="sd">        substituted.&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">replacements</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">replacements</span> <span class="o">=</span> <span class="p">{</span><span class="n">a</span><span class="p">:</span> <span class="n">b</span> <span class="k">for</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="ow">in</span> <span class="n">replacements</span><span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">_IndexMapper</span><span class="p">(</span><span class="n">replacements</span><span class="p">)(</span><span class="bp">self</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="IndexSum"><a class="viewcode-back" href="../../finat.html#finat.ast.IndexSum">[docs]</a><span class="k">class</span> <span class="nc">IndexSum</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">_MultiChildExpression</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A symbolic expression for a sum over one or more indices.</span>
+
+<span class="sd">    :param indices: a sequence of indices over which to sum.</span>
+<span class="sd">    :param body: the expression to sum.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">body</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">IndexBase</span><span class="p">):</span>
+            <span class="n">indices</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">indices</span> <span class="o">=</span> <span class="p">(</span><span class="n">indices</span><span class="p">,)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">children</span> <span class="o">=</span> <span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__getinitargs__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span>
+
+<div class="viewcode-block" id="IndexSum.stringifier"><a class="viewcode-back" href="../../finat.html#finat.ast.IndexSum.stringifier">[docs]</a>    <span class="k">def</span> <span class="nf">stringifier</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">_StringifyMapper</span>
+</div>
+    <span class="n">mapper_method</span> <span class="o">=</span> <span class="s">&quot;map_index_sum&quot;</span>
+
+</div>
+<div class="viewcode-block" id="LeviCivita"><a class="viewcode-back" href="../../finat.html#finat.ast.LeviCivita">[docs]</a><span class="k">class</span> <span class="nc">LeviCivita</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">_MultiChildExpression</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;The Levi-Civita symbol expressed as an operator.</span>
+
+<span class="sd">    :param free: A tuple of free indices.</span>
+<span class="sd">    :param bound: A tuple of indices over which to sum.</span>
+<span class="sd">    :param body: The summand.</span>
+
+<span class="sd">    The length of free + bound must be exactly 3. The Levi-Civita</span>
+<span class="sd">    operator then represents the summation over the bound indices of</span>
+<span class="sd">    the Levi-Civita symbol times the body. For example in the case of</span>
+<span class="sd">    two bound indices:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        \mathrm{LeviCivita((\alpha,), (\beta, \gamma), body)} = \sum_{\beta,\gamma}\epsilon_{\alpha,\beta,\gamma} \mathrm{body}</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">free</span><span class="p">,</span> <span class="n">bound</span><span class="p">,</span> <span class="n">body</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">children</span> <span class="o">=</span> <span class="p">(</span><span class="n">free</span><span class="p">,</span> <span class="n">bound</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__getinitargs__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span>
+
+<div class="viewcode-block" id="LeviCivita.stringifier"><a class="viewcode-back" href="../../finat.html#finat.ast.LeviCivita.stringifier">[docs]</a>    <span class="k">def</span> <span class="nf">stringifier</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">_StringifyMapper</span>
+</div>
+    <span class="n">mapper_method</span> <span class="o">=</span> <span class="s">&quot;map_index_sum&quot;</span>
+
+</div>
+<div class="viewcode-block" id="ForAll"><a class="viewcode-back" href="../../finat.html#finat.ast.ForAll">[docs]</a><span class="k">class</span> <span class="nc">ForAll</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">_MultiChildExpression</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A symbolic expression to indicate that the body will actually be</span>
+<span class="sd">    evaluated for all of the values of its free indices. This enables</span>
+<span class="sd">    index simplification to take place.</span>
+
+<span class="sd">    :param indices: a sequence of indices to bind.</span>
+<span class="sd">    :param body: the expression to evaluate.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">body</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">children</span> <span class="o">=</span> <span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__getinitargs__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;ForAll(</span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">([</span><span class="n">x</span><span class="o">.</span><span class="n">_str_extent</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="mi">0</span><span class="p">]]),</span>
+                                   <span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="n">mapper_method</span> <span class="o">=</span> <span class="s">&quot;map_for_all&quot;</span>
+
+</div>
+<div class="viewcode-block" id="Wave"><a class="viewcode-back" href="../../finat.html#finat.ast.Wave">[docs]</a><span class="k">class</span> <span class="nc">Wave</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">_MultiChildExpression</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A symbolic expression with loop-carried dependencies.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">base</span><span class="p">,</span> <span class="n">expr</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+</div>
+<div class="viewcode-block" id="Let"><a class="viewcode-back" href="../../finat.html#finat.ast.Let">[docs]</a><span class="k">class</span> <span class="nc">Let</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">_MultiChildExpression</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A Let expression enables local variable bindings in an</span>
+<span class="sd">expression. This feature is lifted more or less directly from</span>
+<span class="sd">Scheme.</span>
+
+<span class="sd">:param bindings: A tuple of pairs. The first entry in each pair is a</span>
+<span class="sd">    :class:`pymbolic.Variable` to be defined as the second entry, which</span>
+<span class="sd">    must be an expression.</span>
+<span class="sd">:param body: The expression making up the body of the expression. The</span>
+<span class="sd">    value of the Let expression is the value of this expression.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bindings</span><span class="p">,</span> <span class="n">body</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bindings</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">b</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">FInATSyntaxError</span><span class="p">(</span><span class="s">&quot;Let bindings must be a tuple of pairs&quot;</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">Wave</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">((</span><span class="n">bindings</span><span class="p">,</span> <span class="n">body</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;Let(</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span>
+
+    <span class="n">mapper_method</span> <span class="o">=</span> <span class="s">&quot;map_let&quot;</span>
+
+</div>
+<div class="viewcode-block" id="Delta"><a class="viewcode-back" href="../../finat.html#finat.ast.Delta">[docs]</a><span class="k">class</span> <span class="nc">Delta</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">_MultiChildExpression</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The Kronecker delta expressed as a ternary operator:</span>
+
+<span class="sd">.. math::</span>
+
+<span class="sd">    \delta[i_0,i_1]*\mathrm{body}.</span>
+
+<span class="sd">:param indices: a sequence of indices.</span>
+<span class="sd">:param body: an expression.</span>
+
+<span class="sd">The body expression will be returned if the values of the indices</span>
+<span class="sd">match. Otherwise 0 will be returned.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">body</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">FInATSyntaxError</span><span class="p">(</span>
+                <span class="s">&quot;Delta statement requires exactly two indices&quot;</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">Delta</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">((</span><span class="n">indices</span><span class="p">,</span> <span class="n">body</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__getinitargs__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;Delta(</span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span>
+
+    <span class="n">mapper_method</span> <span class="o">=</span> <span class="s">&quot;map_delta&quot;</span>
+
+<div class="viewcode-block" id="Delta.stringifier"><a class="viewcode-back" href="../../finat.html#finat.ast.Delta.stringifier">[docs]</a>    <span class="k">def</span> <span class="nf">stringifier</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">_StringifyMapper</span>
+
+</div></div>
+<div class="viewcode-block" id="FInATSyntaxError"><a class="viewcode-back" href="../../finat.html#finat.ast.FInATSyntaxError">[docs]</a><span class="k">class</span> <span class="nc">FInATSyntaxError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Exception raised when the syntax rules of the FInAT ast are violated.&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2014, David A. Ham and Robert C. Kirby.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3a0.
+    </div>
+  </body>
+</html>

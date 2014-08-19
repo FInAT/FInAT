@@ -1,0 +1,673 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>finat package &mdash; FInAT 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/fenics.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="FInAT 0.1 documentation" href="index.html" />
+<!--[if lte IE 6]>
+<link rel="stylesheet" href="_static/ie6.css" type="text/css" media="screen" charset="utf-8" />
+<![endif]-->
+
+<link rel="stylesheet" href="_static/featured.css">
+
+
+<link rel="shortcut icon" href="_static/icon.ico" />
+
+
+  </head>
+  <body role="document">
+<div class="wrapper">
+  <a href="index.html"><img src="_static/banner.png" width="900px" alt="FInAT Project Banner" /></a>
+  <div id="access">
+    <div class="menu">
+      <ul>
+          <li class="page_item"><a href="https://github.com/FInAT/finat" title="GitHub">GitHub</a></li>
+<!--          <li class="page_item"><a href="documentation.html" title="Documentation for FInAT">Documentation</a></li>
+          <li class="page_item"><a href="download.html" title="Obtain the FInAT code">Download</a></li>
+          <li class="page_item"><a href="team.html" title="The guilty parties">Team</a></li>
+          <li class="page_item"><a href="publications.html" title="Publications">Publications</a></li>
+          <li class="page_item"><a href="funding.html" title="Our financial supporters">Funding</a></li>
+          <li class="page_item"><a href="contact.html" title="Getting in touch">Contact</a></li>
+          <li class="page_item"><a href="http://buildbot-ocean.ese.ic.ac.uk:8080/builders/FInAT-trunk" title="Buildbot">Buildbot</a></li>-->
+      </ul>
+    </div><!-- .menu -->
+  </div><!-- #access -->
+</div><!-- #wrapper -->
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="finat-package">
+<h1>finat package<a class="headerlink" href="#finat-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-finat.ast">
+<span id="finat-ast-module"></span><h2>finat.ast module<a class="headerlink" href="#module-finat.ast" title="Permalink to this headline">¶</a></h2>
+<p>This module defines the additional Pymbolic nodes which are
+required to define Finite Element expressions in FInAT.</p>
+<dl class="class">
+<dt id="finat.ast.Delta">
+<em class="property">class </em><tt class="descclassname">finat.ast.</tt><tt class="descname">Delta</tt><span class="sig-paren">(</span><em>indices</em>, <em>body</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ast.html#Delta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.ast.Delta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">pymbolic.primitives._MultiChildExpression</span></tt></p>
+<p>The Kronecker delta expressed as a ternary operator:</p>
+<div class="math">
+\[\delta[i_0,i_1]*\mathrm{body}.\]</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>indices</strong> &#8211; a sequence of indices.</li>
+<li><strong>body</strong> &#8211; an expression.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>The body expression will be returned if the values of the indices
+match. Otherwise 0 will be returned.</p>
+<dl class="attribute">
+<dt id="finat.ast.Delta.mapper_method">
+<tt class="descname">mapper_method</tt><em class="property"> = 'map_delta'</em><a class="headerlink" href="#finat.ast.Delta.mapper_method" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="finat.ast.Delta.stringifier">
+<tt class="descname">stringifier</tt><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ast.html#Delta.stringifier"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.ast.Delta.stringifier" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="finat.ast.FInATSyntaxError">
+<em class="property">exception </em><tt class="descclassname">finat.ast.</tt><tt class="descname">FInATSyntaxError</tt><a class="reference internal" href="_modules/finat/ast.html#FInATSyntaxError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.ast.FInATSyntaxError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://docs.python.org/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></a></p>
+<p>Exception raised when the syntax rules of the FInAT ast are violated.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="finat.ast.ForAll">
+<em class="property">class </em><tt class="descclassname">finat.ast.</tt><tt class="descname">ForAll</tt><span class="sig-paren">(</span><em>indices</em>, <em>body</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ast.html#ForAll"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.ast.ForAll" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">pymbolic.primitives._MultiChildExpression</span></tt></p>
+<p>A symbolic expression to indicate that the body will actually be
+evaluated for all of the values of its free indices. This enables
+index simplification to take place.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>indices</strong> &#8211; a sequence of indices to bind.</li>
+<li><strong>body</strong> &#8211; the expression to evaluate.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="finat.ast.ForAll.mapper_method">
+<tt class="descname">mapper_method</tt><em class="property"> = 'map_for_all'</em><a class="headerlink" href="#finat.ast.ForAll.mapper_method" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="finat.ast.IndexSum">
+<em class="property">class </em><tt class="descclassname">finat.ast.</tt><tt class="descname">IndexSum</tt><span class="sig-paren">(</span><em>indices</em>, <em>body</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ast.html#IndexSum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.ast.IndexSum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">pymbolic.primitives._MultiChildExpression</span></tt></p>
+<p>A symbolic expression for a sum over one or more indices.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>indices</strong> &#8211; a sequence of indices over which to sum.</li>
+<li><strong>body</strong> &#8211; the expression to sum.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="finat.ast.IndexSum.mapper_method">
+<tt class="descname">mapper_method</tt><em class="property"> = 'map_index_sum'</em><a class="headerlink" href="#finat.ast.IndexSum.mapper_method" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="finat.ast.IndexSum.stringifier">
+<tt class="descname">stringifier</tt><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ast.html#IndexSum.stringifier"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.ast.IndexSum.stringifier" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="finat.ast.Let">
+<em class="property">class </em><tt class="descclassname">finat.ast.</tt><tt class="descname">Let</tt><span class="sig-paren">(</span><em>bindings</em>, <em>body</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ast.html#Let"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.ast.Let" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">pymbolic.primitives._MultiChildExpression</span></tt></p>
+<p>A Let expression enables local variable bindings in an
+expression. This feature is lifted more or less directly from
+Scheme.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>bindings</strong> &#8211; A tuple of pairs. The first entry in each pair is a
+<tt class="xref py py-class docutils literal"><span class="pre">pymbolic.Variable</span></tt> to be defined as the second entry, which
+must be an expression.</li>
+<li><strong>body</strong> &#8211; The expression making up the body of the expression. The
+value of the Let expression is the value of this expression.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="finat.ast.Let.mapper_method">
+<tt class="descname">mapper_method</tt><em class="property"> = 'map_let'</em><a class="headerlink" href="#finat.ast.Let.mapper_method" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="finat.ast.LeviCivita">
+<em class="property">class </em><tt class="descclassname">finat.ast.</tt><tt class="descname">LeviCivita</tt><span class="sig-paren">(</span><em>free</em>, <em>bound</em>, <em>body</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ast.html#LeviCivita"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.ast.LeviCivita" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">pymbolic.primitives._MultiChildExpression</span></tt></p>
+<p>The Levi-Civita symbol expressed as an operator.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>free</strong> &#8211; A tuple of free indices.</li>
+<li><strong>bound</strong> &#8211; A tuple of indices over which to sum.</li>
+<li><strong>body</strong> &#8211; The summand.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>The length of free + bound must be exactly 3. The Levi-Civita
+operator then represents the summation over the bound indices of
+the Levi-Civita symbol times the body. For example in the case of
+two bound indices:</p>
+<div class="math">
+\[\mathrm{LeviCivita((\alpha,), (\beta, \gamma), body)} = \sum_{\beta,\gamma}\epsilon_{\alpha,\beta,\gamma} \mathrm{body}\]</div>
+<dl class="attribute">
+<dt id="finat.ast.LeviCivita.mapper_method">
+<tt class="descname">mapper_method</tt><em class="property"> = 'map_index_sum'</em><a class="headerlink" href="#finat.ast.LeviCivita.mapper_method" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="finat.ast.LeviCivita.stringifier">
+<tt class="descname">stringifier</tt><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ast.html#LeviCivita.stringifier"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.ast.LeviCivita.stringifier" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="finat.ast.Recipe">
+<em class="property">class </em><tt class="descclassname">finat.ast.</tt><tt class="descname">Recipe</tt><span class="sig-paren">(</span><em>indices</em>, <em>expression</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ast.html#Recipe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.ast.Recipe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">pymbolic.primitives.Expression</span></tt></p>
+<p>AST snippets and data corresponding to some form of finite element
+evaluation.</p>
+<p>A <a class="reference internal" href="#finat.ast.Recipe" title="finat.ast.Recipe"><tt class="xref py py-class docutils literal"><span class="pre">Recipe</span></tt></a> associates an ordered set of indices with an
+expression.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>indices</strong> &#8211; A 3-tuple containing the ordered free indices in the
+expression. The first entry is a tuple of <tt class="xref py py-class docutils literal"><span class="pre">DimensionIndex</span></tt>,
+the second is a tuple of <tt class="xref py py-class docutils literal"><span class="pre">BasisFunctionIndex</span></tt>, and
+the third is a tuple of <tt class="xref py py-class docutils literal"><span class="pre">PointIndex</span></tt>.
+Any of the tuples may be empty.</li>
+<li><strong>expression</strong> &#8211; The expression returned by this <a class="reference internal" href="#finat.ast.Recipe" title="finat.ast.Recipe"><tt class="xref py py-class docutils literal"><span class="pre">Recipe</span></tt></a>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="finat.ast.Recipe.mapper_method">
+<tt class="descname">mapper_method</tt><em class="property"> = 'map_recipe'</em><a class="headerlink" href="#finat.ast.Recipe.mapper_method" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="finat.ast.Recipe.replace_indices">
+<tt class="descname">replace_indices</tt><span class="sig-paren">(</span><em>replacements</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ast.html#Recipe.replace_indices"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.ast.Recipe.replace_indices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a copy of this <a class="reference internal" href="#finat.ast.Recipe" title="finat.ast.Recipe"><tt class="xref py py-class docutils literal"><span class="pre">Recipe</span></tt></a> with some of the indices
+substituted.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="finat.ast.Recipe.stringifier">
+<tt class="descname">stringifier</tt><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ast.html#Recipe.stringifier"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.ast.Recipe.stringifier" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="finat.ast.Wave">
+<em class="property">class </em><tt class="descclassname">finat.ast.</tt><tt class="descname">Wave</tt><span class="sig-paren">(</span><em>var</em>, <em>index</em>, <em>base</em>, <em>expr</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ast.html#Wave"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.ast.Wave" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">pymbolic.primitives._MultiChildExpression</span></tt></p>
+<p>A symbolic expression with loop-carried dependencies.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-finat.derivatives">
+<span id="finat-derivatives-module"></span><h2>finat.derivatives module<a class="headerlink" href="#module-finat.derivatives" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="finat.derivatives.Derivative">
+<em class="property">class </em><tt class="descclassname">finat.derivatives.</tt><tt class="descname">Derivative</tt><span class="sig-paren">(</span><em>name</em>, <em>doc</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/derivatives.html#Derivative"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.derivatives.Derivative" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Abstract symbolic object for a derivative.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-finat.finiteelementbase">
+<span id="finat-finiteelementbase-module"></span><h2>finat.finiteelementbase module<a class="headerlink" href="#module-finat.finiteelementbase" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="finat.finiteelementbase.FiniteElementBase">
+<em class="property">class </em><tt class="descclassname">finat.finiteelementbase.</tt><tt class="descname">FiniteElementBase</tt><a class="reference internal" href="_modules/finat/finiteelementbase.html#FiniteElementBase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.finiteelementbase.FiniteElementBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<dl class="method">
+<dt id="finat.finiteelementbase.FiniteElementBase.basis_evaluation">
+<tt class="descname">basis_evaluation</tt><span class="sig-paren">(</span><em>points</em>, <em>static_data</em>, <em>derivative=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/finiteelementbase.html#FiniteElementBase.basis_evaluation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.finiteelementbase.FiniteElementBase.basis_evaluation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return code for evaluating a known field at known points on the
+reference element.</p>
+<p>Points is some description of the points to evaluate at</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="finat.finiteelementbase.FiniteElementBase.cell">
+<tt class="descname">cell</tt><a class="reference internal" href="_modules/finat/finiteelementbase.html#FiniteElementBase.cell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.finiteelementbase.FiniteElementBase.cell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the reference cell on which we are defined.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="finat.finiteelementbase.FiniteElementBase.degree">
+<tt class="descname">degree</tt><a class="reference internal" href="_modules/finat/finiteelementbase.html#FiniteElementBase.degree"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.finiteelementbase.FiniteElementBase.degree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the degree of the embedding polynomial space.</p>
+<p>In the tensor case this is a tuple.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="finat.finiteelementbase.FiniteElementBase.dual_evaluation">
+<tt class="descname">dual_evaluation</tt><span class="sig-paren">(</span><em>static_data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/finiteelementbase.html#FiniteElementBase.dual_evaluation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.finiteelementbase.FiniteElementBase.dual_evaluation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return code for evaluating an expression at the dual set.</p>
+<p>Note: what does the expression need to look like?</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="finat.finiteelementbase.FiniteElementBase.entity_closure_dofs">
+<tt class="descname">entity_closure_dofs</tt><a class="reference internal" href="_modules/finat/finiteelementbase.html#FiniteElementBase.entity_closure_dofs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.finiteelementbase.FiniteElementBase.entity_closure_dofs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the map of topological entities to degrees of
+freedom on the closure of those entities for the finite element.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="finat.finiteelementbase.FiniteElementBase.entity_dofs">
+<tt class="descname">entity_dofs</tt><a class="reference internal" href="_modules/finat/finiteelementbase.html#FiniteElementBase.entity_dofs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.finiteelementbase.FiniteElementBase.entity_dofs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the map of topological entities to degrees of
+freedom for the finite element.</p>
+<p>Note that entity numbering needs to take into account the tensor case.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="finat.finiteelementbase.FiniteElementBase.facet_support_dofs">
+<tt class="descname">facet_support_dofs</tt><a class="reference internal" href="_modules/finat/finiteelementbase.html#FiniteElementBase.facet_support_dofs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.finiteelementbase.FiniteElementBase.facet_support_dofs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the map of facet id to the degrees of freedom for which the
+corresponding basis functions take non-zero values.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="finat.finiteelementbase.FiniteElementBase.field_evaluation">
+<tt class="descname">field_evaluation</tt><span class="sig-paren">(</span><em>points</em>, <em>static_data</em>, <em>derivative=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/finiteelementbase.html#FiniteElementBase.field_evaluation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.finiteelementbase.FiniteElementBase.field_evaluation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return code for evaluating a known field at known points on the
+reference element.</p>
+<p>Derivative is an atomic derivative operation.</p>
+<p>Points is some description of the points to evaluate at</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="finat.finiteelementbase.FiniteElementBase.moment_evaluation">
+<tt class="descname">moment_evaluation</tt><span class="sig-paren">(</span><em>value</em>, <em>weights</em>, <em>points</em>, <em>static_data</em>, <em>derivative=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/finiteelementbase.html#FiniteElementBase.moment_evaluation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.finiteelementbase.FiniteElementBase.moment_evaluation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return code for evaluating:</p>
+<div class="math">
+\[\int \mathrm{value} : v\, \mathrm{d}x\]</div>
+<p>where <span class="math">\(v\)</span> is a test function or the derivative of a test
+function, and : is the inner product operator.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>value</strong> &#8211; an expression. The free indices in value must match those in v.</li>
+<li><strong>weights</strong> &#8211; a point set of quadrature weights.</li>
+<li><strong>static_data</strong> &#8211; the <a class="reference internal" href="#finat.utils.KernelData" title="finat.utils.KernelData"><tt class="xref py py-class docutils literal"><span class="pre">KernelData</span></tt></a> object corresponding to the current kernel.</li>
+<li><strong>derivative</strong> &#8211; the derivative to take of the test function.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="finat.finiteelementbase.FiniteElementBase.pullback">
+<tt class="descname">pullback</tt><span class="sig-paren">(</span><em>derivative</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/finiteelementbase.html#FiniteElementBase.pullback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.finiteelementbase.FiniteElementBase.pullback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return symbolic information about how this element pulls back
+under this derivative.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="finat.finiteelementbase.UndefinedError">
+<em class="property">exception </em><tt class="descclassname">finat.finiteelementbase.</tt><tt class="descname">UndefinedError</tt><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/finiteelementbase.html#UndefinedError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.finiteelementbase.UndefinedError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://docs.python.org/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></a></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-finat.indices">
+<span id="finat-indices-module"></span><h2>finat.indices module<a class="headerlink" href="#module-finat.indices" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="finat.indices.BasisFunctionIndex">
+<em class="property">class </em><tt class="descclassname">finat.indices.</tt><tt class="descname">BasisFunctionIndex</tt><span class="sig-paren">(</span><em>extent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/indices.html#BasisFunctionIndex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.indices.BasisFunctionIndex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#finat.indices.IndexBase" title="finat.indices.IndexBase"><tt class="xref py py-class docutils literal"><span class="pre">finat.indices.IndexBase</span></tt></a></p>
+<p>An index over a local set of basis functions.
+E.g. test functions on an element.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="finat.indices.DimensionIndex">
+<em class="property">class </em><tt class="descclassname">finat.indices.</tt><tt class="descname">DimensionIndex</tt><span class="sig-paren">(</span><em>extent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/indices.html#DimensionIndex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.indices.DimensionIndex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#finat.indices.IndexBase" title="finat.indices.IndexBase"><tt class="xref py py-class docutils literal"><span class="pre">finat.indices.IndexBase</span></tt></a></p>
+<p>An index over data dimension. For example over topological,
+geometric or vector components.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="finat.indices.IndexBase">
+<em class="property">class </em><tt class="descclassname">finat.indices.</tt><tt class="descname">IndexBase</tt><span class="sig-paren">(</span><em>extent</em>, <em>name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/indices.html#IndexBase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.indices.IndexBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">pymbolic.primitives.Variable</span></tt></p>
+<p>Base class for symbolic index objects.</p>
+<dl class="attribute">
+<dt id="finat.indices.IndexBase.extent">
+<tt class="descname">extent</tt><a class="reference internal" href="_modules/finat/indices.html#IndexBase.extent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.indices.IndexBase.extent" title="Permalink to this definition">¶</a></dt>
+<dd><p>A slice indicating the values this index can take.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="finat.indices.IndexBase.get_mapper_method">
+<tt class="descname">get_mapper_method</tt><span class="sig-paren">(</span><em>mapper</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/indices.html#IndexBase.get_mapper_method"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.indices.IndexBase.get_mapper_method" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="finat.indices.IndexBase.mapper_method">
+<tt class="descname">mapper_method</tt><em class="property"> = 'map_index'</em><a class="headerlink" href="#finat.indices.IndexBase.mapper_method" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="finat.indices.PointIndex">
+<em class="property">class </em><tt class="descclassname">finat.indices.</tt><tt class="descname">PointIndex</tt><span class="sig-paren">(</span><em>extent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/indices.html#PointIndex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.indices.PointIndex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#finat.indices.IndexBase" title="finat.indices.IndexBase"><tt class="xref py py-class docutils literal"><span class="pre">finat.indices.IndexBase</span></tt></a></p>
+<p>An index running over a set of points, for example quadrature points.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-finat.lagrange">
+<span id="finat-lagrange-module"></span><h2>finat.lagrange module<a class="headerlink" href="#module-finat.lagrange" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="finat.lagrange.Lagrange">
+<em class="property">class </em><tt class="descclassname">finat.lagrange.</tt><tt class="descname">Lagrange</tt><span class="sig-paren">(</span><em>cell</em>, <em>degree</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/lagrange.html#Lagrange"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.lagrange.Lagrange" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#finat.finiteelementbase.FiniteElementBase" title="finat.finiteelementbase.FiniteElementBase"><tt class="xref py py-class docutils literal"><span class="pre">finat.finiteelementbase.FiniteElementBase</span></tt></a></p>
+<dl class="method">
+<dt id="finat.lagrange.Lagrange.basis_evaluation">
+<tt class="descname">basis_evaluation</tt><span class="sig-paren">(</span><em>points</em>, <em>kernel_data</em>, <em>derivative=None</em>, <em>pullback=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/lagrange.html#Lagrange.basis_evaluation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.lagrange.Lagrange.basis_evaluation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Produce the variable for the tabulation of the basis
+functions or their derivative. Also return the relevant indices.</p>
+<p>updates the requisite static kernel data, which in this case
+is just the matrix.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="finat.lagrange.Lagrange.entity_closure_dofs">
+<tt class="descname">entity_closure_dofs</tt><a class="reference internal" href="_modules/finat/lagrange.html#Lagrange.entity_closure_dofs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.lagrange.Lagrange.entity_closure_dofs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the map of topological entities to degrees of
+freedom on the closure of those entities for the finite element.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="finat.lagrange.Lagrange.entity_dofs">
+<tt class="descname">entity_dofs</tt><a class="reference internal" href="_modules/finat/lagrange.html#Lagrange.entity_dofs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.lagrange.Lagrange.entity_dofs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the map of topological entities to degrees of
+freedom for the finite element.</p>
+<p>Note that entity numbering needs to take into account the tensor case.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="finat.lagrange.Lagrange.facet_support_dofs">
+<tt class="descname">facet_support_dofs</tt><a class="reference internal" href="_modules/finat/lagrange.html#Lagrange.facet_support_dofs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.lagrange.Lagrange.facet_support_dofs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the map of facet id to the degrees of freedom for which the
+corresponding basis functions take non-zero values.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="finat.lagrange.Lagrange.field_evaluation">
+<tt class="descname">field_evaluation</tt><span class="sig-paren">(</span><em>field_var</em>, <em>points</em>, <em>kernel_data</em>, <em>derivative=None</em>, <em>pullback=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/lagrange.html#Lagrange.field_evaluation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.lagrange.Lagrange.field_evaluation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="finat.lagrange.Lagrange.moment_evaluation">
+<tt class="descname">moment_evaluation</tt><span class="sig-paren">(</span><em>value</em>, <em>weights</em>, <em>points</em>, <em>kernel_data</em>, <em>derivative=None</em>, <em>pullback=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/lagrange.html#Lagrange.moment_evaluation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.lagrange.Lagrange.moment_evaluation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="finat.lagrange.Lagrange.pullback">
+<tt class="descname">pullback</tt><span class="sig-paren">(</span><em>phi</em>, <em>kernel_data</em>, <em>derivative=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/lagrange.html#Lagrange.pullback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.lagrange.Lagrange.pullback" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-finat.points">
+<span id="finat-points-module"></span><h2>finat.points module<a class="headerlink" href="#module-finat.points" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="finat.points.PointSet">
+<em class="property">class </em><tt class="descclassname">finat.points.</tt><tt class="descname">PointSet</tt><span class="sig-paren">(</span><em>points</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/points.html#PointSet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.points.PointSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#finat.points.PointSetBase" title="finat.points.PointSetBase"><tt class="xref py py-class docutils literal"><span class="pre">finat.points.PointSetBase</span></tt></a></p>
+<p>A basic pointset with no internal structure.</p>
+<dl class="method">
+<dt id="finat.points.PointSet.kernel_variable">
+<tt class="descname">kernel_variable</tt><span class="sig-paren">(</span><em>name</em>, <em>kernel_data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/points.html#PointSet.kernel_variable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.points.PointSet.kernel_variable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Produce a variable in the kernel data for this point set.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="finat.points.PointSet.points">
+<tt class="descname">points</tt><a class="reference internal" href="_modules/finat/points.html#PointSet.points"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.points.PointSet.points" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a flattened numpy array of points.</p>
+<p>The array has shape (num_points, topological_dim).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="finat.points.PointSetBase">
+<em class="property">class </em><tt class="descclassname">finat.points.</tt><tt class="descname">PointSetBase</tt><a class="reference internal" href="_modules/finat/points.html#PointSetBase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.points.PointSetBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>A way of specifying a known set of points, perhaps with some
+(tensor) structure.</p>
+<dl class="attribute">
+<dt id="finat.points.PointSetBase.points">
+<tt class="descname">points</tt><a class="reference internal" href="_modules/finat/points.html#PointSetBase.points"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.points.PointSetBase.points" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a flattened numpy array of points.</p>
+<p>The array has shape (num_points, topological_dim).</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-finat.utils">
+<span id="finat-utils-module"></span><h2>finat.utils module<a class="headerlink" href="#module-finat.utils" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="finat.utils.KernelData">
+<em class="property">class </em><tt class="descclassname">finat.utils.</tt><tt class="descname">KernelData</tt><span class="sig-paren">(</span><em>coordinate_element</em>, <em>affine=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/utils.html#KernelData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.utils.KernelData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>coordinate_element</strong> &#8211; the (vector-valued) finite element for
+the coordinate field.</li>
+<li><strong>affine</strong> &#8211; Specifies whether the pullback is affine (and therefore
+whether the Jacobian must be evaluated at every quadrature point).
+If not specified, this is inferred from coordinate_element.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="finat.utils.KernelData.J">
+<tt class="descname">J</tt><a class="reference internal" href="_modules/finat/utils.html#KernelData.J"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.utils.KernelData.J" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="finat.utils.KernelData.detJ">
+<tt class="descname">detJ</tt><a class="reference internal" href="_modules/finat/utils.html#KernelData.detJ"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.utils.KernelData.detJ" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="finat.utils.KernelData.invJ">
+<tt class="descname">invJ</tt><a class="reference internal" href="_modules/finat/utils.html#KernelData.invJ"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.utils.KernelData.invJ" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-finat.vectorfiniteelement">
+<span id="finat-vectorfiniteelement-module"></span><h2>finat.vectorfiniteelement module<a class="headerlink" href="#module-finat.vectorfiniteelement" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="finat.vectorfiniteelement.VectorFiniteElement">
+<em class="property">class </em><tt class="descclassname">finat.vectorfiniteelement.</tt><tt class="descname">VectorFiniteElement</tt><span class="sig-paren">(</span><em>element</em>, <em>dimension</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/vectorfiniteelement.html#VectorFiniteElement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.vectorfiniteelement.VectorFiniteElement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#finat.finiteelementbase.FiniteElementBase" title="finat.finiteelementbase.FiniteElementBase"><tt class="xref py py-class docutils literal"><span class="pre">finat.finiteelementbase.FiniteElementBase</span></tt></a></p>
+<p>A Finite element whose basis functions have the form:</p>
+<div class="math">
+\[\boldsymbol\phi_{\beta,i} = \mathbf{e}_{\beta}\phi_i\]</div>
+<p>Where <span class="math">\(\{\mathbf{e}_\beta,\, \beta=0\ldots\mathrm{dim}\}\)</span> is
+the basis for <span class="math">\(\mathbb{R}^{\mathrm{dim}}\)</span> and
+<span class="math">\(\{\phi_i\}\)</span> is the basis for the corresponding scalar
+finite element space.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>element</strong> &#8211; The scalar finite element.</li>
+<li><strong>dimension</strong> &#8211; The geometric dimension of the vector element.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="math">\(\boldsymbol\phi_{i,\beta}\)</span> is, of course, vector-valued. If
+we subscript the vector-value with <span class="math">\(\alpha\)</span> then we can write:</p>
+<div class="math">
+\[\boldsymbol\phi_{\alpha,(i,\beta)} = \delta_{\alpha,\beta}\phi_i\]</div>
+<p>This form enables the simplification of the loop nests which
+will eventually be created, so it is the form we employ here.</p>
+<dl class="method">
+<dt id="finat.vectorfiniteelement.VectorFiniteElement.basis_evaluation">
+<tt class="descname">basis_evaluation</tt><span class="sig-paren">(</span><em>points</em>, <em>kernel_data</em>, <em>derivative=None</em>, <em>pullback=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/vectorfiniteelement.html#VectorFiniteElement.basis_evaluation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.vectorfiniteelement.VectorFiniteElement.basis_evaluation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Produce the recipe for basis function evaluation at a set of points
+<span class="math">\(q\)</span>:</p>
+<blockquote>
+<div><div class="math">
+\[\boldsymbol\phi_{\alpha (i \beta) q} = \delta_{\alpha \beta}\phi_{i q}\]\[\nabla\boldsymbol\phi_{(\alpha \gamma) (i \beta) q} = \delta_{\alpha \beta}\nabla\phi_{\gamma i q}\]\[\nabla\times\boldsymbol\phi_{(i \beta) q} = \epsilon_{2 \beta \gamma}\nabla\phi_{\gamma i q} \qquad\textrm{(2D)}\]\[\nabla\times\boldsymbol\phi_{\alpha (i \beta) q} = \epsilon_{\alpha \beta \gamma}\nabla\phi_{\gamma i q} \qquad\textrm{(3D)}\]\[\nabla\cdot\boldsymbol\phi_{(i \beta) q} = \nabla\phi_{\beta i q}\]</div>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="finat.vectorfiniteelement.VectorFiniteElement.field_evaluation">
+<tt class="descname">field_evaluation</tt><span class="sig-paren">(</span><em>field_var</em>, <em>points</em>, <em>kernel_data</em>, <em>derivative=None</em>, <em>pullback=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/vectorfiniteelement.html#VectorFiniteElement.field_evaluation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.vectorfiniteelement.VectorFiniteElement.field_evaluation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Produce the recipe for the evaluation of a field f at a set of
+points <span class="math">\(q\)</span>:</p>
+<blockquote>
+<div><div class="math">
+\[\boldsymbol{f}_{\alpha q} = \sum_i f_{i \alpha}\phi_{i q}\]\[\nabla\boldsymbol{f}_{\alpha \beta q} = \sum_i f_{i \alpha}\nabla\phi_{\beta i q}\]\[\nabla\times\boldsymbol{f}_{q} = \epsilon_{2 \beta \gamma}\sum_{i} f_{i \beta}\nabla\phi_{\gamma i q} \qquad\textrm{(2D)}\]\[\nabla\times\boldsymbol{f}_{\alpha q} = \epsilon_{\alpha \beta \gamma}\sum_{i} f_{i \beta}\nabla\phi_{\gamma i q} \qquad\textrm{(3D)}\]\[\nabla\cdot\boldsymbol{f}_{q} = \sum_{i \alpha} f_{i \alpha}\nabla\phi_{\alpha i q}\]</div>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="finat.vectorfiniteelement.VectorFiniteElement.moment_evaluation">
+<tt class="descname">moment_evaluation</tt><span class="sig-paren">(</span><em>value</em>, <em>weights</em>, <em>points</em>, <em>kernel_data</em>, <em>derivative=None</em>, <em>pullback=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/vectorfiniteelement.html#VectorFiniteElement.moment_evaluation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.vectorfiniteelement.VectorFiniteElement.moment_evaluation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Produce the recipe for the evaluation of the moment of
+<span class="math">\(u_{\alpha,q}\)</span> against a test function <span class="math">\(v_{\beta,q}\)</span>.</p>
+<div class="math">
+\[\int \boldsymbol{u} \cdot \boldsymbol\phi_{(i \beta)}\  \mathrm{d}x =
+\sum_q \boldsymbol{u}_{\beta q}\phi_{i q}w_q\]\[\int \boldsymbol{u}_{(\alpha \gamma)} \nabla \boldsymbol\phi_{(\alpha \gamma) (i \beta)}\  \mathrm{d}x =
+\sum_{\gamma q} \boldsymbol{u}_{(\beta \gamma) q}\nabla\phi_{\gamma i q}w_q\]\[\int u \nabla \times \boldsymbol\phi_{(i \beta)}\  \mathrm{d}x =
+\sum_{q} u_{q}\epsilon_{2\beta\gamma}\nabla\phi_{\gamma i q}w_q \qquad\textrm{(2D)}\]\[\int u_{\alpha} \nabla \times \boldsymbol\phi_{\alpha (i \beta)}\  \mathrm{d}x =
+\sum_{\alpha q} u_{\alpha q}\epsilon_{\alpha\beta\gamma}\nabla\phi_{\gamma i q}w_q \qquad\textrm{(3D)}\]\[\int u \nabla \cdot \boldsymbol\phi_{(i \beta)}\  \mathrm{d}x =
+\sum_{q} u_q\nabla\phi_{\beta i q}w_q\]</div>
+<p>Appropriate code is also generated where the value contains
+test functions.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="finat.vectorfiniteelement.VectorFiniteElement.pullback">
+<tt class="descname">pullback</tt><span class="sig-paren">(</span><em>phi</em>, <em>kernel_data</em>, <em>derivative=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/vectorfiniteelement.html#VectorFiniteElement.pullback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.vectorfiniteelement.VectorFiniteElement.pullback" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-finat">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-finat" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2014, David A. Ham and Robert C. Kirby.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3a0.
+    </div>
+  </body>
+</html>

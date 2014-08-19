@@ -1,0 +1,78 @@
+finat package
+=============
+
+Submodules
+----------
+
+finat.ast module
+----------------
+
+.. automodule:: finat.ast
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+finat.derivatives module
+------------------------
+
+.. automodule:: finat.derivatives
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+finat.finiteelementbase module
+------------------------------
+
+.. automodule:: finat.finiteelementbase
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+finat.indices module
+--------------------
+
+.. automodule:: finat.indices
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+finat.lagrange module
+---------------------
+
+.. automodule:: finat.lagrange
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+finat.points module
+-------------------
+
+.. automodule:: finat.points
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+finat.utils module
+------------------
+
+.. automodule:: finat.utils
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+finat.vectorfiniteelement module
+--------------------------------
+
+.. automodule:: finat.vectorfiniteelement
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: finat
+    :members:
+    :undoc-members:
+    :show-inheritance:
