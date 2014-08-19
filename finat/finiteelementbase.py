@@ -1,4 +1,5 @@
 import numpy as np
+from ast import Recipe, IndexSum
 
 
 class UndefinedError(Exception):
@@ -153,3 +154,30 @@ class FiatElement(FiniteElementBase):
         else:
             return self._fiat_element.tabulate(0, points.points)[
                 tuple([0] * points.points.shape[1])]
+
+    def field_evaluation(self, field_var, points,
+                         kernel_data, derivative=None, pullback=True):
+
+        basis = self.basis_evaluation(points, kernel_data, derivative, pullback)
+        (d, b, p) = basis.indices
+        phi = basis.expression
+
+        expr = IndexSum(b, field_var[b[0]] * phi)
+
+        return Recipe((d, (), p), expr)
+
+    def moment_evaluation(self, value, weights, points,
+                          kernel_data, derivative=None, pullback=True):
+
+        basis = self.basis_evaluation(points, kernel_data, derivative, pullback)
+        (d, b, p) = basis.indices
+        phi = basis.expression
+
+        (d_, b_, p_) = value.indices
+        psi = value.replace_indices(zip(d_ + p_, d + p)).expression
+
+        w = weights.kernel_variable("w", kernel_data)
+
+        expr = IndexSum(d + p, psi * phi * w[p])
+
+        return Recipe(((), b + b_, ()), expr)

@@ -23,18 +23,15 @@ class ScalarElement(FiatElement):
 
         static_key = (id(self), id(points), id(derivative))
 
-        static_data = kernel_data.static
-        fiat_element = self._fiat_element
-
-        if static_key in static_data:
-            phi = static_data[static_key][0]
+        if static_key in kernel_data.static:
+            phi = kernel_data.static[static_key][0]
         else:
             phi = p.Variable((u'\u03C6_e'.encode("utf-8") if derivative is None
                              else u"d\u03C6_e".encode("utf-8")) + str(self._id))
             data = self._tabulate(points, derivative)
-            static_data[static_key] = (phi, lambda: data)
+            kernel_data.static[static_key] = (phi, lambda: data)
 
-        i = indices.BasisFunctionIndex(fiat_element.space_dimension())
+        i = indices.BasisFunctionIndex(self._fiat_element.space_dimension())
         q = indices.PointIndex(points.points.shape[0])
 
         if derivative is grad:
@@ -58,13 +55,8 @@ class ScalarElement(FiatElement):
             raise ValueError(
                 "Scalar elements do not have a %s operation") % derivative
 
-        basis = self.basis_evaluation(points, kernel_data, derivative, pullback)
-        (d, b, p) = basis.indices
-        phi = basis.expression
-
-        expr = IndexSum(b, field_var[b[0]] * phi)
-
-        return Recipe((d, (), p), expr)
+        return super(ScalarElement, self).field_evaluation(
+            field_var, points, kernel_data, derivative=None, pullback=True)
 
     def moment_evaluation(self, value, weights, points,
                           kernel_data, derivative=None, pullback=True):
@@ -72,18 +64,8 @@ class ScalarElement(FiatElement):
             raise ValueError(
                 "Scalar elements do not have a %s operation") % derivative
 
-        basis = self.basis_evaluation(points, kernel_data, derivative, pullback)
-        (d, b, p) = basis.indices
-        phi = basis.expression
-
-        (d_, b_, p_) = value.indices
-        psi = value.replace_indices(zip(d_ + p_, d + p)).expression
-
-        w = weights.kernel_variable("w", kernel_data)
-
-        expr = IndexSum(d + p, psi * phi * w[p])
-
-        return Recipe(((), b + b_, ()), expr)
+        return super(ScalarElement, self).moment_evaluation(
+            value, weights, points, kernel_data, derivative=None, pullback=True)
 
     def pullback(self, phi, kernel_data, derivative=None):
 
