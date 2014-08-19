@@ -38,80 +38,130 @@ class VectorFiniteElement(FiniteElementBase):
 
         self._base_element = element
 
-    def basis_evaluation(self, points, kernel_data, derivative=None):
+    def basis_evaluation(self, points, kernel_data, derivative=None, pullback=True):
         r"""Produce the recipe for basis function evaluation at a set of points
 :math:`q`:
 
         .. math::
-           \boldsymbol\phi_{\alpha,(i,\beta),q} = \delta_{\alpha,\beta}\phi_{i,q}
+            \boldsymbol\phi_{\alpha,(i,\beta),q} = \delta_{\alpha,\beta}\phi_{i,q}
 
+            \nabla\boldsymbol\phi_{(\alpha,\gamma),(i,\beta),q} = \delta_{\alpha,\beta}\phi_{\gamma,i,q}
+
+            \nabla\cdot\boldsymbol\phi_{(i,\beta),q} = \phi_{\beta,i,q}
         """
 
-        # Produce the base scalar recipe
+        # Produce the base scalar recipe. The scalar basis can only
+        # take a grad. For other derivatives, we need to do the
+        # transform here.
         sr = self._base_element.basis_evaluation(points, kernel_data,
-                                                 derivative)
+                                                 derivative and grad, pullback)
         phi = sr.expression
         d, b, p = sr.indices
 
-        # Additional dimension index along the vector dimension. Note
-        # to self: is this the right order or does this index come
-        # after any derivative index?
-        alpha = (indices.DimensionIndex(self._dimension),)
         # Additional basis function index along the vector dimension.
         beta = (indices.BasisFunctionIndex(self._dimension),)
 
-        return Recipe((alpha + d, b + beta, p), Delta(alpha + beta, phi))
+        if derivative is div:
+
+            return Recipe((d[:-1], b+beta, p),
+                          sr.replace_indices({d[-1]: beta[0]}).expression)
+
+        elif derivative is curl:
+            raise NotImplementedError
+        else:
+            # Additional dimension index along the vector dimension. Note
+            # to self: is this the right order or does this index come
+            # after any derivative index?
+            alpha = (indices.DimensionIndex(self._dimension),)
+
+            return Recipe((alpha + d, b + beta, p), Delta(alpha + beta, phi))
 
     def field_evaluation(self, field_var, points,
-                         kernel_data, derivative=None):
+                         kernel_data, derivative=None, pullback=True):
         r"""Produce the recipe for the evaluation of a field f at a set of
 points :math:`q`:
 
         .. math::
            \boldsymbol{f}_{\alpha,q} = \sum_i f_{i,\alpha}\phi_{i,q}
 
+           \nabla\boldsymbol{f}_{\alpha,\beta,q} = \sum_i f_{i,\alpha}\nabla\phi_{\beta,i,q}
+
+           \nabla\cdot\boldsymbol{f}_{q} = \sum_{i,\alpha} f_{i,\alpha}\nabla\phi_{\alpha,i,q}
         """
-        # Produce the base scalar recipe
+        # Produce the base scalar recipe. The scalar basis can only
+        # take a grad. For other derivatives, we need to do the
+        # transform here.
         sr = self._base_element.basis_evaluation(points, kernel_data,
-                                                 derivative)
+                                                 derivative and grad, pullback)
         phi = sr.expression
         d, b, p = sr.indices
 
-        # Additional basis function index along the vector dimension.
-        alpha = (indices.DimensionIndex(self._dimension),)
+        if derivative is div:
 
-        expression = IndexSum(b, field_var[b + alpha] * phi)
+            expression = IndexSum(b+d[-1:], field_var[b+d[-1:]] * phi)
 
-        return Recipe((alpha + d, (), p), expression)
+            return Recipe((d[:-1], (), p), expression)
+
+        elif derivative is curl:
+            raise NotImplementedError
+        else:
+            # Additional basis function index along the vector dimension.
+            alpha = (indices.DimensionIndex(self._dimension),)
+
+            expression = IndexSum(b, field_var[b + alpha] * phi)
+
+            return Recipe((alpha + d, (), p), expression)
 
     def moment_evaluation(self, value, weights, points,
-                          kernel_data, derivative=None):
+                          kernel_data, derivative=None, pullback=True):
         r"""Produce the recipe for the evaluation of the moment of
         :math:`u_{\alpha,q}` against a test function :math:`v_{\beta,q}`.
 
         .. math::
-           \int u_{\alpha,q} : \phi_{\alpha,(i,\beta),q}\, \mathrm{d}x =
-           \sum_q u_{\alpha}\phi_{i,q}w_q
+           \int \boldsymbol{u} \cdot \boldsymbol\phi_{(i,\beta)}\, \mathrm{d}x =
+           \sum_q \boldsymbol{u}_{\beta,q}\phi_{i,q}w_q
+
+           \int \boldsymbol{u}_{(\alpha,\gamma)} : \nabla \boldsymbol\phi_{(\alpha,\gamma),(i,\beta)}\, \mathrm{d}x =
+           \sum_{\gamma,q} \boldsymbol{u}_{(\beta,\gamma),q}\nabla\phi_{\gamma,i,q}w_q
+
+           \int u_{q} \nabla \cdot \boldsymbol\phi_{(i,\beta)}\, \mathrm{d}x =
+           \sum_{q} u_q\nabla\phi_{\beta,i,q}w_q
 
         Appropriate code is also generated in the more general cases
         where derivatives are involved and where the value contains
         test functions.
         """
 
-        # Produce the base scalar recipe
+        # Produce the base scalar recipe. The scalar basis can only
+        # take a grad. For other derivatives, we need to do the
+        # transform here.
         sr = self._base_element.basis_evaluation(points, kernel_data,
-                                                 derivative)
+                                                 derivative and grad, pullback)
+
         phi = sr.expression
         d, b, p = sr.indices
 
         beta = (indices.BasisFunctionIndex(self._dimension),)
 
         (d_, b_, p_) = value.indices
-        psi = value.replace_indices(zip(d_ + p_, beta + d + p)).expression
 
         w = weights.kernel_variable("w", kernel_data)
 
-        expression = IndexSum(d + p, psi * phi * w[p])
+        if derivative is div:
+            beta = d[-1:]
+
+            psi = value.replace_indices(zip(d_ + p_, d[:-1] + p)).expression
+
+            expression = IndexSum(d[:-1] + p, psi * phi * w[p])
+
+        elif derivative is curl:
+            raise NotImplementedError
+        else:
+            beta = (indices.BasisFunctionIndex(self._dimension),)
+
+            psi = value.replace_indices(zip(d_ + p_, beta + d + p)).expression
+
+            expression = IndexSum(d + p, psi * phi * w[p])
 
         return Recipe(((), b + beta + b_, ()), expression)
 
