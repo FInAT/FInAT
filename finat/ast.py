@@ -31,6 +31,8 @@ class _IndexMapper(IdentityMapper):
     map_let = map_delta
     map_for_all = map_delta
     map_wave = map_delta
+    map_index_sum = map_delta
+    map_levi_civita = map_delta
 
 
 class _StringifyMapper(StringifyMapper):
@@ -48,6 +50,10 @@ class _StringifyMapper(StringifyMapper):
         return self.format("IndexSum((%s), %s)",
                            " ".join(self.rec(c, *args) + "," for c in expr.children[0]),
                            self.rec(expr.children[1], *args))
+
+    def map_levi_civita(self, expr, *args):
+        return self.format("LeviCivita(%s)",
+                           self.join_rec(", ", expr.children, *args))
 
 
 class Recipe(p.Expression):
@@ -128,6 +134,32 @@ class IndexSum(p._MultiChildExpression):
     def __str__(self):
         return "IndexSum(%s, %s)" % (tuple(map(str, self.children[0])),
                                      self.children[1])
+
+    mapper_method = "map_index_sum"
+
+
+class LeviCivita(p._MultiChildExpression):
+    r"""The Levi-Civita symbol expressed as an operator.
+
+    :param free: A tuple of free indices.
+    :param bound: A tuple of indices over which to sum.
+    :param body: The summand.
+
+    The length of free + bound must be exactly 3. The Levi-Civita
+    operator then represents the summation over the bound indices of
+    the Levi-Civita symbol times the body. For example in the case of
+    two bound indices:
+
+    .. math::
+        \mathrm{LeviCivita((\alpha,), (\beta, \gamma), body)} = \sum_{\beta,\gamma}\epsilon_{\alpha,\beta,\gamma} \mathrm{body}
+
+    """
+    def __init__(self, free, bound, body):
+
+        self.children = (free, bound, body)
+
+    def __getinitargs__(self):
+        return self.children
 
     mapper_method = "map_index_sum"
 
