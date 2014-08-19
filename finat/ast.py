@@ -131,9 +131,8 @@ class IndexSum(p._MultiChildExpression):
     def __getinitargs__(self):
         return self.children
 
-    def __str__(self):
-        return "IndexSum(%s, %s)" % (tuple(map(str, self.children[0])),
-                                     self.children[1])
+    def stringifier(self):
+        return _StringifyMapper
 
     mapper_method = "map_index_sum"
 
@@ -160,6 +159,9 @@ class LeviCivita(p._MultiChildExpression):
 
     def __getinitargs__(self):
         return self.children
+
+    def stringifier(self):
+        return _StringifyMapper
 
     mapper_method = "map_index_sum"
 
