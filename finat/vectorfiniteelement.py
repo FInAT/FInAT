@@ -167,7 +167,7 @@ points :math:`q`:
            \sum_{q} u_q\nabla\phi_{\beta i q}w_q
 
         Appropriate code is also generated where the value contains
-        test functions.
+        trial functions.
         """
 
         # Produce the base scalar recipe. The scalar basis can only
