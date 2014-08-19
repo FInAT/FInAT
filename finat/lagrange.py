@@ -1,60 +1,14 @@
 import pymbolic.primitives as p
-from finiteelementbase import FiniteElementBase
+from finiteelementbase import FiatElement
 from ast import Recipe, IndexSum
 import FIAT
 import indices
-from derivatives import div, grad, curl
-import numpy as np
+from derivatives import grad
 
 
-class Lagrange(FiniteElementBase):
+class ScalarElement(FiatElement):
     def __init__(self, cell, degree):
-        super(Lagrange, self).__init__()
-
-        self._cell = cell
-        self._degree = degree
-
-        self._fiat_element = FIAT.Lagrange(cell, degree)
-
-    @property
-    def entity_dofs(self):
-        '''Return the map of topological entities to degrees of
-        freedom for the finite element.
-
-        Note that entity numbering needs to take into account the tensor case.
-        '''
-
-        return self._fiat_element.entity_dofs()
-
-    @property
-    def entity_closure_dofs(self):
-        '''Return the map of topological entities to degrees of
-        freedom on the closure of those entities for the finite element.'''
-
-        return self._fiat_element.entity_dofs()
-
-    @property
-    def facet_support_dofs(self):
-        '''Return the map of facet id to the degrees of freedom for which the
-        corresponding basis functions take non-zero values.'''
-
-        return self._fiat_element.entity_support_dofs()
-
-    def _tabulate(self, points, derivative):
-
-        if derivative is None:
-            return self._fiat_element.tabulate(0, points.points)[
-                tuple([0] * points.points.shape[1])]
-        elif derivative is grad:
-            tab = self._fiat_element.tabulate(1, points.points)
-
-            ind = np.eye(points.points.shape[1], dtype=int)
-
-            return np.array([tab[tuple(i)] for i in ind])
-
-        else:
-            raise ValueError(
-                "Lagrange elements do not have a %s operation") % derivative
+        super(ScalarElement, self).__init__(cell, degree)
 
     def basis_evaluation(self, points, kernel_data, derivative=None, pullback=True):
         '''Produce the variable for the tabulation of the basis
@@ -63,6 +17,10 @@ class Lagrange(FiniteElementBase):
         updates the requisite static kernel data, which in this case
         is just the matrix.
         '''
+        if derivative not in (None, grad):
+            raise ValueError(
+                "Scalar elements do not have a %s operation") % derivative
+
         static_key = (id(self), id(points), id(derivative))
 
         static_data = kernel_data.static
@@ -96,6 +54,9 @@ class Lagrange(FiniteElementBase):
 
     def field_evaluation(self, field_var, points,
                          kernel_data, derivative=None, pullback=True):
+        if derivative not in (None, grad):
+            raise ValueError(
+                "Scalar elements do not have a %s operation") % derivative
 
         basis = self.basis_evaluation(points, kernel_data, derivative, pullback)
         (d, b, p) = basis.indices
@@ -107,6 +68,9 @@ class Lagrange(FiniteElementBase):
 
     def moment_evaluation(self, value, weights, points,
                           kernel_data, derivative=None, pullback=True):
+        if derivative not in (None, grad):
+            raise ValueError(
+                "Scalar elements do not have a %s operation") % derivative
 
         basis = self.basis_evaluation(points, kernel_data, derivative, pullback)
         (d, b, p) = basis.indices
@@ -129,4 +93,18 @@ class Lagrange(FiniteElementBase):
             return None  # dot(invJ, grad(phi))
         else:
             raise ValueError(
-                "Lagrange elements do not have a %s operation") % derivative
+                "Scalar elements do not have a %s operation") % derivative
+
+
+class Lagrange(ScalarElement):
+    def __init__(self, cell, degree):
+        super(Lagrange, self).__init__(cell, degree)
+
+        self._fiat_element = FIAT.Lagrange(cell, degree)
+
+
+class DiscontinuousLagrange(ScalarElement):
+    def __init__(self, cell, degree):
+        super(Lagrange, self).__init__(cell, degree)
+
+        self._fiat_element = FIAT.DiscontinuousLagrange(cell, degree)

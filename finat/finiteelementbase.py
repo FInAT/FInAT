@@ -1,3 +1,6 @@
+import numpy as np
+
+
 class UndefinedError(Exception):
     def __init__(self, *args, **kwargs):
         Exception.__init__(self, *args, **kwargs)
@@ -105,3 +108,48 @@ class FiniteElementBase(object):
         '''
 
         raise NotImplementedError
+
+
+class FiatElement(FiniteElementBase):
+    """A finite element for which the tabulation is provided by FIAT."""
+    def __init__(self, cell, degree):
+        super(FiatElement, self).__init__()
+
+        self._cell = cell
+        self._degree = degree
+
+    @property
+    def entity_dofs(self):
+        '''Return the map of topological entities to degrees of
+        freedom for the finite element.
+
+        Note that entity numbering needs to take into account the tensor case.
+        '''
+
+        return self._fiat_element.entity_dofs()
+
+    @property
+    def entity_closure_dofs(self):
+        '''Return the map of topological entities to degrees of
+        freedom on the closure of those entities for the finite element.'''
+
+        return self._fiat_element.entity_dofs()
+
+    @property
+    def facet_support_dofs(self):
+        '''Return the map of facet id to the degrees of freedom for which the
+        corresponding basis functions take non-zero values.'''
+
+        return self._fiat_element.entity_support_dofs()
+
+    def _tabulate(self, points, derivative):
+
+        if derivative:
+            tab = self._fiat_element.tabulate(1, points.points)
+
+            ind = np.eye(points.points.shape[1], dtype=int)
+
+            return np.array([tab[tuple(i)] for i in ind])
+        else:
+            return self._fiat_element.tabulate(0, points.points)[
+                tuple([0] * points.points.shape[1])]
