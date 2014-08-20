@@ -89,6 +89,12 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">geometry</span> <span class="o">=</span> <span class="p">{}</span>
 
+        <span class="c">#: The geometric dimension of the physical space.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gdim</span> <span class="o">=</span> <span class="n">coordinate_element</span><span class="o">.</span><span class="n">_dimension</span>
+
+        <span class="c">#: The topological dimension of the reference element</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tdim</span> <span class="o">=</span> <span class="n">coordinate_element</span><span class="o">.</span><span class="n">_cell</span><span class="o">.</span><span class="n">get_spatial_dimension</span><span class="p">()</span>
+
     <span class="nd">@property</span>
 <div class="viewcode-block" id="KernelData.J"><a class="viewcode-back" href="../../finat.html#finat.utils.KernelData.J">[docs]</a>    <span class="k">def</span> <span class="nf">J</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 

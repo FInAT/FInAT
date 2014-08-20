@@ -138,6 +138,10 @@ img.commit-author-img {
   display: none;
 }
 
+em.property {
+  display: none;
+}
+
 a.commit-link {
   font-weight: bold;
   padding-bottom: 4px;

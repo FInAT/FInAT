@@ -28,6 +28,14 @@ finat.finiteelementbase module
     :undoc-members:
     :show-inheritance:
 
+finat.hcurl module
+------------------
+
+.. automodule:: finat.hcurl
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 finat.hdiv module
 -----------------
 

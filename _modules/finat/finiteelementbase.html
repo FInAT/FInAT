@@ -63,7 +63,9 @@
           <div class="body" role="main">
             
   <h1>Source code for finat.finiteelementbase</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">pymbolic.primitives</span> <span class="kn">as</span> <span class="nn">p</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">ast</span> <span class="kn">import</span> <span class="n">Recipe</span><span class="p">,</span> <span class="n">IndexSum</span>
 
 
 <div class="viewcode-block" id="UndefinedError"><a class="viewcode-back" href="../../finat.html#finat.finiteelementbase.UndefinedError">[docs]</a><span class="k">class</span> <span class="nc">UndefinedError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
@@ -175,16 +177,17 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
 </div></div>
-<div class="viewcode-block" id="FiatElement"><a class="viewcode-back" href="../../finat.html#finat.finiteelementbase.FiatElement">[docs]</a><span class="k">class</span> <span class="nc">FiatElement</span><span class="p">(</span><span class="n">FiniteElementBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A finite element for which the tabulation is provided by FIAT.&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="FiatElementBase"><a class="viewcode-back" href="../../finat.html#finat.finiteelementbase.FiatElementBase">[docs]</a><span class="k">class</span> <span class="nc">FiatElementBase</span><span class="p">(</span><span class="n">FiniteElementBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Base class for finite elements for which the tabulation is provided</span>
+<span class="sd">    by FIAT.&quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cell</span><span class="p">,</span> <span class="n">degree</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">FiatElement</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">FiatElementBase</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_cell</span> <span class="o">=</span> <span class="n">cell</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_degree</span> <span class="o">=</span> <span class="n">degree</span>
 
     <span class="nd">@property</span>
-<div class="viewcode-block" id="FiatElement.entity_dofs"><a class="viewcode-back" href="../../finat.html#finat.finiteelementbase.FiatElement.entity_dofs">[docs]</a>    <span class="k">def</span> <span class="nf">entity_dofs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="FiatElementBase.entity_dofs"><a class="viewcode-back" href="../../finat.html#finat.finiteelementbase.FiatElementBase.entity_dofs">[docs]</a>    <span class="k">def</span> <span class="nf">entity_dofs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39;Return the map of topological entities to degrees of</span>
 <span class="sd">        freedom for the finite element.</span>
 
@@ -194,14 +197,14 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fiat_element</span><span class="o">.</span><span class="n">entity_dofs</span><span class="p">()</span>
 </div>
     <span class="nd">@property</span>
-<div class="viewcode-block" id="FiatElement.entity_closure_dofs"><a class="viewcode-back" href="../../finat.html#finat.finiteelementbase.FiatElement.entity_closure_dofs">[docs]</a>    <span class="k">def</span> <span class="nf">entity_closure_dofs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="FiatElementBase.entity_closure_dofs"><a class="viewcode-back" href="../../finat.html#finat.finiteelementbase.FiatElementBase.entity_closure_dofs">[docs]</a>    <span class="k">def</span> <span class="nf">entity_closure_dofs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39;Return the map of topological entities to degrees of</span>
 <span class="sd">        freedom on the closure of those entities for the finite element.&#39;&#39;&#39;</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fiat_element</span><span class="o">.</span><span class="n">entity_dofs</span><span class="p">()</span>
 </div>
     <span class="nd">@property</span>
-<div class="viewcode-block" id="FiatElement.facet_support_dofs"><a class="viewcode-back" href="../../finat.html#finat.finiteelementbase.FiatElement.facet_support_dofs">[docs]</a>    <span class="k">def</span> <span class="nf">facet_support_dofs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="FiatElementBase.facet_support_dofs"><a class="viewcode-back" href="../../finat.html#finat.finiteelementbase.FiatElementBase.facet_support_dofs">[docs]</a>    <span class="k">def</span> <span class="nf">facet_support_dofs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39;Return the map of facet id to the degrees of freedom for which the</span>
 <span class="sd">        corresponding basis functions take non-zero values.&#39;&#39;&#39;</span>
 
@@ -217,7 +220,52 @@
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">tab</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ind</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fiat_element</span><span class="o">.</span><span class="n">tabulate</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">points</span><span class="o">.</span><span class="n">points</span><span class="p">)[</span>
-                <span class="nb">tuple</span><span class="p">([</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">points</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])]</span></div>
+                <span class="nb">tuple</span><span class="p">([</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">points</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])]</span>
+
+    <span class="k">def</span> <span class="nf">_tabulated_basis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">kernel_data</span><span class="p">,</span> <span class="n">derivative</span><span class="p">):</span>
+
+        <span class="n">static_key</span> <span class="o">=</span> <span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="nb">id</span><span class="p">(</span><span class="n">points</span><span class="p">),</span> <span class="nb">id</span><span class="p">(</span><span class="n">derivative</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">static_key</span> <span class="ow">in</span> <span class="n">kernel_data</span><span class="o">.</span><span class="n">static</span><span class="p">:</span>
+            <span class="n">phi</span> <span class="o">=</span> <span class="n">kernel_data</span><span class="o">.</span><span class="n">static</span><span class="p">[</span><span class="n">static_key</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">phi</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">Variable</span><span class="p">((</span><span class="s">u&#39;</span><span class="se">\u03C6</span><span class="s">_e&#39;</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">derivative</span> <span class="ow">is</span> <span class="bp">None</span>
+                             <span class="k">else</span> <span class="s">u&quot;d</span><span class="se">\u03C6</span><span class="s">_e&quot;</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&quot;utf-8&quot;</span><span class="p">))</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">))</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tabulate</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">derivative</span><span class="p">)</span>
+            <span class="n">kernel_data</span><span class="o">.</span><span class="n">static</span><span class="p">[</span><span class="n">static_key</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">phi</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">data</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">phi</span>
+
+<div class="viewcode-block" id="FiatElementBase.field_evaluation"><a class="viewcode-back" href="../../finat.html#finat.finiteelementbase.FiatElementBase.field_evaluation">[docs]</a>    <span class="k">def</span> <span class="nf">field_evaluation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field_var</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span>
+                         <span class="n">kernel_data</span><span class="p">,</span> <span class="n">derivative</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">pullback</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+
+        <span class="n">basis</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">basis_evaluation</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">kernel_data</span><span class="p">,</span> <span class="n">derivative</span><span class="p">,</span> <span class="n">pullback</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span> <span class="o">=</span> <span class="n">basis</span><span class="o">.</span><span class="n">indices</span>
+        <span class="n">phi</span> <span class="o">=</span> <span class="n">basis</span><span class="o">.</span><span class="n">expression</span>
+
+        <span class="n">expr</span> <span class="o">=</span> <span class="n">IndexSum</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">field_var</span><span class="p">[</span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">*</span> <span class="n">phi</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">Recipe</span><span class="p">((</span><span class="n">d</span><span class="p">,</span> <span class="p">(),</span> <span class="n">p</span><span class="p">),</span> <span class="n">expr</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="FiatElementBase.moment_evaluation"><a class="viewcode-back" href="../../finat.html#finat.finiteelementbase.FiatElementBase.moment_evaluation">[docs]</a>    <span class="k">def</span> <span class="nf">moment_evaluation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span>
+                          <span class="n">kernel_data</span><span class="p">,</span> <span class="n">derivative</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">pullback</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+
+        <span class="n">basis</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">basis_evaluation</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">kernel_data</span><span class="p">,</span> <span class="n">derivative</span><span class="p">,</span> <span class="n">pullback</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span> <span class="o">=</span> <span class="n">basis</span><span class="o">.</span><span class="n">indices</span>
+        <span class="n">phi</span> <span class="o">=</span> <span class="n">basis</span><span class="o">.</span><span class="n">expression</span>
+
+        <span class="p">(</span><span class="n">d_</span><span class="p">,</span> <span class="n">b_</span><span class="p">,</span> <span class="n">p_</span><span class="p">)</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">indices</span>
+        <span class="n">psi</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">replace_indices</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">d_</span> <span class="o">+</span> <span class="n">p_</span><span class="p">,</span> <span class="n">d</span> <span class="o">+</span> <span class="n">p</span><span class="p">))</span><span class="o">.</span><span class="n">expression</span>
+
+        <span class="n">w</span> <span class="o">=</span> <span class="n">weights</span><span class="o">.</span><span class="n">kernel_variable</span><span class="p">(</span><span class="s">&quot;w&quot;</span><span class="p">,</span> <span class="n">kernel_data</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">pullback</span><span class="p">:</span>
+            <span class="c"># Note. Do detJ cancellation here.</span>
+            <span class="n">expr</span> <span class="o">=</span> <span class="n">IndexSum</span><span class="p">(</span><span class="n">d</span> <span class="o">+</span> <span class="n">p</span><span class="p">,</span> <span class="n">psi</span> <span class="o">*</span> <span class="n">phi</span> <span class="o">*</span> <span class="n">w</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">*</span> <span class="n">kernel_data</span><span class="o">.</span><span class="n">detJ</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">expr</span> <span class="o">=</span> <span class="n">IndexSum</span><span class="p">(</span><span class="n">d</span> <span class="o">+</span> <span class="n">p</span><span class="p">,</span> <span class="n">psi</span> <span class="o">*</span> <span class="n">phi</span> <span class="o">*</span> <span class="n">w</span><span class="p">[</span><span class="n">p</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">Recipe</span><span class="p">(((),</span> <span class="n">b</span> <span class="o">+</span> <span class="n">b_</span><span class="p">,</span> <span class="p">()),</span> <span class="n">expr</span><span class="p">)</span></div></div>
 </pre></div>
 
           </div>
