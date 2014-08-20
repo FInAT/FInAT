@@ -48,6 +48,8 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
         # Sum over multiple indices recursively.
         if len(indices) > 1:
             expr = IndexSum(indices[1:], body)
+        else:
+            expr = body
 
         idx = indices[0]
 
@@ -73,6 +75,8 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
         # Execute over multiple indices recursively.
         if len(indices) > 1:
             expr = IndexSum(indices[1:], body)
+        else:
+            expr = body
 
         idx = indices[0]
 
@@ -154,6 +158,6 @@ def evaluate(expression, context={}, kernel_data=None):
     if kernel_data:
         context = copy.copy(context)
         for var in kernel_data.static.values():
-            context[var[0]] = var[1]
+            context[var[0].name] = var[1]()
 
     return FinatEvaluationMapper(context)(expression)
