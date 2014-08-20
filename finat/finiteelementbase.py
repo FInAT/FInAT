@@ -1,3 +1,4 @@
+import pymbolic.primitives as p
 import numpy as np
 from ast import Recipe, IndexSum
 
@@ -156,6 +157,20 @@ class FiatElementBase(FiniteElementBase):
             return self._fiat_element.tabulate(0, points.points)[
                 tuple([0] * points.points.shape[1])]
 
+    def _tabulated_basis(self, points, kernel_data, derivative):
+
+        static_key = (id(self), id(points), id(derivative))
+
+        if static_key in kernel_data.static:
+            phi = kernel_data.static[static_key][0]
+        else:
+            phi = p.Variable((u'\u03C6_e'.encode("utf-8") if derivative is None
+                             else u"d\u03C6_e".encode("utf-8")) + str(self._id))
+            data = self._tabulate(points, derivative)
+            kernel_data.static[static_key] = (phi, lambda: data)
+
+        return phi
+
     def field_evaluation(self, field_var, points,
                          kernel_data, derivative=None, pullback=True):
 
@@ -179,6 +194,10 @@ class FiatElementBase(FiniteElementBase):
 
         w = weights.kernel_variable("w", kernel_data)
 
-        expr = IndexSum(d + p, psi * phi * w[p])
+        if pullback:
+            # Note. Do detJ cancellation here.
+            expr = IndexSum(d + p, psi * phi * w[p] * kernel_data.detJ)
+        else:
+            expr = IndexSum(d + p, psi * phi * w[p])
 
         return Recipe(((), b + b_, ()), expr)

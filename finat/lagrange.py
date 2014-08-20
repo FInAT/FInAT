@@ -21,15 +21,7 @@ class ScalarElement(FiatElementBase):
             raise ValueError(
                 "Scalar elements do not have a %s operation") % derivative
 
-        static_key = (id(self), id(points), id(derivative))
-
-        if static_key in kernel_data.static:
-            phi = kernel_data.static[static_key][0]
-        else:
-            phi = p.Variable((u'\u03C6_e'.encode("utf-8") if derivative is None
-                             else u"d\u03C6_e".encode("utf-8")) + str(self._id))
-            data = self._tabulate(points, derivative)
-            kernel_data.static[static_key] = (phi, lambda: data)
+        phi = self._tabulated_basis(points, kernel_data, derivative)
 
         i = indices.BasisFunctionIndex(self._fiat_element.space_dimension())
         q = indices.PointIndex(points.points.shape[0])
