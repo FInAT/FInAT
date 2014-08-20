@@ -1,4 +1,3 @@
-import pymbolic.primitives as p
 from finiteelementbase import FiatElementBase
 from ast import Recipe, IndexSum, LeviCivita
 import FIAT
