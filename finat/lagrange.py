@@ -49,7 +49,7 @@ class ScalarElement(FiatElementBase):
                 "Scalar elements do not have a %s operation") % derivative
 
         return super(ScalarElement, self).field_evaluation(
-            field_var, points, kernel_data, derivative=None, pullback=True)
+            field_var, points, kernel_data, derivative, pullback)
 
     def moment_evaluation(self, value, weights, points,
                           kernel_data, derivative=None, pullback=True):
@@ -58,7 +58,7 @@ class ScalarElement(FiatElementBase):
                 "Scalar elements do not have a %s operation") % derivative
 
         return super(ScalarElement, self).moment_evaluation(
-            value, weights, points, kernel_data, derivative=None, pullback=True)
+            value, weights, points, kernel_data, derivative, pullback)
 
     def pullback(self, phi, kernel_data, derivative=None):
 
