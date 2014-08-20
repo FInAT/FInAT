@@ -4,7 +4,7 @@ import pymbolic.primitives as p
 from pymbolic.mapper.evaluator import FloatEvaluationMapper, UnknownVariableError
 from ast import IndexSum, ForAll, LeviCivita
 import numpy as np
-
+import copy
 
 def _as_range(e):
     """Convert a slice to a range."""
@@ -143,5 +143,16 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
         raise NotImplementedError
 
 
-def evaluate(expression, context={}):
+def evaluate(expression, context={}, kernel_data=None):
+    """Take a FInAT expression and a set of definitions for undefined
+    variables in the expression, and optionally the current kernel
+    data. Evaluate the expression returning a Float or numpy array
+    according to the size of the expression.
+    """
+
+    if kernel_data:
+        context = copy.copy(context)
+        for var in kernel_data.static.values():
+            context[var[0]] = var[1]
+
     return FinatEvaluationMapper(context)(expression)
