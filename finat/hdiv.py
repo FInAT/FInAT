@@ -1,12 +1,12 @@
 import pymbolic.primitives as p
-from finiteelementbase import FiatElement
+from finiteelementbase import FiatElementBase
 from ast import Recipe, IndexSum, LeviCivita
 import FIAT
 import indices
 from derivatives import div, grad, curl
 
 
-class HDivElement(FiatElement):
+class HDivElement(FiatElementBase):
     def __init__(self, cell, degree):
         super(HDivElement, self).__init__(cell, degree)
 
@@ -89,3 +89,17 @@ class RaviartThomas(HDivElement):
         super(RaviartThomas, self).__init__(cell, degree)
 
         self._fiat_element = FIAT.RaviartThomas(cell, degree)
+
+
+class BrezziDouglasMarini(HDivElement):
+    def __init__(self, cell, degree):
+        super(RaviartThomas, self).__init__(cell, degree)
+
+        self._fiat_element = FIAT.BrezziDouglasMarini(cell, degree)
+
+
+class BrezziDouglasFortinMarini(HDivElement):
+    def __init__(self, cell, degree):
+        super(RaviartThomas, self).__init__(cell, degree)
+
+        self._fiat_element = FIAT.BrezziDouglasFortinMarini(cell, degree)

@@ -1,12 +1,12 @@
 import pymbolic.primitives as p
-from finiteelementbase import FiatElement
+from finiteelementbase import FiatElementBase
 from ast import Recipe, IndexSum
 import FIAT
 import indices
 from derivatives import grad
 
 
-class ScalarElement(FiatElement):
+class ScalarElement(FiatElementBase):
     def __init__(self, cell, degree):
         super(ScalarElement, self).__init__(cell, degree)
 
@@ -35,14 +35,15 @@ class ScalarElement(FiatElement):
         q = indices.PointIndex(points.points.shape[0])
 
         if derivative is grad:
-            alpha = indices.DimensionIndex(points.points.shape[1])
-            ind = ((alpha,), (i,), (q,))
+            alpha = indices.DimensionIndex(kernel_data.tdim)
             if pullback:
-                beta = indices.DimensionIndex(points.points.shape[1])
+                beta = alpha
+                alpha = indices.DimensionIndex(kernel_data.gdim)
                 invJ = kernel_data.invJ[(beta, alpha)]
                 expr = IndexSum((beta,), invJ * phi[(beta, i, q)])
             else:
                 expr = phi[(alpha, i, q)]
+            ind = ((alpha,), (i,), (q,))
         else:
             ind = ((), (i,), (q,))
             expr = phi[(i, q)]

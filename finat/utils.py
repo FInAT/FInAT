@@ -24,6 +24,12 @@ class KernelData(object):
         self.params = {}
         self.geometry = {}
 
+        #: The geometric dimension of the physical space.
+        self.gdim = coordinate_element._dimension
+
+        #: The topological dimension of the reference element
+        self.tdim = coordinate_element._cell.get_spatial_dimension()
+
     @property
     def J(self):
 

@@ -111,10 +111,11 @@ class FiniteElementBase(object):
         raise NotImplementedError
 
 
-class FiatElement(FiniteElementBase):
-    """A finite element for which the tabulation is provided by FIAT."""
+class FiatElementBase(FiniteElementBase):
+    """Base class for finite elements for which the tabulation is provided
+    by FIAT."""
     def __init__(self, cell, degree):
-        super(FiatElement, self).__init__()
+        super(FiatElementBase, self).__init__()
 
         self._cell = cell
         self._degree = degree
