@@ -74,7 +74,7 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
 
         # Execute over multiple indices recursively.
         if len(indices) > 1:
-            expr = IndexSum(indices[1:], body)
+            expr = ForAll(indices[1:], body)
         else:
             expr = body
 

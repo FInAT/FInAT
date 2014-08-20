@@ -229,7 +229,7 @@ class Delta(p._MultiChildExpression):
 
 .. math::
 
-    \delta[i_0,i_1]*\mathrm{body}.
+    \mathrm{Delta((i, j), body)} = \delta_{ij}*\mathrm{body}.
 
 :param indices: a sequence of indices.
 :param body: an expression.
