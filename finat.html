@@ -531,6 +531,65 @@ geometric or vector components.</p>
 </dd></dl>
 
 </div>
+<div class="section" id="module-finat.interpreter">
+<span id="finat-interpreter-module"></span><h2>finat.interpreter module<a class="headerlink" href="#module-finat.interpreter" title="Permalink to this headline">¶</a></h2>
+<p>An interpreter for FInAT recipes. This is not expected to be
+performant, but rather to provide a test facility for FInAT code.</p>
+<dl class="class">
+<dt id="finat.interpreter.FinatEvaluationMapper">
+<em class="property">class </em><tt class="descclassname">finat.interpreter.</tt><tt class="descname">FinatEvaluationMapper</tt><span class="sig-paren">(</span><em>context={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/interpreter.html#FinatEvaluationMapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.interpreter.FinatEvaluationMapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">pymbolic.mapper.evaluator.FloatEvaluationMapper</span></tt></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>context</strong> &#8211; a mapping from variable names to values</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="finat.interpreter.FinatEvaluationMapper.map_for_all">
+<tt class="descname">map_for_all</tt><span class="sig-paren">(</span><em>expr</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/interpreter.html#FinatEvaluationMapper.map_for_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.interpreter.FinatEvaluationMapper.map_for_all" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="finat.interpreter.FinatEvaluationMapper.map_index">
+<tt class="descname">map_index</tt><span class="sig-paren">(</span><em>expr</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/interpreter.html#FinatEvaluationMapper.map_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.interpreter.FinatEvaluationMapper.map_index" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="finat.interpreter.FinatEvaluationMapper.map_index_sum">
+<tt class="descname">map_index_sum</tt><span class="sig-paren">(</span><em>expr</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/interpreter.html#FinatEvaluationMapper.map_index_sum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.interpreter.FinatEvaluationMapper.map_index_sum" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="finat.interpreter.FinatEvaluationMapper.map_levi_civita">
+<tt class="descname">map_levi_civita</tt><span class="sig-paren">(</span><em>expr</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/interpreter.html#FinatEvaluationMapper.map_levi_civita"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.interpreter.FinatEvaluationMapper.map_levi_civita" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="finat.interpreter.FinatEvaluationMapper.map_recipe">
+<tt class="descname">map_recipe</tt><span class="sig-paren">(</span><em>expr</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/interpreter.html#FinatEvaluationMapper.map_recipe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.interpreter.FinatEvaluationMapper.map_recipe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate expr for all values of free indices</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="finat.interpreter.FinatEvaluationMapper.map_variable">
+<tt class="descname">map_variable</tt><span class="sig-paren">(</span><em>expr</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/interpreter.html#FinatEvaluationMapper.map_variable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.interpreter.FinatEvaluationMapper.map_variable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="finat.interpreter.evaluate">
+<tt class="descclassname">finat.interpreter.</tt><tt class="descname">evaluate</tt><span class="sig-paren">(</span><em>expression</em>, <em>context={}</em>, <em>kernel_data=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/interpreter.html#evaluate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.interpreter.evaluate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Take a FInAT expression and a set of definitions for undefined
+variables in the expression, and optionally the current kernel
+data. Evaluate the expression returning a Float or numpy array
+according to the size of the expression.</p>
+</dd></dl>
+
+</div>
 <div class="section" id="module-finat.lagrange">
 <span id="finat-lagrange-module"></span><h2>finat.lagrange module<a class="headerlink" href="#module-finat.lagrange" title="Permalink to this headline">¶</a></h2>
 <dl class="class">

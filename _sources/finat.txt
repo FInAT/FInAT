@@ -52,6 +52,14 @@ finat.indices module
     :undoc-members:
     :show-inheritance:
 
+finat.interpreter module
+------------------------
+
+.. automodule:: finat.interpreter
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 finat.lagrange module
 ---------------------
 
