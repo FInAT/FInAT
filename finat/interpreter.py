@@ -6,6 +6,7 @@ from ast import IndexSum, ForAll, LeviCivita
 import numpy as np
 import copy
 
+
 def _as_range(e):
     """Convert a slice to a range."""
 
@@ -38,7 +39,7 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
         d, b, p = expr.indices
         body = expr.expression
 
-        return self.rec(ForAll(d+b+p, body))
+        return self.rec(ForAll(d + b + p, body))
 
     def map_index_sum(self, expr):
 
