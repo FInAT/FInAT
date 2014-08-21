@@ -11,11 +11,7 @@ class UndefinedError(Exception):
 class FiniteElementBase(object):
 
     def __init__(self):
-
-        self._id = FiniteElementBase._count
-        FiniteElementBase._count += 1
-
-    _count = 0
+        pass
 
     @property
     def cell(self):
@@ -164,8 +160,8 @@ class FiatElementBase(FiniteElementBase):
         if static_key in kernel_data.static:
             phi = kernel_data.static[static_key][0]
         else:
-            phi = p.Variable((u'\u03C6_e'.encode("utf-8") if derivative is None
-                             else u"d\u03C6_e".encode("utf-8")) + str(self._id))
+            phi = p.Variable(("d" if derivative else "")
+                             + kernel_data.tabulation_variable_name(self, points))
             data = self._tabulate(points, derivative)
             kernel_data.static[static_key] = (phi, lambda: data)
 

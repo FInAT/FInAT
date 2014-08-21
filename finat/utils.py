@@ -30,6 +30,24 @@ class KernelData(object):
         #: The topological dimension of the reference element
         self.tdim = coordinate_element._cell.get_spatial_dimension()
 
+        self._variable_count = 0
+        self._variable_cache = {}
+
+    def tabulation_variable_name(self, element, points):
+        """Given a finite element and a point set, return a variable name phi_n
+        where n is guaranteed to be unique to that combination of element and
+        points."""
+
+        key = (id(element), id(points))
+
+        try:
+            return self._variable_cache[key]
+        except KeyError:
+            self._variable_cache[key] = u'\u03C6_'.encode("utf-8") \
+                                        + str(self._variable_count)
+            self._variable_count += 1
+            return self._variable_cache[key]
+
     @property
     def J(self):
 
