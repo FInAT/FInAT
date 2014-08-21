@@ -71,6 +71,7 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">copy</span>
 
+
 <span class="k">def</span> <span class="nf">_as_range</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Convert a slice to a range.&quot;&quot;&quot;</span>
 
@@ -103,7 +104,7 @@
         <span class="n">d</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="n">expr</span><span class="o">.</span><span class="n">indices</span>
         <span class="n">body</span> <span class="o">=</span> <span class="n">expr</span><span class="o">.</span><span class="n">expression</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">rec</span><span class="p">(</span><span class="n">ForAll</span><span class="p">(</span><span class="n">d</span><span class="o">+</span><span class="n">b</span><span class="o">+</span><span class="n">p</span><span class="p">,</span> <span class="n">body</span><span class="p">))</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">rec</span><span class="p">(</span><span class="n">ForAll</span><span class="p">(</span><span class="n">d</span> <span class="o">+</span> <span class="n">b</span> <span class="o">+</span> <span class="n">p</span><span class="p">,</span> <span class="n">body</span><span class="p">))</span>
 </div>
 <div class="viewcode-block" id="FinatEvaluationMapper.map_index_sum"><a class="viewcode-back" href="../../finat.html#finat.interpreter.FinatEvaluationMapper.map_index_sum">[docs]</a>    <span class="k">def</span> <span class="nf">map_index_sum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">):</span>
 
@@ -112,6 +113,8 @@
         <span class="c"># Sum over multiple indices recursively.</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">expr</span> <span class="o">=</span> <span class="n">IndexSum</span><span class="p">(</span><span class="n">indices</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">body</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">expr</span> <span class="o">=</span> <span class="n">body</span>
 
         <span class="n">idx</span> <span class="o">=</span> <span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
@@ -136,7 +139,9 @@
 
         <span class="c"># Execute over multiple indices recursively.</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">expr</span> <span class="o">=</span> <span class="n">IndexSum</span><span class="p">(</span><span class="n">indices</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">body</span><span class="p">)</span>
+            <span class="n">expr</span> <span class="o">=</span> <span class="n">ForAll</span><span class="p">(</span><span class="n">indices</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">body</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">expr</span> <span class="o">=</span> <span class="n">body</span>
 
         <span class="n">idx</span> <span class="o">=</span> <span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
@@ -218,7 +223,7 @@
     <span class="k">if</span> <span class="n">kernel_data</span><span class="p">:</span>
         <span class="n">context</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">kernel_data</span><span class="o">.</span><span class="n">static</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
-            <span class="n">context</span><span class="p">[</span><span class="n">var</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">var</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">context</span><span class="p">[</span><span class="n">var</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">var</span><span class="p">[</span><span class="mi">1</span><span class="p">]()</span>
 
     <span class="k">return</span> <span class="n">FinatEvaluationMapper</span><span class="p">(</span><span class="n">context</span><span class="p">)(</span><span class="n">expression</span><span class="p">)</span></div>
 </pre></div>

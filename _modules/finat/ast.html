@@ -68,7 +68,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">pymbolic.primitives</span> <span class="kn">as</span> <span class="nn">p</span>
 <span class="kn">from</span> <span class="nn">pymbolic.mapper</span> <span class="kn">import</span> <span class="n">IdentityMapper</span>
-<span class="kn">from</span> <span class="nn">pymbolic.mapper.stringifier</span> <span class="kn">import</span> <span class="n">StringifyMapper</span><span class="p">,</span> <span class="n">PREC_NONE</span>
+<span class="kn">from</span> <span class="nn">pymbolic.mapper.stringifier</span> <span class="kn">import</span> <span class="n">StringifyMapper</span><span class="p">,</span> <span class="n">PREC_NONE</span><span class="p">,</span> <span class="n">PREC_CALL</span>
 <span class="kn">from</span> <span class="nn">indices</span> <span class="kn">import</span> <span class="n">IndexBase</span><span class="p">,</span> <span class="n">DimensionIndex</span><span class="p">,</span> <span class="n">BasisFunctionIndex</span><span class="p">,</span> <span class="n">PointIndex</span>
 
 
@@ -101,6 +101,15 @@
 
 
 <span class="k">class</span> <span class="nc">_StringifyMapper</span><span class="p">(</span><span class="n">StringifyMapper</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">map_subscript</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">enclosing_prec</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parenthesize_if_needed</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">[</span><span class="si">%s</span><span class="s">]&quot;</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">rec</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">aggregate</span><span class="p">,</span> <span class="n">PREC_CALL</span><span class="p">),</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">join_rec</span><span class="p">(</span><span class="s">&quot;, &quot;</span><span class="p">,</span> <span class="n">expr</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">PREC_NONE</span><span class="p">)</span> <span class="k">if</span>
+                        <span class="nb">isinstance</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="k">else</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">rec</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">PREC_NONE</span><span class="p">)),</span>
+            <span class="n">enclosing_prec</span><span class="p">,</span> <span class="n">PREC_CALL</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">map_recipe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">enclosing_prec</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;Recipe(</span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">)&quot;</span><span class="p">,</span>
@@ -294,7 +303,7 @@
 
 <span class="sd">.. math::</span>
 
-<span class="sd">    \delta[i_0,i_1]*\mathrm{body}.</span>
+<span class="sd">    \mathrm{Delta((i, j), body)} = \delta_{ij}*\mathrm{body}.</span>
 
 <span class="sd">:param indices: a sequence of indices.</span>
 <span class="sd">:param body: an expression.</span>
