@@ -21,11 +21,11 @@ class VectorFiniteElement(FiniteElementBase):
         :param element: The scalar finite element.
         :param dimension: The geometric dimension of the vector element.
 
-        :math:`\boldsymbol\phi_{i,\beta}` is, of course, vector-valued. If
+        :math:`\boldsymbol\phi_{i\beta}` is, of course, vector-valued. If
         we subscript the vector-value with :math:`\alpha` then we can write:
 
         .. math::
-           \boldsymbol\phi_{\alpha,(i,\beta)} = \delta_{\alpha,\beta}\phi_i
+           \boldsymbol\phi_{\alpha(i\beta)} = \delta_{\alpha\beta}\phi_i
 
         This form enables the simplification of the loop nests which
         will eventually be created, so it is the form we employ here."""
