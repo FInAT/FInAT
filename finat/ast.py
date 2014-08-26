@@ -37,15 +37,6 @@ class _IndexMapper(IdentityMapper):
 
 class _StringifyMapper(StringifyMapper):
 
-    def map_subscript(self, expr, enclosing_prec):
-        return self.parenthesize_if_needed(
-            self.format("%s[%s]",
-                        self.rec(expr.aggregate, PREC_CALL),
-                        self.join_rec(", ", expr.index, PREC_NONE) if
-                        isinstance(expr.index, tuple) else
-                        self.rec(expr.index, PREC_NONE)),
-            enclosing_prec, PREC_CALL)
-
     def map_recipe(self, expr, enclosing_prec):
         return self.format("Recipe(%s, %s)",
                            self.rec(expr.indices, PREC_NONE),
