@@ -31,7 +31,7 @@ class ScalarElement(FiatElementBase):
             if pullback:
                 beta = alpha
                 alpha = indices.DimensionIndex(kernel_data.gdim)
-                invJ = kernel_data.invJ[(beta, alpha)]
+                invJ = kernel_data.invJ(points)[(beta, alpha)]
                 expr = IndexSum((beta,), invJ * phi[(beta, i, q)])
             else:
                 expr = phi[(alpha, i, q)]

@@ -15,32 +15,39 @@ class HDivElement(FiatElementBase):
 
         i = indices.BasisFunctionIndex(self.fiat_element.space_dimension())
         q = indices.PointIndex(points.points.shape[0])
-        alpha = indices.DimensionIndex(kernel_data.tdim)
+
+        tIndex = lambda: indices.DimensionIndex(kernel_data.tdim)
+        gIndex = lambda: indices.DimensionIndex(kernel_data.gdim)
+
+        alpha = tIndex()
+
+        # The lambda functions here prevent spurious instantiations of invJ and detJ
+        J = lambda: kernel_data.J(points)
+        invJ = lambda: kernel_data.invJ(points)
+        detJ = lambda: kernel_data.detJ(points)
 
         if derivative is None:
             if pullback:
                 beta = alpha
-                alpha = indices.DimensionIndex(kernel_data.gdim)
-                expr = IndexSum((beta,), kernel_data.J(alpha, beta) * phi[(beta, i, q)]
-                                / kernel_data.detJ)
+                alpha = gIndex()
+                expr = IndexSum((beta,), J()[alpha, beta] * phi[(beta, i, q)]
+                                / detJ())
             else:
                 expr = phi[(alpha, i, q)]
             ind = ((alpha,), (i,), (q,))
         elif derivative is div:
             if pullback:
-                expr = IndexSum((alpha,), phi[(alpha, alpha, i, q)] / kernel_data.detJ)
+                expr = IndexSum((alpha,), phi[(alpha, alpha, i, q)] / detJ())
             else:
                 expr = IndexSum((alpha,), phi[(alpha, alpha, i, q)])
             ind = ((), (i,), (q,))
         elif derivative is grad:
             if pullback:
-                beta = indices.DimensionIndex(kernel_data.tdim)
-                gamma = indices.DimensionIndex(kernel_data.gdim)
-                delta = indices.DimensionIndex(kernel_data.gdim)
-                expr = IndexSum((alpha, beta), kernel_data.J(gamma, alpha)
-                                * kernel_data.invJ(beta, delta)
-                                * phi[(alpha, beta, i, q)]) \
-                    / kernel_data.detJ
+                beta = tIndex()
+                gamma = gIndex()
+                delta = gIndex()
+                expr = IndexSum((alpha, beta), J()[gamma, alpha] * invJ()[beta, delta]
+                                * phi[(alpha, beta, i, q)]) / detJ()
                 ind = ((gamma, delta), (i,), (q,))
             else:
                 beta = indices.DimensionIndex(kernel_data.tdim)
@@ -50,17 +57,15 @@ class HDivElement(FiatElementBase):
             beta = indices.DimensionIndex(kernel_data.tdim)
             if pullback:
                 d = kernel_data.gdim
-                gamma = indices.DimensionIndex(d)
-                delta = indices.DimensionIndex(d)
-                zeta = indices.DimensionIndex(d)
+                gamma = gIndex()
+                delta = gIndex()
+                zeta = gIndex()
                 expr = LeviCivita((zeta,), (gamma, delta),
-                                  IndexSum((alpha, beta), kernel_data.J(gamma, alpha)
-                                           * kernel_data.invJ(beta, delta)
-                                           * phi[(alpha, beta, i, q)])) \
-                    / kernel_data.detJ
+                                  IndexSum((alpha, beta), J()[gamma, alpha] * invJ()[beta, delta]
+                                           * phi[(alpha, beta, i, q)])) / detJ()
             else:
                 d = kernel_data.tdim
-                zeta = indices.DimensionIndex(d)
+                zeta = tIndex()
                 expr = LeviCivita((zeta,), (alpha, beta), phi[(alpha, beta, i, q)])
             if d == 2:
                 expr = expr.replace_indices((zeta, 2))

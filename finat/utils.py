@@ -48,8 +48,7 @@ class KernelData(object):
             self._variable_count += 1
             return self._variable_cache[key]
 
-    @property
-    def J(self):
+    def J(self, points):
 
         try:
             return self.geometry["J"]
@@ -57,11 +56,10 @@ class KernelData(object):
             self.geometry["J"] = p.Variable("J")
             return self.geometry["J"]
 
-    @property
-    def invJ(self):
+    def invJ(self, points):
 
         # ensure J exists
-        self.J
+        self.J(points)
 
         try:
             return self.geometry["invJ"]
@@ -69,8 +67,7 @@ class KernelData(object):
             self.geometry["invJ"] = p.Variable("invJ")
             return self.geometry["invJ"]
 
-    @property
-    def detJ(self):
+    def detJ(self, points):
 
         # ensure J exists
         self.J
