@@ -11,7 +11,7 @@ class VectorFiniteElement(FiniteElementBase):
 
         .. math::
 
-            \boldsymbol\phi_{\betai} = \mathbf{e}_{\beta}\phi_i
+            \boldsymbol\phi_{\beta i} = \mathbf{e}_{\beta}\phi_i
 
         Where :math:`\{\mathbf{e}_\beta,\, \beta=0\ldots\mathrm{dim}\}` is
         the basis for :math:`\mathbb{R}^{\mathrm{dim}}` and
