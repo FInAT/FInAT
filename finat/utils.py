@@ -1,13 +1,18 @@
 import pymbolic.primitives as p
 import inspect
 import FIAT
+from derivatives import grad
+from ast import Let, Array, Inverse, Det
 
 
 class KernelData(object):
-    def __init__(self, coordinate_element, affine=None):
+    def __init__(self, coordinate_element, coordinate_var=None, affine=None):
         """
         :param coordinate_element: the (vector-valued) finite element for
             the coordinate field.
+        :param coorfinate_var: the symbolic variable for the
+            coordinate values. If no pullbacks are present in the kernel,
+            this may be omitted.
         :param affine: Specifies whether the pullback is affine (and therefore
             whether the Jacobian must be evaluated at every quadrature point).
             If not specified, this is inferred from coordinate_element.
@@ -49,14 +54,31 @@ class KernelData(object):
             return self._variable_cache[key]
 
     def J(self, points):
+        '''The Jacobian of the coordinate transformation.
 
+        .. math::
+
+            J_{\gamma,\tau} = \frac{\partial x_\gamma}{\partial X_\tau}
+
+        Where :math:`x` is the physical coordinate and :math:`X` is the
+        local coordinate.
+        '''
         try:
             return self.geometry["J"]
         except KeyError:
-            self.geometry["J"] = p.Variable("J")
+            self.geometry["J"] = Array("J", (self.gdim, self.tdim))
             return self.geometry["J"]
 
     def invJ(self, points):
+        '''The Moore-Penrose pseudo-inverse of the coordinate transformation.
+
+        .. math::
+
+            J^{-1}_{\tau,\gamma} = \frac{\partial X_\tau}{\partial x_\gamma}
+
+        Where :math:`x` is the physical coordinate and :math:`X` is the
+        local coordinate.
+        '''
 
         # ensure J exists
         self.J(points)
@@ -64,10 +86,11 @@ class KernelData(object):
         try:
             return self.geometry["invJ"]
         except KeyError:
-            self.geometry["invJ"] = p.Variable("invJ")
+            self.geometry["invJ"] = Array("invJ", (self.tdim, self.gdim))
             return self.geometry["invJ"]
 
     def detJ(self, points):
+        '''The determinant of the coordinate transformation.'''
 
         # ensure J exists
         self.J
@@ -77,6 +100,29 @@ class KernelData(object):
         except KeyError:
             self.geometry["detJ"] = p.Variable("detJ")
             return self.geometry["detJ"]
+
+    def bind_geometry(self, affine, expression, points):
+        """If self.affine != affine, return expression. Else return a Let
+        statement defining the geometry."""
+
+        if self.affine != affine or len(self.geometry) == 0:
+            return expression
+
+        g = self.geometry
+
+        inner_lets = []
+        if "invJ" in g:
+            inner_lets += (g["invJ"], Inverse(g["J"]))
+        if "detJ" in g:
+            inner_lets += (g["detJ"], Det(g["J"]))
+
+        J_expr = self.coordinate_element.evaluate_field(
+            self.coordinate_var, points, self, derivative=grad, pullback=False)
+        J_expr = J_expr.replace_indices(zip(J_expr.indices[-1], expression.indices[-1]))
+
+        return Let((g["J"], J_expr),
+                   Let(inner_lets, expression) if inner_lets else expression)
+
 
 # Tuple of simplex cells. This relies on the fact that FIAT only
 # defines simplex elements.

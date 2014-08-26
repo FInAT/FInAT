@@ -33,6 +33,8 @@ class _IndexMapper(IdentityMapper):
     map_wave = map_delta
     map_index_sum = map_delta
     map_levi_civita = map_delta
+    map_inverse = map_delta
+    map_det = map_delta
 
 
 class _StringifyMapper(StringifyMapper):
@@ -54,6 +56,22 @@ class _StringifyMapper(StringifyMapper):
     def map_levi_civita(self, expr, *args):
         return self.format("LeviCivita(%s)",
                            self.join_rec(", ", expr.children, *args))
+
+    def map_inverse(self, expr, *args):
+        return self.format("Inverse(%s)",
+                           self.rec(expr.expression, *args))
+
+    def map_det(self, expr, *args):
+        return self.format("Det(%s)",
+                           self.rec(expr.expression, *args))
+
+
+class Array(p.Variable):
+    """A pymbolic variable of known extent."""
+    def __init__(self, name, shape):
+        super(Array, self).__init__(name)
+
+        self.shape = shape
 
 
 class Recipe(p.Expression):
@@ -252,6 +270,38 @@ match. Otherwise 0 will be returned.
         return "Delta(%s, %s)" % self.children
 
     mapper_method = "map_delta"
+
+    def stringifier(self):
+        return _StringifyMapper
+
+
+class Inverse(p.Expression):
+    """The inverse of a matrix-valued expression. Where the expression is
+    not square, this is the Moore-Penrose pseudo-inverse.
+
+    Where the expression is evaluated at a number of points, the
+    inverse will be evaluated pointwise.
+    """
+    def __init__(self, expression):
+        self.expression = expression
+
+    mapper_method = "map_inverse"
+
+    def stringifier(self):
+        return _StringifyMapper
+
+
+class Det(p.Expression):
+    """The determinant of a matrix-valued expression.
+
+    Where the expression is evaluated at a number of points, the
+    inverse will be evaluated pointwise.
+    """
+    def __init__(self, expression):
+
+        self.expression = expression
+
+    mapper_method = "map_det"
 
     def stringifier(self):
         return _StringifyMapper
