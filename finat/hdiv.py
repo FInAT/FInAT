@@ -37,9 +37,9 @@ class HDivElement(FiatElementBase):
             ind = ((alpha,), (i,), (q,))
         elif derivative is div:
             if pullback:
-                expr = IndexSum((alpha,), phi[(alpha, alpha, i, q)] / detJ())
+                expr = IndexSum((alpha,), phi[alpha, alpha, i, q] / detJ())
             else:
-                expr = IndexSum((alpha,), phi[(alpha, alpha, i, q)])
+                expr = IndexSum((alpha,), phi[alpha, alpha, i, q])
             ind = ((), (i,), (q,))
         elif derivative is grad:
             if pullback:

@@ -192,7 +192,13 @@ class FiatElementBase(FiniteElementBase):
 
         if pullback:
             # Note. Do detJ cancellation here.
-            expr = IndexSum(d + p, psi * phi * w[p] * kernel_data.detJ(points))
+            expr = psi * phi * w[p] * kernel_data.detJ(points)
+
+            if kernel_data.affine:
+                expr = kernel_data.bind_geometry(
+                    IndexSum(d + p, expr), points)
+            else:
+                expr = IndexSum(p, kernel_data.bind_geometry(IndexSum(d, expr)))
         else:
             expr = IndexSum(d + p, psi * phi * w[p])
 

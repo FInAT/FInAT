@@ -101,14 +101,17 @@ class KernelData(object):
             self.geometry["detJ"] = p.Variable("detJ")
             return self.geometry["detJ"]
 
-    def bind_geometry(self, affine, expression, points):
-        """If self.affine != affine, return expression. Else return a Let
-        statement defining the geometry."""
+    def bind_geometry(self, expression, points=None):
+        """Let statement defining the geometry for expression. If no geometry
+        is required, return expression."""
 
-        if self.affine != affine or len(self.geometry) == 0:
+        if len(self.geometry) == 0:
             return expression
 
         g = self.geometry
+
+        if points is None:
+            points = self._origin
 
         inner_lets = []
         if "invJ" in g:
@@ -118,7 +121,9 @@ class KernelData(object):
 
         J_expr = self.coordinate_element.evaluate_field(
             self.coordinate_var, points, self, derivative=grad, pullback=False)
-        J_expr = J_expr.replace_indices(zip(J_expr.indices[-1], expression.indices[-1]))
+        if points:
+            J_expr = J_expr.replace_indices(
+                zip(J_expr.indices[-1], expression.indices[-1]))
 
         return Let((g["J"], J_expr),
                    Let(inner_lets, expression) if inner_lets else expression)
