@@ -3,8 +3,8 @@ required to define Finite Element expressions in FInAT.
 """
 import pymbolic.primitives as p
 from pymbolic.mapper import IdentityMapper
-from pymbolic.mapper.stringifier import StringifyMapper, PREC_NONE, PREC_CALL
-from indices import IndexBase, DimensionIndex, BasisFunctionIndex, PointIndex
+from pymbolic.mapper.stringifier import StringifyMapper, PREC_NONE
+from indices import IndexBase
 
 
 class _IndexMapper(IdentityMapper):
@@ -143,6 +143,12 @@ class IndexSum(p._MultiChildExpression):
             indices = tuple(indices)
         else:
             indices = (indices,)
+
+        print type(body)
+        # Perform trivial simplification of repeated indexsum.
+        if isinstance(body, IndexSum):
+            indices += body.children[0]
+            body = body.children[1]
 
         self.children = (indices, body)
 

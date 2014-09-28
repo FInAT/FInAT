@@ -190,16 +190,9 @@ class FiatElementBase(FiniteElementBase):
 
         w = weights.kernel_variable("w", kernel_data)
 
+        expr = psi * phi * w[p]
+
         if pullback:
-            # Note. Do detJ cancellation here.
-            expr = psi * phi * w[p] * kernel_data.detJ(points)
+            expr *= kernel_data.detJ(points)
 
-            if kernel_data.affine:
-                expr = kernel_data.bind_geometry(
-                    IndexSum(d + p, expr), points)
-            else:
-                expr = IndexSum(p, kernel_data.bind_geometry(IndexSum(d, expr)))
-        else:
-            expr = IndexSum(d + p, psi * phi * w[p])
-
-        return Recipe(((), b + b_, ()), expr)
+        return Recipe(((), b + b_, ()), IndexSum(p, expr))
