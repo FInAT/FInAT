@@ -65,7 +65,7 @@ def test_lagrange_moment(lagrange, coords):
 
     kernel_data = finat.KernelData(coords)
 
-    q = finat.indices.PointIndex(3)
+    q = finat.indices.PointIndex(points)
 
     v = finat.ast.Recipe(((), (), (q,)), p.Variable("f")[q])
 

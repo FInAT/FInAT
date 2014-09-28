@@ -38,12 +38,14 @@ class IndexBase(p.Variable):
 
 class PointIndex(IndexBase):
     '''An index running over a set of points, for example quadrature points.'''
-    def __init__(self, extent):
+    def __init__(self, pointset):
+
+        self.pointset = pointset
 
         name = 'q_' + str(PointIndex._count)
         PointIndex._count += 1
 
-        super(PointIndex, self).__init__(extent, name)
+        super(PointIndex, self).__init__(pointset.extent, name)
 
     _count = 0
 

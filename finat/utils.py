@@ -23,7 +23,7 @@ class KernelData(object):
             self.affine = coordinate_element.degree <= 1 \
                 and isinstance(coordinate_element.cell, _simplex)
         else:
-            self.affine = True
+            self.affine = affine
 
         self.static = {}
         self.params = {}

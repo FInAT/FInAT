@@ -25,9 +25,13 @@ class PointSet(PointSetBase):
     def __init__(self, points):
         self._points = numpy.array(points)
 
+        self.extent = slice(self._points.shape[0])
+        """A slice which describes how to iterate over this
+        :class:`PointSet`"""
+
     @property
     def points(self):
-        """Return a flattened numpy array of points.
+        """A flattened numpy array of points.
 
         The array has shape (num_points, topological_dim).
         """

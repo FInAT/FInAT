@@ -144,7 +144,6 @@ class IndexSum(p._MultiChildExpression):
         else:
             indices = (indices,)
 
-        print type(body)
         # Perform trivial simplification of repeated indexsum.
         if isinstance(body, IndexSum):
             indices += body.children[0]

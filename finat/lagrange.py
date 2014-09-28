@@ -24,7 +24,7 @@ class ScalarElement(FiatElementBase):
         phi = self._tabulated_basis(points, kernel_data, derivative)
 
         i = indices.BasisFunctionIndex(self._fiat_element.space_dimension())
-        q = indices.PointIndex(points.points.shape[0])
+        q = indices.PointIndex(points)
 
         if derivative is grad:
             alpha = indices.DimensionIndex(kernel_data.tdim)
