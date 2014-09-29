@@ -10,7 +10,7 @@ class ScalarElement(FiatElementBase):
     def __init__(self, cell, degree):
         super(ScalarElement, self).__init__(cell, degree)
 
-    def basis_evaluation(self, points, kernel_data, derivative=None, pullback=True):
+    def basis_evaluation(self, q, kernel_data, derivative=None, pullback=True):
         '''Produce the variable for the tabulation of the basis
         functions or their derivative. Also return the relevant indices.
 
@@ -21,17 +21,16 @@ class ScalarElement(FiatElementBase):
             raise ValueError(
                 "Scalar elements do not have a %s operation") % derivative
 
-        phi = self._tabulated_basis(points, kernel_data, derivative)
+        phi = self._tabulated_basis(q.points, kernel_data, derivative)
 
         i = indices.BasisFunctionIndex(self._fiat_element.space_dimension())
-        q = indices.PointIndex(points)
 
         if derivative is grad:
             alpha = indices.DimensionIndex(kernel_data.tdim)
             if pullback:
                 beta = alpha
                 alpha = indices.DimensionIndex(kernel_data.gdim)
-                invJ = kernel_data.invJ(points)[(beta, alpha)]
+                invJ = kernel_data.invJ[(beta, alpha)]
                 expr = IndexSum((beta,), invJ * phi[(beta, i, q)])
             else:
                 expr = phi[(alpha, i, q)]
@@ -42,23 +41,23 @@ class ScalarElement(FiatElementBase):
 
         return Recipe(indices=ind, expression=expr)
 
-    def field_evaluation(self, field_var, points,
+    def field_evaluation(self, field_var, q,
                          kernel_data, derivative=None, pullback=True):
         if derivative not in (None, grad):
             raise ValueError(
                 "Scalar elements do not have a %s operation") % derivative
 
         return super(ScalarElement, self).field_evaluation(
-            field_var, points, kernel_data, derivative, pullback)
+            field_var, q, kernel_data, derivative, pullback)
 
-    def moment_evaluation(self, value, weights, points,
+    def moment_evaluation(self, value, weights, q,
                           kernel_data, derivative=None, pullback=True):
         if derivative not in (None, grad):
             raise ValueError(
                 "Scalar elements do not have a %s operation") % derivative
 
         return super(ScalarElement, self).moment_evaluation(
-            value, weights, points, kernel_data, derivative, pullback)
+            value, weights, q, kernel_data, derivative, pullback)
 
     def pullback(self, phi, kernel_data, derivative=None):
 

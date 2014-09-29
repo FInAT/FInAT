@@ -10,7 +10,7 @@ class KernelData(object):
         """
         :param coordinate_element: the (vector-valued) finite element for
             the coordinate field.
-        :param coorfinate_var: the symbolic variable for the
+        :param coordinate_var: the symbolic variable for the
             coordinate values. If no pullbacks are present in the kernel,
             this may be omitted.
         :param affine: Specifies whether the pullback is affine (and therefore
@@ -19,6 +19,7 @@ class KernelData(object):
         """
 
         self.coordinate_element = coordinate_element
+        self.coordinate_var = coordinate_var
         if affine is None:
             self.affine = coordinate_element.degree <= 1 \
                 and isinstance(coordinate_element.cell, _simplex)
@@ -31,7 +32,6 @@ class KernelData(object):
 
         #: The geometric dimension of the physical space.
         self.gdim = coordinate_element._dimension
-
         #: The topological dimension of the reference element
         self.tdim = coordinate_element._cell.get_spatial_dimension()
 
@@ -53,7 +53,8 @@ class KernelData(object):
             self._variable_count += 1
             return self._variable_cache[key]
 
-    def J(self, points):
+    @property
+    def J(self):
         '''The Jacobian of the coordinate transformation.
 
         .. math::
@@ -69,7 +70,8 @@ class KernelData(object):
             self.geometry["J"] = Array("J", (self.gdim, self.tdim))
             return self.geometry["J"]
 
-    def invJ(self, points):
+    @property
+    def invJ(self):
         '''The Moore-Penrose pseudo-inverse of the coordinate transformation.
 
         .. math::
@@ -80,20 +82,15 @@ class KernelData(object):
         local coordinate.
         '''
 
-        # ensure J exists
-        self.J(points)
-
         try:
             return self.geometry["invJ"]
         except KeyError:
             self.geometry["invJ"] = Array("invJ", (self.tdim, self.gdim))
             return self.geometry["invJ"]
 
-    def detJ(self, points):
+    @property
+    def detJ(self):
         '''The determinant of the coordinate transformation.'''
-
-        # ensure J exists
-        self.J
 
         try:
             return self.geometry["detJ"]

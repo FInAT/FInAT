@@ -53,23 +53,31 @@ class FiniteElementBase(object):
 
         raise NotImplementedError
 
-    def field_evaluation(self, points, static_data, derivative=None):
+    def field_evaluation(self, field_var, q, kernel_data, derivative=None):
         '''Return code for evaluating a known field at known points on the
         reference element.
 
-        Derivative is an atomic derivative operation.
-
-        Points is some description of the points to evaluate at
+        :param field_var: the coefficient of the field at each basis function
+        :param q: a :class:`.PointIndex` corresponding to the points
+            at which to evaluate.
+        :param kernel_data: the :class:`.KernelData` object corresponding
+            to the current kernel.
+        :param derivative: the derivative to take of the test function.
 
         '''
 
         raise NotImplementedError
 
-    def basis_evaluation(self, points, static_data, derivative=None):
+    def basis_evaluation(self, q, kernel_data, derivative=None):
         '''Return code for evaluating a known field at known points on the
         reference element.
 
-        Points is some description of the points to evaluate at
+        :param field_var: the coefficient of the field at each basis function
+        :param q: a :class:`.PointIndex` corresponding to the points
+            at which to evaluate.
+        :param kernel_data: the :class:`.KernelData` object corresponding
+            to the current kernel.
+        :param derivative: the derivative to take of the test function.
 
         '''
 
@@ -81,7 +89,7 @@ class FiniteElementBase(object):
 
         raise NotImplementedError
 
-    def moment_evaluation(self, value, weights, points, static_data, derivative=None):
+    def moment_evaluation(self, value, weights, q, kernel_data, derivative=None):
         '''Return code for evaluating:
 
         .. math::
@@ -93,13 +101,15 @@ class FiniteElementBase(object):
 
         :param value: an expression. The free indices in value must match those in v.
         :param weights: a point set of quadrature weights.
-        :param static_data: the :class:`.KernelData` object corresponding to the current kernel.
+        :param q: a :class:`.PointIndex` corresponding to the points
+            at which to evaluate.
+        :param kernel_data: the :class:`.KernelData` object corresponding to the current kernel.
         :param derivative: the derivative to take of the test function.
         '''
 
         raise NotImplementedError
 
-    def dual_evaluation(self, static_data):
+    def dual_evaluation(self, kernel_data):
         '''Return code for evaluating an expression at the dual set.
 
         Note: what does the expression need to look like?
@@ -167,10 +177,10 @@ class FiatElementBase(FiniteElementBase):
 
         return phi
 
-    def field_evaluation(self, field_var, points,
+    def field_evaluation(self, field_var, q,
                          kernel_data, derivative=None, pullback=True):
 
-        basis = self.basis_evaluation(points, kernel_data, derivative, pullback)
+        basis = self.basis_evaluation(q, kernel_data, derivative, pullback)
         (d, b, p) = basis.indices
         phi = basis.expression
 
@@ -178,10 +188,10 @@ class FiatElementBase(FiniteElementBase):
 
         return Recipe((d, (), p), expr)
 
-    def moment_evaluation(self, value, weights, points,
+    def moment_evaluation(self, value, weights, q,
                           kernel_data, derivative=None, pullback=True):
 
-        basis = self.basis_evaluation(points, kernel_data, derivative, pullback)
+        basis = self.basis_evaluation(q, kernel_data, derivative, pullback)
         (d, b, p) = basis.indices
         phi = basis.expression
 
@@ -193,6 +203,6 @@ class FiatElementBase(FiniteElementBase):
         expr = psi * phi * w[p]
 
         if pullback:
-            expr *= kernel_data.detJ(points)
+            expr *= kernel_data.detJ
 
         return Recipe(((), b + b_, ()), IndexSum(p, expr))

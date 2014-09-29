@@ -13,7 +13,7 @@ def cell():
 def quadrature(cell, degree):
     q = FIAT.quadrature.CollapsedQuadratureTriangleRule(cell, 2)
 
-    points = finat.PointSet(q.get_points())
+    points = finat.indices.PointIndex(finat.PointSet(q.get_points()))
 
     weights = finat.PointSet(q.get_weights())
 

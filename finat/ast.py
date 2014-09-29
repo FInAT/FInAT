@@ -151,6 +151,9 @@ class IndexSum(p._MultiChildExpression):
 
         self.children = (indices, body)
 
+        self.indices = self.children[0]
+        self.body = self.children[1]
+
     def __getinitargs__(self):
         return self.children
 

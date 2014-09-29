@@ -40,7 +40,7 @@ class PointIndex(IndexBase):
     '''An index running over a set of points, for example quadrature points.'''
     def __init__(self, pointset):
 
-        self.pointset = pointset
+        self.points = pointset
 
         name = 'q_' + str(PointIndex._count)
         PointIndex._count += 1

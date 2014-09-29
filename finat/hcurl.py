@@ -9,12 +9,11 @@ class HCurlElement(FiatElementBase):
     def __init__(self, cell, degree):
         super(HCurlElement, self).__init__(cell, degree)
 
-    def basis_evaluation(self, points, kernel_data, derivative=None, pullback=True):
+    def basis_evaluation(self, q, kernel_data, derivative=None, pullback=True):
 
-        phi = self._tabulated_basis(points, kernel_data, derivative)
+        phi = self._tabulated_basis(q.points, kernel_data, derivative)
 
         i = indices.BasisFunctionIndex(self.fiat_element.space_dimension())
-        q = indices.PointIndex(points)
 
         tIndex = lambda: indices.DimensionIndex(kernel_data.tdim)
         gIndex = lambda: indices.DimensionIndex(kernel_data.gdim)
@@ -22,8 +21,8 @@ class HCurlElement(FiatElementBase):
         alpha = tIndex()
 
         # The lambda functions here prevent spurious instantiations of invJ and detJ
-        invJ = lambda: kernel_data.invJ(points)
-        detJ = lambda: kernel_data.detJ(points)
+        invJ = lambda: kernel_data.invJ
+        detJ = lambda: kernel_data.detJ
 
         if derivative is None:
             if pullback:
@@ -47,7 +46,7 @@ class HCurlElement(FiatElementBase):
                 beta = tIndex()
                 gamma = gIndex()
                 delta = gIndex()
-                expr = IndexSum((alpha, beta), invJ()[alpha, gamma] * invJ(beta, delta)
+                expr = IndexSum((alpha, beta), invJ()[alpha, gamma] * invJ()[beta, delta]
                                 * phi[(alpha, beta, i, q)])
                 ind = ((gamma, delta), (i,), (q,))
             else:

@@ -16,7 +16,7 @@ def lagrange():
 def points(lagrange):
     lattice = lagrange.cell.make_lattice(1)
 
-    return finat.PointSet(lattice)
+    return finat.indices.PointIndex(finat.PointSet(lattice))
 
 
 @pytest.fixture
@@ -71,7 +71,7 @@ def test_lagrange_moment(lagrange, coords):
 
     recipe = lagrange.moment_evaluation(v,
                                         weights,
-                                        points,
+                                        q,
                                         kernel_data)
 
     print recipe.expression
@@ -89,14 +89,15 @@ def test_lagrange_2form_moment(lagrange, coords):
     weights = finat.PointSet(np.ones((len(lattice),)))
 
     points = finat.PointSet(lattice)
+    q = finat.indices.PointIndex(points)
 
     kernel_data = finat.KernelData(coords)
 
-    trial = lagrange.basis_evaluation(points, kernel_data)
+    trial = lagrange.basis_evaluation(q, kernel_data)
 
     recipe = lagrange.moment_evaluation(trial,
                                         weights,
-                                        points,
+                                        q,
                                         kernel_data)
 
     print recipe
@@ -105,14 +106,14 @@ def test_lagrange_2form_moment(lagrange, coords):
 
 def test_lagrange_tabulate(lagrange, points):
 
-    tab = lagrange._tabulate(points, None)
+    tab = lagrange._tabulate(points.points, None)
 
     assert (np.eye(3) - tab < 1.e-16).all()
 
 
 def test_lagrange_tabulate_grad(lagrange, points):
 
-    tab = lagrange._tabulate(points, finat.derivatives.grad)
+    tab = lagrange._tabulate(points.points, finat.derivatives.grad)
 
     ans = np.array([[-1.0, 1.0, 0.0],
                     [-1.0, 0.0, 1.0]])

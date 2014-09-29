@@ -38,7 +38,7 @@ class VectorFiniteElement(FiniteElementBase):
 
         self._base_element = element
 
-    def basis_evaluation(self, points, kernel_data, derivative=None, pullback=True):
+    def basis_evaluation(self, q, kernel_data, derivative=None, pullback=True):
         r"""Produce the recipe for basis function evaluation at a set of points
 :math:`q`:
 
@@ -57,8 +57,9 @@ class VectorFiniteElement(FiniteElementBase):
         # Produce the base scalar recipe. The scalar basis can only
         # take a grad. For other derivatives, we need to do the
         # transform here.
-        sr = self._base_element.basis_evaluation(points, kernel_data,
-                                                 derivative and grad, pullback)
+        sr = self._base_element.basis_evaluation(q, kernel_data,
+                                                 derivative and grad,
+                                                 pullback)
         phi = sr.expression
         d, b, p = sr.indices
 
@@ -89,7 +90,7 @@ class VectorFiniteElement(FiniteElementBase):
 
             return Recipe((alpha + d, b + beta, p), Delta(alpha + beta, phi))
 
-    def field_evaluation(self, field_var, points,
+    def field_evaluation(self, field_var, q,
                          kernel_data, derivative=None, pullback=True):
         r"""Produce the recipe for the evaluation of a field f at a set of
 points :math:`q`:
@@ -108,8 +109,9 @@ points :math:`q`:
         # Produce the base scalar recipe. The scalar basis can only
         # take a grad. For other derivatives, we need to do the
         # transform here.
-        sr = self._base_element.basis_evaluation(points, kernel_data,
-                                                 derivative and grad, pullback)
+        sr = self._base_element.basis_evaluation(q, kernel_data,
+                                                 derivative and grad,
+                                                 pullback)
         phi = sr.expression
         d, b, p = sr.indices
 
@@ -145,7 +147,7 @@ points :math:`q`:
 
             return Recipe((alpha + d, (), p), expression)
 
-    def moment_evaluation(self, value, weights, points,
+    def moment_evaluation(self, value, weights, q,
                           kernel_data, derivative=None, pullback=True):
         r"""Produce the recipe for the evaluation of the moment of
         :math:`u_{\alpha,q}` against a test function :math:`v_{\beta,q}`.
@@ -173,8 +175,9 @@ points :math:`q`:
         # Produce the base scalar recipe. The scalar basis can only
         # take a grad. For other derivatives, we need to do the
         # transform here.
-        sr = self._base_element.basis_evaluation(points, kernel_data,
-                                                 derivative and grad, pullback)
+        sr = self._base_element.basis_evaluation(q, kernel_data,
+                                                 derivative and grad,
+                                                 pullback)
 
         phi = sr.expression
         d, b, p = sr.indices

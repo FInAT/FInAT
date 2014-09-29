@@ -9,12 +9,11 @@ class HDivElement(FiatElementBase):
     def __init__(self, cell, degree):
         super(HDivElement, self).__init__(cell, degree)
 
-    def basis_evaluation(self, points, kernel_data, derivative=None, pullback=True):
+    def basis_evaluation(self, q, kernel_data, derivative=None, pullback=True):
 
-        phi = self._tabulated_basis(points, kernel_data, derivative)
+        phi = self._tabulated_basis(q.points, kernel_data, derivative)
 
         i = indices.BasisFunctionIndex(self.fiat_element.space_dimension())
-        q = indices.PointIndex(points)
 
         tIndex = lambda: indices.DimensionIndex(kernel_data.tdim)
         gIndex = lambda: indices.DimensionIndex(kernel_data.gdim)
@@ -22,18 +21,18 @@ class HDivElement(FiatElementBase):
         alpha = tIndex()
 
         # The lambda functions here prevent spurious instantiations of invJ and detJ
-        J = lambda: kernel_data.J(points)
-        invJ = lambda: kernel_data.invJ(points)
-        detJ = lambda: kernel_data.detJ(points)
+        J = lambda: kernel_data.J
+        invJ = lambda: kernel_data.invJ
+        detJ = lambda: kernel_data.detJ
 
         if derivative is None:
             if pullback:
                 beta = alpha
                 alpha = gIndex()
-                expr = IndexSum((beta,), J()[alpha, beta] * phi[(beta, i, q)]
+                expr = IndexSum((beta,), J()[alpha, beta] * phi[beta, i, q]
                                 / detJ())
             else:
-                expr = phi[(alpha, i, q)]
+                expr = phi[alpha, i, q]
             ind = ((alpha,), (i,), (q,))
         elif derivative is div:
             if pullback:
@@ -47,11 +46,11 @@ class HDivElement(FiatElementBase):
                 gamma = gIndex()
                 delta = gIndex()
                 expr = IndexSum((alpha, beta), J()[gamma, alpha] * invJ()[beta, delta]
-                                * phi[(alpha, beta, i, q)]) / detJ()
+                                * phi[alpha, beta, i, q]) / detJ()
                 ind = ((gamma, delta), (i,), (q,))
             else:
                 beta = indices.DimensionIndex(kernel_data.tdim)
-                expr = phi[(alpha, beta, i, q)]
+                expr = phi[alpha, beta, i, q]
                 ind = ((alpha, beta), (i,), (q,))
         elif derivative is curl:
             beta = indices.DimensionIndex(kernel_data.tdim)
@@ -62,11 +61,11 @@ class HDivElement(FiatElementBase):
                 zeta = gIndex()
                 expr = LeviCivita((zeta,), (gamma, delta),
                                   IndexSum((alpha, beta), J()[gamma, alpha] * invJ()[beta, delta]
-                                           * phi[(alpha, beta, i, q)])) / detJ()
+                                           * phi[alpha, beta, i, q])) / detJ()
             else:
                 d = kernel_data.tdim
                 zeta = tIndex()
-                expr = LeviCivita((zeta,), (alpha, beta), phi[(alpha, beta, i, q)])
+                expr = LeviCivita((zeta,), (alpha, beta), phi[alpha, beta, i, q])
             if d == 2:
                 expr = expr.replace_indices((zeta, 2))
                 ind = ((), (i,), (q,))
