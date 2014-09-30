@@ -39,7 +39,7 @@ class ScalarElement(FiatElementBase):
             ind = ((), (i,), (q,))
             expr = phi[(i, q)]
 
-        return Recipe(indices=ind, expression=expr)
+        return Recipe(indices=ind, body=expr)
 
     def field_evaluation(self, field_var, q,
                          kernel_data, derivative=None, pullback=True):

@@ -2,9 +2,32 @@
 required to define Finite Element expressions in FInAT.
 """
 import pymbolic.primitives as p
-from pymbolic.mapper import IdentityMapper
+from pymbolic.mapper import IdentityMapper as IM
 from pymbolic.mapper.stringifier import StringifyMapper, PREC_NONE
 from indices import IndexBase
+
+
+class IdentityMapper(IM):
+    def __init__(self):
+        super(IdentityMapper, self).__init__()
+
+    def map_recipe(self, expr, *args):
+        return expr.__class__(self.rec(expr.indices, *args),
+                              self.rec(expr.body, *args))
+
+    def map_index(self, expr, *args):
+        return expr
+
+    def map_delta(self, expr, *args):
+        return expr.__class__(*(self.rec(c, *args) for c in expr.children))
+
+    map_let = map_delta
+    map_for_all = map_delta
+    map_wave = map_delta
+    map_index_sum = map_delta
+    map_levi_civita = map_delta
+    map_inverse = map_delta
+    map_det = map_delta
 
 
 class _IndexMapper(IdentityMapper):
@@ -21,49 +44,63 @@ class _IndexMapper(IdentityMapper):
         except KeyError:
             return expr
 
-    def map_recipe(self, expr, *args):
-        return expr.__class__(self.rec(expr.indices, *args),
-                              self.rec(expr.expression, *args))
-
-    def map_delta(self, expr, *args):
-        return expr.__class__(*(self.rec(c, *args) for c in expr.children))
-
-    map_let = map_delta
-    map_for_all = map_delta
-    map_wave = map_delta
-    map_index_sum = map_delta
-    map_levi_civita = map_delta
-    map_inverse = map_delta
-    map_det = map_delta
-
 
 class _StringifyMapper(StringifyMapper):
 
-    def map_recipe(self, expr, enclosing_prec):
-        return self.format("Recipe(%s, %s)",
-                           self.rec(expr.indices, PREC_NONE),
-                           self.rec(expr.expression, PREC_NONE))
+    def map_recipe(self, expr, enclosing_prec, indent=None, *args, **kwargs):
+        if indent is None:
+            fmt = "Recipe(%s, %s)"
+        else:
+            oldidt = " "*indent
+            indent += 4
+            idt = " "*indent
+            fmt = "Recipe(%s,\n" + idt + "%s\n" + oldidt + ")"
 
-    def map_delta(self, expr, *args):
+        return self.format(fmt,
+                           self.rec(expr.indices, PREC_NONE, indent=indent, *args, **kwargs),
+                           self.rec(expr.body, PREC_NONE, indent=indent, *args, **kwargs))
+
+    def map_let(self, expr, enclosing_prec, indent=None, *args, **kwargs):
+        if indent is None:
+            fmt = "Let(%s, %s)"
+        else:
+            oldidt = " "*indent
+            indent += 4
+            idt = " "*indent
+            fmt = "Let(\n" + idt + "%s,\n" + idt + "%s\n" + oldidt + ")"
+
+        return self.format(fmt,
+                           self.rec(expr.bindings, PREC_NONE, indent=None, *args, **kwargs),
+                           self.rec(expr.body, PREC_NONE, indent=indent, *args, **kwargs))
+
+    def map_delta(self, expr, *args, **kwargs):
         return self.format("Delta(%s, %s)",
-                           *[self.rec(c, *args) for c in expr.children])
+                           *[self.rec(c, *args, **kwargs) for c in expr.children])
 
-    def map_index_sum(self, expr, *args):
-        return self.format("IndexSum((%s), %s)",
-                           " ".join(self.rec(c, *args) + "," for c in expr.children[0]),
-                           self.rec(expr.children[1], *args))
+    def map_index_sum(self, expr, enclosing_prec, indent=None, *args, **kwargs):
+        if indent is None or enclosing_prec is not PREC_NONE:
+            fmt = "IndexSum((%s), %s) "
+        else:
+            oldidt = " "*indent
+            indent += 4
+            idt = " "*indent
+            fmt = "IndexSum((%s),\n" + idt + "%s\n" + oldidt + ")"
 
-    def map_levi_civita(self, expr, *args):
+        return self.format(fmt,
+                           " ".join(self.rec(c, PREC_NONE, *args, **kwargs) + "," for c in expr.children[0]),
+                           self.rec(expr.children[1], PREC_NONE, indent=indent, *args, **kwargs))
+
+    def map_levi_civita(self, expr, *args, **kwargs):
         return self.format("LeviCivita(%s)",
-                           self.join_rec(", ", expr.children, *args))
+                           self.join_rec(", ", expr.children, *args, **kwargs))
 
-    def map_inverse(self, expr, *args):
+    def map_inverse(self, expr, *args, **kwargs):
         return self.format("Inverse(%s)",
-                           self.rec(expr.expression, *args))
+                           self.rec(expr.expression, *args, **kwargs))
 
-    def map_det(self, expr, *args):
+    def map_det(self, expr, *args, **kwargs):
         return self.format("Det(%s)",
-                           self.rec(expr.expression, *args))
+                           self.rec(expr.expression, *args, **kwargs))
 
 
 class Array(p.Variable):
@@ -88,18 +125,18 @@ class Recipe(p.Expression):
         Any of the tuples may be empty.
     :param expression: The expression returned by this :class:`Recipe`.
     """
-    def __init__(self, indices, expression):
+    def __init__(self, indices, body):
         try:
             assert len(indices) == 3
         except:
             raise FInATSyntaxError("Indices must be a triple of tuples")
         self.indices = tuple(indices)
-        self.expression = expression
+        self.body = body
 
     mapper_method = "map_recipe"
 
     def __getinitargs__(self):
-        return self.indices, self.expression
+        return self.indices, self.body
 
     def __getitem__(self, index):
 
@@ -117,6 +154,14 @@ class Recipe(p.Expression):
             replacements[self.indices[0]] = index
 
         return self.replace_indices(replacements)
+
+    def __str__(self):
+        """Use the :meth:`stringifier` to return a human-readable
+        string representation of *self*.
+        """
+
+        from pymbolic.mapper.stringifier import PREC_NONE
+        return self.stringifier()()(self, PREC_NONE, indent=0)
 
     def stringifier(self):
         return _StringifyMapper
@@ -242,7 +287,10 @@ Scheme.
         except:
             raise FInATSyntaxError("Let bindings must be a tuple of pairs")
 
-        super(Wave, self).__init__((bindings, body))
+        super(Let, self).__init__((bindings, body))
+        
+        self.bindings, self.body = self.children
+
 
     def __str__(self):
         return "Let(%s)" % self.children

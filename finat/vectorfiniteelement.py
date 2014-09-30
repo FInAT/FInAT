@@ -60,7 +60,7 @@ class VectorFiniteElement(FiniteElementBase):
         sr = self._base_element.basis_evaluation(q, kernel_data,
                                                  derivative and grad,
                                                  pullback)
-        phi = sr.expression
+        phi = sr.body
         d, b, p = sr.indices
 
         # Additional basis function index along the vector dimension.
@@ -69,7 +69,7 @@ class VectorFiniteElement(FiniteElementBase):
         if derivative is div:
 
             return Recipe((d[:-1], b + beta, p),
-                          sr.replace_indices({d[-1]: beta[0]}).expression)
+                          sr.replace_indices({d[-1]: beta[0]}).body)
 
         elif derivative is curl:
             if self.dimension == 2:
@@ -112,7 +112,7 @@ points :math:`q`:
         sr = self._base_element.basis_evaluation(q, kernel_data,
                                                  derivative and grad,
                                                  pullback)
-        phi = sr.expression
+        phi = sr.body
         d, b, p = sr.indices
 
         if derivative is div:
@@ -179,7 +179,7 @@ points :math:`q`:
                                                  derivative and grad,
                                                  pullback)
 
-        phi = sr.expression
+        phi = sr.body
         d, b, p = sr.indices
 
         beta = (indices.BasisFunctionIndex(self._dimension),)
@@ -191,7 +191,7 @@ points :math:`q`:
         if derivative is div:
             beta = d[-1:]
 
-            psi = value.replace_indices(zip(d_ + p_, d[:-1] + p)).expression
+            psi = value.replace_indices(zip(d_ + p_, d[:-1] + p)).body
 
             expression = IndexSum(d[:-1] + p, psi * phi * w[p])
 
@@ -201,7 +201,7 @@ points :math:`q`:
                 beta = (indices.BasisFunctionIndex(self._dimension),)
                 gamma = d[-1:]
 
-                psi = value.replace_indices((d_ + p_, d[:-1] + p)).expression
+                psi = value.replace_indices((d_ + p_, d[:-1] + p)).body
 
                 expression = IndexSum(p, psi * LeviCivita((2,) + beta, gamma, phi) * w[p])
             elif self.dimension == 3:
@@ -210,7 +210,7 @@ points :math:`q`:
                 beta = (indices.BasisFunctionIndex(self._dimension),)
                 gamma = d[-1:]
 
-                psi = value.replace_indices((d_[:-1] + p_, d[:-1] + p)).expression
+                psi = value.replace_indices((d_[:-1] + p_, d[:-1] + p)).body
 
                 expression = IndexSum(alpha + p, psi * LeviCivita(alpha + beta, gamma, phi) * w[p])
             else:
@@ -218,7 +218,7 @@ points :math:`q`:
         else:
             beta = (indices.BasisFunctionIndex(self._dimension),)
 
-            psi = value.replace_indices(zip(d_ + p_, beta + d + p)).expression
+            psi = value.replace_indices(zip(d_ + p_, beta + d + p)).body
 
             expression = IndexSum(d + p, psi * phi * w[p])
 

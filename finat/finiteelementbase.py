@@ -182,7 +182,7 @@ class FiatElementBase(FiniteElementBase):
 
         basis = self.basis_evaluation(q, kernel_data, derivative, pullback)
         (d, b, p) = basis.indices
-        phi = basis.expression
+        phi = basis.body
 
         expr = IndexSum(b, field_var[b[0]] * phi)
 
@@ -193,10 +193,10 @@ class FiatElementBase(FiniteElementBase):
 
         basis = self.basis_evaluation(q, kernel_data, derivative, pullback)
         (d, b, p) = basis.indices
-        phi = basis.expression
+        phi = basis.body
 
         (d_, b_, p_) = value.indices
-        psi = value.replace_indices(zip(d_ + p_, d + p)).expression
+        psi = value.replace_indices(zip(d_ + p_, d + p)).body
 
         w = weights.kernel_variable("w", kernel_data)
 

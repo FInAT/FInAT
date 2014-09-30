@@ -5,3 +5,4 @@ from points import PointSet
 from utils import KernelData
 from derivatives import div, grad, curl
 import interpreter
+from geometry_mapper import GeometryMapper
