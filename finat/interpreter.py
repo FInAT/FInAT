@@ -37,9 +37,8 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
         """Evaluate expr for all values of free indices"""
 
         d, b, p = expr.indices
-        body = expr.expression
 
-        return self.rec(ForAll(d + b + p, body))
+        return self.rec(ForAll(d + b + p, expr.body))
 
     def map_index_sum(self, expr):
 
