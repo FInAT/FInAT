@@ -142,7 +142,7 @@ class FiatElementBase(FiniteElementBase):
         '''Return the map of topological entities to degrees of
         freedom on the closure of those entities for the finite element.'''
 
-        return self._fiat_element.entity_dofs()
+        return self._fiat_element.entity_closure_dofs()
 
     @property
     def facet_support_dofs(self):
