@@ -28,7 +28,7 @@ class StroudQuadrature(QuadratureRule):
 
         sd = cell.get_spatial_dimension()
 
-        if sd != len(cell.vertices) + 1:
+        if sd + 1 != len(cell.vertices):
             raise ValueError("cell must be a simplex")
 
         points = np.zeros((sd, degree))

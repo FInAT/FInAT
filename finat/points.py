@@ -66,9 +66,35 @@ class TensorPointSet(PointSetBase):
 
         self.factor_sets = factor_sets
 
+    def points(self):
+        def helper(loi):
+            if len(loi) == 1:
+                return [[x] for x in loi[0]]
+            else:
+                return [[x]+y for x in loi[0] for y in helper(loi[1:])]
 
-class StroudPointSet():
+        return numpy.array(helper([fs.points.tolist()
+                                   for fs in self.factor_sets]))
+
+
+class MappedMixin(object):
+    def __init__(self, *args):
+        super(MappedMixin, self).__init__(*args)
+
+    def map_points(self):
+        raise NotImplementedError
+
+
+class DuffyMappedMixin(MappedMixin):
+    def __init__(self, *args):
+        super(DuffyMappedMixin, self).__init__(*args)
+
+    def map_points(self):
+        raise NotImplementedError
+
+
+class StroudPointSet(TensorPointSet, DuffyMappedMixin):
     """A set of points with the structure required for Stroud quadrature."""
 
     def __init__(self, factor_sets):
-        super(TensorPointSet, self).__init__(factor_sets)
+        super(StroudPointSet, self).__init__(factor_sets)

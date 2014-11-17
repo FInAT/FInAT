@@ -21,8 +21,8 @@ THE SOFTWARE.
 """
 
 import math
-from numpy.math import factorial
-
+from math import factorial
+import numpy
 
 def compute_gauss_jacobi_points(a, b, m):
     """Computes the m roots of P_{m}^{a,b} on [-1,1] by Newton's method.
@@ -69,7 +69,7 @@ def gauss_jacobi_rule(a, b, m):
     ws = [a6 / (1.0 - x**2.0) / eval_jacobi_deriv(a, b, m, x)**2.0
           for x in xs]
 
-    return xs, ws
+    return numpy.array(xs), numpy.array(ws)
 
 
 def eval_jacobi(a, b, n, x):
