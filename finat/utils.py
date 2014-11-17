@@ -36,6 +36,7 @@ class KernelData(object):
         self.tdim = coordinate_element._cell.get_spatial_dimension()
 
         self._variable_count = 0
+        self._point_count = 0
         self._variable_cache = {}
 
     def tabulation_variable_name(self, element, points):
@@ -51,6 +52,21 @@ class KernelData(object):
             self._variable_cache[key] = u'\u03C6_'.encode("utf-8") \
                                         + str(self._variable_count)
             self._variable_count += 1
+            return self._variable_cache[key]
+
+    def point_variable_name(self, points):
+        """Given a point set, return a variable name xi_n
+        where n is guaranteed to be unique to that set of
+        points."""
+
+        key = (id(points),)
+
+        try:
+            return self._variable_cache[key]
+        except KeyError:
+            self._variable_cache[key] = u'\u03BE_'.encode("utf-8") \
+                                        + str(self._point_count)
+            self._point_count += 1
             return self._variable_cache[key]
 
     @property
