@@ -58,3 +58,17 @@ class PointSet(PointSetBase):
             return PointSet([self.points[i]])
         else:
             return PointSet(self.points[i])
+
+
+class TensorPointSet(PointSetBase):
+    def __init__(self, factor_sets):
+        super(TensorPointSet, self).__init__()
+
+        self.factor_sets = factor_sets
+
+
+class StroudPointSet():
+    """A set of points with the structure required for Stroud quadrature."""
+
+    def __init__(self, factor_sets):
+        super(TensorPointSet, self).__init__(factor_sets)
