@@ -47,7 +47,7 @@ def test_lagrange_field(lagrange, coords, points):
                                        points,
                                        kernel_data)
 
-    print recipe.expression
+    print recipe.body
     print [data() for (name, data) in kernel_data.static.values()]
 
     assert lagrange
@@ -74,7 +74,7 @@ def test_lagrange_moment(lagrange, coords):
                                         q,
                                         kernel_data)
 
-    print recipe.expression
+    print recipe.body
     print [data() for (name, data) in kernel_data.static.values()]
 
     assert lagrange

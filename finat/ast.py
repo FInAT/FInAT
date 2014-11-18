@@ -81,9 +81,9 @@ class _StringifyMapper(StringifyMapper):
         if indent is None or enclosing_prec is not PREC_NONE:
             fmt = "IndexSum((%s), %s) "
         else:
-            oldidt = " "*indent
+            oldidt = " " * indent
             indent += 4
-            idt = " "*indent
+            idt = " " * indent
             fmt = "IndexSum((%s),\n" + idt + "%s\n" + oldidt + ")"
 
         return self.format(fmt,
