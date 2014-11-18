@@ -29,6 +29,7 @@ class KernelData(object):
         self.static = {}
         self.params = {}
         self.geometry = {}
+        self.variables = set()
 
         #: The geometric dimension of the physical space.
         self.gdim = coordinate_element._dimension
@@ -49,9 +50,11 @@ class KernelData(object):
         try:
             return self._variable_cache[key]
         except KeyError:
-            self._variable_cache[key] = u'\u03C6_'.encode("utf-8") \
-                                        + str(self._variable_count)
+            name = u'\u03C6_'.encode("utf-8") \
+                   + str(self._variable_count)
+            self._variable_cache[key] = name
             self._variable_count += 1
+            self.variables.add(name)
             return self._variable_cache[key]
 
     def point_variable_name(self, points):
@@ -64,10 +67,28 @@ class KernelData(object):
         try:
             return self._variable_cache[key]
         except KeyError:
-            self._variable_cache[key] = u'\u03BE_'.encode("utf-8") \
-                                        + str(self._point_count)
+            name = u'\u03BE_'.encode("utf-8") \
+                   + str(self._point_count)
+            self._variable_cache[key] = name
             self._point_count += 1
+            self.variables.add(name)
             return self._variable_cache[key]
+
+    def new_variable(self, prefix=None):
+        """Create a variable guaranteed to be unique in the kernel context."""
+        name = prefix or "tmp"
+        if name not in self.variables:
+            self.variables.add(name)
+            return name
+
+        # Prefix was already in use, so append an index.
+        i = 0
+        while True:
+            varname = "%s_%d" % (name, i)
+            if varname not in self.variables:
+                self.variables.add(varname)
+                return varname
+            i += 1
 
     @property
     def J(self):

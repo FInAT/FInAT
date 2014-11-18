@@ -1,6 +1,8 @@
 from finiteelementbase import FiniteElementBase
 from points import StroudPointSet
-from ast import ForAll, Recipe, Wave
+from ast import ForAll, Recipe, Wave, Let, IndexSum
+import pymbolic as p
+from index import BasisFunctionIndex
 
 class Bernstein(FiniteElementBase):
     """Scalar-valued Bernstein element. Note: need to work out the
@@ -29,14 +31,27 @@ class Bernstein(FiniteElementBase):
 
         if not isinstance(q.points, StroudPointSet):
             raise ValueError("Only Stroud points may be employed with Bernstien polynomials")
-        
+
         # Get the symbolic names for the points.
         xi = [self._points_variable(f, kernel_data)
               for f in q.factors.points]
 
         qs = q.factors[0]
+        r = kernel_data.new_variable("r")
+        w = kernel_data.new_variable("w")
+        alpha = BasisFunctionIndex(self.degree+1)
+        s = 1-xi[qs[0]]
 
         # 1D first
-        ForAll(,
-               
-               )
+        expr = ForAll(qs[0],
+                      Let((r, xi[qs[0]]/s),
+                          IndexSum((alpha,),
+                                   Wave(w,
+                                        alpha,
+                                        s**self.degree,
+                                        w * r * (self.degree - alpha) / (alpha + 1.0),
+                                        w * field_var[alpha])
+                                   )
+                          )
+                      )
+        return Recipe(((), (), (q)), expr)
