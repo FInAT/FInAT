@@ -272,6 +272,8 @@ class Wave(p._MultiChildExpression):
     def __str__(self):
         return "Wave(%s, %s, %s, %s, %s)" % tuple(map(str, self.children))
 
+    mapper_method = "map_wave"
+
 
 class Let(p._MultiChildExpression):
     """A Let expression enables local variable bindings in an

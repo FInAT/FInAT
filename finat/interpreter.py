@@ -23,6 +23,9 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
 
         self.indices = {}
 
+        # Storage for wave variables while they are out of scope.
+        self.wave_vars = {}
+
     def map_variable(self, expr):
         try:
             var = self.context[expr.name]
@@ -89,6 +92,30 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
         self.indices.pop(idx)
 
         return np.array(total)
+
+    def map_wave(self, expr):
+
+        (var, index, base, update, body) = expr.children
+
+        try:
+            self.context[var] = self.wave_vars[var]
+            self.context[var] = self.rec(update)
+        except KeyError:
+            # We're at the start of the loop over index.
+            assert self.rec(index) == index.extent.start
+            self.context[var] = self.rec(base)
+
+        self.wave_vars[var] = self.context[var]
+
+        # Execute the body.
+        result = self.rec(body)
+
+        # Remove the wave variable from scope.
+        self.context.pop(var)
+        if self.rec(index) >= index.extent.stop - 1:
+            self.wave_vars.pop(var)
+
+        return result
 
     def map_levi_civita(self, expr):
 
