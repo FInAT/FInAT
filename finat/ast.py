@@ -263,8 +263,14 @@ class ForAll(p._MultiChildExpression):
 class Wave(p._MultiChildExpression):
     """A symbolic expression with loop-carried dependencies."""
 
-    def __init__(self, var, index, base, expr):
-        pass
+    def __init__(self, var, index, base, update, body):
+        self.children = (var, index, base, update, body)
+
+    def __getinitargs__(self):
+        return self.children
+
+    def __str__(self):
+        return "Wave(%s, %s, %s, %s, %s)" % tuple(map(str, self.children))
 
 
 class Let(p._MultiChildExpression):
