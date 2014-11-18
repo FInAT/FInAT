@@ -117,6 +117,21 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
 
         return result
 
+    def map_let(self, expr):
+
+        for var, value in expr.bindings:
+            if var in self.context:
+                raise ValueError("Let variable %s was already in scope."
+                                 % var.name)
+            self.context[var] = self.rec(value)
+
+        result = self.rec(expr.body)
+
+        for var, value in expr.bindings:
+            self.context.pop(var)
+
+        return result
+
     def map_levi_civita(self, expr):
 
         free, bound, body = expr.children
