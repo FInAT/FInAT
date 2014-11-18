@@ -43,15 +43,15 @@ class Bernstein(FiniteElementBase):
         qs = q.factors
         r = kernel_data.new_variable("r")
         w = kernel_data.new_variable("w")
-        alpha = BasisFunctionIndex(self.degree+1)
-        s = 1-xi[qs[0]]
+        alpha = BasisFunctionIndex(self.degree + 1)
+        s = 1 - xi[qs[0]]
 
         # 1D first
-        expr = Let((r, xi[qs[0]]/s),
+        expr = Let((r, xi[qs[0]] / s),
                    IndexSum((alpha,),
                             Wave(w,
                                  alpha,
-                                 s**self.degree,
+                                 s ** self.degree,
                                  w * r * (self.degree - alpha) / (alpha + 1.0),
                                  w * field_var[alpha])
                             )
