@@ -4,6 +4,7 @@ from ast import ForAll, Recipe, Wave, Let, IndexSum
 import pymbolic as p
 from index import BasisFunctionIndex, PointIndex
 
+
 class Bernstein(FiniteElementBase):
     """Scalar-valued Bernstein element. Note: need to work out the
     correct heirarchy for different Bernstein elements."""
@@ -48,7 +49,7 @@ class Bernstein(FiniteElementBase):
             alpha = BasisFunctionIndex(self.degree+1)
             s = 1-xi[0][qs[0]]
 
-            expr = Let((r, xi[0][qs[0]]/s),
+            expr = Let(((r, xi[0][qs[0]]/s),),
                        IndexSum((alpha,),
                                 Wave(w,
                                      alpha,
@@ -100,13 +101,12 @@ class Bernstein(FiniteElementBase):
             alpha3 = BasisFunctionIndex(deg+1-alpha1-alpha2)
             q3 = PointIndex(q.points.factor_set[2])
 
-            tmp0_expr = Let((r, xi[2][q3]/s),
-                            IndexSum((q3,),
-                                     Wave(w,
-                                          alpha3,
-                                          s**(deg-alpha1-alpha2),
-                                          w * r * (deg-alpha1-alpha2-alpha3)/(1.+alpha3),
-                                          w * field_var[]
-                                          
-                            
+            pass
+#            tmp0_expr = Let((r, xi[2][q3]/s),
+#                            IndexSum((q3,),
+#                                     Wave(w,
+#                                          alpha3,
+#                                          s**(deg-alpha1-alpha2),
+#                                          w * r * (deg-alpha1-alpha2-alpha3)/(1.+alpha3),
+#                                          w * field_var[]
 

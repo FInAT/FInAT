@@ -34,14 +34,14 @@ class StroudQuadrature(QuadratureRule):
         points = np.zeros((sd, degree))
         weights = np.zeros((sd, degree))
 
-        for d in range(1, sd+1):
+        for d in range(1, sd + 1):
             [x, w] = gauss_jacobi_rule(sd - d, 0, degree)
-            points[d-1, :] = 0.5 * (x + 1)
-            weights[d-1, :] = w
+            points[d - 1, :] = 0.5 * (x + 1)
+            weights[d - 1, :] = w
 
         scale = 0.5
-        for d in range(1, sd+1):
-            weights[sd-d, :] *= scale
+        for d in range(1, sd + 1):
+            weights[sd - d, :] *= scale
             scale *= 0.5
 
         super(StroudQuadrature, self).__init__(
