@@ -47,7 +47,7 @@ class Bernstein(FiniteElementBase):
         s = 1 - xi[qs[0]]
 
         # 1D first
-        expr = Let((r, xi[qs[0]] / s),
+        expr = Let(((r, xi[qs[0]] / s),),
                    IndexSum((alpha,),
                             Wave(w,
                                  alpha,
