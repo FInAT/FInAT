@@ -71,7 +71,7 @@ class TensorPointSet(PointSetBase):
             if len(loi) == 1:
                 return [[x] for x in loi[0]]
             else:
-                return [[x]+y for x in loi[0] for y in helper(loi[1:])]
+                return [[x] + y for x in loi[0] for y in helper(loi[1:])]
 
         return numpy.array(helper([fs.points.tolist()
                                    for fs in self.factor_sets]))

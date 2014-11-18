@@ -4,6 +4,7 @@ from ast import ForAll, Recipe, Wave, Let, IndexSum
 import pymbolic as p
 from index import BasisFunctionIndex
 
+
 class Bernstein(FiniteElementBase):
     """Scalar-valued Bernstein element. Note: need to work out the
     correct heirarchy for different Bernstein elements."""
