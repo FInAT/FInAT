@@ -31,28 +31,30 @@ class Bernstein(FiniteElementBase):
     def field_evaluation(self, field_var, q, kernel_data, derivative=None):
 
         if not isinstance(q.points, StroudPointSet):
-            raise ValueError("Only Stroud points may be employed with Bernstien polynomials")
+            raise ValueError("Only Stroud points may be employed with Bernstein polynomials")
+
+        if derivative is not None:
+            raise NotImplementedError
 
         # Get the symbolic names for the points.
         xi = [self._points_variable(f, kernel_data)
               for f in q.factors.points]
 
-        qs = q.factors[0]
+        qs = q.factors
         r = kernel_data.new_variable("r")
         w = kernel_data.new_variable("w")
         alpha = BasisFunctionIndex(self.degree+1)
         s = 1-xi[qs[0]]
 
         # 1D first
-        expr = ForAll(qs[0],
-                      Let((r, xi[qs[0]]/s),
-                          IndexSum((alpha,),
-                                   Wave(w,
-                                        alpha,
-                                        s**self.degree,
-                                        w * r * (self.degree - alpha) / (alpha + 1.0),
-                                        w * field_var[alpha])
-                                   )
-                          )
-                      )
+        expr = Let((r, xi[qs[0]]/s),
+                   IndexSum((alpha,),
+                            Wave(w,
+                                 alpha,
+                                 s**self.degree,
+                                 w * r * (self.degree - alpha) / (alpha + 1.0),
+                                 w * field_var[alpha])
+                            )
+                   )
+
         return Recipe(((), (), (q)), expr)
