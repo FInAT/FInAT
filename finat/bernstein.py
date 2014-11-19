@@ -57,7 +57,7 @@ class Bernstein(FiniteElementBase):
                                      w * field_var[alpha])
                                 )
                        )
-            return Recipe(((), (), (q)), expr)
+            return Recipe(((), (), (q,)), expr)
         elif self.cell.get_spatial_dimension() == 2:
             deg = self.degree
             r = kernel_data.new_variable("r")
@@ -89,7 +89,7 @@ class Bernstein(FiniteElementBase):
                                 )
                        )
 
-            return Recipe(((), (), (q)), expr)
+            return Recipe(((), (), (q,)), expr)
         elif self.cell.get_spatial_dimension() == 3:
             deg = self.degree
             r = kernel_data.new_variable("r")
@@ -149,4 +149,4 @@ class Bernstein(FiniteElementBase):
                                 )
                        )
 
-            return Recipe(((), (), (q)), expr)
+            return Recipe(((), (), (q,)), expr)
