@@ -47,14 +47,13 @@ class Bernstein(FiniteElementBase):
             r = kernel_data.new_variable("r")
             w = kernel_data.new_variable("w")
             alpha = BasisFunctionIndex(self.degree+1)
-            s = 1-xi[0][qs[0]]
-
-            expr = Let(((r, xi[0][qs[0]]/s),),
+            s = 1 - xi[0][qs[0]]
+            expr = Let(((r, xi[0][qs[0]]/s)),
                        IndexSum((alpha,),
                                 Wave(w,
                                      alpha,
                                      s**self.degree,
-                                     w * r * (self.degree - alpha) / (alpha + 1.0),
+                                     w * r * (self.degree-alpha)/(alpha+1.0),
                                      w * field_var[alpha])
                                 )
                        )
@@ -67,8 +66,8 @@ class Bernstein(FiniteElementBase):
             alpha1 = BasisFunctionIndex(deg+1)
             alpha2 = BasisFunctionIndex(deg+1-alpha1)
             q2 = PointIndex(q.points.factor_set[1])
-            s = 1-xi[0][qs[0]]
-            tmp_expr = Let((r, xi[1][q2]/s),
+            s = 1 - xi[1][q2]
+            tmp_expr = Let(((r, xi[1][q2]/s),),
                            IndexSum((alpha2,),
                                     Wave(w,
                                          alpha2,
@@ -77,18 +76,19 @@ class Bernstein(FiniteElementBase):
                                          w * field_var[alpha1*(2*deg-alpha1+3)/2])
                                     )
                            )
-            expr = Let((tmp, tmp_expr),
-                       Let((r, xi[0][qs[0]]),
-                           IndexSum((alpha1,),
-                                    Wave(w,
-                                         alpha1,
-                                         s**deg,
-                                         w * r * (deg-alpha1)/(1. + alpha1),
-                                         w * tmp[alpha1, qs[1]]
-                                         )
-                                    )
-                           )
+            s = 1 - xi[0][qs[0]]
+            expr = Let(((tmp, tmp_expr),
+                        (r, xi[0][qs[0]]/s)),
+                       IndexSum((alpha1,),
+                                Wave(w,
+                                     alpha1,
+                                     s**deg,
+                                     w * r * (deg-alpha1)/(1. + alpha1),
+                                     w * tmp[alpha1, qs[1]]
+                                     )
+                                )
                        )
+
             return Recipe(((), (), (q)), expr)
         elif self.cell.get_spatial_dimension() == 3:
             deg = self.degree
@@ -99,14 +99,54 @@ class Bernstein(FiniteElementBase):
             alpha1 = BasisFunctionIndex(deg+1)
             alpha2 = BasisFunctionIndex(deg+1-alpha1)
             alpha3 = BasisFunctionIndex(deg+1-alpha1-alpha2)
+            q2 = PointIndex(q.points.factor_set[1])
             q3 = PointIndex(q.points.factor_set[2])
 
-            pass
-#            tmp0_expr = Let((r, xi[2][q3]/s),
-#                            IndexSum((q3,),
-#                                     Wave(w,
-#                                          alpha3,
-#                                          s**(deg-alpha1-alpha2),
-#                                          w * r * (deg-alpha1-alpha2-alpha3)/(1.+alpha3),
-#                                          w * field_var[]
+            def pd(sd, d):
+                if sd == 3:
+                    return (d+1)*(d+2)*(d+3)/6
+                elif sd == 2:
+                    return (d+1)*(d+2)/2
+                else:
+                    raise NotImplementedError
 
+            s = 1.0 - xi[2][q3]
+            tmp0_expr = Let(((r, xi[2][q3]/s),),
+                            IndexSum((alpha3,),
+                                     Wave(w,
+                                          alpha3,
+                                          s**(deg-alpha1-alpha2),
+                                          w * r * (deg-alpha1-alpha2-alpha3)/(1.+alpha3),
+                                          w * field_var[pd(3, deg)-pd(3, deg-alpha1)
+                                                        + pd(2, deg - alpha1)-pd(2, deg - alpha1 - alpha2)
+                                                        + alpha3]
+                                          )
+                                     )
+                            )
+            s = 1.0 - xi[1][q2]
+            tmp1_expr = Let(((tmp0, tmp0_expr),
+                             (r, xi[1][q2]/s)),
+                            IndexSum((alpha2,),
+                                     Wave(w,
+                                          alpha2,
+                                          s**(deg-alpha1),
+                                          w*r*(deg-alpha1-alpha2)/(1.0+alpha2),
+                                          w*tmp0[alpha1, alpha2, q3]
+                                          )
+                                     )
+                            )
+
+            s = 1.0 - xi[0][qs[0]]
+            expr = Let(((tmp1, tmp1_expr),
+                        (r, xi[0][qs[0]]/s)),
+                       IndexSum((alpha1,),
+                                Wave(w,
+                                     alpha1,
+                                     s**deg,
+                                     w*r*(deg-alpha1)/(1.+alpha1),
+                                     w*tmp1[alpha1, qs[1], qs[2]]
+                                     )
+                                )
+                       )
+
+            return Recipe(((), (), (q)), expr)
