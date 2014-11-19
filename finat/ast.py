@@ -84,6 +84,20 @@ class _StringifyMapper(StringifyMapper):
     def map_index(self, expr, *args, **kwargs):
         return str(expr)
 
+    def map_wave(self, expr, enclosing_prec, indent=None, *args, **kwargs):
+        if indent is None or enclosing_prec is not PREC_NONE:
+            fmt = "Wave(%s, %s) "
+        else:
+            oldidt = " " * indent
+            indent += 4
+            idt = " " * indent
+            fmt = "Wave(%s,\n" + idt + "%s\n" + oldidt + ")"
+
+        return self.format(fmt,
+                           " ".join(self.rec(c, PREC_NONE, *args, **kwargs) + "," for c in expr.children[:-1]),
+                           self.rec(expr.children[-1], PREC_NONE, indent=indent, *args, **kwargs))
+            
+
     def map_index_sum(self, expr, enclosing_prec, indent=None, *args, **kwargs):
         if indent is None or enclosing_prec is not PREC_NONE:
             fmt = "IndexSum((%s), %s) "
