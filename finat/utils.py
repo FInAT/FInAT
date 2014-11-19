@@ -79,7 +79,7 @@ class KernelData(object):
         name = prefix or "tmp"
         if name not in self.variables:
             self.variables.add(name)
-            return name
+            return p.Variable(name)
 
         # Prefix was already in use, so append an index.
         i = 0
@@ -87,7 +87,7 @@ class KernelData(object):
             varname = "%s_%d" % (name, i)
             if varname not in self.variables:
                 self.variables.add(varname)
-                return varname
+                return p.Variable(varname)
             i += 1
 
     @property
