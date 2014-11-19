@@ -115,7 +115,7 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
             self.context[var.name] = self.rec(update)
         except KeyError:
             # We're at the start of the loop over index.
-            assert self.rec(index) == index.extent.start
+            assert self.rec(index) == (index.extent.start or 0)
             self.context[var.name] = self.rec(base)
 
         self.wave_vars[var.name] = self.context[var.name]
