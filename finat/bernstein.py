@@ -1,8 +1,8 @@
 from finiteelementbase import FiniteElementBase
 from points import StroudPointSet
 from ast import ForAll, Recipe, Wave, Let, IndexSum
-import pymbolic as p
-from index import BasisFunctionIndex, PointIndex
+import pymbolic.primitives as p
+from indices import BasisFunctionIndex, PointIndex
 
 
 class Bernstein(FiniteElementBase):
@@ -37,8 +37,8 @@ class Bernstein(FiniteElementBase):
             raise NotImplementedError
 
         # Get the symbolic names for the points.
-        xi = [self._points_variable(f, kernel_data)
-              for f in q.factors.points]
+        xi = [self._points_variable(f.points, kernel_data)
+              for f in q.factors]
 
         qs = q.factors
 

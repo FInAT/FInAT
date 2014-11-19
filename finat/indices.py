@@ -40,7 +40,6 @@ class IndexBase(p.Variable):
         return "%s(%s)" % (self.__class__.__name__, self.name)
 
 
-
 class PointIndex(IndexBase):
     '''An index running over a set of points, for example quadrature points.'''
     def __init__(self, pointset):
@@ -53,6 +52,21 @@ class PointIndex(IndexBase):
         super(PointIndex, self).__init__(pointset.extent, name)
 
     _count = 0
+
+
+class TensorPointIndex(IndexBase):
+    """An index running over a set of points which have a tensor product
+    structure. This index is actually composed of multiple factors."""
+    def __init__(self, pointset):
+
+        self.points = pointset
+
+        name = 'q_' + str(PointIndex._count)
+        PointIndex._count += 1
+
+        super(TensorPointIndex, self).__init__(-1, name)
+
+        self.factors = [PointIndex(f) for f in pointset.factor_sets]
 
 
 class BasisFunctionIndex(IndexBase):
