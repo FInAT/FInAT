@@ -1,9 +1,8 @@
 import pytest
-import FIAT
 import finat
+from finat.ast import FInATSyntaxError, Recipe, IndexSum, Let
 import pymbolic.primitives as p
-import numpy as np
-from finat.ast import FInATSyntaxError
+
 
 @pytest.fixture
 def i():
@@ -11,14 +10,21 @@ def i():
 
 
 def test_invalid_binding(i):
-    e = finat.ast.Recipe(((), (i,), ()), finat.ast.IndexSum((i,), 1))
+    e = Recipe(((), (i,), ()), IndexSum((i,), 1))
     with pytest.raises(FInATSyntaxError):
         finat.interpreter.evaluate(e)
 
 
 def test_index_sum(i):
-    e = finat.ast.Recipe(((), (), ()), finat.ast.IndexSum((i,), 1))
+    e = Recipe(((), (), ()), IndexSum((i,), 1))
     assert finat.interpreter.evaluate(e) == 10
+
+
+def test_let(i):
+    v = p.Variable("v")
+    e = Recipe(((), (), ()), Let(((v, 1),), IndexSum((i,), v)))
+    assert finat.interpreter.evaluate(e) == 10
+
 
 if __name__ == '__main__':
     import os

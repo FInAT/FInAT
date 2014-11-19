@@ -111,22 +111,22 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
             raise FInATSyntaxError("Wave variable depends on %s, which is not in scope" % index)
 
         try:
-            self.context[var] = self.wave_vars[var]
-            self.context[var] = self.rec(update)
+            self.context[var.name] = self.wave_vars[var.name]
+            self.context[var.name] = self.rec(update)
         except KeyError:
             # We're at the start of the loop over index.
             assert self.rec(index) == index.extent.start
-            self.context[var] = self.rec(base)
+            self.context[var.name] = self.rec(base)
 
-        self.wave_vars[var] = self.context[var]
+        self.wave_vars[var.name] = self.context[var.name]
 
         # Execute the body.
         result = self.rec(body)
 
         # Remove the wave variable from scope.
-        self.context.pop(var)
+        self.context.pop(var.name)
         if self.rec(index) >= index.extent.stop - 1:
-            self.wave_vars.pop(var)
+            self.wave_vars.pop(var.name)
 
         return result
 
@@ -136,12 +136,12 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
             if var in self.context:
                 raise FInATSyntaxError("Let variable %s was already in scope."
                                        % var.name)
-            self.context[var] = self.rec(value)
+            self.context[var.name] = self.rec(value)
 
         result = self.rec(expr.body)
 
         for var, value in expr.bindings:
-            self.context.pop(var)
+            self.context.pop(var.name)
 
         return result
 
