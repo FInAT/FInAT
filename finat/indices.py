@@ -8,7 +8,8 @@ class IndexBase(p.Variable):
         super(IndexBase, self).__init__(name)
         if isinstance(extent, slice):
             self._extent = extent
-        elif isinstance(extent, int):
+        elif (isinstance(extent, int)
+              or isinstance(extent, p.Expression)):
             self._extent = slice(extent)
         else:
             raise TypeError("Extent must be a slice or an int")

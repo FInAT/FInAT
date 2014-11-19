@@ -65,7 +65,7 @@ class Bernstein(FiniteElementBase):
             tmp = kernel_data.new_variable("tmp")
             alpha1 = BasisFunctionIndex(deg+1)
             alpha2 = BasisFunctionIndex(deg+1-alpha1)
-            q2 = PointIndex(q.points.factor_set[1])
+            q2 = PointIndex(q.points.factor_sets[1])
             s = 1 - xi[1][q2]
             tmp_expr = Let(((r, xi[1][q2]/s),),
                            IndexSum((alpha2,),
@@ -99,8 +99,8 @@ class Bernstein(FiniteElementBase):
             alpha1 = BasisFunctionIndex(deg+1)
             alpha2 = BasisFunctionIndex(deg+1-alpha1)
             alpha3 = BasisFunctionIndex(deg+1-alpha1-alpha2)
-            q2 = PointIndex(q.points.factor_set[1])
-            q3 = PointIndex(q.points.factor_set[2])
+            q2 = PointIndex(q.points.factor_sets[1])
+            q3 = PointIndex(q.points.factor_sets[2])
 
             def pd(sd, d):
                 if sd == 3:
