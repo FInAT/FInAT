@@ -26,7 +26,7 @@ class IndexBase(p.Variable):
                                   self._extent.stop,
                                   self._extent.step or 1)
 
-    mapper_method = intern("map_index")
+    mapper_method = "map_index"
 
     def get_mapper_method(self, mapper):
 
@@ -34,6 +34,11 @@ class IndexBase(p.Variable):
             return mapper.map_variable
         else:
             raise AttributeError()
+
+    def __repr__(self):
+
+        return "%s(%s)" % (self.__class__.__name__, self.name)
+
 
 
 class PointIndex(IndexBase):

@@ -2,7 +2,7 @@
 performant, but rather to provide a test facility for FInAT code."""
 import pymbolic.primitives as p
 from pymbolic.mapper.evaluator import FloatEvaluationMapper, UnknownVariableError
-from ast import IndexSum, ForAll, LeviCivita
+from ast import IndexSum, ForAll, LeviCivita, FInATSyntaxError
 import numpy as np
 import copy
 
@@ -55,6 +55,9 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
 
         idx = indices[0]
 
+        if idx in self.indices:
+            raise FInATSyntaxError("Attempting to bind the name %s which is already bound" % idx)
+
         e = idx.extent
 
         total = 0.0
@@ -82,6 +85,9 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
 
         idx = indices[0]
 
+        if idx in self.indices:
+            raise FInATSyntaxError("Attempting to bind the name %s which is already bound" % idx)
+
         e = idx.extent
 
         total = []
@@ -96,6 +102,9 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
     def map_wave(self, expr):
 
         (var, index, base, update, body) = expr.children
+
+        if index not in self.indices:
+            raise FInATSyntaxError("Wave variable depends on %s, which is not in scope" % index)
 
         try:
             self.context[var] = self.wave_vars[var]
@@ -121,8 +130,8 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
 
         for var, value in expr.bindings:
             if var in self.context:
-                raise ValueError("Let variable %s was already in scope."
-                                 % var.name)
+                raise FInATSyntaxError("Let variable %s was already in scope."
+                                       % var.name)
             self.context[var] = self.rec(value)
 
         result = self.rec(expr.body)

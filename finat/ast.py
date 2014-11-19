@@ -7,6 +7,10 @@ from pymbolic.mapper.stringifier import StringifyMapper, PREC_NONE
 from indices import IndexBase
 
 
+class FInATSyntaxError(Exception):
+    """Exception to raise when users break the rules of the FInAT ast."""
+
+
 class IdentityMapper(IM):
     def __init__(self):
         super(IdentityMapper, self).__init__()
@@ -76,6 +80,9 @@ class _StringifyMapper(StringifyMapper):
     def map_delta(self, expr, *args, **kwargs):
         return self.format("Delta(%s, %s)",
                            *[self.rec(c, *args, **kwargs) for c in expr.children])
+
+    def map_index(self, expr, *args, **kwargs):
+        return str(expr)
 
     def map_index_sum(self, expr, enclosing_prec, indent=None, *args, **kwargs):
         if indent is None or enclosing_prec is not PREC_NONE:
