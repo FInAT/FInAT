@@ -77,6 +77,10 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
 
         indices, body = expr.children
 
+        # Deal gracefully with the zero index case.
+        if not indices:
+            return self.rec(body)
+
         # Execute over multiple indices recursively.
         if len(indices) > 1:
             expr = ForAll(indices[1:], body)
