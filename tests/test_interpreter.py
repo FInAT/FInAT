@@ -15,7 +15,8 @@ def test_invalid_binding(i):
     with pytest.raises(FInATSyntaxError):
         finat.interpreter.evaluate(e)
 
-def test_invalid_binding(i):
+
+def test_index_sum(i):
     e = finat.ast.Recipe(((), (), ()), finat.ast.IndexSum((i,), 1))
     assert finat.interpreter.evaluate(e) == 10
 
