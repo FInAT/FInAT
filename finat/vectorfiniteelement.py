@@ -223,13 +223,3 @@ points :math:`q`:
             expression = IndexSum(d + p, psi * phi * w[p])
 
         return Recipe(((), b + beta + b_, ()), expression)
-
-    def pullback(self, phi, kernel_data, derivative=None):
-
-        if derivative is None:
-            return phi
-        elif derivative == grad:
-            return None  # IndexSum(alpha, Jinv[:, alpha] * grad(phi)[:,alpha])
-        else:
-            raise ValueError(
-                "Lagrange elements do not have a %s operation") % derivative

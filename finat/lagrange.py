@@ -59,16 +59,6 @@ class ScalarElement(FiatElementBase):
         return super(ScalarElement, self).moment_evaluation(
             value, weights, q, kernel_data, derivative, pullback)
 
-    def pullback(self, phi, kernel_data, derivative=None):
-
-        if derivative is None:
-            return phi
-        elif derivative == grad:
-            return None  # dot(invJ, grad(phi))
-        else:
-            raise ValueError(
-                "Scalar elements do not have a %s operation") % derivative
-
 
 class Lagrange(ScalarElement):
     def __init__(self, cell, degree):

@@ -53,6 +53,15 @@ class FiniteElementBase(object):
 
         raise NotImplementedError
 
+    @property
+    def dofs_shape(self):
+        '''Return a tuple indicating the number of degrees of freedom in the
+        element. For example a scalar quadratic Lagrange element on a triangle
+        would return (6,) while a vector valued version of the same element
+        would return (6, 2)'''
+
+        raise NotImplementedError
+
     def field_evaluation(self, field_var, q, kernel_data, derivative=None):
         '''Return code for evaluating a known field at known points on the
         reference element.
@@ -80,12 +89,6 @@ class FiniteElementBase(object):
         :param derivative: the derivative to take of the test function.
 
         '''
-
-        raise NotImplementedError
-
-    def pullback(self, derivative):
-        '''Return symbolic information about how this element pulls back
-        under this derivative.'''
 
         raise NotImplementedError
 
