@@ -45,18 +45,18 @@ def test_bernstein_field(coords, quadrature, bernstein):
     assert False
 
 
-kernel_data = finat.KernelData(finat.VectorFiniteElement(lagrange(cell()), 2))
+#kernel_data = finat.KernelData(finat.VectorFiniteElement(lagrange(cell()), 2))
 
-q = finat.indices.TensorPointIndex(quadrature(cell()).points)
+#q = finat.indices.TensorPointIndex(quadrature(cell()).points)
 
-bernstein = bernstein(cell())
+#bernstein = bernstein(cell())
 
-recipe = bernstein.field_evaluation(p.Variable("u"),
-                                    q, kernel_data)
-print bernstein.dofs_shape
-udata = np.ones(bernstein.dofs_shape)
-finat.interpreter.evaluate(recipe, context={"u": udata},
-                           kernel_data=kernel_data)
+#recipe = bernstein.field_evaluation(p.Variable("u"),
+#                                    q, kernel_data)
+#print bernstein.dofs_shape
+#udata = np.ones(bernstein.dofs_shape)
+#finat.interpreter.evaluate(recipe, context={"u": udata},
+#                           kernel_data=kernel_data)
 
 if __name__ == '__main__':
     import os

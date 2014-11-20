@@ -38,7 +38,6 @@ class Bernstein(FiniteElementBase):
                     / np.prod(xrange(1, dim + 1))),)
 
     def field_evaluation(self, field_var, q, kernel_data, derivative=None):
-
         if not isinstance(q.points, StroudPointSet):
             raise ValueError("Only Stroud points may be employed with Bernstein polynomials")
 
@@ -68,7 +67,7 @@ class Bernstein(FiniteElementBase):
 
         # reimplement using reduce to avoid problem with infinite loop into pymbolic
         def mysum(vals):
-            return reduce(lambda a, b: a+b, vals)
+            return reduce(lambda a, b: a+b, vals, 0)
 
         # Create basis function indices that run over
         # the possible multiindex space.  These have
@@ -84,7 +83,6 @@ class Bernstein(FiniteElementBase):
         r = kernel_data.new_variable("r")
         w = kernel_data.new_variable("w")
         tmps = [kernel_data.new_variable("tmp") for d in range(sd-1)]
-
 
         # every phase of sum-factorization *except* the last one
         # will make use of the qs_internal to index into
@@ -131,9 +129,12 @@ class Bernstein(FiniteElementBase):
             qs_cur = qs_per_phase[d+1]
             b_ind = -(d+2)  # index into several things counted backward
             s = 1.0 - xi[b_ind][qs_cur[b_ind]]
+
             recipe_args = ((),
-                           tuple(alphas[:(b_ind+1)]),
-                           tuple(qs_cur[(b_ind+1):]))
+                           [a for a in alphas[:(b_ind+1)]],
+                           [qi for qi in qs_cur[(b_ind+1):]])
+            print "hi there\n\n\n"
+
             expr = Let(((tmps[d], Recipe(recipe_args, expr)),
                         (r, xi[b_ind][qs_cur[b_ind]]/s)),
                        IndexSum((alphas[b_ind],),
@@ -146,103 +147,105 @@ class Bernstein(FiniteElementBase):
                                 )
                        )
 
-        if self.cell.get_spatial_dimension() == 1:
-            r = kernel_data.new_variable("r")
-            w = kernel_data.new_variable("w")
-            alpha = BasisFunctionIndex(self.degree+1)
-            s = 1 - xi[0][qs[0]]
-            expr = Let(((r, xi[0][qs[0]]/s)),
-                       IndexSum((alpha,),
-                                Wave(w,
-                                     alpha,
-                                     s**self.degree,
-                                     w * r * (self.degree-alpha)/(alpha+1.0),
-                                     w * field_var[alpha])
-                                )
-                       )
-            return Recipe(((), (), (q,)), expr)
-        elif self.cell.get_spatial_dimension() == 2:
-            deg = self.degree
-            r = kernel_data.new_variable("r")
-            w = kernel_data.new_variable("w")
-            tmp = kernel_data.new_variable("tmp")
-            alpha1 = BasisFunctionIndex(deg+1)
-            alpha2 = BasisFunctionIndex(deg+1-alpha1)
-            q2 = PointIndex(q.points.factor_sets[1])
-            s = 1 - xi[1][q2]
+        return Recipe(((), (), (q,)), expr)
 
-            tmp_expr = Let(((r, xi[1][q2]/s),),
-                           IndexSum((alpha2,),
-                                    Wave(w,
-                                         alpha2,
-                                         s**(deg - alpha1),
-                                         w * r * (deg-alpha1-alpha2)/(1.0 + alpha2),
-                                         w * field_var[alpha1*(2*deg-alpha1+3)/2])
-                                    )
-                           )
-            s = 1 - xi[0][qs[0]]
-            expr = Let(((tmp, Recipe(((), (alpha1,), (q2,)), tmp_expr)),
-                        (r, xi[0][qs[0]]/s)),
-                       IndexSum((alpha1,),
-                                Wave(w,
-                                     alpha1,
-                                     s**deg,
-                                     w * r * (deg-alpha1)/(1. + alpha1),
-                                     w * tmp[alpha1, qs[1]]
-                                     )
-                                )
-                       )
+#        if self.cell.get_spatial_dimension() == 1:
+#            r = kernel_data.new_variable("r")
+#            w = kernel_data.new_variable("w")
+#            alpha = BasisFunctionIndex(self.degree+1)
+#            s = 1 - xi[0][qs[0]]
+#            expr = Let(((r, xi[0][qs[0]]/s)),
+#                       IndexSum((alpha,),
+#                                Wave(w,
+#                                     alpha,
+#                                     s**self.degree,
+#                                     w * r * (self.degree-alpha)/(alpha+1.0),
+#                                     w * field_var[alpha])
+#                                )
+#                       )
+#            return Recipe(((), (), (q,)), expr)
+#        elif self.cell.get_spatial_dimension() == 2:
+#            deg = self.degree
+#            r = kernel_data.new_variable("r")
+#            w = kernel_data.new_variable("w")
+#            tmp = kernel_data.new_variable("tmp")
+#            alpha1 = BasisFunctionIndex(deg+1)
+#            alpha2 = BasisFunctionIndex(deg+1-alpha1)
+#            q2 = PointIndex(q.points.factor_sets[1])
+#            s = 1 - xi[1][q2]
 
-            return Recipe(((), (), (q,)), expr)
-        elif self.cell.get_spatial_dimension() == 3:
-            deg = self.degree
-            r = kernel_data.new_variable("r")
-            w = kernel_data.new_variable("w")
-            tmp0 = kernel_data.new_variable("tmp0")
-            tmp1 = kernel_data.new_variable("tmp1")
-            alpha1 = BasisFunctionIndex(deg+1)
-            alpha2 = BasisFunctionIndex(deg+1-alpha1)
-            alpha3 = BasisFunctionIndex(deg+1-alpha1-alpha2)
-            q2 = PointIndex(q.points.factor_sets[1])
-            q3 = PointIndex(q.points.factor_sets[2])
-
-            s = 1.0 - xi[2][q3]
-            tmp0_expr = Let(((r, xi[2][q3]/s),),
-                            IndexSum((alpha3,),
-                                     Wave(w,
-                                          alpha3,
-                                          s**(deg-alpha1-alpha2),
-                                          w * r * (deg-alpha1-alpha2-alpha3)/(1.+alpha3),
-                                          w * field_var[pd(3, deg)-pd(3, deg-alpha1)
-                                                        + pd(2, deg - alpha1)-pd(2, deg - alpha1 - alpha2)
-                                                        + alpha3]
-                                          )
-                                     )
-                            )
-            s = 1.0 - xi[1][q2]
-            tmp1_expr = Let(((tmp0, tmp0_expr),
-                             (r, xi[1][q2]/s)),
-                            IndexSum((alpha2,),
-                                     Wave(w,
-                                          alpha2,
-                                          s**(deg-alpha1),
-                                          w*r*(deg-alpha1-alpha2)/(1.0+alpha2),
-                                          w*tmp0[alpha1, alpha2, q3]
-                                          )
-                                     )
-                            )
-
-            s = 1.0 - xi[0][qs[0]]
-            expr = Let(((tmp1, tmp1_expr),
-                        (r, xi[0][qs[0]]/s)),
-                       IndexSum((alpha1,),
-                                Wave(w,
-                                     alpha1,
-                                     s**deg,
-                                     w*r*(deg-alpha1)/(1.+alpha1),
-                                     w*tmp1[alpha1, qs[1], qs[2]]
-                                     )
-                                )
-                       )
-
-            return Recipe(((), (), (q,)), expr)
+#            tmp_expr = Let(((r, xi[1][q2]/s),),
+#                           IndexSum((alpha2,),
+#                                    Wave(w,
+#                                         alpha2,
+#                                         s**(deg - alpha1),
+#                                         w * r * (deg-alpha1-alpha2)/(1.0 + alpha2),
+#                                         w * field_var[alpha1*(2*deg-alpha1+3)/2])
+#                                    )
+#                           )
+#            s = 1 - xi[0][qs[0]]
+#            expr = Let(((tmp, Recipe(((), (alpha1,), (q2,)), tmp_expr)),
+#                        (r, xi[0][qs[0]]/s)),
+#                       IndexSum((alpha1,),
+#                                Wave(w,
+#                                     alpha1,
+#                                     s**deg,
+#                                     w * r * (deg-alpha1)/(1. + alpha1),
+#                                     w * tmp[alpha1, qs[1]]
+#                                     )
+#                                )
+#                       )
+#
+#            return Recipe(((), (), (q,)), expr)
+#        elif self.cell.get_spatial_dimension() == 3:
+#            deg = self.degree
+#            r = kernel_data.new_variable("r")
+#            w = kernel_data.new_variable("w")
+#            tmp0 = kernel_data.new_variable("tmp0")
+#            tmp1 = kernel_data.new_variable("tmp1")
+#            alpha1 = BasisFunctionIndex(deg+1)
+#            alpha2 = BasisFunctionIndex(deg+1-alpha1)
+#            alpha3 = BasisFunctionIndex(deg+1-alpha1-alpha2)
+#            q2 = PointIndex(q.points.factor_sets[1])
+#            q3 = PointIndex(q.points.factor_sets[2])
+#
+#            s = 1.0 - xi[2][q3]
+#            tmp0_expr = Let(((r, xi[2][q3]/s),),
+#                            IndexSum((alpha3,),
+#                                     Wave(w,
+#                                          alpha3,
+#                                          s**(deg-alpha1-alpha2),
+#                                          w * r * (deg-alpha1-alpha2-alpha3)/(1.+alpha3),
+#                                          w * field_var[pd(3, deg)-pd(3, deg-alpha1)
+#                                                        + pd(2, deg - alpha1)-pd(2, deg - alpha1 -# alpha2)
+#                                                        + alpha3]
+#                                          )
+#                                     )
+#                            )
+#            s = 1.0 - xi[1][q2]
+#            tmp1_expr = Let(((tmp0, tmp0_expr),
+#                             (r, xi[1][q2]/s)),
+#                            IndexSum((alpha2,),
+#                                     Wave(w,
+#                                          alpha2,
+#                                          s**(deg-alpha1),
+#                                          w*r*(deg-alpha1-alpha2)/(1.0+alpha2),
+#                                          w*tmp0[alpha1, alpha2, q3]
+#                                          )
+#                                     )
+#                            )
+#
+#            s = 1.0 - xi[0][qs[0]]
+#            expr = Let(((tmp1, tmp1_expr),
+#                        (r, xi[0][qs[0]]/s)),
+#                       IndexSum((alpha1,),
+#                                Wave(w,
+#                                     alpha1,
+#                                     s**deg,
+#                                     w*r*(deg-alpha1)/(1.+alpha1),
+#                                     w*tmp1[alpha1, qs[1], qs[2]]
+#                                     )
+#                                )
+#                       )
+#
+#            return Recipe(((), (), (q,)), expr)
