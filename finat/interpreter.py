@@ -8,12 +8,6 @@ import numpy as np
 import copy
 
 
-def _as_range(e):
-    """Convert a slice to a range."""
-
-    return range(e.start or 0, e.stop, e.step or 1)
-
-
 class FinatEvaluationMapper(FloatEvaluationMapper):
 
     def __init__(self, context={}):
@@ -26,6 +20,15 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
 
         # Storage for wave variables while they are out of scope.
         self.wave_vars = {}
+
+    def _as_range(self, e):
+        """Convert a slice to a range. If the range has expressions as bounds,
+        evaluate them.
+        """
+
+        return range(int(self.rec(e.start or 0)),
+                     int(self.rec(e.stop)),
+                     int(self.rec(e.step or 1)))
 
     def map_variable(self, expr):
         try:
@@ -62,7 +65,7 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
         e = idx.extent
 
         total = 0.0
-        for i in _as_range(e):
+        for i in self._as_range(e):
             self.indices[idx] = i
             total += self.rec(expr)
 
@@ -103,7 +106,7 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
         e = idx.extent
 
         total = []
-        for i in _as_range(e):
+        for i in self._as_range(e):
             self.indices[idx] = i
             total.append(self.rec(expr))
 

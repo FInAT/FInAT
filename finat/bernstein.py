@@ -77,7 +77,7 @@ class Bernstein(FiniteElementBase):
                                     )
                            )
             s = 1 - xi[0][qs[0]]
-            expr = Let(((tmp, tmp_expr),
+            expr = Let(((tmp, Recipe(((), (alpha1,), (q2,)), tmp_expr)),
                         (r, xi[0][qs[0]]/s)),
                        IndexSum((alpha1,),
                                 Wave(w,
