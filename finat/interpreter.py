@@ -3,6 +3,7 @@ performant, but rather to provide a test facility for FInAT code."""
 import pymbolic.primitives as p
 from pymbolic.mapper.evaluator import FloatEvaluationMapper, UnknownVariableError
 from ast import IndexSum, ForAll, LeviCivita, FInATSyntaxError
+from indices import TensorPointIndex
 import numpy as np
 import copy
 
@@ -83,6 +84,10 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
 
         # Execute over multiple indices recursively.
         if len(indices) > 1:
+            expr = ForAll(indices[1:], body)
+        # Expand tensor indices
+        elif isinstance(indices[0], TensorPointIndex):
+            indices = indices[0].factors
             expr = ForAll(indices[1:], body)
         else:
             expr = body
