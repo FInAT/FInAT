@@ -62,7 +62,8 @@ class FiniteElementBase(object):
 
         raise NotImplementedError
 
-    def field_evaluation(self, field_var, q, kernel_data, derivative=None):
+    def field_evaluation(self, field_var, q, kernel_data, derivative=None,
+                         pullback=None):
         '''Return code for evaluating a known field at known points on the
         reference element.
 
@@ -72,12 +73,13 @@ class FiniteElementBase(object):
         :param kernel_data: the :class:`.KernelData` object corresponding
             to the current kernel.
         :param derivative: the derivative to take of the test function.
-
+        :param pullback: whether to pull back to the reference cell.
         '''
 
         raise NotImplementedError
 
-    def basis_evaluation(self, q, kernel_data, derivative=None):
+    def basis_evaluation(self, q, kernel_data, derivative=None,
+                         pullback=None):
         '''Return code for evaluating a known field at known points on the
         reference element.
 
@@ -87,12 +89,13 @@ class FiniteElementBase(object):
         :param kernel_data: the :class:`.KernelData` object corresponding
             to the current kernel.
         :param derivative: the derivative to take of the test function.
-
+        :param pullback: whether to pull back to the reference cell.
         '''
 
         raise NotImplementedError
 
-    def moment_evaluation(self, value, weights, q, kernel_data, derivative=None):
+    def moment_evaluation(self, value, weights, q, kernel_data,
+                          derivative=None, pullback=None):
         '''Return code for evaluating:
 
         .. math::
@@ -108,6 +111,7 @@ class FiniteElementBase(object):
             at which to evaluate.
         :param kernel_data: the :class:`.KernelData` object corresponding to the current kernel.
         :param derivative: the derivative to take of the test function.
+        :param pullback: whether to pull back to the reference cell.
         '''
 
         raise NotImplementedError

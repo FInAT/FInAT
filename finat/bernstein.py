@@ -3,6 +3,7 @@ from points import StroudPointSet
 from ast import ForAll, Recipe, Wave, Let, IndexSum
 import pymbolic.primitives as p
 from indices import BasisFunctionIndex, PointIndex
+import numpy as np
 
 
 class Bernstein(FiniteElementBase):
@@ -27,6 +28,14 @@ class Bernstein(FiniteElementBase):
             kernel_data.static[static_key] = (xi, lambda: points.points)
 
         return xi
+
+    @property
+    def dofs_shape(self):
+
+        degree = self.degree
+        dim = self.cell.get_spatial_dimension()
+        return (int(np.prod(xrange(degree + 1, degree + 1 + dim))
+                    / np.prod(xrange(1, dim + 1))),)
 
     def field_evaluation(self, field_var, q, kernel_data, derivative=None):
 
