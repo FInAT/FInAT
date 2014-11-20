@@ -90,7 +90,7 @@ class Bernstein(FiniteElementBase):
         # index set from the point set given as an argument.
         # To avoid some if statements, we will create a list of
         # what quadrature point indices should be used at which phase
-        qs_per_phase = [qs_internal]*(sd-1) + qs
+        qs_per_phase = [qs_internal]*(sd-1) + [qs]
 
         # The first phase is different since we read from field_var
         # instead of one of the temporaries -- field_var is stored
@@ -131,9 +131,8 @@ class Bernstein(FiniteElementBase):
             s = 1.0 - xi[b_ind][qs_cur[b_ind]]
 
             recipe_args = ((),
-                           [a for a in alphas[:(b_ind+1)]],
-                           [qi for qi in qs_cur[(b_ind+1):]])
-            print "hi there\n\n\n"
+                           tuple(alphas[:(b_ind+1)]),
+                           tuple(qs_cur[(b_ind+1):]))
 
             expr = Let(((tmps[d], Recipe(recipe_args, expr)),
                         (r, xi[b_ind][qs_cur[b_ind]]/s)),
