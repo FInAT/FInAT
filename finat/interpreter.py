@@ -72,7 +72,10 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
 
     def map_index(self, expr):
 
-        return self.indices[expr]
+        try:
+            return self.indices[expr]
+        except KeyError:
+            raise FInATSyntaxError("Access to unbound variable name %s." % expr)
 
     def map_for_all(self, expr):
 
