@@ -65,6 +65,9 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
         e = idx.extent
 
         total = 0.0
+
+        self.indices[idx] = None
+
         for i in self._as_range(e):
             self.indices[idx] = i
             total += self.rec(expr)
@@ -136,7 +139,7 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
 
         # Remove the wave variable from scope.
         self.context.pop(var.name)
-        if self.rec(index) >= index.extent.stop - 1:
+        if self.rec(index) >= self.rec(index.extent.stop) - 1:
             self.wave_vars.pop(var.name)
 
         return result

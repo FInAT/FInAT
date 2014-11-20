@@ -20,6 +20,14 @@ def test_index_sum(i):
     assert finat.interpreter.evaluate(e) == 10
 
 
+def test_nested_sum():
+    i1 = finat.indices.DimensionIndex(4)
+    i2 = finat.indices.DimensionIndex(i1)
+
+    e = Recipe(((), (), ()), IndexSum((i1, i2), 1))
+    assert finat.interpreter.evaluate(e) == 6
+
+
 def test_let(i):
     v = p.Variable("v")
     e = Recipe(((), (), ()), Let(((v, 1),), IndexSum((i,), v)))
