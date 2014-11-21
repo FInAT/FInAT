@@ -70,11 +70,12 @@ class _StringifyMapper(StringifyMapper):
         else:
             oldidt = " " * indent
             indent += 4
+            inner_idt = " " * (indent + 4)
             idt = " " * indent
-            fmt = "Let(\n" + idt + "%s,\n" + idt + "%s\n" + oldidt + ")"
+            fmt = "Let(\n" + inner_idt + "%s,\n" + idt + "%s\n" + oldidt + ")"
 
         return self.format(fmt,
-                           self.rec(expr.bindings, PREC_NONE, indent=None, *args, **kwargs),
+                           self.rec(expr.bindings, PREC_NONE, indent=indent, *args, **kwargs),
                            self.rec(expr.body, PREC_NONE, indent=indent, *args, **kwargs))
 
     def map_delta(self, expr, *args, **kwargs):
@@ -124,6 +125,20 @@ class _StringifyMapper(StringifyMapper):
                            self.rec(expr.expression, *args, **kwargs))
 
 
+class StringifyMixin(object):
+    """Mixin class to set stringification options correctly for pymbolic subclasses."""
+    def __str__(self):
+        """Use the :meth:`stringifier` to return a human-readable
+        string representation of *self*.
+        """
+
+        from pymbolic.mapper.stringifier import PREC_NONE
+        return self.stringifier()()(self, PREC_NONE, indent=0)
+
+    def stringifier(self):
+        return _StringifyMapper
+
+
 class Array(p.Variable):
     """A pymbolic variable of known extent."""
     def __init__(self, name, shape):
@@ -132,7 +147,7 @@ class Array(p.Variable):
         self.shape = shape
 
 
-class Recipe(p.Expression):
+class Recipe(StringifyMixin, p.Expression):
     """AST snippets and data corresponding to some form of finite element
     evaluation.
 
@@ -176,17 +191,6 @@ class Recipe(p.Expression):
 
         return self.replace_indices(replacements)
 
-    def __str__(self):
-        """Use the :meth:`stringifier` to return a human-readable
-        string representation of *self*.
-        """
-
-        from pymbolic.mapper.stringifier import PREC_NONE
-        return self.stringifier()()(self, PREC_NONE, indent=0)
-
-    def stringifier(self):
-        return _StringifyMapper
-
     def replace_indices(self, replacements):
         """Return a copy of this :class:`Recipe` with some of the indices
         substituted."""
@@ -197,7 +201,7 @@ class Recipe(p.Expression):
         return _IndexMapper(replacements)(self)
 
 
-class IndexSum(p._MultiChildExpression):
+class IndexSum(StringifyMixin, p._MultiChildExpression):
     """A symbolic expression for a sum over one or more indices.
 
     :param indices: a sequence of indices over which to sum.
@@ -223,13 +227,10 @@ class IndexSum(p._MultiChildExpression):
     def __getinitargs__(self):
         return self.children
 
-    def stringifier(self):
-        return _StringifyMapper
-
     mapper_method = "map_index_sum"
 
 
-class LeviCivita(p._MultiChildExpression):
+class LeviCivita(StringifyMixin, p._MultiChildExpression):
     r"""The Levi-Civita symbol expressed as an operator.
 
     :param free: A tuple of free indices.
@@ -252,13 +253,10 @@ class LeviCivita(p._MultiChildExpression):
     def __getinitargs__(self):
         return self.children
 
-    def stringifier(self):
-        return _StringifyMapper
-
     mapper_method = "map_index_sum"
 
 
-class ForAll(p._MultiChildExpression):
+class ForAll(StringifyMixin, p._MultiChildExpression):
     """A symbolic expression to indicate that the body will actually be
     evaluated for all of the values of its free indices. This enables
     index simplification to take place.
@@ -274,14 +272,10 @@ class ForAll(p._MultiChildExpression):
     def __getinitargs__(self):
         return self.children
 
-    def __str__(self):
-        return "ForAll(%s, %s)" % (str([x._str_extent for x in self.children[0]]),
-                                   self.children[1])
-
     mapper_method = "map_for_all"
 
 
-class Wave(p._MultiChildExpression):
+class Wave(StringifyMixin, p._MultiChildExpression):
     """A symbolic expression with loop-carried dependencies."""
 
     def __init__(self, var, index, base, update, body):
@@ -290,13 +284,10 @@ class Wave(p._MultiChildExpression):
     def __getinitargs__(self):
         return self.children
 
-    def __str__(self):
-        return "Wave(%s, %s, %s, %s, %s)" % tuple(map(str, self.children))
-
     mapper_method = "map_wave"
 
 
-class Let(p._MultiChildExpression):
+class Let(StringifyMixin, p._MultiChildExpression):
     """A Let expression enables local variable bindings in an
 expression. This feature is lifted more or less directly from
 Scheme.
@@ -320,13 +311,10 @@ Scheme.
 
         self.bindings, self.body = self.children
 
-    def __str__(self):
-        return "Let(%s)" % self.children
-
     mapper_method = "map_let"
 
 
-class Delta(p._MultiChildExpression):
+class Delta(StringifyMixin, p._MultiChildExpression):
     """The Kronecker delta expressed as a ternary operator:
 
 .. math::
@@ -355,11 +343,8 @@ match. Otherwise 0 will be returned.
 
     mapper_method = "map_delta"
 
-    def stringifier(self):
-        return _StringifyMapper
 
-
-class Inverse(p.Expression):
+class Inverse(StringifyMixin, p.Expression):
     """The inverse of a matrix-valued expression. Where the expression is
     not square, this is the Moore-Penrose pseudo-inverse.
 
@@ -371,11 +356,8 @@ class Inverse(p.Expression):
 
     mapper_method = "map_inverse"
 
-    def stringifier(self):
-        return _StringifyMapper
 
-
-class Det(p.Expression):
+class Det(StringifyMixin, p.Expression):
     """The determinant of a matrix-valued expression.
 
     Where the expression is evaluated at a number of points, the
@@ -386,10 +368,6 @@ class Det(p.Expression):
         self.expression = expression
 
     mapper_method = "map_det"
-
-    def stringifier(self):
-        return _StringifyMapper
-
 
 class FInATSyntaxError(Exception):
     """Exception raised when the syntax rules of the FInAT ast are violated."""
