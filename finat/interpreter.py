@@ -38,6 +38,7 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
             else:
                 return var
         except KeyError:
+            expr.set_error()
             raise UnknownVariableError(expr.name)
 
     def map_recipe(self, expr):
@@ -45,11 +46,18 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
 
         d, b, p = expr.indices
 
-        return self.rec(ForAll(d + b + p, expr.body))
+        try:
+            forall = ForAll(d + b + p, expr.body)
+            return self.rec(forall)
+        except:
+            if hasattr(forall, "_error"):
+                expr.set_error()
+            raise
 
     def map_index_sum(self, expr):
 
         indices, body = expr.children
+        expr_in = expr
 
         # Sum over multiple indices recursively.
         if len(indices) > 1:
@@ -60,6 +68,8 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
         idx = indices[0]
 
         if idx in self.indices:
+            expr_in.set_error()
+            idx.set_error()
             raise FInATSyntaxError("Attempting to bind the name %s which is already bound" % idx)
 
         e = idx.extent
@@ -70,7 +80,12 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
 
         for i in self._as_range(e):
             self.indices[idx] = i
-            total += self.rec(expr)
+            try:
+                total += self.rec(expr)
+            except:
+                if hasattr(expr, "_error"):
+                    expr_in.set_error()
+                raise
 
         self.indices.pop(idx)
 
@@ -81,11 +96,13 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
         try:
             return self.indices[expr]
         except KeyError:
+            expr.set_error()
             raise FInATSyntaxError("Access to unbound variable name %s." % expr)
 
     def map_for_all(self, expr):
 
         indices, body = expr.children
+        expr_in = expr
 
         # Deal gracefully with the zero index case.
         if not indices:
@@ -104,6 +121,8 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
         idx = indices[0]
 
         if idx in self.indices:
+            expr_in.set_error()
+            idx.set_error()
             raise FInATSyntaxError("Attempting to bind the name %s which is already bound" % idx)
 
         e = idx.extent
@@ -111,7 +130,12 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
         total = []
         for i in self._as_range(e):
             self.indices[idx] = i
-            total.append(self.rec(expr))
+            try:
+                total.append(self.rec(expr))
+            except:
+                if hasattr(expr, "_error"):
+                    expr_in.set_error()
+                raise
 
         self.indices.pop(idx)
 
@@ -122,6 +146,8 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
         (var, index, base, update, body) = expr.children
 
         if index not in self.indices:
+            expr.set_error()
+            index.set_error()
             raise FInATSyntaxError("Wave variable depends on %s, which is not in scope" % index)
 
         try:
@@ -148,6 +174,8 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
 
         for var, value in expr.bindings:
             if var in self.context:
+                expr.set_error()
+                var.set_error()
                 raise FInATSyntaxError("Let variable %s was already in scope."
                                        % var.name)
             self.context[var.name] = self.rec(value)
@@ -213,6 +241,7 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
             else:
                 return 0
 
+        expr.set_error()
         raise NotImplementedError
 
 
@@ -228,4 +257,8 @@ def evaluate(expression, context={}, kernel_data=None):
         for var in kernel_data.static.values():
             context[var[0].name] = var[1]()
 
-    return FinatEvaluationMapper(context)(expression)
+    try:
+        return FinatEvaluationMapper(context)(expression)
+    except:
+        print expression
+        raise

@@ -41,6 +41,9 @@ class IndexBase(p.Variable):
 
         return "%s(%s)" % (self.__class__.__name__, self.name)
 
+    def set_error(self):
+        self._error = True
+
 
 class PointIndex(IndexBase):
     '''An index running over a set of points, for example quadrature points.'''
@@ -69,6 +72,14 @@ class TensorPointIndex(IndexBase):
         super(TensorPointIndex, self).__init__(-1, name)
 
         self.factors = [PointIndex(f) for f in pointset.factor_sets]
+
+    def __getattr__(self, name):
+
+        if name == "_error":
+            if any([hasattr(x, "_error") for x in self.factors]):
+                return True
+
+        raise AttributeError
 
 
 class BasisFunctionIndex(IndexBase):

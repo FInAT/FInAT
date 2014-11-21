@@ -8,7 +8,7 @@ from indices import IndexBase
 try:
     from termcolor import colored
 except ImportError:
-    colored = lambda string, color: string
+    colored = lambda string, color, attrs=[]: string
 
 
 class FInATSyntaxError(Exception):
@@ -89,7 +89,10 @@ class _StringifyMapper(StringifyMapper):
                            *[self.rec(c, *args, **kwargs) for c in expr.children])
 
     def map_index(self, expr, *args, **kwargs):
-        return colored(str(expr), expr._color)
+        if hasattr(expr, "_error"):
+            return colored(str(expr), "red", attrs=["bold"])
+        else:
+            return colored(str(expr), expr._color)
 
     def map_wave(self, expr, enclosing_prec, indent=None, *args, **kwargs):
         if indent is None or enclosing_prec is not PREC_NONE:
@@ -130,11 +133,13 @@ class _StringifyMapper(StringifyMapper):
                            self.rec(expr.expression, *args, **kwargs))
 
     def map_variable(self, expr, enclosing_prec, *args, **kwargs):
-        try:
-            return colored(expr.name, expr._color)
-        except AttributeError:
-            return colored(expr.name, "cyan")
-
+        if hasattr(expr, "_error"):
+            return colored(str(expr.name), "red", attrs=["bold"])
+        else:
+            try:
+                return colored(expr.name, expr._color)
+            except AttributeError:
+                return colored(expr.name, "cyan")
 
 
 class StringifyMixin(object):
@@ -153,7 +158,13 @@ class StringifyMixin(object):
 
     @property
     def name(self):
-        return colored(str(self.__class__.__name__), self._color)
+        if hasattr(self, "_error"):
+            return colored(str(self.__class__.__name__), "red", attrs=["bold"])
+        else:
+            return colored(str(self.__class__.__name__), self._color)
+
+    def set_error(self):
+        self._error = True
 
 
 class Array(p.Variable):
