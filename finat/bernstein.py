@@ -79,7 +79,7 @@ class Bernstein(FiniteElementBase):
             alphas.append(alpha_cur)
 
         qs_internal = [PointIndex(qf) for qf in q.points.factor_sets]
-
+        
         r = kernel_data.new_variable("r")
         w = kernel_data.new_variable("w")
         tmps = [kernel_data.new_variable("tmp") for d in range(sd-1)]
@@ -127,14 +127,16 @@ class Bernstein(FiniteElementBase):
 
         for d in range(sd-1):
             qs_cur = qs_per_phase[d+1]
+            qs_prev = qs_per_phase[d]
             b_ind = -(d+2)  # index into several things counted backward
             s = 1.0 - xi[b_ind][qs_cur[b_ind]]
 
-            recipe_args = ((),
-                           tuple(alphas[:(b_ind+1)]),
-                           tuple(qs_cur[(b_ind+1):]))
-
-            expr = Let(((tmps[d], Recipe(recipe_args, expr)),
+            
+            expr = Let(((tmps[d],
+                         Recipe(((),
+                                 tuple(alphas[:(b_ind+1)]),
+                                 tuple(qs_prev[(b_ind+1):])),
+                                expr)),
                         (r, xi[b_ind][qs_cur[b_ind]]/s)),
                        IndexSum((alphas[b_ind],),
                                 Wave(w,
@@ -146,6 +148,7 @@ class Bernstein(FiniteElementBase):
                                 )
                        )
 
+        print Recipe(((), (), (q,)), expr)
         return Recipe(((), (), (q,)), expr)
 
 #        if self.cell.get_spatial_dimension() == 1:
