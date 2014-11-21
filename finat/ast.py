@@ -67,15 +67,17 @@ class _StringifyMapper(StringifyMapper):
     def map_let(self, expr, enclosing_prec, indent=None, *args, **kwargs):
         if indent is None:
             fmt = "Let(%s, %s)"
+            inner_indent = None
         else:
             oldidt = " " * indent
             indent += 4
-            inner_idt = " " * (indent + 4)
+            inner_indent = indent + 4
+            inner_idt = " " * inner_indent
             idt = " " * indent
             fmt = "Let(\n" + inner_idt + "%s,\n" + idt + "%s\n" + oldidt + ")"
 
         return self.format(fmt,
-                           self.rec(expr.bindings, PREC_NONE, indent=indent, *args, **kwargs),
+                           self.rec(expr.bindings, PREC_NONE, indent=inner_indent, *args, **kwargs),
                            self.rec(expr.body, PREC_NONE, indent=indent, *args, **kwargs))
 
     def map_delta(self, expr, *args, **kwargs):
