@@ -96,12 +96,12 @@ class _StringifyMapper(StringifyMapper):
 
     def map_wave(self, expr, enclosing_prec, indent=None, *args, **kwargs):
         if indent is None or enclosing_prec is not PREC_NONE:
-            fmt = expr.name + "(%s, %s) "
+            fmt = expr.name + "(%s %s) "
         else:
             oldidt = " " * indent
             indent += 4
             idt = " " * indent
-            fmt = expr.name + "(%s,\n" + idt + "%s\n" + oldidt + ")"
+            fmt = expr.name + "(%s\n" + idt + "%s\n" + oldidt + ")"
 
         return self.format(fmt,
                            " ".join(self.rec(c, PREC_NONE, *args, **kwargs) + "," for c in expr.children[:-1]),
