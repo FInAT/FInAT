@@ -125,8 +125,8 @@ class Bernstein(FiniteElementBase):
         # Figure out the "xi" for each phase being used in the recurrence.
         # In the last phase, it has to refer to one of the free incoming
         # quadrature points, and it refers to the internal ones in previous phases.
-        xi_per_phase = [xi[d][qs_internal[-d]] for d in range(sd-1)]\
-                       + [xi[-1][qs[0]]]
+        xi_per_phase = [xi[-(d+1)][qs_internal[-(d+1)]] for d in range(sd-1)]\
+                       + [xi[0][qs[0]]]
 
         # first phase: no previous phase to bind
         xi_cur = xi_per_phase[0]

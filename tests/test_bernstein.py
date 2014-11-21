@@ -7,7 +7,8 @@ import numpy as np
 
 @pytest.fixture
 def cell():
-    return FIAT.reference_element.UFCTriangle()
+    #return FIAT.reference_element.UFCTriangle()
+    return FIAT.reference_element.UFCInterval()
 
 
 @pytest.fixture
@@ -19,7 +20,7 @@ def lagrange(cell):
 @pytest.fixture
 def coords(lagrange):
 
-    return finat.VectorFiniteElement(lagrange, 2)
+    return finat.VectorFiniteElement(lagrange, 1)
 
 
 @pytest.fixture
@@ -44,20 +45,21 @@ def test_bernstein_field(coords, quadrature, bernstein):
     print recipe
     assert False
 
+def test_interpret_bernstein_field(coords, quadrature, bernstein):
+    kernel_data = finat.KernelData(finat.VectorFiniteElement(lagrange(cell()), 2))
 
-kernel_data = finat.KernelData(finat.VectorFiniteElement(lagrange(cell()), 2))
+    q = finat.indices.TensorPointIndex(quadrature.points)
+    print q.points.points()
+    
+    recipe = bernstein.field_evaluation(p.Variable("u"),
+                                        q, kernel_data)
 
-q = finat.indices.TensorPointIndex(quadrature(cell()).points)
+    udata = np.ones(bernstein.dofs_shape)
+    print finat.interpreter.evaluate(recipe, context={"u": udata},
+                                     kernel_data=kernel_data)
 
-bernstein = bernstein(cell())
-
-recipe = bernstein.field_evaluation(p.Variable("u"),
-                                    q, kernel_data)
-print bernstein.dofs_shape
-udata = np.ones(bernstein.dofs_shape)
-finat.interpreter.evaluate(recipe, context={"u": udata},
-                           kernel_data=kernel_data)
-
+    assert False
+    
 if __name__ == '__main__':
     import os
     pytest.main(os.path.abspath(__file__))
