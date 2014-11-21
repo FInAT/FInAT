@@ -136,7 +136,7 @@ class Bernstein(FiniteElementBase):
                             Wave(w,
                                  alphas[-1],
                                  s**(deg-mysum(alphas[:(sd-1)])),
-                                 w*r*(deg-mysum(alphas))/(1.+alphas[-1]),
+                                 w*r*(deg-mysum(alphas)+1)/(alphas[-1]),
                                  w*read_locs[0]
                                  )
                             )
@@ -158,7 +158,7 @@ class Bernstein(FiniteElementBase):
                                 Wave(w,
                                      alpha_cur,
                                      s**(deg-asum0),
-                                     w*r*(deg-asum1)/(1.+alpha_cur),
+                                     w*r*(deg-asum1+1)/alpha_cur,
                                      w*read_locs[d]
                                      )
                                 )
