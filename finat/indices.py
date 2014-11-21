@@ -13,6 +13,7 @@ class IndexBase(p.Variable):
             self._extent = slice(extent)
         else:
             raise TypeError("Extent must be a slice or an int")
+        self._color = "yellow"
 
     @property
     def extent(self):
