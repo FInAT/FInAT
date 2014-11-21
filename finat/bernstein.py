@@ -54,7 +54,6 @@ class Bernstein(FiniteElementBase):
             else:
                 raise NotImplementedError
 
-
         # Get the symbolic names for the points.
         xi = [self._points_variable(f.points, kernel_data)
               for f in q.factors]
@@ -65,9 +64,14 @@ class Bernstein(FiniteElementBase):
 
         sd = self.cell.get_spatial_dimension()
 
-        # reimplement using reduce to avoid problem with infinite loop into pymbolic
+        # reimplement sum using reduce to avoid problem with infinite loop
+        # into pymbolic
         def mysum(vals):
             return reduce(lambda a, b: a+b, vals, 0)
+
+        r = kernel_data.new_variable("r")
+        w = kernel_data.new_variable("w")
+        tmps = [kernel_data.new_variable("tmp") for d in range(sd-1)]
 
         # Create basis function indices that run over
         # the possible multiindex space.  These have
@@ -78,23 +82,22 @@ class Bernstein(FiniteElementBase):
             alpha_cur = BasisFunctionIndex(deg+1-asum)
             alphas.append(alpha_cur)
 
+        # temporary quadrature indices so I don't clobber the ones that
+        # have to be free for the entire recipe
         qs_internal = [PointIndex(qf) for qf in q.points.factor_sets]
-        
-        r = kernel_data.new_variable("r")
-        w = kernel_data.new_variable("w")
-        tmps = [kernel_data.new_variable("tmp") for d in range(sd-1)]
 
-        # every phase of sum-factorization *except* the last one
-        # will make use of the qs_internal to index into
-        # quadrature points, but the last phase will use the
-        # index set from the point set given as an argument.
-        # To avoid some if statements, we will create a list of
-        # what quadrature point indices should be used at which phase
-        qs_per_phase = [qs_internal]*(sd-1) + [qs]
+        # For each phase I need to figure out the free variables of
+        # that phase
+        free_vars_per_phase = []
+        for d in range(sd-1):
+            alphas_free_cur = tuple(alphas[:(-1-d)])
+            qs_free_cur = tuple(qs_internal[(-1-d):])
+            free_vars_per_phase.append(((), alphas_free_cur, qs_free_cur))
+        # last phase: the free variables are the free quadrature point indices
+        free_vars_per_phase.append(((), (), (q,)))
 
-        # The first phase is different since we read from field_var
-        # instead of one of the temporaries -- field_var is stored
-        # by a single index and the rest are stored as tensor products.
+        # the first phase reads from the field_var storage
+        # the rest of the phases will read from a tmp variable
         # This code computes the offset into the field_var storage
         # for the internal sum variable loop.
         offset = 0
@@ -106,148 +109,60 @@ class Bernstein(FiniteElementBase):
         # each phase of the sum-factored algorithm reads from a particular
         # location.  The first of these is field_var, the rest are the
         # temporaries.
-        read_locs = [field_var[alphas[-1]+offset]] \
-            + [tmps[d][tuple(alphas[:(-d)]+qs_internal[(-d):])]
-               for d in range(sd-1)]
+        read_locs = [field_var[alphas[-1]+offset]]
+        if sd > 1:
+            # intermediate phases will read from the alphas and
+            # internal quadrature points
+            for d in range(1, sd-1):
+                tmp_cur = tmps[d-1]
+                read_alphas = alphas[:(-d)]
+                read_qs = qs_internal[(-d):]
+                read_locs.append(tmp_cur[tuple(read_alphas+read_qs)])
 
-        # In the first phase of the sum-factorization we don't have a previous
-        # result to bind, so the Let expression is different.
-        qs_cur = qs_per_phase[0]
-        s = 1.0 - xi[-1][qs_cur[-1]]
-        expr = Let(((r, xi[-1][qs_cur[-1]]/s),),
+            # last phase reads from the last alpha and the incoming quadrature points
+            read_locs.append(tmps[-1][tuple(alphas[:1]+qs[1:])])
+
+        # Figure out the "xi" for each phase being used in the recurrence.
+        # In the last phase, it has to refer to one of the free incoming
+        # quadrature points, and it refers to the internal ones in previous phases.
+        xi_per_phase = [xi[d][qs_internal[-d]] for d in range(sd-1)]\
+                       + [xi[-1][qs[0]]]
+
+        # first phase: no previous phase to bind
+        xi_cur = xi_per_phase[0]
+        s = 1 - xi_cur
+        expr = Let(((r, xi_cur/s),),
                    IndexSum((alphas[-1],),
                             Wave(w,
                                  alphas[-1],
                                  s**(deg-mysum(alphas[:(sd-1)])),
-                                 w * r * (deg-mysum(alphas)) / (1.0 + alphas[-1]),
-                                 w * read_locs[0]
+                                 w*r*(deg-mysum(alphas))/(1.+alphas[-1]),
+                                 w*read_locs[0]
                                  )
                             )
                    )
+        recipe_cur = Recipe(free_vars_per_phase[0], expr)
 
-        for d in range(sd-1):
-            qs_cur = qs_per_phase[d+1]
-            qs_prev = qs_per_phase[d]
-            b_ind = -(d+2)  # index into several things counted backward
-            s = 1.0 - xi[b_ind][qs_cur[b_ind]]
+        for d in range(1, sd):
+            # Need to bind the free variables that came before in Let
+            # then do what I think is right.
+            xi_cur = xi_per_phase[d]
+            s = 1 - xi_cur
+            alpha_cur = alphas[-(d+1)]
+            asum0 = mysum(alphas[:(sd-d-1)])
+            asum1 = mysum(alphas[:(sd-d)])
 
-            
-            expr = Let(((tmps[d],
-                         Recipe(((),
-                                 tuple(alphas[:(b_ind+1)]),
-                                 tuple(qs_prev[(b_ind+1):])),
-                                expr)),
-                        (r, xi[b_ind][qs_cur[b_ind]]/s)),
-                       IndexSum((alphas[b_ind],),
+            expr = Let(((tmps[d-1], recipe_cur),
+                        (r, xi_cur/s)),
+                       IndexSum((alpha_cur,),
                                 Wave(w,
-                                     alphas[b_ind],
-                                     s**(deg-mysum(alphas[:b_ind])),
-                                     w * r * (deg-mysum(alphas[:(b_ind+1)]))/(1.0+alphas[b_ind]),
-                                     w * read_locs[d+1]
+                                     alpha_cur,
+                                     s**(deg-asum0),
+                                     w*r*(deg-asum1)/(1.+alpha_cur),
+                                     w*read_locs[d]
                                      )
                                 )
                        )
+            recipe_cur = Recipe(free_vars_per_phase[d], expr)
 
-        print Recipe(((), (), (q,)), expr)
-        return Recipe(((), (), (q,)), expr)
-
-#        if self.cell.get_spatial_dimension() == 1:
-#            r = kernel_data.new_variable("r")
-#            w = kernel_data.new_variable("w")
-#            alpha = BasisFunctionIndex(self.degree+1)
-#            s = 1 - xi[0][qs[0]]
-#            expr = Let(((r, xi[0][qs[0]]/s)),
-#                       IndexSum((alpha,),
-#                                Wave(w,
-#                                     alpha,
-#                                     s**self.degree,
-#                                     w * r * (self.degree-alpha)/(alpha+1.0),
-#                                     w * field_var[alpha])
-#                                )
-#                       )
-#            return Recipe(((), (), (q,)), expr)
-#        elif self.cell.get_spatial_dimension() == 2:
-#            deg = self.degree
-#            r = kernel_data.new_variable("r")
-#            w = kernel_data.new_variable("w")
-#            tmp = kernel_data.new_variable("tmp")
-#            alpha1 = BasisFunctionIndex(deg+1)
-#            alpha2 = BasisFunctionIndex(deg+1-alpha1)
-#            q2 = PointIndex(q.points.factor_sets[1])
-#            s = 1 - xi[1][q2]
-
-#            tmp_expr = Let(((r, xi[1][q2]/s),),
-#                           IndexSum((alpha2,),
-#                                    Wave(w,
-#                                         alpha2,
-#                                         s**(deg - alpha1),
-#                                         w * r * (deg-alpha1-alpha2)/(1.0 + alpha2),
-#                                         w * field_var[alpha1*(2*deg-alpha1+3)/2])
-#                                    )
-#                           )
-#            s = 1 - xi[0][qs[0]]
-#            expr = Let(((tmp, Recipe(((), (alpha1,), (q2,)), tmp_expr)),
-#                        (r, xi[0][qs[0]]/s)),
-#                       IndexSum((alpha1,),
-#                                Wave(w,
-#                                     alpha1,
-#                                     s**deg,
-#                                     w * r * (deg-alpha1)/(1. + alpha1),
-#                                     w * tmp[alpha1, qs[1]]
-#                                     )
-#                                )
-#                       )
-#
-#            return Recipe(((), (), (q,)), expr)
-#        elif self.cell.get_spatial_dimension() == 3:
-#            deg = self.degree
-#            r = kernel_data.new_variable("r")
-#            w = kernel_data.new_variable("w")
-#            tmp0 = kernel_data.new_variable("tmp0")
-#            tmp1 = kernel_data.new_variable("tmp1")
-#            alpha1 = BasisFunctionIndex(deg+1)
-#            alpha2 = BasisFunctionIndex(deg+1-alpha1)
-#            alpha3 = BasisFunctionIndex(deg+1-alpha1-alpha2)
-#            q2 = PointIndex(q.points.factor_sets[1])
-#            q3 = PointIndex(q.points.factor_sets[2])
-#
-#            s = 1.0 - xi[2][q3]
-#            tmp0_expr = Let(((r, xi[2][q3]/s),),
-#                            IndexSum((alpha3,),
-#                                     Wave(w,
-#                                          alpha3,
-#                                          s**(deg-alpha1-alpha2),
-#                                          w * r * (deg-alpha1-alpha2-alpha3)/(1.+alpha3),
-#                                          w * field_var[pd(3, deg)-pd(3, deg-alpha1)
-#                                                        + pd(2, deg - alpha1)-pd(2, deg - alpha1 -# alpha2)
-#                                                        + alpha3]
-#                                          )
-#                                     )
-#                            )
-#            s = 1.0 - xi[1][q2]
-#            tmp1_expr = Let(((tmp0, tmp0_expr),
-#                             (r, xi[1][q2]/s)),
-#                            IndexSum((alpha2,),
-#                                     Wave(w,
-#                                          alpha2,
-#                                          s**(deg-alpha1),
-#                                          w*r*(deg-alpha1-alpha2)/(1.0+alpha2),
-#                                          w*tmp0[alpha1, alpha2, q3]
-#                                          )
-#                                     )
-#                            )
-#
-#            s = 1.0 - xi[0][qs[0]]
-#            expr = Let(((tmp1, tmp1_expr),
-#                        (r, xi[0][qs[0]]/s)),
-#                       IndexSum((alpha1,),
-#                                Wave(w,
-#                                     alpha1,
-#                                     s**deg,
-#                                     w*r*(deg-alpha1)/(1.+alpha1),
-#                                     w*tmp1[alpha1, qs[1], qs[2]]
-#                                     )
-#                                )
-#                       )
-#
-#            return Recipe(((), (), (q,)), expr)
+        return recipe_cur
