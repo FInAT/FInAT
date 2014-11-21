@@ -36,7 +36,7 @@ def test_let(i):
 
 def test_wave(i):
     v = p.Variable("v")
-    e = Recipe(((), (), ()), IndexSum((i,), Wave(v, i, 0, v+1, v)))
+    e = Recipe(((), (), ()), IndexSum((i,), Wave(v, i, 0, v + 1, v)))
     assert finat.interpreter.evaluate(e) == 45
 
 

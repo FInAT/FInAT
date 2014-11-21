@@ -46,11 +46,11 @@ class Bernstein(FiniteElementBase):
 
         def pd(sd, d):
             if sd == 3:
-                return (d+1)*(d+2)*(d+3)/6
+                return (d + 1) * (d + 2) * (d + 3) / 6
             elif sd == 2:
-                return (d+1)*(d+2)/2
+                return (d + 1) * (d + 2) / 2
             elif sd == 1:
-                return d+1
+                return d + 1
             else:
                 raise NotImplementedError
 
@@ -67,19 +67,19 @@ class Bernstein(FiniteElementBase):
         # reimplement sum using reduce to avoid problem with infinite loop
         # into pymbolic
         def mysum(vals):
-            return reduce(lambda a, b: a+b, vals, 0)
+            return reduce(lambda a, b: a + b, vals, 0)
 
         r = kernel_data.new_variable("r")
         w = kernel_data.new_variable("w")
-        tmps = [kernel_data.new_variable("tmp") for d in range(sd-1)]
+        tmps = [kernel_data.new_variable("tmp") for d in range(sd - 1)]
 
         # Create basis function indices that run over
         # the possible multiindex space.  These have
         # to be jagged
-        alphas = [BasisFunctionIndex(deg+1)]
+        alphas = [BasisFunctionIndex(deg + 1)]
         for d in range(1, sd):
             asum = mysum(alphas)
-            alpha_cur = BasisFunctionIndex(deg+1-asum)
+            alpha_cur = BasisFunctionIndex(deg + 1 - asum)
             alphas.append(alpha_cur)
 
         # temporary quadrature indices so I don't clobber the ones that
@@ -89,9 +89,9 @@ class Bernstein(FiniteElementBase):
         # For each phase I need to figure out the free variables of
         # that phase
         free_vars_per_phase = []
-        for d in range(sd-1):
-            alphas_free_cur = tuple(alphas[:(-1-d)])
-            qs_free_cur = tuple(qs_internal[(-1-d):])
+        for d in range(sd - 1):
+            alphas_free_cur = tuple(alphas[:(-1 - d)])
+            qs_free_cur = tuple(qs_internal[(-1 - d):])
             free_vars_per_phase.append(((), alphas_free_cur, qs_free_cur))
         # last phase: the free variables are the free quadrature point indices
         free_vars_per_phase.append(((), (), (q,)))
@@ -101,43 +101,43 @@ class Bernstein(FiniteElementBase):
         # This code computes the offset into the field_var storage
         # for the internal sum variable loop.
         offset = 0
-        for d in range(sd-1):
+        for d in range(sd - 1):
             deg_begin = deg - mysum(alphas[:d])
             deg_end = deg - alphas[d]
-            offset += pd(sd-d, deg_begin) - pd(sd-d, deg_end)
+            offset += pd(sd - d, deg_begin) - pd(sd - d, deg_end)
 
         # each phase of the sum-factored algorithm reads from a particular
         # location.  The first of these is field_var, the rest are the
         # temporaries.
-        read_locs = [field_var[alphas[-1]+offset]]
+        read_locs = [field_var[alphas[-1] + offset]]
         if sd > 1:
             # intermediate phases will read from the alphas and
             # internal quadrature points
-            for d in range(1, sd-1):
-                tmp_cur = tmps[d-1]
+            for d in range(1, sd - 1):
+                tmp_cur = tmps[d - 1]
                 read_alphas = alphas[:(-d)]
                 read_qs = qs_internal[(-d):]
-                read_locs.append(tmp_cur[tuple(read_alphas+read_qs)])
+                read_locs.append(tmp_cur[tuple(read_alphas + read_qs)])
 
             # last phase reads from the last alpha and the incoming quadrature points
-            read_locs.append(tmps[-1][tuple(alphas[:1]+qs[1:])])
+            read_locs.append(tmps[-1][tuple(alphas[:1] + qs[1:])])
 
         # Figure out the "xi" for each phase being used in the recurrence.
         # In the last phase, it has to refer to one of the free incoming
         # quadrature points, and it refers to the internal ones in previous phases.
-        xi_per_phase = [xi[-(d+1)][qs_internal[-(d+1)]] for d in range(sd-1)]\
-                       + [xi[0][qs[0]]]
+        xi_per_phase = [xi[-(d + 1)][qs_internal[-(d + 1)]]
+                        for d in range(sd - 1)] + [xi[0][qs[0]]]
 
         # first phase: no previous phase to bind
         xi_cur = xi_per_phase[0]
         s = 1 - xi_cur
-        expr = Let(((r, xi_cur/s),),
+        expr = Let(((r, xi_cur / s),),
                    IndexSum((alphas[-1],),
                             Wave(w,
                                  alphas[-1],
-                                 s**(deg-mysum(alphas[:(sd-1)])),
-                                 w*r*(deg-mysum(alphas)+1)/(alphas[-1]),
-                                 w*read_locs[0]
+                                 s ** (deg - mysum(alphas[:(sd - 1)])),
+                                 w * r * (deg - mysum(alphas) + 1) / (alphas[-1]),
+                                 w * read_locs[0]
                                  )
                             )
                    )
@@ -148,18 +148,18 @@ class Bernstein(FiniteElementBase):
             # then do what I think is right.
             xi_cur = xi_per_phase[d]
             s = 1 - xi_cur
-            alpha_cur = alphas[-(d+1)]
-            asum0 = mysum(alphas[:(sd-d-1)])
-            asum1 = mysum(alphas[:(sd-d)])
+            alpha_cur = alphas[-(d + 1)]
+            asum0 = mysum(alphas[:(sd - d - 1)])
+            asum1 = mysum(alphas[:(sd - d)])
 
-            expr = Let(((tmps[d-1], recipe_cur),
-                        (r, xi_cur/s)),
+            expr = Let(((tmps[d - 1], recipe_cur),
+                        (r, xi_cur / s)),
                        IndexSum((alpha_cur,),
                                 Wave(w,
                                      alpha_cur,
-                                     s**(deg-asum0),
-                                     w*r*(deg-asum1+1)/alpha_cur,
-                                     w*read_locs[d]
+                                     s ** (deg - asum0),
+                                     w * r * (deg - asum1 + 1) / alpha_cur,
+                                     w * read_locs[d]
                                      )
                                 )
                        )

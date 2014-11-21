@@ -45,6 +45,7 @@ def test_bernstein_field(coords, quadrature, bernstein):
     print recipe
     assert False
 
+
 def test_interpret_bernstein_field(coords, quadrature, bernstein):
     kernel_data = finat.KernelData(finat.VectorFiniteElement(lagrange(cell()), 2))
 
@@ -58,7 +59,7 @@ def test_interpret_bernstein_field(coords, quadrature, bernstein):
                                      kernel_data=kernel_data)
 
     assert False
-    
+
 if __name__ == '__main__':
     import os
     pytest.main(os.path.abspath(__file__))
