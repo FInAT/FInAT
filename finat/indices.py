@@ -95,6 +95,32 @@ class BasisFunctionIndex(IndexBase):
     _count = 0
 
 
+class SimpliciallyGradedBasisFunctionIndex(BasisFunctionIndex):
+    '''An index over simplicial polynomials with a grade, such
+    as Dubiner or Bernstein.  Implies a simplicial iteration space.'''
+    def __init__(self, sdim, deg):
+
+        # creates name and increments counter
+        super(SimpliciallyGradedBasisFunctionIndex, self).__init__(-1)
+
+        self.factors = [BasisFunctionIndex(deg + 1)]
+
+        def mysum(vals):
+            return reduce(lambda a, b: a + b, vals, 0)
+
+        for sd in range(1, sdim):
+            acur = BasisFunctionIndex(deg + 1 - mysum(self.factors))
+            self.factors.append(acur)
+
+    def __getattr__(self, name):
+
+        if name == "_error":
+            if any([hasattr(x, "_error") for x in self.factors]):
+                return True
+
+        raise AttributeError
+
+    
 class DimensionIndex(IndexBase):
     '''An index over data dimension. For example over topological,
     geometric or vector components.'''

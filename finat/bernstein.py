@@ -2,7 +2,7 @@ from finiteelementbase import FiniteElementBase
 from points import StroudPointSet
 from ast import ForAll, Recipe, Wave, Let, IndexSum
 import pymbolic.primitives as p
-from indices import BasisFunctionIndex, PointIndex
+from indices import BasisFunctionIndex, PointIndex, SimpliciallyGradedBasisFunctionIndex  # noqa
 import numpy as np
 
 
@@ -76,11 +76,14 @@ class Bernstein(FiniteElementBase):
         # Create basis function indices that run over
         # the possible multiindex space.  These have
         # to be jagged
-        alphas = [BasisFunctionIndex(deg + 1)]
-        for d in range(1, sd):
-            asum = mysum(alphas)
-            alpha_cur = BasisFunctionIndex(deg + 1 - asum)
-            alphas.append(alpha_cur)
+
+        alpha = SimpliciallyGradedBasisFunctionIndex(sd, deg)
+        alphas = alpha.factors
+#        alphas = [BasisFunctionIndex(deg + 1)]
+#        for d in range(1, sd):
+#            asum = mysum(alphas)
+#            alpha_cur = BasisFunctionIndex(deg + 1 - asum)
+#            alphas.append(alpha_cur)
 
         # temporary quadrature indices so I don't clobber the ones that
         # have to be free for the entire recipe
