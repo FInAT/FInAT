@@ -120,7 +120,7 @@ class SimpliciallyGradedBasisFunctionIndex(BasisFunctionIndex):
 
         raise AttributeError
 
-    
+
 class DimensionIndex(IndexBase):
     '''An index over data dimension. For example over topological,
     geometric or vector components.'''

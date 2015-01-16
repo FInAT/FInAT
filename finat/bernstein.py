@@ -6,6 +6,23 @@ from indices import BasisFunctionIndex, PointIndex, SimpliciallyGradedBasisFunct
 import numpy as np
 
 
+# reimplement sum using reduce to avoid problem with infinite loop
+# into pymbolic
+def mysum(vals):
+    return reduce(lambda a, b: a + b, vals, 0)
+
+
+def pd(sd, d):
+    if sd == 3:
+        return (d + 1) * (d + 2) * (d + 3) / 6
+    elif sd == 2:
+        return (d + 1) * (d + 2) / 2
+    elif sd == 1:
+        return d + 1
+    else:
+        raise NotImplementedError
+
+
 class Bernstein(FiniteElementBase):
     """Scalar-valued Bernstein element. Note: need to work out the
     correct heirarchy for different Bernstein elements."""
@@ -29,6 +46,19 @@ class Bernstein(FiniteElementBase):
 
         return xi
 
+    def _weights_variable(self, weights, kernel_data):
+        """Return the symbolic variables for the static data
+        corresponding to the array of weights in a quadrature rule."""
+
+        static_key = (id(weights),)
+        if static_key in kernel_data.static:
+            wt = kernel_data.static[static_key][0]
+        else:
+            wt = p.Variable(kernel_data.weight_variable_name(weights))
+            kernel_data.static[static_key] = (wt, lambda: np.array(weights))
+
+        return wt
+
     @property
     def dofs_shape(self):
 
@@ -44,16 +74,6 @@ class Bernstein(FiniteElementBase):
         if derivative is not None:
             raise NotImplementedError
 
-        def pd(sd, d):
-            if sd == 3:
-                return (d + 1) * (d + 2) * (d + 3) / 6
-            elif sd == 2:
-                return (d + 1) * (d + 2) / 2
-            elif sd == 1:
-                return d + 1
-            else:
-                raise NotImplementedError
-
         # Get the symbolic names for the points.
         xi = [self._points_variable(f.points, kernel_data)
               for f in q.factors]
@@ -64,13 +84,10 @@ class Bernstein(FiniteElementBase):
 
         sd = self.cell.get_spatial_dimension()
 
-        # reimplement sum using reduce to avoid problem with infinite loop
-        # into pymbolic
-        def mysum(vals):
-            return reduce(lambda a, b: a + b, vals, 0)
-
         r = kernel_data.new_variable("r")
         w = kernel_data.new_variable("w")
+#        r = p.Variable("r")
+#        w = p.Variable("w")
         tmps = [kernel_data.new_variable("tmp") for d in range(sd - 1)]
 
         # Create basis function indices that run over
@@ -79,11 +96,6 @@ class Bernstein(FiniteElementBase):
 
         alpha = SimpliciallyGradedBasisFunctionIndex(sd, deg)
         alphas = alpha.factors
-#        alphas = [BasisFunctionIndex(deg + 1)]
-#        for d in range(1, sd):
-#            asum = mysum(alphas)
-#            alpha_cur = BasisFunctionIndex(deg + 1 - asum)
-#            alphas.append(alpha_cur)
 
         # temporary quadrature indices so I don't clobber the ones that
         # have to be free for the entire recipe
@@ -163,6 +175,89 @@ class Bernstein(FiniteElementBase):
                                      s ** (deg - asum0),
                                      w * r * (deg - asum1 + 1) / alpha_cur,
                                      w * read_locs[d]
+                                     )
+                                )
+                       )
+            recipe_cur = Recipe(free_vars_per_phase[d], expr)
+
+        return recipe_cur
+
+    def moment_evaluation(self, value, weights, q, kernel_data,
+                          derivative=None, pullback=None):
+        if not isinstance(q.points, StroudPointSet):
+            raise ValueError("Only Stroud points may be employed with Bernstein polynomials")
+
+        if derivative is not None:
+            raise NotImplementedError
+
+        qs = q.factors
+
+        wt = [self._weights_variable(weights[d], kernel_data)
+              for d in range(len(weights))]
+
+        xi = [self._points_variable(f.points, kernel_data)
+              for f in q.factors]
+
+        deg = self.degree
+
+        sd = self.cell.get_spatial_dimension()
+
+        r = kernel_data.new_variable("r")
+        w = kernel_data.new_variable("w")
+        tmps = [kernel_data.new_variable("tmp") for d in range(sd - 1)]
+
+        # the output recipe is parameterized over these
+        alpha = SimpliciallyGradedBasisFunctionIndex(sd, deg)
+        alphas = alpha.factors
+
+        read_locs = [value[q]]
+        for d in range(1, sd-1):
+            tmp_cur = tmps[d-1]
+            read_alphas = alphas[:d]
+            read_qs = qs[-d:]
+            read_locs.append(tmp_cur[tuple(read_alphas+read_qs)])
+        d = sd-1
+        tmp_cur = tmps[d-1]
+        read_alphas = alphas[:d]
+        read_qs = qs[-d:]
+        read_locs.append(tmp_cur[tuple(read_alphas+read_qs)])
+
+        free_vars_per_phase = []
+        for d in range(1, sd):
+            alphas_free_cur = tuple(alphas[:d])
+            qs_free_cur = tuple(qs[-d:])
+            free_vars_per_phase.append(((), alphas_free_cur, qs_free_cur))
+        free_vars_per_phase.append(((), (), (alpha,)))
+
+        xi_cur = xi[0][qs[0]]
+        s = 1 - xi_cur
+        expr = Let(((r, xi_cur/s),),
+                   IndexSum((qs[0],),
+                            Wave(w,
+                                 alphas[0],
+                                 wt[0][qs[0]] * s**deg,
+                                 w*r*(deg-alphas[0]-1)/alphas[0],
+                                 w * read_locs[0]
+                                 )
+                            )
+                   )
+
+        recipe_cur = Recipe(free_vars_per_phase[0], expr)
+
+        for d in range(1, sd):
+            xi_cur = xi[d]
+            s = 1 - xi_cur
+            acur = alphas[d]
+            asum0 = mysum(alphas[:d])
+            asum1 = asum0 - acur
+            expr = Let(((tmps[d-1], recipe_cur),
+                        (r, xi_cur/s)),
+                       IndexSum((qs[d],),
+                                Wave(w,
+                                     acur,
+                                     wt[d][qs[d]]*s**(deg-asum0),
+                                     w*r*(deg-asum1-1)/acur,
+                                     w*read_locs[d]
                                      )
                                 )
                        )

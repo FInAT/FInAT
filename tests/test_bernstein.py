@@ -45,6 +45,20 @@ def test_bernstein_field(coords, quadrature, bernstein):
     print recipe
     assert False
 
+def test_bernstein_moment(coords, quadrature, bernstein):
+
+    kernel_data = finat.KernelData(coords)
+
+    q = finat.indices.TensorPointIndex(quadrature.points)
+    wt = quadrature.weights
+
+    recipe = bernstein.moment_evaluation(p.Variable("f"),
+                                         wt,
+                                         q,
+                                         kernel_data)
+    print recipe
+    assert False
+
 
 def test_interpret_bernstein_field(coords, quadrature, bernstein):
     kernel_data = finat.KernelData(finat.VectorFiniteElement(lagrange(cell()), 2))
@@ -56,6 +70,24 @@ def test_interpret_bernstein_field(coords, quadrature, bernstein):
 
     udata = np.ones(bernstein.dofs_shape)
     print finat.interpreter.evaluate(recipe, context={"u": udata},
+                                     kernel_data=kernel_data)
+
+    assert False
+
+def test_interpret_bernstein_moment(coords, quadrature, bernstein):
+    kernel_data = finat.KernelData(finat.VectorFiniteElement(lagrange(cell()), 2))
+
+    q = finat.indices.TensorPointIndex(quadrature.points)
+    wt = quadrature.weights
+
+    recipe = bernstein.moment_evaluation(p.Variable("f"),
+                                         wt,
+                                         q,
+                                         kernel_data)
+
+    nqp = len(wt[0])**2
+    fdata = np.ones((nqp,))
+    print finat.interpreter.evaluate(recipe, context={"f": fdata},
                                      kernel_data=kernel_data)
 
     assert False

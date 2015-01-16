@@ -38,6 +38,7 @@ class KernelData(object):
 
         self._variable_count = 0
         self._point_count = 0
+        self._wt_count = 0
         self._variable_cache = {}
 
     def tabulation_variable_name(self, element, points):
@@ -71,6 +72,22 @@ class KernelData(object):
                    + str(self._point_count)
             self._variable_cache[key] = name
             self._point_count += 1
+            self.variables.add(name)
+            return self._variable_cache[key]
+
+    def weight_variable_name(self, weights):
+        """Given an iterable of weights set, return a variable name wt_n
+        where n is guaranteed to be unique to that set of weights."""
+
+        key = (id(weights),)
+
+        try:
+            return self._variable_cache[key]
+        except KeyError:
+            name = u'\u03BE_'.encode("utf-8") \
+                   + str(self._wt_count)
+            self._variable_cache[key] = name
+            self._wt_count += 1
             self.variables.add(name)
             return self._variable_cache[key]
 
