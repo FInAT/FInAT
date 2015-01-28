@@ -165,14 +165,21 @@ class WalkMapper(WM):
 
         self.post_visit(expr, *args, **kwargs)
 
-    map_delta = map_recipe
-    map_let = map_recipe
-    map_for_all = map_recipe
-    map_wave = map_recipe
-    map_index_sum = map_recipe
-    map_levi_civita = map_recipe
-    map_inverse = map_recipe
-    map_det = map_recipe
+    def map_index_sum(self, expr, *args, **kwargs):
+        if not self.visit(expr, *args, **kwargs):
+            return
+        for index in expr.indices:
+            self.rec(index, *args, **kwargs)
+        self.rec(expr.body, *args, **kwargs)
+        self.post_visit(expr, *args, **kwargs)
+
+    map_delta = map_index_sum
+    map_let = map_index_sum
+    map_for_all = map_index_sum
+    map_wave = map_index_sum
+    map_levi_civita = map_index_sum
+    map_inverse = map_index_sum
+    map_det = map_index_sum
 
 
 class GraphvizMapper(WalkMapper, GVM):
