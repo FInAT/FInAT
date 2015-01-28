@@ -4,6 +4,8 @@ required to define Finite Element expressions in FInAT.
 import pymbolic.primitives as p
 from pymbolic.mapper import IdentityMapper as IM
 from pymbolic.mapper.stringifier import StringifyMapper, PREC_NONE
+from pymbolic.mapper import WalkMapper as WM
+from pymbolic.mapper.graphviz import GraphvizMapper as GVM
 from indices import IndexBase
 try:
     from termcolor import colored
@@ -140,6 +142,41 @@ class _StringifyMapper(StringifyMapper):
                 return colored(expr.name, expr._color)
             except AttributeError:
                 return colored(expr.name, "cyan")
+
+
+class WalkMapper(WM):
+    def __init__(self):
+        super(WalkMapper, self).__init__()
+
+    def map_recipe(self, expr, *args, **kwargs):
+        if not self.visit(expr, *args, **kwargs):
+            return
+        for indices in expr.indices:
+            for index in indices:
+                self.rec(index, *args, **kwargs)
+        self.rec(expr.body, *args, **kwargs)
+        self.post_visit(expr, *args, **kwargs)
+
+    def map_index(self, expr, *args, **kwargs):
+        if not self.visit(expr, *args, **kwargs):
+            return
+
+        # I don't want to recur on the extent.  That's ugly.
+
+        self.post_visit(expr, *args, **kwargs)
+
+    map_delta = map_recipe
+    map_let = map_recipe
+    map_for_all = map_recipe
+    map_wave = map_recipe
+    map_index_sum = map_recipe
+    map_levi_civita = map_recipe
+    map_inverse = map_recipe
+    map_det = map_recipe
+
+
+class GraphvizMapper(WalkMapper, GVM):
+    pass
 
 
 class StringifyMixin(object):
