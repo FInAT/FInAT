@@ -51,9 +51,9 @@ class _StringifyMapper(StringifyMapper):
         if indent is None:
             fmt = "Recipe(%s, %s)"
         else:
-            oldidt = " "*indent
+            oldidt = " " * indent
             indent += 4
-            idt = " "*indent
+            idt = " " * indent
             fmt = "Recipe(%s,\n" + idt + "%s\n" + oldidt + ")"
 
         return self.format(fmt,
@@ -64,9 +64,9 @@ class _StringifyMapper(StringifyMapper):
         if indent is None:
             fmt = "Let(%s, %s)"
         else:
-            oldidt = " "*indent
+            oldidt = " " * indent
             indent += 4
-            idt = " "*indent
+            idt = " " * indent
             fmt = "Let(\n" + idt + "%s,\n" + idt + "%s\n" + oldidt + ")"
 
         return self.format(fmt,
@@ -81,9 +81,9 @@ class _StringifyMapper(StringifyMapper):
         if indent is None or enclosing_prec is not PREC_NONE:
             fmt = "IndexSum((%s), %s) "
         else:
-            oldidt = " "*indent
+            oldidt = " " * indent
             indent += 4
-            idt = " "*indent
+            idt = " " * indent
             fmt = "IndexSum((%s),\n" + idt + "%s\n" + oldidt + ")"
 
         return self.format(fmt,
@@ -288,9 +288,8 @@ Scheme.
             raise FInATSyntaxError("Let bindings must be a tuple of pairs")
 
         super(Let, self).__init__((bindings, body))
-        
-        self.bindings, self.body = self.children
 
+        self.bindings, self.body = self.children
 
     def __str__(self):
         return "Let(%s)" % self.children
