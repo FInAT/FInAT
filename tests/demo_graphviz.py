@@ -22,7 +22,7 @@ kernel_data = finat.KernelData(vector_lagrange, X, affine=False)
 recipe = lagrange.basis_evaluation(points,
                                    kernel_data, pullback=False)
 
-#print recipe
+# print recipe
 gvm = finat.ast.GraphvizMapper()
 gvm(recipe)
 print gvm.get_dot_code()

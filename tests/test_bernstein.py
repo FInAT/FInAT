@@ -7,8 +7,8 @@ import numpy as np
 
 @pytest.fixture
 def cell():
+
     return FIAT.reference_element.UFCTriangle()
-    #return FIAT.reference_element.UFCInterval()
 
 
 @pytest.fixture
@@ -25,11 +25,13 @@ def coords(lagrange):
 
 @pytest.fixture
 def quadrature(cell):
+
     return finat.quadrature.StroudQuadrature(cell, 8)
 
 
 @pytest.fixture
 def bernstein(cell):
+
     return finat.Bernstein(cell, 1)
 
 
@@ -44,6 +46,7 @@ def test_bernstein_field(coords, quadrature, bernstein):
                                         kernel_data)
     print recipe
     assert False
+
 
 def test_bernstein_moment(coords, quadrature, bernstein):
 
@@ -74,6 +77,7 @@ def test_interpret_bernstein_field(coords, quadrature, bernstein):
 
     assert False
 
+
 def test_interpret_bernstein_moment(coords, quadrature, bernstein):
     kernel_data = finat.KernelData(finat.VectorFiniteElement(lagrange(cell()), 2))
 
@@ -85,7 +89,7 @@ def test_interpret_bernstein_moment(coords, quadrature, bernstein):
                                          q,
                                          kernel_data)
 
-    nqp = len(wt[0])**2
+    nqp = len(wt[0]) ** 2
     fdata = np.ones((nqp,))
     print finat.interpreter.evaluate(recipe, context={"f": fdata},
                                      kernel_data=kernel_data)
