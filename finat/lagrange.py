@@ -1,9 +1,8 @@
-import pymbolic.primitives as p
-from finiteelementbase import FiatElementBase
-from ast import Recipe, IndexSum
+from .finiteelementbase import FiatElementBase
+from .ast import Recipe, IndexSum
 import FIAT
 import indices
-from derivatives import grad
+from .derivatives import grad
 
 
 class ScalarElement(FiatElementBase):

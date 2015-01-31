@@ -95,6 +95,31 @@ class BasisFunctionIndex(IndexBase):
     _count = 0
 
 
+class TensorBasisFunctionIndex(IndexBase):
+    """An index running over a set of basis functions which have a tensor
+    product structure. This index is actually composed of multiple
+    factors.
+    """
+    def __init__(self, *args):
+
+        assert all([isinstance(a, BasisFunctionIndex) for a in args])
+
+        name = 'i_' + str(BasisFunctionIndex._count)
+        BasisFunctionIndex._count += 1
+
+        super(TensorBasisFunctionIndex, self).__init__(-1, name)
+
+        self.factors = args
+
+    def __getattr__(self, name):
+
+        if name == "_error":
+            if any([hasattr(x, "_error") for x in self.factors]):
+                return True
+
+        raise AttributeError
+
+
 class SimpliciallyGradedBasisFunctionIndex(BasisFunctionIndex):
     '''An index over simplicial polynomials with a grade, such
     as Dubiner or Bernstein.  Implies a simplicial iteration space.'''
