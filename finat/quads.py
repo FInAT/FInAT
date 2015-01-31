@@ -3,6 +3,7 @@ generalised to general tensor product elements."""
 from .finiteelementbase import FiniteElementBase
 from .indices import TensorPointIndex
 
+
 class QuadrilateralElement(FiniteElementBase):
     def __init__(self, h_element, v_element):
         super(QuadrilateralElement, self).__init__()
