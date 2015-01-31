@@ -1,15 +1,18 @@
 """Preliminary support for quadrilateral elements. Later to be
 generalised to general tensor product elements."""
-from .finiteelementbase import FiniteElementBase
-from .indices import TensorPointIndex
+from .finiteelementbase import ScalarElementMixin, FiniteElementBase
+from .indices import TensorPointIndex, TensorBasisFunctionIndex
+from .derivatives import grad
+from .ast import Recipe
 
 
-class QuadrilateralElement(FiniteElementBase):
-    def __init__(self, h_element, v_element):
+class QuadrilateralElement(ScalarElementMixin, FiniteElementBase):
+    def __init__(self, *args):
         super(QuadrilateralElement, self).__init__()
 
-        self.h_element = h_element
-        self.v_element = v_element
+        assert all([isinstance(e, FiniteElementBase) for e in args])
+
+        self.factors = args
 
     def basis_evaluation(self, q, kernel_data, derivative=None,
                          pullback=True):
@@ -26,12 +29,15 @@ class QuadrilateralElement(FiniteElementBase):
             raise NotImplementedError
 
         else:
-            raise NotImplementedError
+            # note - think about pullbacks.
+            phi = [e.basis_evaluation(q_, kernel_data)
+                   for e, q_ in zip(self.factors, q.factors)]
 
-    def field_evaluation(self, field_var, q,
-                         kernel_data, derivative=None, pullback=True):
-        raise NotImplementedError
+            # note - think about what happens in the vector case.
+            i_ = [phi_.indices[1] for phi_ in phi]
+            i = TensorBasisFunctionIndex(*i_)
 
-    def moment_evaluation(self, value, weights, q,
-                          kernel_data, derivative=None, pullback=True):
-        raise NotImplementedError
+            ind = ((), (i,), (q,))
+            expr = reduce(lambda a, b: a.body * b.body, phi)
+
+        return Recipe(indices=ind, body=expr)
