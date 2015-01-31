@@ -385,11 +385,8 @@ Scheme.
             raise FInATSyntaxError("Let bindings must be a tuple of pairs")
 
         super(Let, self).__init__((bindings, body))
-<<<<<<< HEAD
-=======
 
         self.bindings, self.body = self.children
->>>>>>> master
 
         self.bindings, self.body = self.children
         self._color = "blue"
