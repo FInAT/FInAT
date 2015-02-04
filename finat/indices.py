@@ -1,5 +1,6 @@
 import pymbolic.primitives as p
 from pymbolic.mapper.stringifier import StringifyMapper
+import math
 
 
 class IndexBase(p.Variable):
@@ -19,6 +20,15 @@ class IndexBase(p.Variable):
     def extent(self):
         '''A slice indicating the values this index can take.'''
         return self._extent
+
+    @property
+    def length(self):
+        '''The number of values this index can take.'''
+        start = self._extent.start or 0
+        stop = self._extent.stop
+        step = self._extent.step or 1
+
+        return math.ceil((stop - start) / step)
 
     @property
     def _str_extent(self):
