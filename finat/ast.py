@@ -38,6 +38,7 @@ class IdentityMapper(IM):
     map_levi_civita = map_delta
     map_inverse = map_delta
     map_det = map_delta
+    map_compound_vector = map_delta
 
 
 class _IndexMapper(IdentityMapper):
@@ -134,6 +135,10 @@ class _StringifyMapper(StringifyMapper):
         return self.format(expr.name + "(%s)",
                            self.rec(expr.expression, *args, **kwargs))
 
+    def map_compound_vector(self, expr, *args, **kwargs):
+        return self.format(expr.name + "(%s)",
+                           self.join_rec(", ", expr.children, *args, **kwargs))
+
     def map_variable(self, expr, enclosing_prec, *args, **kwargs):
         if hasattr(expr, "_error"):
             return colored(str(expr.name), "red", attrs=["bold"])
@@ -180,6 +185,7 @@ class WalkMapper(WM):
     map_levi_civita = map_index_sum
     map_inverse = map_index_sum
     map_det = map_index_sum
+    map_compound_vector = map_index_sum
 
 
 class GraphvizMapper(WalkMapper, GVM):
@@ -388,7 +394,6 @@ Scheme.
 
         self.bindings, self.body = self.children
 
-        self.bindings, self.body = self.children
         self._color = "blue"
 
     mapper_method = "map_let"
@@ -451,3 +456,30 @@ class Det(StringifyMixin, p.Expression):
         self._color = "blue"
 
     mapper_method = "map_det"
+
+
+class CompoundVector(StringifyMixin, p.Expression):
+    """A vector expression composed by concatenating other expressions."""
+    def __init__(self, index, indices, expressions):
+        """
+
+        :param index: The free :class:`~.DimensionIndex` created by
+        the :class:`CompoundVector`
+        :param indices: The sequence of dimension indices of the
+        expressions. For scalar components these should be ``None``.
+        :param expressions: The sequence of expressions making up
+        the compound.
+
+        Each value that `index` takes will be mapped to the corresponding
+        value in indices and the matching expression will be evaluated.
+        """
+        if len(indices) != len(expressions):
+            raise ValueError("The indices and expressions must be of equal length")
+
+        super(CompoundVector, self).__init__((index, indices, expressions))
+
+        self.index, self.indices, self.expressions = self.children
+
+        self._color = "blue"
+
+    mapper_method = "map_compound_vector"
