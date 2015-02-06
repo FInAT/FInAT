@@ -11,6 +11,7 @@ import ctypes
 import numpy as np
 from .utils import Kernel
 from .ast import Recipe
+from pprint import pformat
 
 
 determinant = {1: lambda e: coffee.Det1(e),
@@ -71,6 +72,9 @@ class CoffeeKernel(Kernel):
     def generate_ast(self, context):
         kernel_args = self.kernel_data.kernel_args
         args_ast = []
+        body_ast = []
+
+        mapper = CoffeeMapper(self.kernel_data)
 
         # Generate declaration of result argument
         result_shape = ()
@@ -85,9 +89,18 @@ class CoffeeKernel(Kernel):
             var_ast = coffee.Symbol(str(var), context[var].shape)
             args_ast.append(coffee.Decl("double", var_ast))
 
-        body = coffee.EmptyStatement(None, None)
+        # Write AST to initialise static kernel data
+        for data in self.kernel_data.static.values():
+            values = data[1]()
+            val_str = pformat(values.tolist())
+            val_str = val_str.replace('[', '{').replace(']', '}')
+            val_init = coffee.ArrayInit(val_str)
+            var = coffee.Symbol(mapper(data[0]), values.shape)
+            body_ast.append(coffee.Decl("double", var, init=val_init))
+
         return coffee.FunDecl("void", "coffee_kernel", args_ast,
-                              body, headers=["stdio.h"])
+                              coffee.Block(body_ast),
+                              headers=["stdio.h"])
 
 
 def evaluate(expression, context={}, kernel_data=None):
