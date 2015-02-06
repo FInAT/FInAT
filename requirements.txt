@@ -4,3 +4,4 @@ pytest-pep8
 git+https://github.com/inducer/pymbolic.git
 numpy>=1.6.1
 sympy
+git+https://github.com/coneoproject/COFFEE.git
