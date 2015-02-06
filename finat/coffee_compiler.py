@@ -11,6 +11,7 @@ import ctypes
 import numpy as np
 from .utils import Kernel
 from .ast import Recipe
+from .mappers import BindingMapper
 from pprint import pformat
 
 
@@ -22,12 +23,22 @@ determinant = {1: lambda e: coffee.Det1(e),
 class CoffeeMapper(CombineMapper):
     """A mapper that generates Coffee ASTs for FInAT expressions"""
 
-    def __init__(self, kernel_data):
+    def __init__(self, kernel_data, varname="A"):
         """
         :arg context: a mapping from variable names to values
+        :arg varname: name of the implied outer variable
         """
         super(CoffeeMapper, self).__init__()
         self.kernel_data = kernel_data
+        self.scope_var = varname
+
+    def _create_loop(self, index, body):
+        itvar = self.rec(index)
+        extent = index.extent
+        init = coffee.Decl("int", itvar, extent.start or 0)
+        cond = coffee.Less(itvar, extent.stop)
+        incr = coffee.Incr(itvar, extent.step or 1)
+        return coffee.For(init, cond, incr, coffee.Block(body, open_scope=True))
 
     def combine(self, values):
         return list(values)
@@ -37,6 +48,8 @@ class CoffeeMapper(CombineMapper):
 
     def map_variable(self, expr):
         return coffee.Symbol(translate_symbol(expr.name))
+
+    map_index = map_variable
 
     def map_constant(self, expr):
         return expr.real
@@ -66,8 +79,21 @@ class CoffeeMapper(CombineMapper):
     def map_abs(self, expr):
         return self.rec(expr.expression)
 
+    def map_for_all(self, expr):
+        var = coffee.Symbol(self.scope_var, expr.indices)
+        body = [coffee.Assign(var, self.rec(expr.body))]
+        for idx in expr.indices:
+            body = [self._create_loop(idx, body)]
+        return coffee.Block(body)
+
 
 class CoffeeKernel(Kernel):
+
+    def __init__(self, recipe, kernel_data):
+        super(CoffeeKernel, self).__init__(recipe, kernel_data)
+
+        # Apply pre-processing mapper to bind free indices
+        self.recipe = BindingMapper(self.kernel_data)(self.recipe)
 
     def generate_ast(self, context):
         kernel_args = self.kernel_data.kernel_args
@@ -97,6 +123,9 @@ class CoffeeKernel(Kernel):
             val_init = coffee.ArrayInit(val_str)
             var = coffee.Symbol(mapper(data[0]), values.shape)
             body_ast.append(coffee.Decl("double", var, init=val_init))
+
+        # Convert the kernel recipe into an AST
+        body_ast.append(mapper(self.recipe))
 
         return coffee.FunDecl("void", "coffee_kernel", args_ast,
                               coffee.Block(body_ast),
