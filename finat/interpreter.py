@@ -123,7 +123,8 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
         if idx in self.indices:
             expr_in.set_error()
             idx.set_error()
-            raise FInATSyntaxError("Attempting to bind the name %s which is already bound" % idx)
+            raise FInATSyntaxError(
+                "Attempting to bind the name %s which is already bound" % idx)
 
         e = idx.extent
 
@@ -141,6 +142,32 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
 
         return np.array(total)
 
+    def map_compound_vector(self, expr):
+
+        (index, indices, bodies) = expr.children
+
+        if index not in self.indices:
+            expr.set_error()
+            index.set_error()
+            raise FInATSyntaxError(
+                "Compound vector depends on %s, which is not in scope" % index)
+
+        alpha = self.indices[index]
+
+        for idx, body in zip(indices, bodies):
+            if alpha < idx.length:
+                if idx in self.indices:
+                    raise FInATSyntaxError(
+                        "Attempting to bind the name %s which is already bound" % idx)
+                self.indices[idx] = self._as_range(idx)[alpha]
+                result = self.rec(body)
+                self.indices.pop(idx)
+                return result
+            else:
+                alpha -= idx.length
+
+        raise FInATSyntaxError("Compound index %s out of bounds" % index)
+
     def map_wave(self, expr):
 
         (var, index, base, update, body) = expr.children
@@ -148,7 +175,8 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
         if index not in self.indices:
             expr.set_error()
             index.set_error()
-            raise FInATSyntaxError("Wave variable depends on %s, which is not in scope" % index)
+            raise FInATSyntaxError(
+                "Wave variable depends on %s, which is not in scope" % index)
 
         try:
             self.context[var.name] = self.wave_vars[var.name]
