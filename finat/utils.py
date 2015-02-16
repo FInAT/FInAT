@@ -21,8 +21,8 @@ class KernelData(object):
         self.coordinate_element = coordinate_element
         self.coordinate_var = coordinate_var
         if affine is None:
-            self.affine = coordinate_element.degree <= 1 \
-                and isinstance(coordinate_element.cell, _simplex)
+            self.affine = coordinate_element.degree <= 1 and \
+                isinstance(coordinate_element.cell, _simplex)
         else:
             self.affine = affine
 
@@ -183,6 +183,6 @@ class KernelData(object):
 # Tuple of simplex cells. This relies on the fact that FIAT only
 # defines simplex elements.
 _simplex = tuple(e for e in FIAT.reference_element.__dict__.values()
-                 if (inspect.isclass(e)
-                     and issubclass(e, FIAT.reference_element.ReferenceElement)
-                     and e is not FIAT.reference_element.ReferenceElement))
+                 if (inspect.isclass(e) and
+                     issubclass(e, FIAT.reference_element.ReferenceElement) and
+                     e is not FIAT.reference_element.ReferenceElement))

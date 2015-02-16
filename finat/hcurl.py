@@ -36,8 +36,8 @@ class HCurlElement(FiatElementBase):
             if pullback:
                 beta = tIndex()
                 gamma = gIndex()
-                expr = IndexSum((gamma,), invJ()[alpha, gamma] * invJ()[beta, gamma]
-                                * phi[(alpha, beta, i, q)])
+                expr = IndexSum((gamma,), invJ()[alpha, gamma] * invJ()[beta, gamma] *
+                                phi[(alpha, beta, i, q)])
             else:
                 expr = IndexSum((alpha,), phi[(alpha, alpha, i, q)])
             ind = ((), (i,), (q,))
@@ -46,8 +46,8 @@ class HCurlElement(FiatElementBase):
                 beta = tIndex()
                 gamma = gIndex()
                 delta = gIndex()
-                expr = IndexSum((alpha, beta), invJ()[alpha, gamma] * invJ()[beta, delta]
-                                * phi[(alpha, beta, i, q)])
+                expr = IndexSum((alpha, beta), invJ()[alpha, gamma] * invJ()[beta, delta] *
+                                phi[(alpha, beta, i, q)])
                 ind = ((gamma, delta), (i,), (q,))
             else:
                 beta = tIndex()
@@ -61,11 +61,11 @@ class HCurlElement(FiatElementBase):
                 if d == 3:
                     gamma = tIndex()
                     expr = IndexSum((gamma,), kernel_data.J(zeta, gamma) *
-                                    LeviCivita((gamma,), (alpha, beta), phi[(alpha, beta, i, q)])) \
-                        / detJ()
+                                    LeviCivita((gamma,), (alpha, beta), phi[(alpha, beta, i, q)])) / \
+                        detJ()
                 elif d == 2:
-                    expr = LeviCivita((2,), (alpha, beta), phi[(alpha, beta, i, q)]) \
-                        / detJ()
+                    expr = LeviCivita((2,), (alpha, beta), phi[(alpha, beta, i, q)]) / \
+                        detJ()
             else:
                 if d == 3:
                     expr = LeviCivita((zeta,), (alpha, beta), phi[(alpha, beta, i, q)])
