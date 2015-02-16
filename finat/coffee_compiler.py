@@ -2,12 +2,68 @@
 evaluate a given recipe. Provides the same interface as FInAT's
 internal interpreter. """
 
+from pymbolic.mapper import CombineMapper
+from greek_alphabet import translate_symbol
 import coffee.base as coffee
 import os
 import subprocess
 import ctypes
 import numpy as np
 from .utils import Kernel
+from .ast import Recipe
+
+
+determinant = {1: lambda e: coffee.Det1(e),
+               2: lambda e: coffee.Det2(e),
+               3: lambda e: coffee.Det3(e)}
+
+
+class CoffeeMapper(CombineMapper):
+    """A mapper that generates Coffee ASTs for FInAT expressions"""
+
+    def __init__(self, kernel_data):
+        """
+        :arg context: a mapping from variable names to values
+        """
+        super(CoffeeMapper, self).__init__()
+        self.kernel_data = kernel_data
+
+    def combine(self, values):
+        return list(values)
+
+    def map_recipe(self, expr):
+        return self.rec(expr.body)
+
+    def map_variable(self, expr):
+        return coffee.Symbol(translate_symbol(expr.name))
+
+    def map_constant(self, expr):
+        return expr.real
+
+    def map_subscript(self, expr):
+        name = translate_symbol(expr.aggregate.name)
+        indices = expr.index if isinstance(expr.index, tuple) else (expr.index,)
+        return coffee.Symbol(name, rank=indices)
+
+    def map_index_sum(self, expr):
+        return self.rec(expr.body)
+
+    def map_product(self, expr):
+        prod = self.rec(expr.children[0])
+        for factor in expr.children[1:]:
+            prod = coffee.Prod(prod, self.rec(factor))
+        return prod
+
+    def map_inverse(self, expr):
+        e = expr.expression
+        return coffee.Invert(self.rec(e), e.shape[0])
+
+    def map_det(self, expr):
+        e = expr.expression
+        return determinant[e.shape[0]](self.rec(e))
+
+    def map_abs(self, expr):
+        return self.rec(expr.expression)
 
 
 class CoffeeKernel(Kernel):
