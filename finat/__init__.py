@@ -4,7 +4,7 @@ from bernstein import Bernstein
 from vectorfiniteelement import VectorFiniteElement
 from product_elements import ScalarProductElement
 from points import PointSet
-from utils import KernelData
+from utils import KernelData, Kernel
 from derivatives import div, grad, curl
 import interpreter
 import quadrature

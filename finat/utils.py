@@ -5,6 +5,16 @@ from derivatives import grad
 from ast import Let, Array, Inverse, Det
 
 
+class Kernel(object):
+    def __init__(self, recipe, kernel_data):
+        """An object bringing together a :class:`~.ast.Recipe` and its
+        corresponding :class:`~.utils.KernelData` context.
+        """
+
+        self.recipe = recipe
+        self.kernel_data = kernel_data
+
+
 class KernelData(object):
     def __init__(self, coordinate_element, coordinate_var=None, affine=None):
         """
@@ -27,7 +37,8 @@ class KernelData(object):
             self.affine = affine
 
         self.static = {}
-        self.params = {}
+        # The set of undefined symbols in this kernel.
+        self.kernel_args = set(coordinate_var) if coordinate_var else set()
         self.geometry = {}
         self.variables = set()
 

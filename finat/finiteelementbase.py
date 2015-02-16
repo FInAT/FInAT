@@ -131,6 +131,8 @@ class ScalarElementMixin(object):
     def field_evaluation(self, field_var, q,
                          kernel_data, derivative=None, pullback=True):
 
+        kernel_data.kernel_args.add(field_var)
+
         basis = self.basis_evaluation(q, kernel_data, derivative, pullback)
         (d, b, p_) = basis.indices
         phi = basis.body

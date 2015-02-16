@@ -74,6 +74,8 @@ class Bernstein(FiniteElementBase):
         if derivative is not None:
             raise NotImplementedError
 
+        kernel_data.kernel_args.add(field_var)
+
         # Get the symbolic names for the points.
         xi = [self._points_variable(f.points, kernel_data)
               for f in q.factors]
