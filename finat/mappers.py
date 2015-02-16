@@ -235,3 +235,45 @@ class BindingMapper(IdentityMapper):
             self.bound_above.remove(idx)
             self.bound_below.add(idx)
         return ForAll(indices, body)
+
+
+class IndexSumMapper(IdentityMapper):
+    """A mapper that binds unbound IndexSums to temporary variables
+    using Lets."""
+
+    def __init__(self, kernel_data):
+        """
+        :arg context: a mapping from variable names to values
+        """
+        super(IndexSumMapper, self).__init__()
+        self.kernel_data = kernel_data
+        self._isum_stack = {}
+        self._bound_isums = set()
+
+    def map_recipe(self, expr):
+        indices = expr.indices
+        expr = self.rec(expr.body)
+        while len(self._isum_stack) > 0:
+            temp, isum = self._isum_stack.popitem()
+            tmap = (temp, isum)
+            expr = Let((tmap,), expr)
+        return Recipe(indices, expr)
+
+    def map_let(self, expr):
+        # Record IndexSums already bound to a temporary
+        for v, e in expr.bindings:
+            if isinstance(e, IndexSum):
+                self._bound_isums.add(e)
+            elif isinstance(e, Recipe) and isinstance(e.body, IndexSum):
+                self._bound_isums.add(e.body)
+        return super(IndexSumMapper, self).map_let(expr)
+
+    def map_index_sum(self, expr):
+        if expr in self._bound_isums:
+            return super(IndexSumMapper, self).map_index_sum(expr)
+
+        # Replace IndexSum with temporary and add to stack
+        temp = self.kernel_data.new_variable("isum")
+        expr = IndexSum(expr.indices, self.rec(expr.body))
+        self._isum_stack[temp] = expr
+        return temp
