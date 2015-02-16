@@ -1,14 +1,14 @@
-"""Preliminary support for quadrilateral elements. Later to be
-generalised to general tensor product elements."""
+"""Preliminary support for tensor product elements."""
 from .finiteelementbase import ScalarElementMixin, FiniteElementBase
 from .indices import TensorPointIndex, TensorBasisFunctionIndex, DimensionIndex
 from .derivatives import grad
 from .ast import Recipe, CompoundVector, IndexSum
 
 
-class QuadrilateralElement(ScalarElementMixin, FiniteElementBase):
+class ScalarProductElement(ScalarElementMixin, FiniteElementBase):
+    """A scalar-valued tensor product element."""
     def __init__(self, *args):
-        super(QuadrilateralElement, self).__init__()
+        super(ScalarProductElement, self).__init__()
 
         assert all([isinstance(e, FiniteElementBase) for e in args])
 
