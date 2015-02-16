@@ -474,7 +474,11 @@ class CompoundVector(StringifyMixin, p.Expression):
         value in indices and the matching expression will be evaluated.
         """
         if len(indices) != len(expressions):
-            raise ValueError("The indices and expressions must be of equal length")
+            raise FInATSyntaxError("The indices and expressions must be of equal length")
+
+        if sum([i.length for i in indices]) != index.length:
+            raise FInATSyntaxError("The length of the compound index must equal "
+                                   "the sum of the lengths of the components.")
 
         super(CompoundVector, self).__init__((index, indices, expressions))
 
