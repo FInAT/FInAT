@@ -23,7 +23,8 @@ def pyop2_kernel(kernel, kernel_args, interpreter=False):
     if Kernel is None:
         raise ImportError("pyop2 was not imported. Is it installed?")
 
-    if set(kernel_args) != kernel.kernel_data.kernel_args:
+    if kernel_args and \
+       set(kernel_args) != kernel.kernel_data.kernel_args:
         raise ValueError("Incomplete value list")
 
     if interpreter:
@@ -33,7 +34,7 @@ def pyop2_kernel(kernel, kernel_args, interpreter=False):
 
             args[0][:] = evaluate(kernel.recipe, context, kernel.kernel_data)
 
-        return (Kernel(kernel_function), kernel_args)
+        return Kernel(kernel_function)
 
     else:
         raise NotImplementedError
