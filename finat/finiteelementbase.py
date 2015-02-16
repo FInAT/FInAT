@@ -177,8 +177,8 @@ class FiatElementBase(FiniteElementBase):
         if static_key in kernel_data.static:
             phi = kernel_data.static[static_key][0]
         else:
-            phi = p.Variable(("d" if derivative else "")
-                             + kernel_data.tabulation_variable_name(self, points))
+            phi = p.Variable(("d" if derivative else "") +
+                             kernel_data.tabulation_variable_name(self, points))
             data = self._tabulate(points, derivative)
             kernel_data.static[static_key] = (phi, lambda: data)
 

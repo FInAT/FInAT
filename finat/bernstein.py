@@ -64,8 +64,8 @@ class Bernstein(FiniteElementBase):
 
         degree = self.degree
         dim = self.cell.get_spatial_dimension()
-        return (int(np.prod(xrange(degree + 1, degree + 1 + dim))
-                    / np.prod(xrange(1, dim + 1))),)
+        return (int(np.prod(xrange(degree + 1, degree + 1 + dim)) /
+                    np.prod(xrange(1, dim + 1))),)
 
     def field_evaluation(self, field_var, q, kernel_data, derivative=None):
         if not isinstance(q.points, StroudPointSet):
