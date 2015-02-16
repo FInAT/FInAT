@@ -1,4 +1,8 @@
 """Basic tools for getting Gauss points and quadrature rules."""
+import math
+from math import factorial
+import numpy
+
 __copyright__ = "Copyright (C) 2014 Robert C. Kirby"
 __license__ = """
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,10 +23,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
-
-import math
-from math import factorial
-import numpy
 
 
 def compute_gauss_jacobi_points(a, b, m):

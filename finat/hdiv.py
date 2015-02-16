@@ -29,8 +29,8 @@ class HDivElement(FiatElementBase):
             if pullback:
                 beta = alpha
                 alpha = gIndex()
-                expr = IndexSum((beta,), J()[alpha, beta] * phi[beta, i, q]
-                                / detJ())
+                expr = IndexSum((beta,), J()[alpha, beta] * phi[beta, i, q] /
+                                detJ())
             else:
                 expr = phi[alpha, i, q]
             ind = ((alpha,), (i,), (q,))
@@ -45,8 +45,8 @@ class HDivElement(FiatElementBase):
                 beta = tIndex()
                 gamma = gIndex()
                 delta = gIndex()
-                expr = IndexSum((alpha, beta), J()[gamma, alpha] * invJ()[beta, delta]
-                                * phi[alpha, beta, i, q]) / detJ()
+                expr = IndexSum((alpha, beta), J()[gamma, alpha] * invJ()[beta, delta] *
+                                phi[alpha, beta, i, q]) / detJ()
                 ind = ((gamma, delta), (i,), (q,))
             else:
                 beta = indices.DimensionIndex(kernel_data.tdim)
@@ -60,8 +60,8 @@ class HDivElement(FiatElementBase):
                 delta = gIndex()
                 zeta = gIndex()
                 expr = LeviCivita((zeta,), (gamma, delta),
-                                  IndexSum((alpha, beta), J()[gamma, alpha] * invJ()[beta, delta]
-                                           * phi[alpha, beta, i, q])) / detJ()
+                                  IndexSum((alpha, beta), J()[gamma, alpha] * invJ()[beta, delta] *
+                                           phi[alpha, beta, i, q])) / detJ()
             else:
                 d = kernel_data.tdim
                 zeta = tIndex()
