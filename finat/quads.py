@@ -3,7 +3,7 @@ generalised to general tensor product elements."""
 from .finiteelementbase import ScalarElementMixin, FiniteElementBase
 from .indices import TensorPointIndex, TensorBasisFunctionIndex, DimensionIndex
 from .derivatives import grad
-from .ast import Recipe, CompoundVector
+from .ast import Recipe, CompoundVector, IndexSum
 
 
 class QuadrilateralElement(ScalarElementMixin, FiniteElementBase):
@@ -41,17 +41,21 @@ class QuadrilateralElement(ScalarElementMixin, FiniteElementBase):
                                   phi[:d] + [phi_d[d]] + phi[d + 1:])
                            for d in len(phi)]
 
-            d_ = [phi_.indices[0] for phi_ in phi_d]
-            d = DimensionIndex(sum(d__.length for d__ in d))
+            alpha_ = [phi_.indices[0] for phi_ in phi_d]
+            alpha = DimensionIndex(sum(alpha__.length for alpha__ in alpha_))
 
-            expr = CompoundVector(d, d_, expressions)
+            assert alpha.length == kernel_data.gdim
+            expr = CompoundVector(alpha, alpha_, expressions)
 
-            ind = ((d,), (i,), (q,))
+            if pullback:
+                beta = alpha
+                alpha = DimensionIndex(kernel_data.gdim)
+                invJ = kernel_data.invJ[(beta, alpha)]
+                expr = IndexSum((beta,), invJ * expr)
+
+            ind = ((alpha,), (i,), (q,))
 
         else:
-            # note - think about pullbacks.
-
-            # note - think about what happens in the vector case.
 
             ind = ((), (i,), (q,))
             expr = reduce(lambda a, b: a.body * b.body, phi)
