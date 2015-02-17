@@ -10,9 +10,10 @@ import subprocess
 import ctypes
 import numpy as np
 from .utils import Kernel
-from .ast import Recipe
-from .mappers import BindingMapper
+from .ast import Recipe, IndexSum
+from .mappers import BindingMapper, IndexSumMapper
 from pprint import pformat
+from collections import deque
 
 
 determinant = {1: lambda e: coffee.Det1(e),
@@ -31,6 +32,13 @@ class CoffeeMapper(CombineMapper):
         super(CoffeeMapper, self).__init__()
         self.kernel_data = kernel_data
         self.scope_var = varname
+        self.scope_ast = deque()
+
+    def _push_scope(self):
+        self.scope_ast.append([])
+
+    def _pop_scope(self):
+        return self.scope_ast.pop()
 
     def _create_loop(self, index, body):
         itvar = self.rec(index)
@@ -81,16 +89,41 @@ class CoffeeMapper(CombineMapper):
 
     def map_for_all(self, expr):
         var = coffee.Symbol(self.scope_var, expr.indices)
-        body = [coffee.Assign(var, self.rec(expr.body))]
+        self._push_scope()
+        body = self.rec(expr.body)
+        scope = self._pop_scope()
+        body = scope + [coffee.Assign(var, body)]
         for idx in expr.indices:
             body = [self._create_loop(idx, body)]
         return coffee.Block(body)
+
+    def map_let(self, expr):
+        for v, e in expr.bindings:
+            var = coffee.Symbol(self.rec(v))
+            if isinstance(e, IndexSum):
+                # Recurse on expression in a new scope
+                self._push_scope()
+                body = self.rec(e.body)
+                scope = self._pop_scope()
+                lbody = scope + [coffee.Incr(var, body)]
+
+                # Construct IndexSum loop and add to current scope
+                self.scope_ast[-1].append(coffee.Decl("double", var, init="0."))
+                self.scope_ast[-1].append(self._create_loop(e.indices[0], lbody))
+            else:
+                self.scope_ast[-1].append(coffee.Decl("double", var))
+                self.scope_ast[-1].append(self.rec(e))
+
+        return self.rec(expr.body)
 
 
 class CoffeeKernel(Kernel):
 
     def __init__(self, recipe, kernel_data):
         super(CoffeeKernel, self).__init__(recipe, kernel_data)
+
+        # Apply mapper to bind all IndexSums to temporaries
+        self.recipe = IndexSumMapper(self.kernel_data)(self.recipe)
 
         # Apply pre-processing mapper to bind free indices
         self.recipe = BindingMapper(self.kernel_data)(self.recipe)
