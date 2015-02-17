@@ -24,7 +24,7 @@ def pd(sd, d):
 
 
 class Bernstein(FiniteElementBase):
-    """Scalar-valued Bernstein element. Note: need to work out the
+    """Scalar - valued Bernstein element. Note: need to work out the
     correct heirarchy for different Bernstein elements."""
 
     def __init__(self, cell, degree):
@@ -121,7 +121,7 @@ class Bernstein(FiniteElementBase):
             deg_end = deg - alphas[d]
             offset += pd(sd - d, deg_begin) - pd(sd - d, deg_end)
 
-        # each phase of the sum-factored algorithm reads from a particular
+        # each phase of the sum - factored algorithm reads from a particular
         # location.  The first of these is field_var, the rest are the
         # temporaries.
         read_locs = [field_var[alphas[-1] + offset]]
@@ -211,16 +211,16 @@ class Bernstein(FiniteElementBase):
         alphas = alpha.factors
 
         read_locs = [value[q]]
-        for d in range(1, sd-1):
-            tmp_cur = tmps[d-1]
+        for d in range(1, sd - 1):
+            tmp_cur = tmps[d - 1]
             read_alphas = alphas[:d]
             read_qs = qs[-d:]
-            read_locs.append(tmp_cur[tuple(read_alphas+read_qs)])
-        d = sd-1
-        tmp_cur = tmps[d-1]
+            read_locs.append(tmp_cur[tuple(read_alphas + read_qs)])
+        d = sd - 1
+        tmp_cur = tmps[d - 1]
         read_alphas = alphas[:d]
         read_qs = qs[-d:]
-        read_locs.append(tmp_cur[tuple(read_alphas+read_qs)])
+        read_locs.append(tmp_cur[tuple(read_alphas + read_qs)])
 
         free_vars_per_phase = []
         for d in range(1, sd):
@@ -231,12 +231,12 @@ class Bernstein(FiniteElementBase):
 
         xi_cur = xi[0][qs[0]]
         s = 1 - xi_cur
-        expr = Let(((r, xi_cur/s),),
+        expr = Let(((r, xi_cur / s),),
                    IndexSum((qs[0],),
                             Wave(w,
                                  alphas[0],
-                                 wt[0][qs[0]] * s**deg,
-                                 w*r*(deg-alphas[0]-1)/alphas[0],
+                                 wt[0][qs[0]] * s ** deg,
+                                 w * r * (deg - alphas[0] - 1) / alphas[0],
                                  w * read_locs[0]
                                  )
                             )
@@ -250,14 +250,14 @@ class Bernstein(FiniteElementBase):
             acur = alphas[d]
             asum0 = mysum(alphas[:d])
             asum1 = asum0 - acur
-            expr = Let(((tmps[d-1], recipe_cur),
-                        (r, xi_cur/s)),
+            expr = Let(((tmps[d - 1], recipe_cur),
+                        (r, xi_cur / s)),
                        IndexSum((qs[d],),
                                 Wave(w,
                                      acur,
-                                     wt[d][qs[d]]*s**(deg-asum0),
-                                     w*r*(deg-asum1-1)/acur,
-                                     w*read_locs[d]
+                                     wt[d][qs[d]] * s ** (deg - asum0),
+                                     w * r * (deg - asum1 - 1) / acur,
+                                     w * read_locs[d]
                                      )
                                 )
                        )

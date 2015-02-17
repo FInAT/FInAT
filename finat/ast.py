@@ -401,6 +401,8 @@ Scheme.
         super(Let, self).__init__((bindings, body))
 
         self.bindings, self.body = self.children
+
+        self.bindings, self.body = self.children
         self._color = "blue"
 
     mapper_method = "map_let"
