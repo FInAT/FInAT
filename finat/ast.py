@@ -277,6 +277,7 @@ class Inverse(StringifyMixin, p.Expression):
     """
     def __init__(self, expression):
         self.expression = expression
+        self.children = [expression]
         self._color = "blue"
 
         super(Inverse, self).__init__()
