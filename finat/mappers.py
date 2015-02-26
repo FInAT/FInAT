@@ -3,7 +3,7 @@ from pymbolic.mapper.stringifier import StringifyMapper, PREC_NONE
 from pymbolic.mapper import WalkMapper as WM
 from pymbolic.mapper.graphviz import GraphvizMapper as GVM
 from .indices import IndexBase
-from .ast import Recipe, ForAll, IndexSum
+from .ast import Recipe, ForAll, IndexSum, Let
 try:
     from termcolor import colored
 except ImportError:
@@ -250,23 +250,29 @@ class IndexSumMapper(IdentityMapper):
         self._isum_stack = {}
         self._bound_isums = set()
 
-    def map_recipe(self, expr):
-        indices = expr.indices
-        expr = self.rec(expr.body)
+    def _bind_isums(self, expr):
         while len(self._isum_stack) > 0:
             temp, isum = self._isum_stack.popitem()
             tmap = (temp, isum)
             expr = Let((tmap,), expr)
-        return Recipe(indices, expr)
+        return expr
+
+    def map_recipe(self, expr):
+        body = self._bind_isums(self.rec(expr.body))
+        return Recipe(expr.indices, body)
 
     def map_let(self, expr):
         # Record IndexSums already bound to a temporary
+        new_bindings = []
         for v, e in expr.bindings:
             if isinstance(e, IndexSum):
                 self._bound_isums.add(e)
             elif isinstance(e, Recipe) and isinstance(e.body, IndexSum):
                 self._bound_isums.add(e.body)
-        return super(IndexSumMapper, self).map_let(expr)
+            new_bindings.append((v, self.rec(e)))
+
+        body = self._bind_isums(self.rec(expr.body))
+        return Let(tuple(new_bindings), body)
 
     def map_index_sum(self, expr):
         if expr in self._bound_isums:
@@ -274,6 +280,7 @@ class IndexSumMapper(IdentityMapper):
 
         # Replace IndexSum with temporary and add to stack
         temp = self.kernel_data.new_variable("isum")
-        expr = IndexSum(expr.indices, self.rec(expr.body))
+        body = self._bind_isums(self.rec(expr.body))
+        expr = IndexSum(expr.indices, body)
         self._isum_stack[temp] = expr
         return temp
