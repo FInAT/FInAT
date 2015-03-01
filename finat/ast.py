@@ -121,7 +121,7 @@ class IndexSum(StringifyMixin, p._MultiChildExpression):
     :param body: the expression to sum.
     """
     def __init__(self, indices, body):
-        
+
         # Inline import to avoid circular dependency.
         from indices import IndexBase
         if isinstance(indices[0], IndexBase):
