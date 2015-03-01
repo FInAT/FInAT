@@ -5,9 +5,9 @@ except:
 from .interpreter import evaluate
 
 
-def pyop2_kernel(kernel, kernel_args, interpreter=False):
-    """Return a :class:`pyop2.Kernel` from the recipe and kernel data
-    provided.
+def pyop2_kernel_function(kernel, kernel_args, interpreter=False):
+    """Return a python function suitable to be called from PyOP2 from the
+    recipe and kernel data provided.
 
     :param kernel: The :class:`~.utils.Kernel` to map to PyOP2.
     :param kernel_args: The ordered list of Pymbolic variables constituting
@@ -17,7 +17,8 @@ def pyop2_kernel(kernel, kernel_args, interpreter=False):
       evaluated using the FInAT interpreter instead of generating a
       compiled kernel.
 
-    :result: The :class:`pyop2.Kernel`
+    :result: A function which will execute the kernel.
+
     """
 
     if Kernel is None:
@@ -30,11 +31,11 @@ def pyop2_kernel(kernel, kernel_args, interpreter=False):
     if interpreter:
 
         def kernel_function(*args):
-            context = {kernel_args: args[1:]}
+            context = dict(zip(kernel_args, args[1:]))
 
             args[0][:] = evaluate(kernel.recipe, context, kernel.kernel_data)
 
-        return Kernel(kernel_function)
+        return kernel_function
 
     else:
         raise NotImplementedError

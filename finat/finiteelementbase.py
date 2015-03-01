@@ -1,6 +1,5 @@
-import pymbolic.primitives as p
 import numpy as np
-from ast import Recipe, IndexSum
+from ast import Recipe, IndexSum, Variable
 
 
 class UndefinedError(Exception):
@@ -134,7 +133,7 @@ class ScalarElementMixin(object):
         kernel_data.kernel_args.add(field_var)
 
         basis = self.basis_evaluation(q, kernel_data, derivative, pullback)
-        (d, b, p_) = basis.indices
+        (d, b, p) = basis.indices
         phi = basis.body
 
         expr = IndexSum(b, field_var[b[0]] * phi)
@@ -213,8 +212,8 @@ class FiatElementBase(ScalarElementMixin, FiniteElementBase):
         if static_key in kernel_data.static:
             phi = kernel_data.static[static_key][0]
         else:
-            phi = p.Variable(("d" if derivative else "") +
-                             kernel_data.tabulation_variable_name(self, points))
+            phi = Variable(("d" if derivative else "") +
+                           kernel_data.tabulation_variable_name(self, points))
             data = self._tabulate(points, derivative)
             kernel_data.static[static_key] = (phi, lambda: data)
 

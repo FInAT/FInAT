@@ -107,7 +107,7 @@ points :math:`q`:
            \nabla\cdot\boldsymbol{f}_{q} = \sum_{i \alpha} f_{i \alpha}\nabla\phi_{\alpha i q}
         """
 
-        self.kernel_args.add(field_var)
+        kernel_data.kernel_args.add(field_var)
 
         # Produce the base scalar recipe. The scalar basis can only
         # take a grad. For other derivatives, we need to do the

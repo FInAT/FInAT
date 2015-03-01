@@ -15,7 +15,7 @@ _element_map = {
 
 def cell_from_ufl(cell):
 
-    return _cell_map[cell.name()]
+    return _cell_map[cell.cellname()]
 
 
 def element_from_ufl(element):
@@ -23,4 +23,4 @@ def element_from_ufl(element):
     # Need to handle the product cases.
 
     return _element_map[element.family()](cell_from_ufl(element.cell()),
-                                          element.degree)
+                                          element.degree())

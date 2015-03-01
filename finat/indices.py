@@ -1,9 +1,10 @@
+from . import ast
 import pymbolic.primitives as p
 from pymbolic.mapper.stringifier import StringifyMapper
 import math
 
 
-class IndexBase(p.Variable):
+class IndexBase(ast.Variable):
     '''Base class for symbolic index objects.'''
     def __init__(self, extent, name):
         super(IndexBase, self).__init__(name)

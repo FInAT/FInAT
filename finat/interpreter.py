@@ -46,8 +46,10 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
 
         d, b, p = expr.indices
 
+        free_indices = [i for i in d + b + p if i not in self.indices]
+
         try:
-            forall = ForAll(d + b + p, expr.body)
+            forall = ForAll(free_indices, expr.body)
             return self.rec(forall)
         except:
             if hasattr(forall, "_error"):

@@ -1,8 +1,6 @@
 import pytest
 import FIAT
 import finat
-import pymbolic.primitives as p
-import numpy as np
 
 
 @pytest.fixture

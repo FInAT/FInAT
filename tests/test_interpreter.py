@@ -1,7 +1,6 @@
 import pytest
 import finat
-from finat.ast import FInATSyntaxError, Recipe, IndexSum, Let, Wave
-import pymbolic.primitives as p
+from finat.ast import FInATSyntaxError, Recipe, IndexSum, Let, Wave, Variable
 
 
 @pytest.fixture
@@ -29,13 +28,13 @@ def test_nested_sum():
 
 
 def test_let(i):
-    v = p.Variable("v")
+    v = Variable("v")
     e = Recipe(((), (), ()), Let(((v, 1),), IndexSum((i,), v)))
     assert finat.interpreter.evaluate(e) == 10
 
 
 def test_wave(i):
-    v = p.Variable("v")
+    v = Variable("v")
     e = Recipe(((), (), ()), IndexSum((i,), Wave(v, i, 0, v + 1, v)))
     assert finat.interpreter.evaluate(e) == 45
 

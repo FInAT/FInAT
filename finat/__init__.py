@@ -8,4 +8,5 @@ from utils import KernelData, Kernel
 from derivatives import div, grad, curl
 import interpreter
 import quadrature
+import ufl_interface
 from geometry_mapper import GeometryMapper

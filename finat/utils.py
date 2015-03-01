@@ -1,8 +1,7 @@
-import pymbolic.primitives as p
 import inspect
 import FIAT
-from derivatives import grad
-from ast import Let, Array, Inverse, Det
+from .derivatives import grad
+from .ast import Let, Array, Inverse, Det, Variable
 
 
 class Kernel(object):
@@ -38,7 +37,7 @@ class KernelData(object):
 
         self.static = {}
         # The set of undefined symbols in this kernel.
-        self.kernel_args = set(coordinate_var) if coordinate_var else set()
+        self.kernel_args = set((coordinate_var,)) if coordinate_var else set()
         self.geometry = {}
         self.variables = set()
 
@@ -107,7 +106,7 @@ class KernelData(object):
         name = prefix or "tmp"
         if name not in self.variables:
             self.variables.add(name)
-            return p.Variable(name)
+            return Variable(name)
 
         # Prefix was already in use, so append an index.
         i = 0
@@ -115,7 +114,7 @@ class KernelData(object):
             varname = "%s_%d" % (name, i)
             if varname not in self.variables:
                 self.variables.add(varname)
-                return p.Variable(varname)
+                return Variable(varname)
             i += 1
 
     @property
@@ -160,7 +159,7 @@ class KernelData(object):
         try:
             return self.geometry["detJ"]
         except KeyError:
-            self.geometry["detJ"] = p.Variable("detJ")
+            self.geometry["detJ"] = Variable("detJ")
             return self.geometry["detJ"]
 
     def bind_geometry(self, expression, points=None):

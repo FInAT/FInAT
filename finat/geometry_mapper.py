@@ -1,7 +1,8 @@
-from points import PointSet
-from indices import PointIndex
-from ast import Let, Det, Inverse, Recipe, IdentityMapper
-from derivatives import grad
+from .points import PointSet
+from .indices import PointIndex
+from .ast import Let, Det, Inverse, Recipe
+from .mappers import IdentityMapper
+from .derivatives import grad
 
 
 class GeometryMapper(IdentityMapper):
