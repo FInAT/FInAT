@@ -184,7 +184,7 @@ class ForAll(StringifyMixin, p._MultiChildExpression):
     """
     def __init__(self, indices, body):
 
-        self.children = (indices, body)
+        self.children = (tuple(indices), body)
         self._color = "blue"
 
     def __getinitargs__(self):
@@ -277,21 +277,42 @@ class Inverse(StringifyMixin, p.Expression):
         self.expression = expression
         self._color = "blue"
 
+        super(Inverse, self).__init__()
+
+    def __getinitargs__(self):
+        return (self.expression,)
+
     mapper_method = "map_inverse"
 
 
 class Det(StringifyMixin, p.Expression):
-    """The determinant of a matrix-valued expression.
-
-    Where the expression is evaluated at a number of points, the
-    inverse will be evaluated pointwise.
-    """
+    """The determinant of a matrix-valued expression."""
     def __init__(self, expression):
 
         self.expression = expression
         self._color = "blue"
 
+        super(Det, self).__init__()
+
+    def __getinitargs__(self):
+        return (self.expression,)
+
     mapper_method = "map_det"
+
+
+class Abs(StringifyMixin, p.Expression):
+    """The absolute value of an expression."""
+    def __init__(self, expression):
+
+        self.expression = expression
+        self._color = "blue"
+
+        super(Abs, self).__init__()
+
+    def __getinitargs__(self):
+        return (self.expression,)
+
+    mapper_method = "map_abs"
 
 
 class CompoundVector(StringifyMixin, p.Expression):

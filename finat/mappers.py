@@ -24,14 +24,17 @@ class IdentityMapper(IM):
     def map_delta(self, expr, *args):
         return expr.__class__(*(self.rec(c, *args) for c in expr.children))
 
+    def map_inverse(self, expr, *args):
+        return expr.__class__(self.rec(expr.expression, *args))
+
     map_let = map_delta
     map_for_all = map_delta
     map_wave = map_delta
     map_index_sum = map_delta
     map_levi_civita = map_delta
-    map_inverse = map_delta
-    map_det = map_delta
     map_compound_vector = map_delta
+    map_det = map_inverse
+    map_abs = map_inverse
 
 
 class _IndexMapper(IdentityMapper):
@@ -127,6 +130,8 @@ class _StringifyMapper(StringifyMapper):
     def map_det(self, expr, *args, **kwargs):
         return self.format(expr.name + "(%s)",
                            self.rec(expr.expression, *args, **kwargs))
+
+    map_abs = map_det
 
     def map_compound_vector(self, expr, *args, **kwargs):
         return self.format(expr.name + "(%s)",

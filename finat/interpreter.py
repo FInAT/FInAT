@@ -274,6 +274,14 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
         expr.set_error()
         raise NotImplementedError
 
+    def map_det(self, expr):
+
+        return np.linalg.det(self.rec(expr.expression))
+
+    def map_abs(self, expr):
+
+        return abs(self.rec(expr.expression))
+
 
 def evaluate(expression, context={}, kernel_data=None):
     """Take a FInAT expression and a set of definitions for undefined

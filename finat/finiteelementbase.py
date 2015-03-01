@@ -1,5 +1,5 @@
 import numpy as np
-from ast import Recipe, IndexSum, Variable
+from ast import Recipe, IndexSum, Variable, Abs
 
 
 class UndefinedError(Exception):
@@ -155,7 +155,7 @@ class ScalarElementMixin(object):
         expr = psi * phi * w[p__]
 
         if pullback:
-            expr *= kernel_data.detJ
+            expr *= Abs(kernel_data.detJ)
 
         return Recipe(((), b + b_, ()), IndexSum(p__, expr))
 
