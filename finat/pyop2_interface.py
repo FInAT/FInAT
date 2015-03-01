@@ -31,9 +31,9 @@ def pyop2_kernel_function(kernel, kernel_args, interpreter=False):
     if interpreter:
 
         def kernel_function(*args):
-            context = dict(zip(kernel_args, args[1:]))
+            context = {var.name: val for (var, val) in zip(kernel_args, args[1:])}
 
-            args[0][:] = evaluate(kernel.recipe, context, kernel.kernel_data)
+            args[0][:] += evaluate(kernel.recipe, context, kernel.kernel_data)
 
         return kernel_function
 
