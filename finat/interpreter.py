@@ -282,6 +282,10 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
 
         return abs(self.rec(expr.expression))
 
+    def map_inverse(self, expr):
+
+        return np.linalg.inv(self.rec(expr.expression))
+
 
 def evaluate(expression, context={}, kernel_data=None):
     """Take a FInAT expression and a set of definitions for undefined
