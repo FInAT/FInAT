@@ -1,8 +1,7 @@
-from finiteelementbase import FiniteElementBase
-from points import StroudPointSet
-from ast import ForAll, Recipe, Wave, Let, IndexSum
-import pymbolic.primitives as p
-from indices import BasisFunctionIndex, PointIndex, SimpliciallyGradedBasisFunctionIndex  # noqa
+from .finiteelementbase import FiniteElementBase
+from .points import StroudPointSet
+from .ast import ForAll, Recipe, Wave, Let, IndexSum, Variable
+from .indices import BasisFunctionIndex, PointIndex, SimpliciallyGradedBasisFunctionIndex  # noqa
 import numpy as np
 
 
@@ -41,7 +40,7 @@ class Bernstein(FiniteElementBase):
         if static_key in kernel_data.static:
             xi = kernel_data.static[static_key][0]
         else:
-            xi = p.Variable(kernel_data.point_variable_name(points))
+            xi = Variable(kernel_data.point_variable_name(points))
             kernel_data.static[static_key] = (xi, lambda: points.points)
 
         return xi
@@ -54,7 +53,7 @@ class Bernstein(FiniteElementBase):
         if static_key in kernel_data.static:
             wt = kernel_data.static[static_key][0]
         else:
-            wt = p.Variable(kernel_data.weight_variable_name(weights))
+            wt = Variable(kernel_data.weight_variable_name(weights))
             kernel_data.static[static_key] = (wt, lambda: np.array(weights))
 
         return wt
@@ -74,6 +73,8 @@ class Bernstein(FiniteElementBase):
         if derivative is not None:
             raise NotImplementedError
 
+        kernel_data.kernel_args.add(field_var)
+
         # Get the symbolic names for the points.
         xi = [self._points_variable(f.points, kernel_data)
               for f in q.factors]
@@ -86,8 +87,8 @@ class Bernstein(FiniteElementBase):
 
         r = kernel_data.new_variable("r")
         w = kernel_data.new_variable("w")
-#        r = p.Variable("r")
-#        w = p.Variable("w")
+#        r = Variable("r")
+#        w = Variable("w")
         tmps = [kernel_data.new_variable("tmp") for d in range(sd - 1)]
 
         # Create basis function indices that run over

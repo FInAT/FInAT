@@ -1,7 +1,7 @@
 import pytest
 import FIAT
 import finat
-import pymbolic.primitives as p
+from finat.ast import Variable
 import numpy as np
 
 
@@ -43,7 +43,7 @@ def test_lagrange_field(lagrange, coords, points):
 
     kernel_data = finat.KernelData(coords)
 
-    recipe = lagrange.field_evaluation(p.Variable("u"),
+    recipe = lagrange.field_evaluation(Variable("u"),
                                        points,
                                        kernel_data)
 
@@ -67,7 +67,7 @@ def test_lagrange_moment(lagrange, coords):
 
     q = finat.indices.PointIndex(points)
 
-    v = finat.ast.Recipe(((), (), (q,)), p.Variable("f")[q])
+    v = finat.ast.Recipe(((), (), (q,)), Variable("f")[q])
 
     recipe = lagrange.moment_evaluation(v,
                                         weights,

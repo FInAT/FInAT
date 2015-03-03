@@ -1,8 +1,10 @@
+from . import ast
 import pymbolic.primitives as p
 from pymbolic.mapper.stringifier import StringifyMapper
+import math
 
 
-class IndexBase(p.Variable):
+class IndexBase(ast.Variable):
     '''Base class for symbolic index objects.'''
     def __init__(self, extent, name):
         super(IndexBase, self).__init__(name)
@@ -19,6 +21,15 @@ class IndexBase(p.Variable):
     def extent(self):
         '''A slice indicating the values this index can take.'''
         return self._extent
+
+    @property
+    def length(self):
+        '''The number of values this index can take.'''
+        start = self._extent.start or 0
+        stop = self._extent.stop
+        step = self._extent.step or 1
+
+        return math.ceil((stop - start) / step)
 
     @property
     def _str_extent(self):
@@ -93,6 +104,31 @@ class BasisFunctionIndex(IndexBase):
         super(BasisFunctionIndex, self).__init__(extent, name)
 
     _count = 0
+
+
+class TensorBasisFunctionIndex(IndexBase):
+    """An index running over a set of basis functions which have a tensor
+    product structure. This index is actually composed of multiple
+    factors.
+    """
+    def __init__(self, *args):
+
+        assert all([isinstance(a, BasisFunctionIndex) for a in args])
+
+        name = 'i_' + str(BasisFunctionIndex._count)
+        BasisFunctionIndex._count += 1
+
+        super(TensorBasisFunctionIndex, self).__init__(-1, name)
+
+        self.factors = args
+
+    def __getattr__(self, name):
+
+        if name == "_error":
+            if any([hasattr(x, "_error") for x in self.factors]):
+                return True
+
+        raise AttributeError
 
 
 class SimpliciallyGradedBasisFunctionIndex(BasisFunctionIndex):

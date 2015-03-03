@@ -1,6 +1,6 @@
 import FIAT
 import finat
-import pymbolic.primitives as p
+from finat import ast
 import numpy as np
 
 cell = FIAT.reference_element.UFCTriangle()
@@ -11,7 +11,7 @@ vector_lagrange = finat.VectorFiniteElement(lagrange, 2)
 
 lattice = vector_lagrange.cell.make_lattice(1)
 
-X = p.Variable("X")
+X = ast.Variable("X")
 
 kernel_data = finat.KernelData(vector_lagrange, X, affine=False)
 
@@ -21,7 +21,7 @@ points = finat.indices.PointIndex(finat.PointSet(q.get_points()))
 
 weights = finat.PointSet(q.get_weights())
 
-var = p.Variable("bar")
+var = ast.Variable("bar")
 
 recipe = lagrange.field_evaluation(var, points,
                                    kernel_data, finat.grad, pullback=True)

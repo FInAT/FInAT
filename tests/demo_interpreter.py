@@ -1,6 +1,6 @@
 import FIAT
 import finat
-import pymbolic.primitives as p
+from finat.ast import Variable
 import numpy as np
 
 cell = FIAT.reference_element.UFCTriangle()
@@ -11,7 +11,7 @@ vector_lagrange = finat.VectorFiniteElement(lagrange, 2)
 
 lattice = vector_lagrange.cell.make_lattice(1)
 
-X = p.Variable("X")
+X = Variable("X")
 
 q = FIAT.quadrature.CollapsedQuadratureTriangleRule(cell, 2)
 
