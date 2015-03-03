@@ -67,6 +67,8 @@ class _StringifyMapper(StringifyMapper):
                            self.rec(expr.indices, PREC_NONE, indent=indent, *args, **kwargs),
                            self.rec(expr.body, PREC_NONE, indent=indent, *args, **kwargs))
 
+    map_for_all = map_recipe
+
     def map_let(self, expr, enclosing_prec, indent=None, *args, **kwargs):
         if indent is None:
             fmt = expr.name + "(%s, %s)"
