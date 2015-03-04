@@ -2,6 +2,7 @@
 performant, but rather to provide a test facility for FInAT code."""
 import pymbolic.primitives as p
 from pymbolic.mapper.evaluator import FloatEvaluationMapper, UnknownVariableError
+from .mappers import BindingMapper
 from ast import IndexSum, ForAll, LeviCivita, FInATSyntaxError
 from indices import TensorPointIndex
 import numpy as np
@@ -44,17 +45,7 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
     def map_recipe(self, expr):
         """Evaluate expr for all values of free indices"""
 
-        d, b, p = expr.indices
-
-        free_indices = tuple([i for i in d + b + p if i not in self.indices])
-
-        try:
-            forall = ForAll(free_indices, expr.body)
-            return self.rec(forall)
-        except:
-            if hasattr(forall, "_error"):
-                expr.set_error()
-            raise
+        return self.rec(expr.body)
 
     def map_index_sum(self, expr):
 
@@ -300,6 +291,7 @@ def evaluate(expression, context={}, kernel_data=None):
             context[var[0].name] = var[1]()
 
     try:
+        expression = BindingMapper(context)(expression)
         return FinatEvaluationMapper(context)(expression)
     except:
         print expression
