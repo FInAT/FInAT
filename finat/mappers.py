@@ -224,5 +224,14 @@ class BindingMapper(IdentityMapper):
         body = self.rec(expr.body)
         for idx in indices:
             self.bound_above.remove(idx)
-            self.bound_below.add(idx)
         return IndexSum(indices, body)
+
+    def map_for_all(self, expr):
+        indices = expr.indices
+        for idx in indices:
+            self.bound_above.add(idx)
+        body = self.rec(expr.body)
+        for idx in indices:
+            self.bound_above.remove(idx)
+            self.bound_below.add(idx)
+        return ForAll(indices, body)
