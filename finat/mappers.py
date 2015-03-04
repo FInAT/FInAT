@@ -3,6 +3,7 @@ from pymbolic.mapper.stringifier import StringifyMapper, PREC_NONE
 from pymbolic.mapper import WalkMapper as WM
 from pymbolic.mapper.graphviz import GraphvizMapper as GVM
 from .indices import IndexBase
+from .ast import Recipe, ForAll, IndexSum
 try:
     from termcolor import colored
 except ImportError:
@@ -66,6 +67,8 @@ class _StringifyMapper(StringifyMapper):
         return self.format(fmt,
                            self.rec(expr.indices, PREC_NONE, indent=indent, *args, **kwargs),
                            self.rec(expr.body, PREC_NONE, indent=indent, *args, **kwargs))
+
+    map_for_all = map_recipe
 
     def map_let(self, expr, enclosing_prec, indent=None, *args, **kwargs):
         if indent is None:
@@ -188,3 +191,47 @@ class WalkMapper(WM):
 
 class GraphvizMapper(WalkMapper, GVM):
     pass
+
+
+class BindingMapper(IdentityMapper):
+    """A mapper that binds free indices in recipes using ForAlls."""
+
+    def __init__(self, kernel_data):
+        """
+        :arg context: a mapping from variable names to values
+        """
+        super(BindingMapper, self).__init__()
+        self.bound_above = set()
+        self.bound_below = set()
+
+    def map_recipe(self, expr):
+        body = self.rec(expr.body)
+
+        d, b, p = expr.indices
+        free_indices = tuple([i for i in d + b + p
+                              if i not in self.bound_below and
+                              i not in self.bound_above])
+
+        if len(free_indices) > 0:
+            expr = Recipe(expr.indices, ForAll(free_indices, body))
+
+        return expr
+
+    def map_index_sum(self, expr):
+        indices = expr.indices
+        for idx in indices:
+            self.bound_above.add(idx)
+        body = self.rec(expr.body)
+        for idx in indices:
+            self.bound_above.remove(idx)
+        return IndexSum(indices, body)
+
+    def map_for_all(self, expr):
+        indices = expr.indices
+        for idx in indices:
+            self.bound_above.add(idx)
+        body = self.rec(expr.body)
+        for idx in indices:
+            self.bound_above.remove(idx)
+            self.bound_below.add(idx)
+        return ForAll(indices, body)

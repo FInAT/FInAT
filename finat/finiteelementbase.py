@@ -154,6 +154,9 @@ class ScalarElementMixin(object):
 
         expr = psi * phi * w[p__]
 
+        if d:
+            expr = IndexSum(d, expr)
+
         if pullback:
             expr *= Abs(kernel_data.detJ)
 

@@ -184,7 +184,9 @@ class ForAll(StringifyMixin, p._MultiChildExpression):
     """
     def __init__(self, indices, body):
 
-        self.children = (tuple(indices), body)
+        self.indices = indices
+        self.body = body
+        self.children = (self.indices, self.body)
         self._color = "blue"
 
     def __getinitargs__(self):
