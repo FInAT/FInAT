@@ -3,7 +3,7 @@ from pymbolic.mapper.stringifier import StringifyMapper, PREC_NONE
 from pymbolic.mapper import WalkMapper as WM
 from pymbolic.mapper.graphviz import GraphvizMapper as GVM
 from .indices import IndexBase
-from .ast import Recipe, ForAll, IndexSum, Let
+from .ast import Recipe, ForAll, IndexSum, Let, Variable
 try:
     from termcolor import colored
 except ImportError:
@@ -251,10 +251,22 @@ class IndexSumMapper(IdentityMapper):
         self._bound_isums = set()
 
     def _bind_isums(self, expr):
-        while len(self._isum_stack) > 0:
-            temp, isum = self._isum_stack.popitem()
-            tmap = (temp, isum)
-            expr = Let((tmap,), expr)
+        bindings = []
+        if isinstance(expr, Variable):
+            children = (expr,)
+        elif hasattr(expr, "children"):
+            children = expr.children
+        else:
+            return expr
+
+        for temp in children:
+            if temp in self._isum_stack:
+                isum = self._isum_stack[temp]
+                bindings.append((temp, isum))
+        for temp, isum in bindings:
+            del self._isum_stack[temp]
+        if len(bindings) > 0:
+            expr = Let(tuple(bindings), expr)
         return expr
 
     def map_recipe(self, expr):
