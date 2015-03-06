@@ -214,6 +214,8 @@ class BindingMapper(IdentityMapper):
 
         if len(free_indices) > 0:
             expr = Recipe(expr.indices, ForAll(free_indices, body))
+        else:
+            expr = Recipe(expr.indices, body)
 
         return expr
 
