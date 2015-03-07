@@ -281,8 +281,6 @@ class IndexSumMapper(IdentityMapper):
         for v, e in expr.bindings:
             if isinstance(e, IndexSum):
                 self._bound_isums.add(e)
-            elif isinstance(e, Recipe) and isinstance(e.body, IndexSum):
-                self._bound_isums.add(e.body)
             new_bindings.append((v, self.rec(e)))
 
         body = self._bind_isums(self.rec(expr.body))
