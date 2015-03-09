@@ -64,7 +64,10 @@ class CoffeeMapper(CombineMapper):
 
     def map_subscript(self, expr):
         name = translate_symbol(expr.aggregate.name)
-        indices = expr.index if isinstance(expr.index, tuple) else (expr.index,)
+        if isinstance(expr.index, tuple):
+            indices = self.rec(expr.index)
+        else:
+            indices = (self.rec(expr.index),)
         return coffee.Symbol(name, rank=indices)
 
     def map_index_sum(self, expr):
