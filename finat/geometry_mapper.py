@@ -76,6 +76,11 @@ class GeometryMapper(IdentityMapper):
         element = kd.coordinate_element
         J = element.field_evaluation(phi_x, q, kd, grad, pullback=False)
 
+        if self.kernel_data.affine:
+            d, b, q = J.indices
+            J = J.replace_indices(zip(q, (0,)))
+            J.indices = (d, b, ())
+
         inner_lets = ((kd.detJ, Det(kd.J)),) if kd.detJ in self.local_geometry else ()
         inner_lets += ((kd.invJ, Inverse(kd.J)),) if kd.invJ in self.local_geometry else ()
 
