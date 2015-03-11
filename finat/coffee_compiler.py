@@ -31,7 +31,7 @@ class CoffeeMapper(CombineMapper):
         """
         super(CoffeeMapper, self).__init__()
         self.kernel_data = kernel_data
-        self.scope_var = varname
+        self.scope_var = deque(varname)
         self.scope_ast = deque()
 
     def _push_scope(self):
@@ -91,7 +91,7 @@ class CoffeeMapper(CombineMapper):
         return self.rec(expr.expression)
 
     def map_for_all(self, expr):
-        var = coffee.Symbol(self.scope_var, expr.indices)
+        var = coffee.Symbol(self.scope_var[-1], self.rec(expr.indices))
         self._push_scope()
         body = self.rec(expr.body)
         scope = self._pop_scope()
@@ -104,6 +104,7 @@ class CoffeeMapper(CombineMapper):
         for v, e in expr.bindings:
             shape = v.shape if isinstance(v, Array) else ()
             var = coffee.Symbol(self.rec(v), rank=shape)
+            self.scope_var.append(v)
 
             self._push_scope()
             body = self.rec(e)
@@ -120,6 +121,7 @@ class CoffeeMapper(CombineMapper):
                 self.scope_ast[-1].append(coffee.Decl("double", var))
                 self.scope_ast[-1].append(body)
 
+            self.scope_var.pop()
         return self.rec(expr.body)
 
 
