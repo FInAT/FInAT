@@ -10,7 +10,7 @@ import subprocess
 import ctypes
 import numpy as np
 from .utils import Kernel
-from .ast import Recipe, IndexSum
+from .ast import Recipe, IndexSum, Array
 from .mappers import BindingMapper, IndexSumMapper
 from pprint import pformat
 from collections import deque
@@ -102,7 +102,8 @@ class CoffeeMapper(CombineMapper):
 
     def map_let(self, expr):
         for v, e in expr.bindings:
-            var = coffee.Symbol(self.rec(v))
+            shape = v.shape if isinstance(v, Array) else ()
+            var = coffee.Symbol(self.rec(v), rank=shape)
 
             self._push_scope()
             body = self.rec(e)
