@@ -117,6 +117,8 @@ class CoffeeMapper(CombineMapper):
                 # Construct IndexSum loop and add to current scope
                 self.scope_ast[-1].append(coffee.Decl("double", var, init="0."))
                 self.scope_ast[-1].append(self._create_loop(e.indices[0], lbody))
+            elif isinstance(body, coffee.Expr):
+                self.scope_ast[-1].append(coffee.Decl("double", var, init=body))
             else:
                 self.scope_ast[-1].append(coffee.Decl("double", var))
                 self.scope_ast[-1].append(body)
