@@ -100,11 +100,13 @@ class CoffeeMapper(CombineMapper):
     def map_let(self, expr):
         for v, e in expr.bindings:
             var = coffee.Symbol(self.rec(v))
+
+            self._push_scope()
+            body = self.rec(e)
+            scope = self._pop_scope()
+
             if isinstance(e, IndexSum):
                 # Recurse on expression in a new scope
-                self._push_scope()
-                body = self.rec(e.body)
-                scope = self._pop_scope()
                 lbody = scope + [coffee.Incr(var, body)]
 
                 # Construct IndexSum loop and add to current scope
@@ -112,7 +114,7 @@ class CoffeeMapper(CombineMapper):
                 self.scope_ast[-1].append(self._create_loop(e.indices[0], lbody))
             else:
                 self.scope_ast[-1].append(coffee.Decl("double", var))
-                self.scope_ast[-1].append(self.rec(e))
+                self.scope_ast[-1].append(body)
 
         return self.rec(expr.body)
 
