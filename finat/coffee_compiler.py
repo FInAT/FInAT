@@ -200,6 +200,7 @@ def evaluate(expression, context={}, kernel_data=None):
     cc = [os.environ['CC'] if "CC" in os.environ else 'gcc']
     cc += ['-Wall', '-O0', '-g', '-fPIC', '-shared', '-std=c99']
     cc += ["-o", "%s.so" % basename, "%s.c" % basename]
+    cc += ['-llapack', '-lblas']
     try:
         subprocess.check_call(cc)
     except subprocess.CalledProcessError as e:
