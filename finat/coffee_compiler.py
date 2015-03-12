@@ -10,7 +10,7 @@ import subprocess
 import ctypes
 import numpy as np
 from .utils import Kernel
-from .ast import Recipe, IndexSum, Array
+from .ast import Recipe, IndexSum, Array, Inverse
 from .mappers import BindingMapper, IndexSumMapper
 from pprint import pformat
 from collections import deque
@@ -117,6 +117,17 @@ class CoffeeMapper(CombineMapper):
                 # Construct IndexSum loop and add to current scope
                 self.scope_ast[-1].append(coffee.Decl("double", var, init="0."))
                 self.scope_ast[-1].append(self._create_loop(e.indices[0], lbody))
+
+            elif isinstance(e, Inverse):
+                # Coffee currently inverts matrices in-place
+                # so we need to memcpy the source matrix first
+                mcpy = coffee.FlatBlock("memcpy(%s, %s, %d*sizeof(double));\n" %
+                                        (v, e.expression, shape[0]*shape[1]))
+                e.expression = v
+                self.scope_ast[-1].append(coffee.Decl("double", var))
+                self.scope_ast[-1].append(mcpy)
+                self.scope_ast[-1].append(self.rec(e))
+
             elif isinstance(body, coffee.Expr):
                 self.scope_ast[-1].append(coffee.Decl("double", var, init=body))
             else:
