@@ -1,6 +1,6 @@
 from finiteelementbase import FiniteElementBase
 from points import StroudPointSet
-from ast import ForAll, Recipe, Wave, Let, IndexSum
+from ast import Recipe, Wave, Let, IndexSum
 import pymbolic.primitives as p
 from indices import BasisFunctionIndex, PointIndex, SimpliciallyGradedBasisFunctionIndex  # noqa
 import numpy as np
@@ -207,26 +207,42 @@ class Bernstein(FiniteElementBase):
         tmps = [kernel_data.new_variable("tmp") for d in range(sd - 1)]
 
         if sd == 2:
-            alpha = SimpliciallyGradedBasisFunctionIndex(sd, deg)
-            alphas = alpha.factors
-            xi_cur = xi[0]
+            alpha_internal = SimpliciallyGradedBasisFunctionIndex(sd, deg)
+            alphas_int = alpha_internal.factors
+            xi_cur = xi[0][qs[1]]
             s = 1 - xi_cur
             expr0 = Let(((r, xi_cur / s), ),
                         IndexSum((qs[0], ),
                                  Wave(w,
-                                      alphas[0],
+                                      alphas_int[0],
                                       wt[0][qs[0]] * (s**deg),
-                                      w * r * (deg - alphas[0]) / alphas[0],
+                                      w * r * (deg - alphas_int[0]) / alphas_int[0],
                                       w * value[qs[0], qs[1]])
                                  )
                         )
-            return Recipe(((), (alphas[0], ), (qs[1], )),
-                          expr0)
+            recipe0 = Recipe(((), (alphas_int[0], ), (qs[1], )),
+                             expr0)
+            xi_cur = xi[1]
+            s = 1 - xi_cur
+            alpha = SimpliciallyGradedBasisFunctionIndex(2, deg)
+            alphas = alpha.factors
+            r = xi_cur / s
+            expr1 = Let(((tmps[0], recipe0), ),
+                        IndexSum((qs[1], ),
+                                 Wave(w,
+                                      alphas[1],
+                                      wt[1][qs[1]] * (s**(deg-alphas[0])),
+                                      w * r * (deg-alphas[0]-alphas[1]+1)/(alphas[1]),
+                                      w * tmps[0][alphas[0], qs[1]]
+                                      )
+                                 )
+                        )
+            return Recipe(((), (alphas[0], alphas[1]), ()), expr1)
 
         else:
             raise NotImplementedError
 
-    
+
     def moment_evaluation_general(self, value, weights, q, kernel_data,
                           derivative=None, pullback=None):
         if not isinstance(q.points, StroudPointSet):
