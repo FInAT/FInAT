@@ -222,8 +222,11 @@ class Bernstein(FiniteElementBase):
                                       w * value[qs[0], qs[1]])
                                  )
                         )
+            expr0prime = ForAll((qs[1],),
+                                ForAll((alphas_int[0],),
+                                       expr0))
             recipe0 = Recipe(((), (alphas_int[0], ), (qs[1], )),
-                             expr0)
+                             expr0prime)
             xi_cur = xi[1]
             s = 1 - xi_cur
             alpha = SimpliciallyGradedBasisFunctionIndex(2, deg)
@@ -231,14 +234,19 @@ class Bernstein(FiniteElementBase):
             r = xi_cur / s
             expr1 = Let(((tmps[0], recipe0), ),
                         IndexSum((qs[1], ),
-                                 Wave(w,
-                                      alphas[1],
-                                      wt[1][qs[1]] * (s**(deg-alphas[0])),
-                                      w * r * (deg-alphas[0]-alphas[1]+1)/(alphas[1]),
-                                      w * tmps[0][alphas[0], qs[1]]
-                                      )
+                                 ForAll((alphas[0],),
+                                        ForAll((alphas[1],),
+                                               Wave(w,
+                                                    alphas[1],
+                                                    wt[1][qs[1]] * (s**(deg-alphas[0])),
+                                                    w * r * (deg-alphas[0]-alphas[1]+1)/(alphas[1]),
+                                                    w * tmps[0][alphas[0], qs[1]]
+                                                )
+                                           )
+                                    )
                                  )
                         )
+
             return Recipe(((), (alphas[0], alphas[1]), ()), expr1)
 
         else:
