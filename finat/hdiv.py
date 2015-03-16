@@ -13,7 +13,7 @@ class HDivElement(FiatElementBase):
 
         phi = self._tabulated_basis(q.points, kernel_data, derivative)
 
-        i = indices.BasisFunctionIndex(self.fiat_element.space_dimension())
+        i = indices.BasisFunctionIndex(self._fiat_element.space_dimension())
 
         tIndex = lambda: indices.DimensionIndex(kernel_data.tdim)
         gIndex = lambda: indices.DimensionIndex(kernel_data.gdim)
