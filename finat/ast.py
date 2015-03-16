@@ -2,202 +2,15 @@
 required to define Finite Element expressions in FInAT.
 """
 import pymbolic.primitives as p
-from pymbolic.mapper import IdentityMapper as IM
-from pymbolic.mapper.stringifier import StringifyMapper, PREC_NONE
-from pymbolic.mapper import WalkMapper as WM
-from pymbolic.mapper.graphviz import GraphvizMapper as GVM
-from indices import IndexBase
 try:
     from termcolor import colored
 except ImportError:
-    colored = lambda string, color, attrs=[]: string
+    def colored(string, color, attrs=[]):
+        return string
 
 
 class FInATSyntaxError(Exception):
     """Exception to raise when users break the rules of the FInAT ast."""
-
-
-class IdentityMapper(IM):
-    def __init__(self):
-        super(IdentityMapper, self).__init__()
-
-    def map_recipe(self, expr, *args):
-        return expr.__class__(self.rec(expr.indices, *args),
-                              self.rec(expr.body, *args))
-
-    def map_index(self, expr, *args):
-        return expr
-
-    def map_delta(self, expr, *args):
-        return expr.__class__(*(self.rec(c, *args) for c in expr.children))
-
-    map_let = map_delta
-    map_for_all = map_delta
-    map_wave = map_delta
-    map_index_sum = map_delta
-    map_levi_civita = map_delta
-    map_inverse = map_delta
-    map_det = map_delta
-
-
-class _IndexMapper(IdentityMapper):
-    def __init__(self, replacements):
-        super(_IndexMapper, self).__init__()
-
-        self.replacements = replacements
-
-    def map_index(self, expr, *args):
-        '''Replace indices if they are in the replacements list'''
-
-        try:
-            return(self.replacements[expr])
-        except KeyError:
-            return expr
-
-
-class _StringifyMapper(StringifyMapper):
-
-    def map_recipe(self, expr, enclosing_prec, indent=None, *args, **kwargs):
-        if indent is None:
-            fmt = expr.name + "(%s, %s)"
-        else:
-            oldidt = " " * indent
-            indent += 4
-            idt = " " * indent
-            fmt = expr.name + "(%s,\n" + idt + "%s\n" + oldidt + ")"
-
-        return self.format(fmt,
-                           self.rec(expr.indices, PREC_NONE, indent=indent, *args, **kwargs),
-                           self.rec(expr.body, PREC_NONE, indent=indent, *args, **kwargs))
-
-    def map_let(self, expr, enclosing_prec, indent=None, *args, **kwargs):
-        if indent is None:
-            fmt = expr.name + "(%s, %s)"
-            inner_indent = None
-        else:
-            oldidt = " " * indent
-            indent += 4
-            inner_indent = indent + 4
-            inner_idt = " " * inner_indent
-            idt = " " * indent
-            fmt = expr.name + "(\n" + inner_idt + "%s,\n" + idt + "%s\n" + oldidt + ")"
-
-        return self.format(fmt,
-                           self.rec(expr.bindings, PREC_NONE, indent=inner_indent, *args, **kwargs),
-                           self.rec(expr.body, PREC_NONE, indent=indent, *args, **kwargs))
-
-    def map_delta(self, expr, *args, **kwargs):
-        return self.format(expr.name + "(%s, %s)",
-                           *[self.rec(c, *args, **kwargs) for c in expr.children])
-
-    def map_index(self, expr, *args, **kwargs):
-        if hasattr(expr, "_error"):
-            return colored(str(expr), "red", attrs=["bold"])
-        else:
-            return colored(str(expr), expr._color)
-
-    def map_wave(self, expr, enclosing_prec, indent=None, *args, **kwargs):
-        if indent is None or enclosing_prec is not PREC_NONE:
-            fmt = expr.name + "(%s %s) "
-        else:
-            oldidt = " " * indent
-            indent += 4
-            idt = " " * indent
-            fmt = expr.name + "(%s\n" + idt + "%s\n" + oldidt + ")"
-
-        return self.format(fmt,
-                           " ".join(self.rec(c, PREC_NONE, *args, **kwargs) + "," for c in expr.children[:-1]),
-                           self.rec(expr.children[-1], PREC_NONE, indent=indent, *args, **kwargs))
-
-    def map_index_sum(self, expr, enclosing_prec, indent=None, *args, **kwargs):
-        if indent is None or enclosing_prec is not PREC_NONE:
-            fmt = expr.name + "((%s), %s) "
-        else:
-            oldidt = " " * indent
-            indent += 4
-            idt = " " * indent
-            fmt = expr.name + "((%s),\n" + idt + "%s\n" + oldidt + ")"
-
-        return self.format(fmt,
-                           " ".join(self.rec(c, PREC_NONE, *args, **kwargs) + "," for c in expr.children[0]),
-                           self.rec(expr.children[1], PREC_NONE, indent=indent, *args, **kwargs))
-
-    def map_levi_civita(self, expr, *args, **kwargs):
-        return self.format(expr.name + "(%s)",
-                           self.join_rec(", ", expr.children, *args, **kwargs))
-
-    def map_inverse(self, expr, *args, **kwargs):
-        return self.format(expr.name + "(%s)",
-                           self.rec(expr.expression, *args, **kwargs))
-
-    def map_det(self, expr, *args, **kwargs):
-        return self.format(expr.name + "(%s)",
-                           self.rec(expr.expression, *args, **kwargs))
-
-    def map_variable(self, expr, enclosing_prec, *args, **kwargs):
-        if hasattr(expr, "_error"):
-            return colored(str(expr.name), "red", attrs=["bold"])
-        else:
-            try:
-                return colored(expr.name, expr._color)
-            except AttributeError:
-                return colored(expr.name, "cyan")
-
-
-class WalkMapper(WM):
-    def __init__(self):
-        super(WalkMapper, self).__init__()
-
-    def map_recipe(self, expr, *args, **kwargs):
-        if not self.visit(expr, *args, **kwargs):
-            return
-        for indices in expr.indices:
-            for index in indices:
-                self.rec(index, *args, **kwargs)
-        self.rec(expr.body, *args, **kwargs)
-        self.post_visit(expr, *args, **kwargs)
-
-    def map_index(self, expr, *args, **kwargs):
-        if not self.visit(expr, *args, **kwargs):
-            return
-
-        # I don't want to recur on the extent.  That's ugly.
-
-        self.post_visit(expr, *args, **kwargs)
-
-    def map_index_sum(self, expr, *args, **kwargs):
-        if not self.visit(expr, *args, **kwargs):
-            return
-        for index in expr.indices:
-            self.rec(index, *args, **kwargs)
-        self.rec(expr.body, *args, **kwargs)
-        self.post_visit(expr, *args, **kwargs)
-
-    def map_let(self, expr, *args, **kwargs):
-        if not self.visit(expr, *args, **kwargs):
-            return
-        for binding in expr.bindings:
-            for b in binding:
-                self.rec(b, *args, **kwargs)
-        self.rec(expr.body, *args, **kwargs)
-        self.post_visit(expr, *args, **kwargs)
-
-    def map_wave(self, expr, *args, **kwargs):
-        if not self.visit(expr, *args, **kwargs):
-            return
-        for child in expr.children:
-            self.rec(child, *args, **kwargs)
-        self.post_visit(expr, *args, **kwargs)
-
-    map_delta = map_index_sum
-    map_for_all = map_index_sum
-    map_levi_civita = map_index_sum
-    map_inverse = map_index_sum
-    map_det = map_index_sum
-
-
-class GraphvizMapper(WalkMapper, GVM):
-    pass
 
 
 class StringifyMixin(object):
@@ -212,7 +25,8 @@ class StringifyMixin(object):
         return self.stringifier()()(self, PREC_NONE, indent=0)
 
     def stringifier(self):
-        return _StringifyMapper
+        from . import mappers
+        return mappers._StringifyMapper
 
     @property
     def name(self):
@@ -225,8 +39,19 @@ class StringifyMixin(object):
         self._error = True
 
 
-class Array(p.Variable):
-    """A pymbolic variable of known extent."""
+class Variable(p.Variable):
+    """A symbolic variable."""
+    def __init__(self, name):
+        super(Variable, self).__init__(name)
+
+        self._color = "cyan"
+
+    def set_error(self):
+        self._error = True
+
+
+class Array(Variable):
+    """A symbolic variable of known extent."""
     def __init__(self, name, shape):
         super(Array, self).__init__(name)
 
@@ -285,6 +110,7 @@ class Recipe(StringifyMixin, p.Expression):
         if not isinstance(replacements, dict):
             replacements = {a: b for (a, b) in replacements}
 
+        from mappers import _IndexMapper
         return _IndexMapper(replacements)(self)
 
 
@@ -296,6 +122,8 @@ class IndexSum(StringifyMixin, p._MultiChildExpression):
     """
     def __init__(self, indices, body):
 
+        # Inline import to avoid circular dependency.
+        from indices import IndexBase
         if isinstance(indices[0], IndexBase):
             indices = tuple(indices)
         else:
@@ -356,7 +184,9 @@ class ForAll(StringifyMixin, p._MultiChildExpression):
     """
     def __init__(self, indices, body):
 
-        self.children = (indices, body)
+        self.indices = indices
+        self.body = body
+        self.children = (self.indices, self.body)
         self._color = "blue"
 
     def __getinitargs__(self):
@@ -402,7 +232,6 @@ Scheme.
 
         self.bindings, self.body = self.children
 
-        self.bindings, self.body = self.children
         self._color = "blue"
 
     mapper_method = "map_let"
@@ -450,18 +279,70 @@ class Inverse(StringifyMixin, p.Expression):
         self.expression = expression
         self._color = "blue"
 
+        super(Inverse, self).__init__()
+
+    def __getinitargs__(self):
+        return (self.expression,)
+
     mapper_method = "map_inverse"
 
 
 class Det(StringifyMixin, p.Expression):
-    """The determinant of a matrix-valued expression.
-
-    Where the expression is evaluated at a number of points, the
-    inverse will be evaluated pointwise.
-    """
+    """The determinant of a matrix-valued expression."""
     def __init__(self, expression):
 
         self.expression = expression
         self._color = "blue"
 
+        super(Det, self).__init__()
+
+    def __getinitargs__(self):
+        return (self.expression,)
+
     mapper_method = "map_det"
+
+
+class Abs(StringifyMixin, p.Expression):
+    """The absolute value of an expression."""
+    def __init__(self, expression):
+
+        self.expression = expression
+        self._color = "blue"
+
+        super(Abs, self).__init__()
+
+    def __getinitargs__(self):
+        return (self.expression,)
+
+    mapper_method = "map_abs"
+
+
+class CompoundVector(StringifyMixin, p.Expression):
+    """A vector expression composed by concatenating other expressions."""
+    def __init__(self, index, indices, expressions):
+        """
+
+        :param index: The free :class:`~.DimensionIndex` created by
+        the :class:`CompoundVector`
+        :param indices: The sequence of dimension indices of the
+        expressions. For scalar components these should be ``None``.
+        :param expressions: The sequence of expressions making up
+        the compound.
+
+        Each value that `index` takes will be mapped to the corresponding
+        value in indices and the matching expression will be evaluated.
+        """
+        if len(indices) != len(expressions):
+            raise FInATSyntaxError("The indices and expressions must be of equal length")
+
+        if sum([i.length for i in indices]) != index.length:
+            raise FInATSyntaxError("The length of the compound index must equal "
+                                   "the sum of the lengths of the components.")
+
+        super(CompoundVector, self).__init__((index, indices, expressions))
+
+        self.index, self.indices, self.expressions = self.children
+
+        self._color = "blue"
+
+    mapper_method = "map_compound_vector"

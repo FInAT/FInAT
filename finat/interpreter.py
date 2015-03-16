@@ -2,6 +2,7 @@
 performant, but rather to provide a test facility for FInAT code."""
 import pymbolic.primitives as p
 from pymbolic.mapper.evaluator import FloatEvaluationMapper, UnknownVariableError
+from .mappers import BindingMapper
 from ast import IndexSum, ForAll, LeviCivita, FInATSyntaxError
 from indices import TensorPointIndex
 import numpy as np
@@ -44,15 +45,7 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
     def map_recipe(self, expr):
         """Evaluate expr for all values of free indices"""
 
-        d, b, p = expr.indices
-
-        try:
-            forall = ForAll(d + b + p, expr.body)
-            return self.rec(forall)
-        except:
-            if hasattr(forall, "_error"):
-                expr.set_error()
-            raise
+        return self.rec(expr.body)
 
     def map_index_sum(self, expr):
 
@@ -126,7 +119,8 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
         if idx in self.indices:
             expr_in.set_error()
             idx.set_error()
-            raise FInATSyntaxError("Attempting to bind the name %s which is already bound" % idx)
+            raise FInATSyntaxError(
+                "Attempting to bind the name %s which is already bound" % idx)
 
         e = idx.extent
 
@@ -146,6 +140,32 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
 
         return np.array(total)
 
+    def map_compound_vector(self, expr):
+
+        (index, indices, bodies) = expr.children
+
+        if index not in self.indices:
+            expr.set_error()
+            index.set_error()
+            raise FInATSyntaxError(
+                "Compound vector depends on %s, which is not in scope" % index)
+
+        alpha = self.indices[index]
+
+        for idx, body in zip(indices, bodies):
+            if alpha < idx.length:
+                if idx in self.indices:
+                    raise FInATSyntaxError(
+                        "Attempting to bind the name %s which is already bound" % idx)
+                self.indices[idx] = self._as_range(idx)[alpha]
+                result = self.rec(body)
+                self.indices.pop(idx)
+                return result
+            else:
+                alpha -= idx.length
+
+        raise FInATSyntaxError("Compound index %s out of bounds" % index)
+
     def map_wave(self, expr):
 
         (var, index, base, update, body) = expr.children
@@ -153,7 +173,8 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
         if index not in self.indices:
             expr.set_error()
             index.set_error()
-            raise FInATSyntaxError("Wave variable depends on %s, which is not in scope" % index)
+            raise FInATSyntaxError(
+                "Wave variable depends on %s, which is not in scope" % index)
 
         try:
             index_val = self.rec(index)
@@ -250,6 +271,18 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
         expr.set_error()
         raise NotImplementedError
 
+    def map_det(self, expr):
+
+        return np.linalg.det(self.rec(expr.expression))
+
+    def map_abs(self, expr):
+
+        return abs(self.rec(expr.expression))
+
+    def map_inverse(self, expr):
+
+        return np.linalg.inv(self.rec(expr.expression))
+
 
 def evaluate(expression, context={}, kernel_data=None):
     """Take a FInAT expression and a set of definitions for undefined
@@ -264,6 +297,7 @@ def evaluate(expression, context={}, kernel_data=None):
             context[var[0].name] = var[1]()
 
     try:
+        expression = BindingMapper(context)(expression)
         return FinatEvaluationMapper(context)(expression)
     except:
         print expression

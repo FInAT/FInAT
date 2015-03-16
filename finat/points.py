@@ -1,5 +1,5 @@
 import numpy
-import pymbolic.primitives as p
+from .ast import Variable
 
 
 class PointSetBase(object):
@@ -47,7 +47,7 @@ class PointSet(PointSetBase):
         if static_key in static_data:
             w = static_data[static_key][0]
         else:
-            w = p.Variable(name)
+            w = Variable(name)
             data = self._points
             static_data[static_key] = (w, lambda: data)
 

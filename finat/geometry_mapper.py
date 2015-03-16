@@ -1,7 +1,8 @@
-from points import PointSet
-from indices import PointIndex
-from ast import Let, Det, Inverse, Recipe, IdentityMapper
-from derivatives import grad
+from .points import PointSet
+from .indices import PointIndex
+from .ast import Let, Det, Inverse, Recipe
+from .mappers import IdentityMapper
+from .derivatives import grad
 
 
 class GeometryMapper(IdentityMapper):
@@ -75,8 +76,8 @@ class GeometryMapper(IdentityMapper):
         element = kd.coordinate_element
         J = element.field_evaluation(phi_x, q, kd, grad, pullback=False)
 
-        inner_lets = (((kd.detJ, Det(kd.J)),) if kd.detJ in self.local_geometry else () +
-                      ((kd.invJ, Inverse(kd.J)),) if kd.invJ in self.local_geometry else ())
+        inner_lets = ((kd.detJ, Det(kd.J)),) if kd.detJ in self.local_geometry else ()
+        inner_lets += ((kd.invJ, Inverse(kd.J)),) if kd.invJ in self.local_geometry else ()
 
         # The local geometry goes out of scope at this point.
         self.local_geometry = set()
