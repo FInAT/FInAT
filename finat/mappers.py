@@ -180,7 +180,6 @@ class WalkMapper(WM):
         self.post_visit(expr, *args, **kwargs)
 
     map_delta = map_index_sum
-    map_let = map_index_sum
     map_for_all = map_index_sum
     map_wave = map_index_sum
     map_levi_civita = map_index_sum

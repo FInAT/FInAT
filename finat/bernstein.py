@@ -2,6 +2,7 @@ from .finiteelementbase import FiniteElementBase
 from .points import StroudPointSet
 from .ast import ForAll, Recipe, Wave, Let, IndexSum, Variable
 from .indices import BasisFunctionIndex, PointIndex, SimpliciallyGradedBasisFunctionIndex  # noqa
+
 import numpy as np
 
 
@@ -207,6 +208,75 @@ class Bernstein(FiniteElementBase):
         w = kernel_data.new_variable("w")
         tmps = [kernel_data.new_variable("tmp") for d in range(sd - 1)]
 
+        if sd == 2:
+            alpha_internal = SimpliciallyGradedBasisFunctionIndex(sd, deg)
+            alphas_int = alpha_internal.factors
+            xi_cur = xi[0][qs[1]]
+            s = 1 - xi_cur
+            expr0 = Let(((r, xi_cur / s), ),
+                        IndexSum((qs[0], ),
+                                 Wave(w,
+                                      alphas_int[0],
+                                      wt[0][qs[0]] * (s**deg),
+                                      w * r * (deg - alphas_int[0]) / alphas_int[0],
+                                      w * value[qs[0], qs[1]])
+                                 )
+                        )
+            expr0prime = ForAll((qs[1],),
+                                ForAll((alphas_int[0],),
+                                       expr0))
+            recipe0 = Recipe(((), (alphas_int[0], ), (qs[1], )),
+                             expr0prime)
+            xi_cur = xi[1]
+            s = 1 - xi_cur
+            alpha = SimpliciallyGradedBasisFunctionIndex(2, deg)
+            alphas = alpha.factors
+            r = xi_cur / s
+            expr1 = Let(((tmps[0], recipe0), ),
+                        IndexSum((qs[1], ),
+                                 ForAll((alphas[0],),
+                                        ForAll((alphas[1],),
+                                               Wave(w,
+                                                    alphas[1],
+                                                    wt[1][qs[1]] * (s**(deg-alphas[0])),
+                                                    w * r * (deg-alphas[0]-alphas[1]+1)/(alphas[1]),
+                                                    w * tmps[0][alphas[0], qs[1]]
+                                                )
+                                           )
+                                    )
+                                 )
+                        )
+
+            return Recipe(((), (alphas[0], alphas[1]), ()), expr1)
+
+        else:
+            raise NotImplementedError
+
+
+    def moment_evaluation_general(self, value, weights, q, kernel_data,
+                          derivative=None, pullback=None):
+        if not isinstance(q.points, StroudPointSet):
+            raise ValueError("Only Stroud points may be employed with Bernstein polynomials")
+
+        if derivative is not None:
+            raise NotImplementedError
+
+        qs = q.factors
+
+        wt = [self._weights_variable(weights[d], kernel_data)
+              for d in range(len(weights))]
+
+        xi = [self._points_variable(f.points, kernel_data)
+              for f in q.factors]
+
+        deg = self.degree
+
+        sd = self.cell.get_spatial_dimension()
+
+        r = kernel_data.new_variable("r")
+        w = kernel_data.new_variable("w")
+        tmps = [kernel_data.new_variable("tmp") for d in range(sd - 1)]
+
         # the output recipe is parameterized over these
         alpha = SimpliciallyGradedBasisFunctionIndex(sd, deg)
         alphas = alpha.factors
@@ -228,7 +298,7 @@ class Bernstein(FiniteElementBase):
             alphas_free_cur = tuple(alphas[:d])
             qs_free_cur = tuple(qs[-d:])
             free_vars_per_phase.append(((), alphas_free_cur, qs_free_cur))
-        free_vars_per_phase.append(((), (), (alpha,)))
+        free_vars_per_phase.append(((), (), tuple(alphas)))
 
         xi_cur = xi[0][qs[0]]
         s = 1 - xi_cur

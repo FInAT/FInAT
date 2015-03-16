@@ -71,6 +71,9 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
 
         self.indices[idx] = None
 
+        # Clear the set of variables dependent on this index.
+        self.wave_vars[idx] = {}
+
         for i in self._as_range(e):
             self.indices[idx] = i
             try:
@@ -122,6 +125,8 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
         e = idx.extent
 
         total = []
+        # Clear the set of variables dependent on this index.
+        self.wave_vars[idx] = {}
         for i in self._as_range(e):
             self.indices[idx] = i
             try:
@@ -172,22 +177,23 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
                 "Wave variable depends on %s, which is not in scope" % index)
 
         try:
-            self.context[var.name] = self.wave_vars[var.name]
-            self.context[var.name] = self.rec(update)
+            index_val = self.rec(index)
+            self.context[var.name], old_val = self.wave_vars[index][var.name]
+            # Check for index update.
+            if index_val != old_val:
+                self.context[var.name] = self.rec(update)
         except KeyError:
             # We're at the start of the loop over index.
-            assert self.rec(index) == (index.extent.start or 0)
+            assert index_val == (index.extent.start or 0)
             self.context[var.name] = self.rec(base)
 
-        self.wave_vars[var.name] = self.context[var.name]
+        self.wave_vars[index][var.name] = self.context[var.name], index_val
 
         # Execute the body.
         result = self.rec(body)
 
         # Remove the wave variable from scope.
         self.context.pop(var.name)
-        if self.rec(index) >= self.rec(index.extent.stop) - 1:
-            self.wave_vars.pop(var.name)
 
         return result
 
