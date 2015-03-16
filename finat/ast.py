@@ -318,7 +318,7 @@ class Abs(StringifyMixin, p.Expression):
     mapper_method = "map_abs"
 
 
-class CompoundVector(StringifyMixin, p.Expression):
+class CompoundVector(StringifyMixin, p._MultiChildExpression):
     """A vector expression composed by concatenating other expressions."""
     def __init__(self, index, indices, expressions):
         """

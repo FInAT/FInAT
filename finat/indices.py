@@ -29,7 +29,7 @@ class IndexBase(ast.Variable):
         stop = self._extent.stop
         step = self._extent.step or 1
 
-        return math.ceil((stop - start) / step)
+        return int(math.ceil((stop - start) / step))
 
     @property
     def _str_extent(self):
