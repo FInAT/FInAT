@@ -149,24 +149,17 @@ class CoffeeKernel(Kernel):
         # Apply pre-processing mapper to bind free indices
         self.recipe = BindingMapper(self.kernel_data)(self.recipe)
 
-    def generate_ast(self, context):
-        kernel_args = self.kernel_data.kernel_args
+    def generate_ast(self, kernel_args=None):
+        if kernel_args is None:
+            kernel_args = self.kernel_data.kernel_args
         args_ast = []
         body_ast = []
 
         mapper = CoffeeMapper(self.kernel_data)
 
-        # Generate declaration of result argument
-        result_shape = ()
-        for index in self.recipe.indices:
-            for i in index:
-                result_shape += (i.extent.stop,)
-        result_ast = coffee.Symbol(kernel_args[0], result_shape)
-        args_ast.append(coffee.Decl("double", result_ast))
-
         # Add argument declarations
-        for var in kernel_args[1:]:
-            var_ast = coffee.Symbol(str(var), context[var].shape)
+        for var in kernel_args:
+            var_ast = coffee.Symbol(var.name, var.shape)
             args_ast.append(coffee.Decl("double", var_ast))
 
         # Write AST to initialise static kernel data
@@ -196,15 +189,15 @@ def evaluate(expression, context={}, kernel_data=None):
             index_shape += (i.extent.stop, )
     index_data = np.empty(index_shape, dtype=np.double)
     args_data.append(index_data.ctypes.data)
-    kernel_data.kernel_args = ["A"]
+    kernel_data.kernel_args = [Array("A", shape=index_shape)]
 
     # Pack context arguments
     for var, value in context.iteritems():
-        kernel_data.kernel_args.append(var)
+        kernel_data.kernel_args.append(Array(var, shape=value.shape))
         args_data.append(value.ctypes.data)
 
     # Generate kernel function
-    kernel = CoffeeKernel(expression, kernel_data).generate_ast(context)
+    kernel = CoffeeKernel(expression, kernel_data).generate_ast()
     basename = os.path.join(os.getcwd(), "coffee_kernel")
     with file(basename + ".c", "w") as f:
         f.write(str(kernel))
