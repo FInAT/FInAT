@@ -5,9 +5,19 @@ import numpy as np
 from finat.ast import Variable
 
 
+fiat_cell = {1: FIAT.reference_element.UFCInterval(),
+             2: FIAT.reference_element.UFCTriangle(),
+             3: FIAT.reference_element.UFCTetrahedron()}
+
+
+fiat_rule = {1: FIAT.quadrature.GaussJacobiQuadratureLineRule,
+             2: FIAT.quadrature.CollapsedQuadratureTriangleRule,
+             3: FIAT.quadrature.CollapsedQuadratureTetrahedronRule}
+
+
 @pytest.fixture
-def cell():
-    return FIAT.reference_element.UFCTriangle()
+def cell(dim):
+    return fiat_cell[dim]
 
 
 @pytest.fixture
@@ -16,19 +26,20 @@ def lagrange(cell):
 
 
 @pytest.fixture
-def kernel_data(lagrange):
-    vector_lagrange = finat.VectorFiniteElement(lagrange, 2)
+def kernel_data(lagrange, dim):
+    vector_lagrange = finat.VectorFiniteElement(lagrange, dim)
 
     return finat.KernelData(vector_lagrange, Variable("X"))
 
 
 @pytest.fixture
 def context():
-    return {'u': np.array([0.0, 0.6, 0.3])}
+    return {'u': np.array([0.0, 0.6, 0.3, 0.4])}
 
 
-def quadrature(cell, degree):
-    q = FIAT.quadrature.CollapsedQuadratureTriangleRule(cell, degree)
+@pytest.fixture
+def quadrature(cell, dim, degree):
+    q = fiat_rule[dim](cell, degree)
 
     points = finat.indices.PointIndex(finat.PointSet(q.get_points()))
 
@@ -37,9 +48,10 @@ def quadrature(cell, degree):
     return points, weights
 
 
-@pytest.mark.parametrize('degree', [1, 2, 3, 4, 5])
-def test_basis_evaluation(cell, lagrange, kernel_data, degree):
-    points, weights = quadrature(cell, degree)
+@pytest.mark.parametrize('dim', [1, 2, 3])
+@pytest.mark.parametrize('degree', [1, 2, 3])
+def test_basis_evaluation(cell, lagrange, quadrature, kernel_data, degree):
+    points, weights = quadrature
 
     recipe = lagrange.basis_evaluation(points, kernel_data, derivative=None)
 
@@ -50,9 +62,10 @@ def test_basis_evaluation(cell, lagrange, kernel_data, degree):
     assert(np.abs(result_finat - result_coffee) < 1.e-12).all()
 
 
-@pytest.mark.parametrize('degree', [1, 2, 3, 4, 5])
-def test_field_evaluation(cell, lagrange, kernel_data, context, degree):
-    points, weights = quadrature(cell, degree)
+@pytest.mark.parametrize('dim', [1, 2, 3])
+@pytest.mark.parametrize('degree', [1, 2, 3])
+def test_field_evaluation(cell, lagrange, quadrature, kernel_data, context, degree):
+    points, weights = quadrature
 
     recipe = lagrange.field_evaluation(Variable("u"), points,
                                        kernel_data, derivative=None)
@@ -64,9 +77,10 @@ def test_field_evaluation(cell, lagrange, kernel_data, context, degree):
     assert(np.abs(result_finat - result_coffee) < 1.e-12).all()
 
 
-@pytest.mark.parametrize('degree', [1, 2, 3, 4, 5])
-def test_moment_evaluation(cell, lagrange, kernel_data, context, degree):
-    points, weights = quadrature(cell, degree)
+@pytest.mark.parametrize('dim', [1, 2, 3])
+@pytest.mark.parametrize('degree', [1, 2, 3])
+def test_moment_evaluation(cell, lagrange, quadrature, kernel_data, context, degree):
+    points, weights = quadrature
 
     f_recipe = lagrange.field_evaluation(Variable("u"), points,
                                          kernel_data, derivative=None)
