@@ -156,17 +156,21 @@ class CoffeeKernel(Kernel):
         # Apply pre-processing mapper to bind free indices
         self.recipe = BindingMapper(self.kernel_data)(self.recipe)
 
-    def generate_ast(self, kernel_args=None):
+    def generate_ast(self, kernel_args=None, varname="A", increment=False):
         if kernel_args is None:
             kernel_args = self.kernel_data.kernel_args
         args_ast = []
         body_ast = []
 
-        mapper = CoffeeMapper(self.kernel_data)
+        mapper = CoffeeMapper(self.kernel_data, varname=varname,
+                              increment=increment)
 
         # Add argument declarations
         for var in kernel_args:
-            var_ast = coffee.Symbol(var.name, var.shape)
+            if isinstance(var, Array):
+                var_ast = coffee.Symbol(var.name, var.shape)
+            else:
+                var_ast = coffee.Symbol("**" + var.name)
             args_ast.append(coffee.Decl("double", var_ast))
 
         # Write AST to initialise static kernel data
@@ -181,7 +185,7 @@ class CoffeeKernel(Kernel):
         # Convert the kernel recipe into an AST
         body_ast.append(mapper(self.recipe))
 
-        return coffee.FunDecl("void", "coffee_kernel", args_ast,
+        return coffee.FunDecl("void", "finat_kernel", args_ast,
                               coffee.Block(body_ast),
                               headers=["math.h", "string.h"])
 
@@ -205,7 +209,8 @@ def evaluate(expression, context={}, kernel_data=None):
 
     # Generate kernel function
     kernel = CoffeeKernel(expression, kernel_data).generate_ast()
-    basename = os.path.join(os.getcwd(), "coffee_kernel")
+
+    basename = os.path.join(os.getcwd(), "finat_kernel")
     with file(basename + ".c", "w") as f:
         f.write(str(kernel))
 
@@ -228,7 +233,7 @@ def evaluate(expression, context={}, kernel_data=None):
         raise Exception("Failed to load %s.so" % basename)
 
     # Invoke compiled kernel with packed arguments
-    kernel_lib.coffee_kernel(*args_data)
+    kernel_lib.finat_kernel(*args_data)
 
     # Close compiled kernel library
     ctypes.cdll.LoadLibrary('libdl.so').dlclose(kernel_lib._handle)

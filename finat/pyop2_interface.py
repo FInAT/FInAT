@@ -1,8 +1,10 @@
 try:
-    from pyop2.pyparloop import Kernel
+    from pyop2 import Kernel
 except:
     Kernel = None
 from .interpreter import evaluate
+from .ast import Array
+from .coffee_compiler import CoffeeKernel
 
 
 def pyop2_kernel_function(kernel, kernel_args, interpreter=False):
@@ -38,4 +40,13 @@ def pyop2_kernel_function(kernel, kernel_args, interpreter=False):
         return kernel_function
 
     else:
-        raise NotImplementedError
+        index_shape = ()
+        for index in kernel.recipe.indices:
+            for i in index:
+                index_shape += (i.extent.stop, )
+        kernel_args.insert(0, Array("*A", shape=index_shape))
+
+        coffee_kernel = CoffeeKernel(kernel.recipe, kernel.kernel_data)
+        kernel_ast = coffee_kernel.generate_ast(kernel_args=kernel_args,
+                                                varname="*A", increment=True)
+        return Kernel(kernel_ast, "finat_kernel")
