@@ -88,7 +88,7 @@ class CoffeeMapper(CombineMapper):
         return determinant[e.shape[0]](self.rec(e))
 
     def map_abs(self, expr):
-        return self.rec(expr.expression)
+        return coffee.FunCall("fabs", self.rec(expr.expression))
 
     def map_for_all(self, expr):
         var = coffee.Symbol(self.scope_var[-1], self.rec(expr.indices))
@@ -176,7 +176,7 @@ class CoffeeKernel(Kernel):
 
         return coffee.FunDecl("void", "coffee_kernel", args_ast,
                               coffee.Block(body_ast),
-                              headers=["stdio.h"])
+                              headers=["math.h", "string.h"])
 
 
 def evaluate(expression, context={}, kernel_data=None):
