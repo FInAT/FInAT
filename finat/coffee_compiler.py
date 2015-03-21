@@ -24,15 +24,21 @@ determinant = {1: lambda e: coffee.Det1(e),
 class CoffeeMapper(CombineMapper):
     """A mapper that generates Coffee ASTs for FInAT expressions"""
 
-    def __init__(self, kernel_data, varname="A"):
+    def __init__(self, kernel_data, varname="A", increment=False):
         """
         :arg context: a mapping from variable names to values
         :arg varname: name of the implied outer variable
+        :arg increment: flag indicating that the kernel should
+             increment result values instead of assigning them
         """
         super(CoffeeMapper, self).__init__()
         self.kernel_data = kernel_data
-        self.scope_var = deque(varname)
+        self.scope_var = deque()
         self.scope_ast = deque()
+        if increment:
+            self.scope_var.append((varname, coffee.Incr))
+        else:
+            self.scope_var.append((varname, coffee.Assign))
 
     def _push_scope(self):
         self.scope_ast.append([])
@@ -91,11 +97,12 @@ class CoffeeMapper(CombineMapper):
         return coffee.FunCall("fabs", self.rec(expr.expression))
 
     def map_for_all(self, expr):
-        var = coffee.Symbol(self.scope_var[-1], self.rec(expr.indices))
+        name, stmt = self.scope_var[-1]
+        var = coffee.Symbol(name, self.rec(expr.indices))
         self._push_scope()
         body = self.rec(expr.body)
         scope = self._pop_scope()
-        body = scope + [coffee.Assign(var, body)]
+        body = scope + [stmt(var, body)]
         for idx in expr.indices:
             body = [self._create_loop(idx, body)]
         return coffee.Block(body)
@@ -104,7 +111,7 @@ class CoffeeMapper(CombineMapper):
         for v, e in expr.bindings:
             shape = v.shape if isinstance(v, Array) else ()
             var = coffee.Symbol(self.rec(v), rank=shape)
-            self.scope_var.append(v)
+            self.scope_var.append((v, coffee.Assign))
 
             self._push_scope()
             body = self.rec(e)
