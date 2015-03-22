@@ -23,6 +23,6 @@ recipe = lagrange.basis_evaluation(points,
                                    kernel_data, pullback=False)
 
 # print recipe
-gvm = finat.ast.GraphvizMapper()
+gvm = finat.mappers.GraphvizMapper()
 gvm(recipe)
 print gvm.get_dot_code()

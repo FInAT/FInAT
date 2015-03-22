@@ -3,7 +3,7 @@ from pymbolic.mapper.stringifier import StringifyMapper, PREC_NONE
 from pymbolic.mapper import WalkMapper as WM
 from pymbolic.mapper.graphviz import GraphvizMapper as GVM
 from .indices import IndexBase
-from .ast import Recipe, ForAll, IndexSum
+from .ast import Recipe, ForAll, IndexSum, Let, Variable
 try:
     from termcolor import colored
 except ImportError:
@@ -180,7 +180,6 @@ class WalkMapper(WM):
         self.post_visit(expr, *args, **kwargs)
 
     map_delta = map_index_sum
-    map_let = map_index_sum
     map_for_all = map_index_sum
     map_wave = map_index_sum
     map_levi_civita = map_index_sum
@@ -214,6 +213,8 @@ class BindingMapper(IdentityMapper):
 
         if len(free_indices) > 0:
             expr = Recipe(expr.indices, ForAll(free_indices, body))
+        else:
+            expr = Recipe(expr.indices, body)
 
         return expr
 
@@ -235,3 +236,62 @@ class BindingMapper(IdentityMapper):
             self.bound_above.remove(idx)
             self.bound_below.add(idx)
         return ForAll(indices, body)
+
+
+class IndexSumMapper(IdentityMapper):
+    """A mapper that binds unbound IndexSums to temporary variables
+    using Lets."""
+
+    def __init__(self, kernel_data):
+        """
+        :arg context: a mapping from variable names to values
+        """
+        super(IndexSumMapper, self).__init__()
+        self.kernel_data = kernel_data
+        self._isum_stack = {}
+        self._bound_isums = set()
+
+    def _bind_isums(self, expr):
+        bindings = []
+        if isinstance(expr, Variable):
+            children = (expr,)
+        elif hasattr(expr, "children"):
+            children = expr.children
+        else:
+            return expr
+
+        for temp in children:
+            if temp in self._isum_stack:
+                isum = self._isum_stack[temp]
+                bindings.append((temp, isum))
+        for temp, isum in bindings:
+            del self._isum_stack[temp]
+        if len(bindings) > 0:
+            expr = Let(tuple(bindings), expr)
+        return expr
+
+    def map_recipe(self, expr):
+        body = self._bind_isums(self.rec(expr.body))
+        return Recipe(expr.indices, body)
+
+    def map_let(self, expr):
+        # Record IndexSums already bound to a temporary
+        new_bindings = []
+        for v, e in expr.bindings:
+            if isinstance(e, IndexSum):
+                self._bound_isums.add(e)
+            new_bindings.append((v, self.rec(e)))
+
+        body = self._bind_isums(self.rec(expr.body))
+        return Let(tuple(new_bindings), body)
+
+    def map_index_sum(self, expr):
+        if expr in self._bound_isums:
+            return super(IndexSumMapper, self).map_index_sum(expr)
+
+        # Replace IndexSum with temporary and add to stack
+        temp = self.kernel_data.new_variable("isum")
+        body = self._bind_isums(self.rec(expr.body))
+        expr = IndexSum(expr.indices, body)
+        self._isum_stack[temp] = expr
+        return temp

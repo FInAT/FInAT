@@ -25,7 +25,7 @@ class ScalarElement(FiatElementBase):
         i = indices.BasisFunctionIndex(self._fiat_element.space_dimension())
 
         if derivative is grad:
-            alpha = indices.DimensionIndex(kernel_data.tdim)
+            alpha = indices.DimensionIndex(self.cell.get_spatial_dimension())
             if pullback:
                 beta = alpha
                 alpha = indices.DimensionIndex(kernel_data.gdim)

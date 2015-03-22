@@ -277,6 +277,7 @@ class Inverse(StringifyMixin, p.Expression):
     """
     def __init__(self, expression):
         self.expression = expression
+        self.children = [expression]
         self._color = "blue"
 
         super(Inverse, self).__init__()
@@ -317,7 +318,7 @@ class Abs(StringifyMixin, p.Expression):
     mapper_method = "map_abs"
 
 
-class CompoundVector(StringifyMixin, p.Expression):
+class CompoundVector(StringifyMixin, p._MultiChildExpression):
     """A vector expression composed by concatenating other expressions."""
     def __init__(self, index, indices, expressions):
         """

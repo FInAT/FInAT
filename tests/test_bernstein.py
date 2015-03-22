@@ -90,12 +90,12 @@ def test_interpret_bernstein_moment(coords, quadrature, bernstein):
                                          q,
                                          kernel_data)
 
-    nqp = len(wt[0]) ** 2
-    fdata = np.ones((nqp,))
+    nqp1d = len(wt[0])
+    fdata = np.ones((nqp1d, nqp1d))
     print finat.interpreter.evaluate(recipe, context={"f": fdata},
                                      kernel_data=kernel_data)
 
-    assert True
+    assert False
 
 if __name__ == '__main__':
     import os

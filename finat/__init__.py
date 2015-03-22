@@ -10,3 +10,4 @@ import interpreter
 import quadrature
 import ufl_interface
 from geometry_mapper import GeometryMapper
+import coffee_compiler
