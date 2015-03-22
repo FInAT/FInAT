@@ -78,7 +78,7 @@ def test_interpret_bernstein_field(coords, quadrature, bernstein):
     assert True
 
 
-#@pytest.mark.xfail
+@pytest.mark.xfail
 def test_interpret_bernstein_moment(coords, quadrature, bernstein):
     kernel_data = finat.KernelData(finat.VectorFiniteElement(lagrange(cell()), 2))
 
