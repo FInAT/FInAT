@@ -122,7 +122,7 @@ class CoffeeMapper(CombineMapper):
                 # Coffee currently inverts matrices in-place
                 # so we need to memcpy the source matrix first
                 mcpy = coffee.FlatBlock("memcpy(%s, %s, %d*sizeof(double));\n" %
-                                        (v, e.expression, shape[0]*shape[1]))
+                                        (v, e.expression, shape[0] * shape[1]))
                 e.expression = v
                 self.scope_ast[-1].append(coffee.Decl("double", var))
                 self.scope_ast[-1].append(mcpy)
