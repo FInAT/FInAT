@@ -33,8 +33,9 @@ def kernel_data(lagrange, dim):
 
 
 @pytest.fixture
-def context():
-    return {'u': np.array([0.0, 0.6, 0.3, 0.4])}
+def context(cell):
+    return {'u': np.array([0.0, 0.6, 0.3, 0.4]),
+            'X': np.array(cell.make_lattice(1))}
 
 
 @pytest.fixture
@@ -86,6 +87,25 @@ def test_moment_evaluation(cell, lagrange, quadrature, kernel_data, context, deg
                                          kernel_data, derivative=None)
     recipe = lagrange.moment_evaluation(f_recipe, weights, points,
                                         kernel_data, pullback=False)
+
+    result_finat = finat.interpreter.evaluate(recipe, context, kernel_data)
+
+    result_coffee = finat.coffee_compiler.evaluate(recipe, context, kernel_data)
+
+    assert(np.abs(result_finat - result_coffee) < 1.e-12).all()
+
+
+@pytest.mark.parametrize('dim', [2, 3])
+@pytest.mark.parametrize('degree', [1, 2, 3])
+def test_grad_evaluation(cell, lagrange, quadrature, kernel_data, context, degree):
+    points, weights = quadrature
+
+    f_recipe = lagrange.field_evaluation(Variable("u"), points, kernel_data,
+                                         derivative=finat.grad, pullback=True)
+    recipe = lagrange.moment_evaluation(f_recipe, weights, points, kernel_data,
+                                        derivative=finat.grad, pullback=True)
+
+    recipe = finat.GeometryMapper(kernel_data)(recipe)
 
     result_finat = finat.interpreter.evaluate(recipe, context, kernel_data)
 
