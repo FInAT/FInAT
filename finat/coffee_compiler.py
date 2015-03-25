@@ -16,23 +16,29 @@ from pprint import pformat
 from collections import deque
 
 
-determinant = {1: lambda e: coffee.Det1(e),
-               2: lambda e: coffee.Det2(e),
-               3: lambda e: coffee.Det3(e)}
+determinant = {1: lambda e: coffee.Determinant1x1(e),
+               2: lambda e: coffee.Determinant2x2(e),
+               3: lambda e: coffee.Determinant3x3(e)}
 
 
 class CoffeeMapper(CombineMapper):
     """A mapper that generates Coffee ASTs for FInAT expressions"""
 
-    def __init__(self, kernel_data, varname="A"):
+    def __init__(self, kernel_data, varname="A", increment=False):
         """
         :arg context: a mapping from variable names to values
         :arg varname: name of the implied outer variable
+        :arg increment: flag indicating that the kernel should
+             increment result values instead of assigning them
         """
         super(CoffeeMapper, self).__init__()
         self.kernel_data = kernel_data
-        self.scope_var = deque(varname)
+        self.scope_var = deque()
         self.scope_ast = deque()
+        if increment:
+            self.scope_var.append((varname, coffee.Incr))
+        else:
+            self.scope_var.append((varname, coffee.Assign))
 
     def _push_scope(self):
         self.scope_ast.append([])
@@ -88,14 +94,15 @@ class CoffeeMapper(CombineMapper):
         return determinant[e.shape[0]](self.rec(e))
 
     def map_abs(self, expr):
-        return self.rec(expr.expression)
+        return coffee.FunCall("fabs", self.rec(expr.expression))
 
     def map_for_all(self, expr):
-        var = coffee.Symbol(self.scope_var[-1], self.rec(expr.indices))
+        name, stmt = self.scope_var[-1]
+        var = coffee.Symbol(name, self.rec(expr.indices))
         self._push_scope()
         body = self.rec(expr.body)
         scope = self._pop_scope()
-        body = scope + [coffee.Assign(var, body)]
+        body = scope + [stmt(var, body)]
         for idx in expr.indices:
             body = [self._create_loop(idx, body)]
         return coffee.Block(body)
@@ -104,7 +111,7 @@ class CoffeeMapper(CombineMapper):
         for v, e in expr.bindings:
             shape = v.shape if isinstance(v, Array) else ()
             var = coffee.Symbol(self.rec(v), rank=shape)
-            self.scope_var.append(v)
+            self.scope_var.append((v, coffee.Assign))
 
             self._push_scope()
             body = self.rec(e)
@@ -149,24 +156,21 @@ class CoffeeKernel(Kernel):
         # Apply pre-processing mapper to bind free indices
         self.recipe = BindingMapper(self.kernel_data)(self.recipe)
 
-    def generate_ast(self, context):
-        kernel_args = self.kernel_data.kernel_args
+    def generate_ast(self, kernel_args=None, varname="A", increment=False):
+        if kernel_args is None:
+            kernel_args = self.kernel_data.kernel_args
         args_ast = []
         body_ast = []
 
-        mapper = CoffeeMapper(self.kernel_data)
-
-        # Generate declaration of result argument
-        result_shape = ()
-        for index in self.recipe.indices:
-            for i in index:
-                result_shape += (i.extent.stop,)
-        result_ast = coffee.Symbol(kernel_args[0], result_shape)
-        args_ast.append(coffee.Decl("double", result_ast))
+        mapper = CoffeeMapper(self.kernel_data, varname=varname,
+                              increment=increment)
 
         # Add argument declarations
-        for var in kernel_args[1:]:
-            var_ast = coffee.Symbol(str(var), context[var].shape)
+        for var in kernel_args:
+            if isinstance(var, Array):
+                var_ast = coffee.Symbol(var.name, var.shape)
+            else:
+                var_ast = coffee.Symbol("**" + var.name)
             args_ast.append(coffee.Decl("double", var_ast))
 
         # Write AST to initialise static kernel data
@@ -181,9 +185,9 @@ class CoffeeKernel(Kernel):
         # Convert the kernel recipe into an AST
         body_ast.append(mapper(self.recipe))
 
-        return coffee.FunDecl("void", "coffee_kernel", args_ast,
+        return coffee.FunDecl("void", "finat_kernel", args_ast,
                               coffee.Block(body_ast),
-                              headers=["stdio.h"])
+                              headers=["math.h", "string.h"])
 
 
 def evaluate(expression, context={}, kernel_data=None):
@@ -196,16 +200,17 @@ def evaluate(expression, context={}, kernel_data=None):
             index_shape += (i.extent.stop, )
     index_data = np.empty(index_shape, dtype=np.double)
     args_data.append(index_data.ctypes.data)
-    kernel_data.kernel_args = ["A"]
+    kernel_data.kernel_args = [Array("A", shape=index_shape)]
 
     # Pack context arguments
     for var, value in context.iteritems():
-        kernel_data.kernel_args.append(var)
+        kernel_data.kernel_args.append(Array(var, shape=value.shape))
         args_data.append(value.ctypes.data)
 
     # Generate kernel function
-    kernel = CoffeeKernel(expression, kernel_data).generate_ast(context)
-    basename = os.path.join(os.getcwd(), "coffee_kernel")
+    kernel = CoffeeKernel(expression, kernel_data).generate_ast()
+
+    basename = os.path.join(os.getcwd(), "finat_kernel")
     with file(basename + ".c", "w") as f:
         f.write(str(kernel))
 
@@ -228,7 +233,7 @@ def evaluate(expression, context={}, kernel_data=None):
         raise Exception("Failed to load %s.so" % basename)
 
     # Invoke compiled kernel with packed arguments
-    kernel_lib.coffee_kernel(*args_data)
+    kernel_lib.finat_kernel(*args_data)
 
     # Close compiled kernel library
     ctypes.cdll.LoadLibrary('libdl.so').dlclose(kernel_lib._handle)
