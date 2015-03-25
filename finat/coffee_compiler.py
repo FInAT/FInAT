@@ -16,9 +16,9 @@ from pprint import pformat
 from collections import deque
 
 
-determinant = {1: lambda e: coffee.Det1(e),
-               2: lambda e: coffee.Det2(e),
-               3: lambda e: coffee.Det3(e)}
+determinant = {1: lambda e: coffee.Determinant1x1(e),
+               2: lambda e: coffee.Determinant2x2(e),
+               3: lambda e: coffee.Determinant3x3(e)}
 
 
 class CoffeeMapper(CombineMapper):
