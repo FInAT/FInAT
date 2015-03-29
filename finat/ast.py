@@ -74,15 +74,16 @@ class Recipe(StringifyMixin, p.Expression):
         the second is a tuple of :class:`BasisFunctionIndex`, and
         the third is a tuple of :class:`PointIndex`.
         Any of the tuples may be empty.
-    :param expression: The expression returned by this :class:`Recipe`.
+    :param body: The expression returned by this :class:`Recipe`.
     """
-    def __init__(self, indices, body):
+    def __init__(self, indices, body, _transpose=None):
         try:
             assert len(indices) == 3
         except:
             raise FInATSyntaxError("Indices must be a triple of tuples")
         self.indices = tuple(indices)
         self.body = body
+        self._transpose = _transpose
         self._color = "blue"
 
     mapper_method = "map_recipe"

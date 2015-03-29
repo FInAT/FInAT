@@ -18,7 +18,8 @@ class IdentityMapper(IM):
 
     def map_recipe(self, expr, *args, **kwargs):
         return expr.__class__(self.rec(expr.indices, *args, **kwargs),
-                              self.rec(expr.body, *args, **kwargs))
+                              self.rec(expr.body, *args, **kwargs),
+                              expr._transpose)
 
     def map_index(self, expr, *args, **kwargs):
         return expr
@@ -221,7 +222,18 @@ class BindingMapper(IdentityMapper):
         # Calculate the permutation from the order of loops actually
         # employed to the ordering of indices in the Recipe.
         try:
-            transpose = [recipe_indices.index(i) for i in bound_below]
+            def expand_tensors(indices):
+                result = []
+                if indices:
+                    for i in indices:
+                        try:
+                            result += i.factors
+                        except AttributeError:
+                            result.append(i)
+                return result
+
+            tmp = expand_tensors(recipe_indices)
+            transpose = [tmp.index(i) for i in expand_tensors(bound_below)]
         except ValueError:
             print "recipe_indices", recipe_indices
             print "missing index", i
@@ -229,9 +241,10 @@ class BindingMapper(IdentityMapper):
             raise
 
         if len(free_indices) > 0:
-            expr = Recipe(expr.indices, ForAll(free_indices, body))
+            expr = Recipe(expr.indices, ForAll(free_indices, body),
+                          _transpose=transpose)
         else:
-            expr = Recipe(expr.indices, body)
+            expr = Recipe(expr.indices, body, _transpose=transpose)
 
         return expr
 

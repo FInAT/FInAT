@@ -2,7 +2,6 @@ import pytest
 import finat
 
 
-@pytest.mark.xfail
 def test_index_permuation():
 
     i = finat.DimensionIndex(3)
