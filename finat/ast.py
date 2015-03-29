@@ -8,6 +8,10 @@ except ImportError:
     def colored(string, color, attrs=[]):
         return string
 
+__all__ = ["Variable", "Array", "Recipe", "IndexSum", "LeviCivita",
+           "ForAll", "Wave", "Let", "Delta", "Inverse", "Det", "Abs",
+           "CompoundVector"]
+
 
 class FInATSyntaxError(Exception):
     """Exception to raise when users break the rules of the FInAT ast."""

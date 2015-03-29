@@ -3,6 +3,11 @@ import pymbolic.primitives as p
 from pymbolic.mapper.stringifier import StringifyMapper
 import math
 
+__all__ = ["PointIndex", "TensorPointIndex", "BasisFunctionIndex",
+           "TensorBasisFunctionIndex",
+           "SimpliciallyGradedBasisFunctionIndex",
+           "DimensionIndex"]
+
 
 class IndexBase(ast.Variable):
     '''Base class for symbolic index objects.'''
