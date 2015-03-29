@@ -15,7 +15,8 @@ class Kernel(object):
 
 
 class KernelData(object):
-    def __init__(self, coordinate_element, coordinate_var=None, affine=None):
+    def __init__(self, coordinate_element=None, coordinate_var=None,
+                 affine=None):
         """
         :param coordinate_element: the (vector-valued) finite element for
             the coordinate field.
@@ -29,7 +30,7 @@ class KernelData(object):
 
         self.coordinate_element = coordinate_element
         self.coordinate_var = coordinate_var
-        if affine is None:
+        if affine is None and coordinate_element:
             self.affine = coordinate_element.degree <= 1 and \
                 isinstance(coordinate_element.cell, _simplex)
         else:
@@ -42,9 +43,11 @@ class KernelData(object):
         self.variables = set()
 
         #: The geometric dimension of the physical space.
-        self.gdim = coordinate_element._dimension
+        self.gdim = (coordinate_element._dimension
+                     if coordinate_element else None)
         #: The topological dimension of the reference element
-        self.tdim = coordinate_element._cell.get_spatial_dimension()
+        self.tdim = (coordinate_element._cell.get_spatial_dimension()
+                     if coordinate_element else None)
 
         self._variable_count = 0
         self._point_count = 0

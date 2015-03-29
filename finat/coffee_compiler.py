@@ -9,7 +9,7 @@ import os
 import subprocess
 import ctypes
 import numpy as np
-from .utils import Kernel
+from .utils import Kernel, KernelData
 from .ast import Recipe, IndexSum, Array, Inverse
 from .mappers import BindingMapper, IndexSumMapper
 from pprint import pformat
@@ -193,6 +193,9 @@ class CoffeeKernel(Kernel):
 def evaluate(expression, context={}, kernel_data=None):
     index_shape = ()
     args_data = []
+
+    if not kernel_data:
+        kernel_data = KernelData()
 
     # Pack free indices as kernel arguments
     for index in expression.indices:
