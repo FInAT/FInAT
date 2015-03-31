@@ -1,7 +1,7 @@
 import pytest
 import FIAT
 import finat
-import pymbolic.primitives as p
+from finat.ast import Variable
 import numpy as np
 
 
@@ -41,7 +41,7 @@ def test_bernstein_field(coords, quadrature, bernstein):
 
     q = finat.indices.TensorPointIndex(quadrature.points)
 
-    recipe = bernstein.field_evaluation(p.Variable("u"),
+    recipe = bernstein.field_evaluation(Variable("u"),
                                         q,
                                         kernel_data)
     print recipe
@@ -55,7 +55,7 @@ def test_bernstein_moment(coords, quadrature, bernstein):
     q = finat.indices.TensorPointIndex(quadrature.points)
     wt = quadrature.weights
 
-    recipe = bernstein.moment_evaluation(p.Variable("f"),
+    recipe = bernstein.moment_evaluation(Variable("f"),
                                          wt,
                                          q,
                                          kernel_data)
@@ -68,7 +68,7 @@ def test_interpret_bernstein_field(coords, quadrature, bernstein):
 
     q = finat.indices.TensorPointIndex(quadrature.points)
 
-    recipe = bernstein.field_evaluation(p.Variable("u"),
+    recipe = bernstein.field_evaluation(Variable("u"),
                                         q, kernel_data)
 
     udata = np.ones(bernstein.dofs_shape)
@@ -85,7 +85,7 @@ def test_interpret_bernstein_moment(coords, quadrature, bernstein):
     q = finat.indices.TensorPointIndex(quadrature.points)
     wt = quadrature.weights
 
-    recipe = bernstein.moment_evaluation(p.Variable("f"),
+    recipe = bernstein.moment_evaluation(Variable("f"),
                                          wt,
                                          q,
                                          kernel_data)
