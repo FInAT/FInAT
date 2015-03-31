@@ -209,7 +209,7 @@ class Bernstein(FiniteElementBase):
         if sd == 2:
             alpha = SimpliciallyGradedBasisFunctionIndex(sd, deg)
             alphas = alpha.factors
-            xi_cur = xi[0]
+            xi_cur = xi[0][qs[1]]
             s = 1 - xi_cur
             expr0 = Let(((r, xi_cur / s), ),
                         IndexSum((qs[0], ),
