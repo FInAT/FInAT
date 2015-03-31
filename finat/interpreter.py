@@ -45,7 +45,10 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
     def map_recipe(self, expr):
         """Evaluate expr for all values of free indices"""
 
-        return self.rec(expr.body)
+        if expr._transpose:
+            return self.rec(expr.body).transpose(expr._transpose)
+        else:
+            return self.rec(expr.body)
 
     def map_index_sum(self, expr):
 

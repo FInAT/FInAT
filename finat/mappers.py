@@ -1,3 +1,4 @@
+from collections import deque
 from pymbolic.mapper import IdentityMapper as IM
 from pymbolic.mapper.stringifier import StringifyMapper, PREC_NONE
 from pymbolic.mapper import WalkMapper as WM
@@ -15,18 +16,20 @@ class IdentityMapper(IM):
     def __init__(self):
         super(IdentityMapper, self).__init__()
 
-    def map_recipe(self, expr, *args):
-        return expr.__class__(self.rec(expr.indices, *args),
-                              self.rec(expr.body, *args))
+    def map_recipe(self, expr, *args, **kwargs):
+        return expr.__class__(self.rec(expr.indices, *args, **kwargs),
+                              self.rec(expr.body, *args, **kwargs),
+                              expr._transpose)
 
-    def map_index(self, expr, *args):
+    def map_index(self, expr, *args, **kwargs):
         return expr
 
-    def map_delta(self, expr, *args):
-        return expr.__class__(*(self.rec(c, *args) for c in expr.children))
+    def map_delta(self, expr, *args, **kwargs):
+        return expr.__class__(*(self.rec(c, *args, **kwargs)
+                                for c in expr.children))
 
-    def map_inverse(self, expr, *args):
-        return expr.__class__(self.rec(expr.expression, *args))
+    def map_inverse(self, expr, *args, **kwargs):
+        return expr.__class__(self.rec(expr.expression, *args, **kwargs))
 
     map_let = map_delta
     map_for_all = map_delta
@@ -44,7 +47,7 @@ class _IndexMapper(IdentityMapper):
 
         self.replacements = replacements
 
-    def map_index(self, expr, *args):
+    def map_index(self, expr, *args, **kwargs):
         '''Replace indices if they are in the replacements list'''
 
         try:
@@ -200,41 +203,77 @@ class BindingMapper(IdentityMapper):
         :arg context: a mapping from variable names to values
         """
         super(BindingMapper, self).__init__()
-        self.bound_above = set()
-        self.bound_below = set()
 
-    def map_recipe(self, expr):
-        body = self.rec(expr.body)
+    def map_recipe(self, expr, bound_above=None, bound_below=None):
+        if bound_above is None:
+            bound_above = set()
+        if bound_below is None:
+            bound_below = deque()
+
+        body = self.rec(expr.body, bound_above, bound_below)
 
         d, b, p = expr.indices
-        free_indices = tuple([i for i in d + b + p
-                              if i not in self.bound_below and
-                              i not in self.bound_above])
+        recipe_indices = tuple([i for i in d + b + p
+                                if i not in bound_above])
+        free_indices = tuple([i for i in recipe_indices
+                              if i not in bound_below])
+
+        bound_below.extendleft(reversed(free_indices))
+        # Calculate the permutation from the order of loops actually
+        # employed to the ordering of indices in the Recipe.
+        try:
+            def expand_tensors(indices):
+                result = []
+                if indices:
+                    for i in indices:
+                        try:
+                            result += i.factors
+                        except AttributeError:
+                            result.append(i)
+                return result
+
+            tmp = expand_tensors(recipe_indices)
+            transpose = [tmp.index(i) for i in expand_tensors(bound_below)]
+        except ValueError:
+            print "recipe_indices", recipe_indices
+            print "missing index", i
+            i.set_error()
+            raise
 
         if len(free_indices) > 0:
-            expr = Recipe(expr.indices, ForAll(free_indices, body))
+            expr = Recipe(expr.indices, ForAll(free_indices, body),
+                          _transpose=transpose)
         else:
-            expr = Recipe(expr.indices, body)
+            expr = Recipe(expr.indices, body, _transpose=transpose)
 
         return expr
 
-    def map_index_sum(self, expr):
+    def map_let(self, expr, bound_above, bound_below):
+
+        # Indices bound in the Let bindings should not count as
+        # bound_below for nodes higher in the tree.
+        return Let(tuple((symbol, self.rec(letexpr, bound_above,
+                                           bound_below=None))
+                         for symbol, letexpr in expr.bindings),
+                   self.rec(expr.body, bound_above, bound_below))
+
+    def map_index_sum(self, expr, bound_above, bound_below):
         indices = expr.indices
         for idx in indices:
-            self.bound_above.add(idx)
-        body = self.rec(expr.body)
+            bound_above.add(idx)
+        body = self.rec(expr.body, bound_above, bound_below)
         for idx in indices:
-            self.bound_above.remove(idx)
+            bound_above.remove(idx)
         return IndexSum(indices, body)
 
-    def map_for_all(self, expr):
+    def map_for_all(self, expr, bound_above, bound_below):
         indices = expr.indices
         for idx in indices:
-            self.bound_above.add(idx)
-        body = self.rec(expr.body)
+            bound_above.add(idx)
+        body = self.rec(expr.body, bound_above, bound_below)
         for idx in indices:
-            self.bound_above.remove(idx)
-            self.bound_below.add(idx)
+            bound_above.remove(idx)
+            bound_below.appendleft(idx)
         return ForAll(indices, body)
 
 
