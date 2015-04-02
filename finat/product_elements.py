@@ -3,6 +3,7 @@ from .finiteelementbase import ScalarElementMixin, FiniteElementBase
 from .indices import TensorPointIndex, TensorBasisFunctionIndex, DimensionIndex
 from .derivatives import grad
 from .ast import Recipe, CompoundVector, IndexSum
+from FIAT.reference_element import two_product_cell
 
 
 class ScalarProductElement(ScalarElementMixin, FiniteElementBase):
@@ -15,7 +16,11 @@ class ScalarProductElement(ScalarElementMixin, FiniteElementBase):
         self.factors = args
 
         self._degree = max([a._degree for a in args])
-        self._cell = None
+
+        cellprod = lambda cells: two_product_cell(cells[0], cells[1] if len(cells) < 3
+                                                  else cellprod(cells[1:]))
+
+        self._cell = cellprod([a.cell for a in args])
 
     def basis_evaluation(self, q, kernel_data, derivative=None,
                          pullback=True):

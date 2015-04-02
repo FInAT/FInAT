@@ -1,6 +1,7 @@
 import numpy as np
 from gauss_jacobi import gauss_jacobi_rule
-from points import StroudPointSet, PointSet
+from points import StroudPointSet, PointSet, TensorPointSet, GaussLobattoPointSet
+import FIAT
 
 
 class QuadratureRule(object):
@@ -48,3 +49,35 @@ class StroudQuadrature(QuadratureRule):
             cell,
             StroudPointSet(map(PointSet, points)),
             weights)
+
+
+class GaussLobattoQuadrature(QuadratureRule):
+    def __init__(self, cell, points):
+        """Gauss-Lobatto-Legendre quadrature on hypercubes.
+        :param cell: The reference cell on which to define the quadrature.
+        :param points: The number of points. In more than one dimension, a
+          tuple of points in each dimension.
+        """
+
+        def expand_quad(cell):
+            if cell.get_spatial_dimension() == 1:
+                return [FIAT.quadrature.GaussLobattoQuadratureLineRule(cell, points)]
+            else:
+                try:
+                    return expand_quad(cell.A) + expand_quad(cell.B)
+                except AttributeError():
+                    raise ValueError("Unable to create Gauss-Lobatto quadrature on ",
+                                     + str(cell))
+
+        q = expand_quad(cell)
+
+        if len(q) == 1:
+            super(GaussLobattoQuadrature, self).__init__(
+                cell,
+                GaussLobattoPointSet(q[0].get_points()),
+                PointSet(q[0].get_weights()))
+        else:
+            super(GaussLobattoQuadrature, self).__init__(
+                cell,
+                TensorPointSet([GaussLobattoPointSet(q_.get_points()) for q_ in q]),
+                [PointSet(q_.get_weights()) for q_ in q])
