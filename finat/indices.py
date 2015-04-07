@@ -75,19 +75,27 @@ class PointIndex(IndexBase):
     _count = 0
 
 
-class TensorPointIndex(IndexBase):
+class TensorIndex(IndexBase):
+    """A mixin to create tensor product indices."""
+    def __init__(self, factors):
+
+        self.factors = factors
+
+        name = "_x_".join(f.name for f in factors)
+
+        super(TensorIndex, self).__init__(-1, name)
+
+
+class TensorPointIndex(TensorIndex):
     """An index running over a set of points which have a tensor product
     structure. This index is actually composed of multiple factors."""
     def __init__(self, pointset):
 
         self.points = pointset
 
-        name = 'q_' + str(PointIndex._count)
-        PointIndex._count += 1
+        factors = [PointIndex(f) for f in pointset.factor_sets]
 
-        super(TensorPointIndex, self).__init__(-1, name)
-
-        self.factors = [PointIndex(f) for f in pointset.factor_sets]
+        super(TensorPointIndex, self).__init__(factors)
 
     def __getattr__(self, name):
 
@@ -111,7 +119,7 @@ class BasisFunctionIndex(IndexBase):
     _count = 0
 
 
-class TensorBasisFunctionIndex(IndexBase):
+class TensorBasisFunctionIndex(TensorIndex):
     """An index running over a set of basis functions which have a tensor
     product structure. This index is actually composed of multiple
     factors.
@@ -120,12 +128,7 @@ class TensorBasisFunctionIndex(IndexBase):
 
         assert all([isinstance(a, BasisFunctionIndex) for a in args])
 
-        name = 'i_' + str(BasisFunctionIndex._count)
-        BasisFunctionIndex._count += 1
-
-        super(TensorBasisFunctionIndex, self).__init__(-1, name)
-
-        self.factors = args
+        super(TensorBasisFunctionIndex, self).__init__(args)
 
     def __getattr__(self, name):
 
