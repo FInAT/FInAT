@@ -337,7 +337,7 @@ class IndexSumMapper(IdentityMapper):
 
 
 class FactorDeltaMapper(IdentityMapper):
-    """Class to pull deltas up the expression tree to maximise the opportunities for cancellation."""
+    """Mapper to pull deltas up the expression tree to maximise the opportunities for cancellation."""
 
     def map_product(self, expr, *args, **kwargs):
 
@@ -359,3 +359,112 @@ class FactorDeltaMapper(IdentityMapper):
             result = Delta(delta.indices, result)
 
         return result
+
+
+class CancelDeltaMapper(IdentityMapper):
+    """Mapper to cancel and/or replace indices according to the rules for Deltas."""
+
+    def map_index_sum(self, expr, replace=None, sum_indices=(), *args, **kwargs):
+
+        if replace:
+            raise NotImplementedError
+        elif replace is None:
+            replace = {}
+
+        def flatten(index):
+            try:
+                return (index,) + reduce((lambda a, b: a + b), map(flatten, index.factors))
+            except AttributeError:
+                return (index,)
+
+        flattened = map(flatten, expr.indices)
+        sum_indices += reduce((lambda a, b: a + b), flattened)
+
+        if type(expr.body) in (IndexSum, ForAll, Delta):
+            # New index replacements are only possible in chains of sums, foralls and deltas.
+            body = self.rec(expr.body, *args, replace=replace, sum_indices=sum_indices, **kwargs)
+        else:
+            body = self.rec(expr.body, *args, replace=replace, **kwargs)
+
+        new_indices = []
+        for index in flattened:
+            if index[0] in replace:
+                # Replaced indices are dropped.
+                pass
+            elif any(i in replace for i in index[1:]):
+                for i in index[1:]:
+                    if i not in replace:
+                        new_indices.append(i)
+            else:
+                new_indices.append(index[0])
+
+        if new_indices:
+            return IndexSum(new_indices, body)
+        else:
+            return body
+
+    def map_delta(self, expr, replace=None, sum_indices=(), *args, **kwargs):
+
+        # For the moment let's just go with the delta has two indices idea
+        assert len(expr.indices) == 2
+
+        if replace is not None:
+            indices = tuple(replace[index] if index in replace.keys() else index for index in expr.indices)
+        else:
+            indices = expr.indices
+
+        if indices[1] in sum_indices:
+            replace[indices[1]] = indices[0]
+            indices = (indices[0], indices[0])
+        elif indices[0] in sum_indices:
+            replace[indices[0]] = indices[1]
+            indices = (indices[1], indices[1])
+
+        if indices[0] != indices[1]:
+            targets = replace.values()
+            if indices[0] in targets and indices[1] not in targets:
+                replace[indices[1]] = indices[0]
+                indices = (indices[0], indices[0])
+            elif indices[1] in targets and indices[0] not in targets:
+                replace[indices[0]] = indices[1]
+                indices = (indices[0], indices[0])
+            else:
+                # I don't think this can happen.
+                raise NotImplementedError
+
+        if type(expr.body) in (IndexSum, ForAll, Delta):
+            # New index replacements are only possible in chains of sums, foralls and deltas.
+            body = self.rec(expr.body, *args, replace=replace, sum_indices=sum_indices, **kwargs)
+        else:
+            body = self.rec(expr.body, *args, replace=replace, **kwargs)
+
+        if indices[0] == indices[1]:
+            return body
+        else:
+            return Delta(indices, body)
+
+    def map_recipe(self, expr, replace=None, *args, **kwargs):
+        if replace is None:
+            replace = {}
+
+        body = self.rec(expr.body, *args, replace=replace, **kwargs)
+
+        def recurse_replace(index):
+            if index in replace:
+                return replace[index]
+            else:
+                try:
+                    return type(index)(*map(recurse_replace, index.factors))
+                except AttributeError:
+                    return index
+
+        if replace:
+            indices = tuple(tuple(map(recurse_replace, itype)) for itype in expr.indices)
+        else:
+            indices = expr.indices
+
+        return Recipe(indices, body)
+
+    def map_index(self, expr, replace=None, *args, **kwargs):
+
+        return replace[expr] if replace and expr in replace else expr
