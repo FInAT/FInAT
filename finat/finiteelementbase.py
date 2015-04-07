@@ -154,7 +154,7 @@ class ScalarElementMixin(object):
         if isinstance(p[0], TensorPointIndex):
             ws = [w_.kernel_variable("w", kernel_data)[p__]
                   for w_, p__ in zip(weights, p[0].factors)]
-            w = reduce(lambda a, b: a*b, ws)
+            w = reduce(lambda a, b: a * b, ws)
         else:
             w = weights.kernel_variable("w", kernel_data)[p]
 
