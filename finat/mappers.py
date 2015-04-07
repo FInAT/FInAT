@@ -4,7 +4,7 @@ from pymbolic.mapper.stringifier import StringifyMapper, PREC_NONE
 from pymbolic.mapper import WalkMapper as WM
 from pymbolic.mapper.graphviz import GraphvizMapper as GVM
 from .indices import IndexBase
-from .ast import Recipe, ForAll, IndexSum, Let, Variable
+from .ast import Recipe, ForAll, IndexSum, Let, Variable, Delta
 try:
     from termcolor import colored
 except ImportError:
@@ -334,3 +334,28 @@ class IndexSumMapper(IdentityMapper):
         expr = IndexSum(expr.indices, body)
         self._isum_stack[temp] = expr
         return temp
+
+
+class FactorDeltaMapper(IdentityMapper):
+    """Class to pull deltas up the expression tree to maximise the opportunities for cancellation."""
+
+    def map_product(self, expr, *args, **kwargs):
+
+        children = (self.rec(child, *args, **kwargs) for child in expr.children)
+        factors = []
+        deltas = []
+
+        for child in children:
+            if isinstance(child, Delta):
+                deltas.append(child)
+                factors.append(child.body)
+            else:
+                factors.append(child)
+
+        from pymbolic.primitives import flattened_product
+        result = flattened_product(tuple(factors))
+
+        for delta in deltas:
+            result = Delta(delta.indices, result)
+
+        return result

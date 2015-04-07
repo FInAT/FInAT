@@ -262,6 +262,8 @@ match. Otherwise 0 will be returned.
                 "Delta statement requires exactly two indices")
 
         super(Delta, self).__init__((indices, body))
+        self.indices = indices
+        self.body = body
         self._color = "blue"
 
     def __getinitargs__(self):
