@@ -2,6 +2,7 @@ from . import ast
 import pymbolic.primitives as p
 from pymbolic.mapper.stringifier import StringifyMapper
 import math
+from .points import TensorPointSet
 
 __all__ = ["PointIndex", "TensorPointIndex", "BasisFunctionIndex",
            "TensorBasisFunctionIndex",
@@ -61,7 +62,12 @@ class IndexBase(ast.Variable):
         self._error = True
 
 
-class PointIndex(IndexBase):
+class PointIndexBase(object):
+    # Marker class for point indices.
+    pass
+
+
+class PointIndex(IndexBase, PointIndexBase):
     '''An index running over a set of points, for example quadrature points.'''
     def __init__(self, pointset):
 
@@ -86,14 +92,19 @@ class TensorIndex(IndexBase):
         super(TensorIndex, self).__init__(-1, name)
 
 
-class TensorPointIndex(TensorIndex):
+class TensorPointIndex(TensorIndex, PointIndexBase):
     """An index running over a set of points which have a tensor product
     structure. This index is actually composed of multiple factors."""
-    def __init__(self, pointset):
+    def __init__(self, *args):
 
-        self.points = pointset
+        if isinstance(args[0], TensorPointSet):
+            assert len(args) == 1
 
-        factors = [PointIndex(f) for f in pointset.factor_sets]
+            self.points = args[0]
+
+            factors = [PointIndex(f) for f in args[0].factor_sets]
+        else:
+            factors = args
 
         super(TensorPointIndex, self).__init__(factors)
 

@@ -215,8 +215,8 @@ class BindingMapper(IdentityMapper):
         d, b, p = expr.indices
         recipe_indices = tuple([i for i in d + b + p
                                 if i not in bound_above])
-        free_indices = tuple([i for i in recipe_indices
-                              if i not in bound_below])
+        free_indices = tuple(set([i for i in recipe_indices
+                                  if i not in bound_below]))
 
         bound_below.extendleft(reversed(free_indices))
         # Calculate the permutation from the order of loops actually
@@ -364,11 +364,12 @@ class FactorDeltaMapper(IdentityMapper):
 class CancelDeltaMapper(IdentityMapper):
     """Mapper to cancel and/or replace indices according to the rules for Deltas."""
 
+    # Those nodes through which it is legal to transmit sum_indices.
+    _transmitting_nodes = (IndexSum, ForAll, Delta, Let)
+
     def map_index_sum(self, expr, replace=None, sum_indices=(), *args, **kwargs):
 
-        if replace:
-            raise NotImplementedError
-        elif replace is None:
+        if replace is None:
             replace = {}
 
         def flatten(index):
@@ -380,8 +381,8 @@ class CancelDeltaMapper(IdentityMapper):
         flattened = map(flatten, expr.indices)
         sum_indices += reduce((lambda a, b: a + b), flattened)
 
-        if type(expr.body) in (IndexSum, ForAll, Delta):
-            # New index replacements are only possible in chains of sums, foralls and deltas.
+        if type(expr.body) in self._transmitting_nodes:
+            # New index replacements are only possible in chains certain ast nodes.
             body = self.rec(expr.body, *args, replace=replace, sum_indices=sum_indices, **kwargs)
         else:
             body = self.rec(expr.body, *args, replace=replace, **kwargs)
@@ -420,7 +421,8 @@ class CancelDeltaMapper(IdentityMapper):
             replace[indices[0]] = indices[1]
             indices = (indices[1], indices[1])
 
-        if indices[0] != indices[1]:
+        # Only attempt new replacements if we are in transmitting node stacks.
+        if sum_indices and indices[0] != indices[1]:
             targets = replace.values()
             if indices[0] in targets and indices[1] not in targets:
                 replace[indices[1]] = indices[0]
@@ -428,13 +430,14 @@ class CancelDeltaMapper(IdentityMapper):
             elif indices[1] in targets and indices[0] not in targets:
                 replace[indices[0]] = indices[1]
                 indices = (indices[0], indices[0])
-            else:
-                # I don't think this can happen.
-                raise NotImplementedError
+            #else:
+            #    # I don't think this can happen.
+            #    raise NotImplementedError
 
-        if type(expr.body) in (IndexSum, ForAll, Delta):
-            # New index replacements are only possible in chains of sums, foralls and deltas.
-            body = self.rec(expr.body, *args, replace=replace, sum_indices=sum_indices, **kwargs)
+        if type(expr.body) in self._transmitting_nodes:
+            # New index replacements are only possible in chains of certain ast nodes.
+            body = self.rec(expr.body, *args, replace=replace,
+                            sum_indices=sum_indices, **kwargs)
         else:
             body = self.rec(expr.body, *args, replace=replace, **kwargs)
 
@@ -464,6 +467,21 @@ class CancelDeltaMapper(IdentityMapper):
             indices = expr.indices
 
         return Recipe(indices, body)
+
+    def map_let(self, expr, replace=None, sum_indices=(), *args, **kwargs):
+        # Propagate changes first into the body. Then do any required
+        # substitutions on the bindings.
+
+        body = self.rec(expr.body, *args, replace=replace,
+                        sum_indices=sum_indices, **kwargs)
+
+        # Need to think about conveying information from the body to
+        # the bindings about diagonalisations which might occur.
+
+        bindings = self.rec(expr.bindings, *args, replace=replace,
+                            sum_indices=sum_indices, **kwargs)
+
+        return Let(bindings, body)
 
     def map_index(self, expr, replace=None, *args, **kwargs):
 
