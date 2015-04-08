@@ -44,12 +44,15 @@ class ScalarProductElement(ScalarElementMixin, FiniteElementBase):
             phi_d = [e.basis_evaluation(q_, kernel_data, derivative=grad, pullback=False)
                      for e, q_ in zip(self.factors, q.factors)]
 
-            # Need to replace the basisfunctionindices on phi_d with i
-            expressions = [reduce(lambda a, b: a.body * b.body,
-                                  phi[:d] + [phi_d[d]] + phi[d + 1:])
-                           for d in range(len(phi))]
+            # Replace the basisfunctionindices on phi_d with i
+            phi_d = [p.replace_indices(zip(p.indices[1], (i__,)))
+                     for p, i__ in zip(phi_d, i_)]
 
-            alpha_ = [phi_.indices[0][0] for phi_ in phi_d]
+            expressions = tuple(reduce(lambda a, b: a.body * b.body,
+                                       phi[:d] + [phi_d[d]] + phi[d + 1:])
+                                for d in range(len(phi)))
+
+            alpha_ = tuple(phi_.indices[0][0] for phi_ in phi_d)
             alpha = DimensionIndex(sum(alpha__.length for alpha__ in alpha_))
 
             assert alpha.length == kernel_data.gdim
