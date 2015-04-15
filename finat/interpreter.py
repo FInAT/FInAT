@@ -22,15 +22,6 @@ class FinatEvaluationMapper(FloatEvaluationMapper):
         # Storage for wave variables while they are out of scope.
         self.wave_vars = {}
 
-    def _as_range(self, e):
-        """Convert a slice to a range. If the range has expressions as bounds,
-        evaluate them.
-        """
-
-        return range(int(self.rec(e.start or 0)),
-                     int(self.rec(e.stop)),
-                     int(self.rec(e.step or 1)))
-
     def map_variable(self, expr):
         try:
             var = self.context[expr.name]

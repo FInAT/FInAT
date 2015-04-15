@@ -3,8 +3,9 @@ from pymbolic.mapper import IdentityMapper as IM
 from pymbolic.mapper.stringifier import StringifyMapper, PREC_NONE
 from pymbolic.mapper import WalkMapper as WM
 from pymbolic.mapper.graphviz import GraphvizMapper as GVM
+from pymbolic.primitives import Product, Sum
 from .indices import IndexBase
-from .ast import Recipe, ForAll, IndexSum, Let, Variable, Delta
+from .ast import Recipe, ForAll, IndexSum, Let, Variable, Delta, CompoundVector
 try:
     from termcolor import colored
 except ImportError:
@@ -25,8 +26,8 @@ class IdentityMapper(IM):
         return expr
 
     def map_delta(self, expr, *args, **kwargs):
-        return expr.__class__(*(self.rec(c, *args, **kwargs)
-                                for c in expr.children))
+        return expr.__class__(*tuple(self.rec(c, *args, **kwargs)
+                                     for c in expr.children))
 
     def map_inverse(self, expr, *args, **kwargs):
         return expr.__class__(self.rec(expr.expression, *args, **kwargs))
@@ -54,6 +55,34 @@ class _IndexMapper(IdentityMapper):
             return(self.replacements[expr])
         except KeyError:
             return expr
+
+    def map_compound_vector(self, expr, *args, **kwargs):
+        # Symbolic replacement of indices on a CompoundVector Just
+        # Works. However replacing the compound vector index with a
+        # number should collapse the CompoundVector.
+
+        if expr.index in self.replacements and\
+           not isinstance(self.replacements[expr.index], IndexBase):
+            # Work out which subvector we are in and what the index value is.
+            i = expr.index
+            val = self.replacements[expr.index]
+
+            pos = (val - (i.start or 0))/(i.step or 1)
+            assert pos <= i.length
+
+            for subindex, body in zip(expr.indices, expr.body):
+                if pos < subindex.length:
+                    sub_i = pos * (subindex.step or 1) + (subindex.start or 0)
+                    self.replacements[subindex] = sub_i
+                    result = self.rec(body, *args, **kwargs)
+                    self.replacements.pop(subindex)
+                    return result
+                else:
+                    pos -= subindex.length
+
+            raise ValueError("Illegal index value.")
+        else:
+            return super(_IndexMapper, self).map_compound_vector(expr, *args, **kwargs)
 
 
 class _StringifyMapper(StringifyMapper):
@@ -334,6 +363,79 @@ class IndexSumMapper(IdentityMapper):
         expr = IndexSum(expr.indices, body)
         self._isum_stack[temp] = expr
         return temp
+
+
+class CancelCompoundVectorMapper(IdentityMapper):
+    """Mapper to find and expand reductions over CompoundVectors.
+
+    Eventually this probably needs some policy support to decide which
+    cases it is worth expanding and cancelling and which not.
+    """
+    def map_index_sum(self, expr, *args, **kwargs):
+
+        if isinstance(expr.body, (Product, Sum)):
+            fs = []
+            body = self.rec(expr.body, *args,
+                            sum_indices=expr.indices, factored_summands=fs)
+
+            if fs:
+                assert len(fs) == 1
+                indices = tuple(i for i in expr.indices if i != fs[0][0])
+                if indices:
+                    return IndexSum(indices, fs[0][1])
+                else:
+                    return fs[0][1]
+            else:
+                return IndexSum(expr.indices, body)
+        else:
+            return super(CancelCompoundVectorMapper, self).map_index_sum(
+                expr, *args, **kwargs)
+
+    def map_product(self, expr, sum_indices=None, factored_summands=None, *args,
+                    **kwargs):
+
+        try:
+            if not sum_indices:
+                raise ValueError
+            vec_i = None
+            vectors = []
+            factors = []
+            for c in expr.children:
+                if isinstance(c, CompoundVector):
+                    if vec_i is None:
+                        vec_i = c.index
+                    elif c.index != vec_i:
+                        raise ValueError
+                    vectors.append(c)
+                else:
+                    factors.append(c)
+
+            if vec_i is None:
+                raise ValueError  # No CompoundVector
+            if vec_i in sum_indices:
+                # Flatten the CompoundVector.
+                flattened = 0
+
+                r = {}
+                replacer = _IndexMapper(r)
+                for i in vec_i.as_range:
+                    r[vec_i] = i
+                    prod = 1
+                    for c in expr.children:
+                        prod *= replacer(c)
+                    flattened += prod
+
+                factored_summands.append((vec_i, flattened))
+                return 0.0
+
+            else:
+                # Eventually we want to push the sum inside the vector.
+                raise ValueError
+
+        except ValueError:
+            # Drop to here if this is not a cancellation opportunity for whatever reason.
+            return super(CancelCompoundVectorMapper, self).map_product(
+                expr, *args, **kwargs)
 
 
 class FactorDeltaMapper(IdentityMapper):
