@@ -349,7 +349,7 @@ class CompoundVector(StringifyMixin, p._MultiChildExpression):
 
         super(CompoundVector, self).__init__((index, indices, expressions))
 
-        self.index, self.indices, self.expressions = self.children
+        self.index, self.indices, self.body = self.children
 
         self._color = "blue"
 
