@@ -9,7 +9,7 @@ from .ast import Recipe, ForAll, IndexSum, Let, Variable, Delta, CompoundVector
 try:
     from termcolor import colored
 except ImportError:
-    def colored(string, color, attrs=[]):
+    def colored(string, color, attrs=None):
         return string
 
 
