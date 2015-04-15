@@ -23,6 +23,10 @@ class IndexBase(ast.Variable):
             raise TypeError("Extent must be a slice or an int")
         self._color = "yellow"
 
+        self.start = self._extent.start
+        self.stop = self._extent.stop
+        self.step = self._extent.step
+
     @property
     def extent(self):
         '''A slice indicating the values this index can take.'''
@@ -36,6 +40,16 @@ class IndexBase(ast.Variable):
         step = self._extent.step or 1
 
         return int(math.ceil((stop - start) / step))
+
+    @property
+    def as_range(self):
+        """Convert a slice to a range. If the range has expressions as bounds,
+        evaluate them.
+        """
+
+        return range(int(self._extent.start or 0),
+                     int(self._extent.stop),
+                     int(self._extent.step or 1))
 
     @property
     def _str_extent(self):
