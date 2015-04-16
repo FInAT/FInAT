@@ -319,6 +319,14 @@ class IndexSumMapper(IdentityMapper):
         self._isum_stack = {}
         self._bound_isums = set()
 
+    def __call__(self, expr):
+
+        if isinstance(expr.body, IndexSum):
+            self._bound_isums.add(expr.body)
+
+        return super(IndexSumMapper, self).__call__(expr)
+
+
     def _bind_isums(self, expr):
         bindings = []
         if isinstance(expr, Variable):
