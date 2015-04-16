@@ -55,29 +55,44 @@ class GaussLobattoQuadrature(QuadratureRule):
     def __init__(self, cell, points):
         """Gauss-Lobatto-Legendre quadrature on hypercubes.
         :param cell: The reference cell on which to define the quadrature.
-        :param points: The number of points. In more than one dimension, a
-          tuple of points in each dimension.
+        :param points: The number of points, or a tuple giving the number of
+          points in each dimension.
         """
 
-        def expand_quad(cell):
-            if cell.get_spatial_dimension() == 1:
-                return [FIAT.quadrature.GaussLobattoQuadratureLineRule(cell, points)]
+        def expand_quad(cell, points):
+            d = cell.get_spatial_dimension()
+            if d == 1:
+                return ((cell, points,
+                         FIAT.quadrature.GaussLobattoQuadratureLineRule(cell, points[0])),)
             else:
                 try:
-                    return expand_quad(cell.A) + expand_quad(cell.B)
+                    d_a = cell.A.get_spatial_dimension()
+                    return expand_quad(cell.A, points[:d_a])\
+                        + expand_quad(cell.B, points[d_a:])
                 except AttributeError():
                     raise ValueError("Unable to create Gauss-Lobatto quadrature on ",
                                      + str(cell))
+        try:
+            points = tuple(points)
+        except TypeError:
+            points = (points,)
 
-        q = expand_quad(cell)
+        if len(points) == 1:
+            points *= cell.get_spatial_dimension()
 
-        if len(q) == 1:
+        cpq = expand_quad(cell, points)
+
+        # uniquify q.
+        lookup = {(c, p): (GaussLobattoPointSet(q.get_points()),
+                           PointSet(q.get_weights())) for c, p, q in cpq}
+        pointset = tuple(lookup[c, p][0] for c, p, _ in cpq)
+        weightset = tuple(lookup[c, p][1] for c, p, _ in cpq)
+
+        if len(cpq) == 1:
             super(GaussLobattoQuadrature, self).__init__(
-                cell,
-                GaussLobattoPointSet(q[0].get_points()),
-                PointSet(q[0].get_weights()))
+                cell, pointset[0], weightset[0])
         else:
             super(GaussLobattoQuadrature, self).__init__(
                 cell,
-                TensorPointSet([GaussLobattoPointSet(q_.get_points()) for q_ in q]),
-                [PointSet(q_.get_weights()) for q_ in q])
+                TensorPointSet(pointset),
+                weightset)
