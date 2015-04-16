@@ -13,7 +13,7 @@ class ScalarProductElement(ScalarElementMixin, FiniteElementBase):
 
         assert all([isinstance(e, FiniteElementBase) for e in args])
 
-        self.factors = args
+        self.factors = tuple(args)
 
         self._degree = max([a._degree for a in args])
 
@@ -72,3 +72,14 @@ class ScalarProductElement(ScalarElementMixin, FiniteElementBase):
             expr = reduce(lambda a, b: a.body * b.body, phi)
 
         return Recipe(indices=ind, body=expr)
+
+    def __hash__(self):
+        """ScalarProductElements are equal if their factors are equal"""
+
+        return hash(self.factors)
+
+    def __eq__(self, other):
+        """VectorFiniteElements are equal if they have the same base element
+        and dimension."""
+
+        return self.factors == other.factors

@@ -124,6 +124,17 @@ class FiniteElementBase(object):
 
         raise NotImplementedError
 
+    def __hash__(self):
+        """Elements are equal if they have the same class, degree, and cell."""
+
+        return hash((type(self), self._cell, self._degree))
+
+    def __eq__(self, other):
+        """Elements are equal if they have the same class, degree, and cell."""
+
+        return type(self) == type(other) and self._cell == other._cell and\
+            self._degree == other._degree
+
 
 class ScalarElementMixin(object):
     """Mixin class containing field evaluation and moment rules for scalar

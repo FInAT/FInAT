@@ -226,3 +226,16 @@ points :math:`q`:
             expression = IndexSum(d + p, psi * phi * w[p])
 
         return Recipe(((), b + beta + b_, ()), expression)
+
+    def __hash__(self):
+        """VectorFiniteElements are equal if they have the same base element
+        and dimension."""
+
+        return hash((self._dimension, self._base_element))
+
+    def __eq__(self, other):
+        """VectorFiniteElements are equal if they have the same base element
+        and dimension."""
+
+        return self._dimension == other._dimension and\
+            self._base_element == other._base_element
