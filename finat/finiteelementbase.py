@@ -169,10 +169,13 @@ class ScalarElementMixin(object):
         else:
             w = weights.kernel_variable("w", kernel_data)[p]
 
-        expr = psi * phi * w
+        expr = psi * phi
 
         if d:
             expr = IndexSum(d, expr)
+
+        # The quadrature weights go outside any indexsum!
+        expr *= w
 
         if pullback:
             expr *= Abs(kernel_data.detJ)

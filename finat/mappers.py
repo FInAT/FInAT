@@ -420,25 +420,21 @@ class CancelCompoundVectorMapper(IdentityMapper):
 
             if vec_i is None:
                 raise ValueError  # No CompoundVector
-            if vec_i in sum_indices:
-                # Flatten the CompoundVector.
-                flattened = 0
 
-                r = {}
-                replacer = _IndexMapper(r)
-                for i in vec_i.as_range:
-                    r[vec_i] = i
-                    prod = 1
-                    for c in expr.children:
-                        prod *= replacer(c)
-                    flattened += prod
+            # Flatten the CompoundVector.
+            flattened = 0
 
-                factored_summands.append((vec_i, flattened))
-                return 0.0
+            r = {}
+            replacer = _IndexMapper(r)
+            for i in vec_i.as_range:
+                r[vec_i] = i
+                prod = 1
+                for c in expr.children:
+                    prod *= replacer(c)
+                flattened += prod
 
-            else:
-                # Eventually we want to push the sum inside the vector.
-                raise ValueError
+            factored_summands.append((vec_i, flattened))
+            return 0.0
 
         except ValueError:
             # Drop to here if this is not a cancellation opportunity for whatever reason.
