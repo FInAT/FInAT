@@ -220,6 +220,27 @@ class WalkMapper(WM):
     map_compound_vector = map_index_sum
 
 
+class IndicesMapper(WalkMapper):
+    """Label an AST with the indices which occur below each node."""
+
+    def __init__(self):
+        self._index_stack = [set()]
+
+    def visit(self, expr, *args, **kwargs):
+        # Put a new index frame onto the stack.
+        self._index_stack.append(set())
+        return True
+        
+    def post_visit(self, expr, *args, **kwargs):
+        # The frame contains any indices we directly saw:
+        expr._indices_below = tuple(self._index_stack.pop())
+
+        if isinstance(expr, IndexBase):
+            expr._indices_below += expr
+
+        self._index_stack[-1].union(expr._indices_below)
+
+
 class GraphvizMapper(WalkMapper, GVM):
     pass
 
