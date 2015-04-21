@@ -67,7 +67,7 @@ class _IndexMapper(IdentityMapper):
             i = expr.index
             val = self.replacements[expr.index]
 
-            pos = (val - (i.start or 0))/(i.step or 1)
+            pos = (val - (i.start or 0)) / (i.step or 1)
             assert pos <= i.length
 
             for subindex, body in zip(expr.indices, expr.body):
@@ -230,7 +230,7 @@ class IndicesMapper(WalkMapper):
         # Put a new index frame onto the stack.
         self._index_stack.append(set())
         return True
-        
+
     def post_visit(self, expr, *args, **kwargs):
         # The frame contains any indices we directly saw:
         expr._indices_below = tuple(self._index_stack.pop())
@@ -346,7 +346,6 @@ class IndexSumMapper(IdentityMapper):
             self._bound_isums.add(expr.body)
 
         return super(IndexSumMapper, self).__call__(expr)
-
 
     def _bind_isums(self, expr):
         bindings = []
