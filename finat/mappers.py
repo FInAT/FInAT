@@ -556,7 +556,7 @@ class CancelDeltaMapper(IdentityMapper):
             elif indices[1] in targets and indices[0] not in targets:
                 replace[indices[0]] = indices[1]
                 indices = (indices[0], indices[0])
-            #else:
+            # else:
             #    # I don't think this can happen.
             #    raise NotImplementedError
 
