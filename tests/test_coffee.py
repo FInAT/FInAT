@@ -49,66 +49,70 @@ def quadrature(cell, dim, degree):
     return points, weights
 
 
-@pytest.mark.parametrize('dim', [1, 2, 3])
-@pytest.mark.parametrize('degree', [1, 2, 3])
-def test_basis_evaluation(cell, lagrange, quadrature, kernel_data, degree):
-    points, weights = quadrature
+# @pytest.mark.skip
+# @pytest.mark.parametrize('dim', [1, 2, 3])
+# @pytest.mark.parametrize('degree', [1, 2, 3])
+# def test_basis_evaluation(cell, lagrange, quadrature, kernel_data, degree):
+#     points, weights = quadrature
 
-    recipe = lagrange.basis_evaluation(points, kernel_data, derivative=None)
+#     recipe = lagrange.basis_evaluation(points, kernel_data, derivative=None)
 
-    result_finat = finat.interpreter.evaluate(recipe, {}, kernel_data)
+#     result_finat = finat.interpreter.evaluate(recipe, {}, kernel_data)
 
-    result_coffee = finat.coffee_compiler.evaluate(recipe, {}, kernel_data)
+#     result_coffee = finat.coffee_compiler.evaluate(recipe, {}, kernel_data)
 
-    assert(np.abs(result_finat - result_coffee) < 1.e-12).all()
-
-
-@pytest.mark.parametrize('dim', [1, 2, 3])
-@pytest.mark.parametrize('degree', [1, 2, 3])
-def test_field_evaluation(cell, lagrange, quadrature, kernel_data, context, degree):
-    points, weights = quadrature
-
-    recipe = lagrange.field_evaluation(Variable("u"), points,
-                                       kernel_data, derivative=None)
-
-    result_finat = finat.interpreter.evaluate(recipe, context, kernel_data)
-
-    result_coffee = finat.coffee_compiler.evaluate(recipe, context, kernel_data)
-
-    assert(np.abs(result_finat - result_coffee) < 1.e-12).all()
+#     assert(np.abs(result_finat - result_coffee) < 1.e-12).all()
 
 
-@pytest.mark.parametrize('dim', [1, 2, 3])
-@pytest.mark.parametrize('degree', [1, 2, 3])
-def test_moment_evaluation(cell, lagrange, quadrature, kernel_data, context, degree):
-    points, weights = quadrature
+# @pytest.mark.skip
+# @pytest.mark.parametrize('dim', [1, 2, 3])
+# @pytest.mark.parametrize('degree', [1, 2, 3])
+# def test_field_evaluation(cell, lagrange, quadrature, kernel_data, context, degree):
+#     points, weights = quadrature
 
-    f_recipe = lagrange.field_evaluation(Variable("u"), points,
-                                         kernel_data, derivative=None)
-    recipe = lagrange.moment_evaluation(f_recipe, weights, points,
-                                        kernel_data, pullback=False)
+#     recipe = lagrange.field_evaluation(Variable("u"), points,
+#                                        kernel_data, derivative=None)
 
-    result_finat = finat.interpreter.evaluate(recipe, context, kernel_data)
+#     result_finat = finat.interpreter.evaluate(recipe, context, kernel_data)
 
-    result_coffee = finat.coffee_compiler.evaluate(recipe, context, kernel_data)
+#     result_coffee = finat.coffee_compiler.evaluate(recipe, context, kernel_data)
 
-    assert(np.abs(result_finat - result_coffee) < 1.e-12).all()
+#     assert(np.abs(result_finat - result_coffee) < 1.e-12).all()
 
 
-@pytest.mark.parametrize('dim', [2, 3])
-@pytest.mark.parametrize('degree', [1, 2, 3])
-def test_grad_evaluation(cell, lagrange, quadrature, kernel_data, context, degree):
-    points, weights = quadrature
+# @pytest.mark.skip
+# @pytest.mark.parametrize('dim', [1, 2, 3])
+# @pytest.mark.parametrize('degree', [1, 2, 3])
+# def test_moment_evaluation(cell, lagrange, quadrature, kernel_data, context, degree):
+#     points, weights = quadrature
 
-    f_recipe = lagrange.field_evaluation(Variable("u"), points, kernel_data,
-                                         derivative=finat.grad, pullback=True)
-    recipe = lagrange.moment_evaluation(f_recipe, weights, points, kernel_data,
-                                        derivative=finat.grad, pullback=True)
+#     f_recipe = lagrange.field_evaluation(Variable("u"), points,
+#                                          kernel_data, derivative=None)
+#     recipe = lagrange.moment_evaluation(f_recipe, weights, points,
+#                                         kernel_data, pullback=False)
 
-    recipe = finat.GeometryMapper(kernel_data)(recipe)
+#     result_finat = finat.interpreter.evaluate(recipe, context, kernel_data)
 
-    result_finat = finat.interpreter.evaluate(recipe, context, kernel_data)
+#     result_coffee = finat.coffee_compiler.evaluate(recipe, context, kernel_data)
 
-    result_coffee = finat.coffee_compiler.evaluate(recipe, context, kernel_data)
+#     assert(np.abs(result_finat - result_coffee) < 1.e-12).all()
 
-    assert(np.abs(result_finat - result_coffee) < 1.e-12).all()
+
+# @pytest.mark.skip
+# @pytest.mark.parametrize('dim', [2, 3])
+# @pytest.mark.parametrize('degree', [1, 2, 3])
+# def test_grad_evaluation(cell, lagrange, quadrature, kernel_data, context, degree):
+#     points, weights = quadrature
+
+#     f_recipe = lagrange.field_evaluation(Variable("u"), points, kernel_data,
+#                                          derivative=finat.grad, pullback=True)
+#     recipe = lagrange.moment_evaluation(f_recipe, weights, points, kernel_data,
+#                                         derivative=finat.grad, pullback=True)
+
+#     recipe = finat.GeometryMapper(kernel_data)(recipe)
+
+#     result_finat = finat.interpreter.evaluate(recipe, context, kernel_data)
+
+#     result_coffee = finat.coffee_compiler.evaluate(recipe, context, kernel_data)
+
+#     assert(np.abs(result_finat - result_coffee) < 1.e-12).all()
