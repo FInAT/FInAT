@@ -1,6 +1,6 @@
 from lagrange import Lagrange, DiscontinuousLagrange
 from hdiv import RaviartThomas, BrezziDouglasMarini, BrezziDouglasFortinMarini
-from bernstein import Bernstein
+from bernstein import Bernstein, Bernstein1D
 from vectorfiniteelement import VectorFiniteElement
 from product_elements import ScalarProductElement
 from points import PointSet

@@ -64,7 +64,8 @@ def test_bernstein_moment(coords, quadrature, bernstein):
 
 
 def test_interpret_bernstein_field(coords, quadrature, bernstein):
-    kernel_data = finat.KernelData(finat.VectorFiniteElement(lagrange(cell()), 2))
+    kernel_data = finat.KernelData(finat.VectorFiniteElement(lagrange(cell()),
+                                                             2))
 
     q = finat.indices.TensorPointIndex(quadrature.points)
 
@@ -80,7 +81,9 @@ def test_interpret_bernstein_field(coords, quadrature, bernstein):
 
 @pytest.mark.xfail
 def test_interpret_bernstein_moment(coords, quadrature, bernstein):
-    kernel_data = finat.KernelData(finat.VectorFiniteElement(lagrange(cell()), 2))
+    kernel_data = finat.KernelData(
+        finat.VectorFiniteElement(lagrange(cell()), 2)
+    )
 
     q = finat.indices.TensorPointIndex(quadrature.points)
     wt = quadrature.weights
