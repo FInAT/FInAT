@@ -596,15 +596,14 @@ class Bernstein1D(FiniteElementBase):
 
     @property
     def dofs_shape(self):
-
         degree = self.degree
         dim = self.cell.get_spatial_dimension()
         return (int(np.prod(xrange(degree + 1, degree + 1 + dim)) /
                     np.prod(xrange(1, dim + 1))),)
 
     def gradient(self, field_var, kernel_data):
-        """Returns the recipe for computing the gradient coefficients,
-        given the field_var coefficients."""
+        """Returns the recipe for computing the coefficients of
+        the gradient of field_var."""
         deg = self.degree
 
         if not isinstance(field_var, Variable):
@@ -679,14 +678,22 @@ class Bernstein1D(FiniteElementBase):
     def moment_evaluation(self, value, weights, q,
                           kernel_data, derivative=None,
                           pullback=True):
-        if derivative is grad:
-            pass
-        elif not derivative:
+        if derivative is None:
             if isinstance(value, Recipe):
-                pass
-            elif value.__class__ == Variable:
-                pass
+                val = value
+            elif val.__class__ == Variable:
+                val = Recipe(((), (q,), ()), val[q])
             else:
-                raise ValueError("Illegal input values")
+                raise ValueError("Illegal input field")
+
+            d_fv, b_fv, p_fv = val.indices
+
+            assert len(p_fv) == 1
+
+            i = BasisFunctionIndex(deg+1)
+            r = kernel_data.new_variable("r")
+            w = kernel_data.new_variable("w")
+            
+
         else:
             raise NotImplementedError
