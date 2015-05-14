@@ -3,8 +3,9 @@ from pymbolic.mapper import IdentityMapper as IM
 from pymbolic.mapper.stringifier import StringifyMapper, PREC_NONE
 from pymbolic.mapper import WalkMapper as WM
 from pymbolic.mapper.graphviz import GraphvizMapper as GVM
-from pymbolic.primitives import Product, Sum
-from .indices import IndexBase
+from pymbolic.primitives import Product, Sum, flattened_product, flattened_sum
+from .indices import IndexBase, TensorIndex, PointIndexBase, BasisFunctionIndexBase,\
+    DimensionIndex
 from .ast import Recipe, ForAll, IndexSum, Let, Variable, Delta, CompoundVector
 try:
     from termcolor import colored
@@ -478,7 +479,6 @@ class FactorDeltaMapper(IdentityMapper):
             else:
                 factors.append(child)
 
-        from pymbolic.primitives import flattened_product
         result = flattened_product(tuple(factors))
 
         for delta in deltas:
@@ -612,3 +612,239 @@ class CancelDeltaMapper(IdentityMapper):
     def map_index(self, expr, replace=None, *args, **kwargs):
 
         return replace[expr] if replace and expr in replace else expr
+
+
+class _DoNotFactorSet(set):
+    """Dummy set object used to indicate that sum factorisation of a subtree is invalid."""
+    pass
+
+
+class SumFactorMapper(IdentityMapper):
+    """Mapper to attempt sum factorisation. This is currently a sketch
+    implementation which is not safe for particularly general cases."""
+
+    # Internal communication of separable index sets is achieved by
+    # the index_groups argument. This is a set containing tuples of
+    # grouped indices.
+
+    def __init__(self, kernel_data):
+
+        super(SumFactorMapper, self).__init__()
+
+        self.kernel_data = kernel_data
+
+    @staticmethod
+    def factor_indices(indices, index_groups):
+        # Determine the factorisability of the expression with the
+        # given index_groups assuming an IndexSum over indices.
+        if len(indices) != 1 or not isinstance(indices[0], TensorIndex) \
+           or len(indices[0].factors) != 2:
+            return False
+
+        i = list(indices[0].factors)
+
+        # Try to factor the longest length first.
+        if i[0].length < i[1].length:
+            i.reverse()
+
+        for n in range(2):
+            factorstack = []
+            nontrivial = False
+            for g in index_groups:
+                if i[n] in g:
+                    factorstack.append(g)
+                elif i[(n+1) % 2] in g:
+                    nontrivial = True
+
+            if factorstack and nontrivial:
+                return i[n]
+
+        return False
+
+    def map_index_sum(self, expr, index_groups=None, *args, **kwargs):
+        """Discover how factorisable this IndexSum is."""
+
+        body_igroups = set()
+        body = self.rec(expr.body, *args, index_groups=body_igroups, **kwargs)
+
+        factor_index = self.factor_indices(expr.indices, body_igroups)
+        if factor_index:
+            factorised = SumFactorSubTreeMapper(factor_index)(expr.body)
+            try:
+                return factorised.generate_factored_expression(self.kernel_data, expr.indices[0].factors)
+            except:
+                pass
+
+        return expr.__class__(expr.indices, body)
+
+    def map_index(self, expr, index_groups=None, *args, **kwargs):
+        """Add this index into all the sets in index_groups."""
+
+        if index_groups is None:
+            return expr
+        elif hasattr(expr, "factors"):
+            return expr.__class__(*self.rec(expr.factors, *args, index_groups=index_groups, **kwargs))
+        elif index_groups:
+            news = []
+            for s in index_groups:
+                news.append(s + (expr,))
+            index_groups.clear()
+            index_groups.update(news)
+        else:
+            index_groups.add((expr,))
+
+        return expr
+
+    def map_product(self, expr, index_groups=None, *args, **kwargs):
+        """Union of the index groups of the children."""
+
+        if index_groups is None:
+            return super(SumFactorMapper, self).map_product(expr, *args, **kwargs)
+        else:
+            result = 1
+            for c in expr.children:
+                igroup = set()
+                result *= self.rec(c, *args, index_groups=igroup, **kwargs)
+                index_groups |= igroup
+
+            return result
+
+    def map_sum(self, expr, index_groups=None, *args, **kwargs):
+        """If the summands have the same factors, propagate them up.
+        Otherwise (for the moment) put a _DoNotFactorSet in the output.
+        """
+
+        igroups = [set() for c in expr.children]
+        new_children = [self.rec(c, *args, index_groups=i, **kwargs)
+                        for c, i in zip(expr.children, igroups)]
+
+        if index_groups is not None:
+            # index_groups really should be empty.
+            if index_groups:
+                    raise ValueError("Can't happen!")
+
+            # This is not quite safe as it imposes additional ordering.
+            if all([i == igroups[0] for i in igroups[1:]]):
+                index_groups.update(igroups[0])
+            else:
+                raise ValueError("Don't know how to do this")
+
+        return flattened_sum(tuple(new_children))
+
+
+class _Factors(object):
+    """A product factorised by the presence or absence of the index provided."""
+    def __init__(self, index, expr=None, indices=None):
+        self.index = index
+        self.factor = 1
+        self.remainder = 1
+
+        if expr:
+            self.insert(expr, indices)
+
+    def insert(self, expr, indices):
+        if self.index in indices:
+            self.factor *= expr
+        else:
+            self.remainder *= expr
+
+    def __imul__(self, other):
+
+        if isinstance(other, _Factors):
+            if other.index != self.index:
+                raise ValueError("Can only multiply _Factors with the same index")
+            self.factor *= other.factor
+            self.remainder *= other.remainder
+        else:
+            self.insert(*other)
+        return self
+
+    def generate_factored_expression(self, kernel_data, indices):
+        # Generate the factored expression using the set of indices provided.
+        indices = list(indices)
+        indices.remove(self.index)
+
+        temp = kernel_data.new_variable("isum")
+        d = tuple(i for i in indices if isinstance(i, DimensionIndex))
+        b = tuple(i for i in indices if isinstance(i, BasisFunctionIndexBase))
+        p = tuple(i for i in indices if isinstance(i, PointIndexBase))
+        return Let(((temp, Recipe((d, b, p), IndexSum((self.index,), self.factor))),),
+                   IndexSum(tuple(indices), temp[d+b+p]*self.remainder))
+
+
+class _FactorSum(object):
+    """A sum of _Factors."""
+
+    def __init__(self, factors=None):
+
+        self.factors = list(factors or [])
+
+    def __iadd__(self, factor):
+
+        self.factors.append(factor)
+        return self
+
+    def __imul__(self, other):
+
+        assert isinstance(other, _Factors)
+        for f in self.factors:
+            f *= other
+        return self
+
+    def generate_factored_expression(self, kernel_data, indices):
+        # Generate the factored expression using the set of indices provided.
+
+        return flattened_sum([f.generate_factored_expression(kernel_data, indices)
+                              for f in self.factors])
+
+
+class SumFactorSubTreeMapper(IdentityMapper):
+    """Mapper to actually impose a defined factorisation on a subtree."""
+
+    def __init__(self, factor_index):
+
+        super(SumFactorSubTreeMapper, self).__init__()
+
+        # The index with respect to which the factorisation should occur.
+        self.factor_index = factor_index
+
+    def map_index(self, expr, indices=None, *args, **kwargs):
+        """Add this index into all the sets in index_groups."""
+
+        if indices is None:
+            return expr
+        elif hasattr(expr, "factors"):
+            return expr.__class__(*self.rec(expr.factors, *args, indices=indices, **kwargs))
+        else:
+            indices.add(expr)
+
+        return expr
+
+    def map_product(self, expr, indices=None, *args, **kwargs):
+
+        f = _Factors(self.factor_index)
+        for c in expr.children:
+            i = set()
+            rc = self.rec(c, *args, indices=i, **kwargs)
+            if isinstance(rc, _FactorSum):
+                rc *= f
+                f = rc
+            elif isinstance(rc, _Factors):
+                f *= rc
+            else:
+                f *= (rc, i)
+
+        return f
+
+    def map_sum(self, expr, indices=None, *args, **kwargs):
+
+        f = _FactorSum()
+        for c in expr.children:
+            i = set()
+            rc = self.rec(c, *args, indices=i, **kwargs)
+            if isinstance(rc, (_Factors, _FactorSum)):
+                f += rc
+            else:
+                f += _Factors(self.factor_index, rc, i)
+
+        return f

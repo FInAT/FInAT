@@ -131,7 +131,12 @@ class TensorPointIndex(TensorIndex, PointIndexBase):
         raise AttributeError
 
 
-class BasisFunctionIndex(IndexBase):
+class BasisFunctionIndexBase(object):
+    # Marker class for point indices.
+    pass
+
+
+class BasisFunctionIndex(BasisFunctionIndexBase, IndexBase):
     '''An index over a local set of basis functions.
     E.g. test functions on an element.'''
     def __init__(self, extent):
@@ -144,7 +149,7 @@ class BasisFunctionIndex(IndexBase):
     _count = 0
 
 
-class TensorBasisFunctionIndex(TensorIndex):
+class TensorBasisFunctionIndex(BasisFunctionIndexBase, TensorIndex):
     """An index running over a set of basis functions which have a tensor
     product structure. This index is actually composed of multiple
     factors.
