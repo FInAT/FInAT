@@ -653,7 +653,7 @@ class SumFactorMapper(IdentityMapper):
             for g in index_groups:
                 if i[n] in g:
                     factorstack.append(g)
-                elif i[(n+1) % 2] in g:
+                elif i[(n + 1) % 2] in g:
                     nontrivial = True
 
             if factorstack and nontrivial:
@@ -769,7 +769,7 @@ class _Factors(object):
         b = tuple(i for i in indices if isinstance(i, BasisFunctionIndexBase))
         p = tuple(i for i in indices if isinstance(i, PointIndexBase))
         return Let(((temp, Recipe((d, b, p), IndexSum((self.index,), self.factor))),),
-                   IndexSum(tuple(indices), temp[d+b+p]*self.remainder))
+                   IndexSum(tuple(indices), temp[d + b + p] * self.remainder))
 
 
 class _FactorSum(object):
@@ -800,7 +800,7 @@ class _FactorSum(object):
         # This merges some indexsums but that gets in the way of delta cancellation.
         if all(self.factors[0].index == f.index for f in self.factors[1:]):
             return Let(tuple(g.bindings[0] for g in genexprs),
-                        flattened_sum(tuple(g.body for g in genexprs)))
+                       flattened_sum(tuple(g.body for g in genexprs)))
         else:
             return flattened_sum(genexprs)
 
