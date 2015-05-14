@@ -794,8 +794,15 @@ class _FactorSum(object):
     def generate_factored_expression(self, kernel_data, indices):
         # Generate the factored expression using the set of indices provided.
 
-        return flattened_sum([f.generate_factored_expression(kernel_data, indices)
-                              for f in self.factors])
+        genexprs = [f.generate_factored_expression(kernel_data, indices)
+                    for f in self.factors]
+
+        if all(self.factors[0].index == f.index for f in self.factors[1:]):
+            return Let(tuple(g.bindings[0] for g in genexprs),
+                       IndexSum(genexprs[0].body.indices,
+                                flattened_sum(tuple(g.body.body for g in genexprs))))
+        else:
+            return flattened_sum(genexprs)
 
 
 class SumFactorSubTreeMapper(IdentityMapper):
