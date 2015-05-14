@@ -797,10 +797,10 @@ class _FactorSum(object):
         genexprs = [f.generate_factored_expression(kernel_data, indices)
                     for f in self.factors]
 
+        # This merges some indexsums but that gets in the way of delta cancellation.
         if all(self.factors[0].index == f.index for f in self.factors[1:]):
             return Let(tuple(g.bindings[0] for g in genexprs),
-                       IndexSum(genexprs[0].body.indices,
-                                flattened_sum(tuple(g.body.body for g in genexprs))))
+                        flattened_sum(tuple(g.body for g in genexprs)))
         else:
             return flattened_sum(genexprs)
 
