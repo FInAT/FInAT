@@ -517,7 +517,8 @@ class CancelDeltaMapper(IdentityMapper):
         for index in flattened:
             if index[0] in replace:
                 # Replaced indices are dropped.
-                pass
+                replace.pop(index[0])
+
             elif any(i in replace for i in index[1:]):
                 for i in index[1:]:
                     if i not in replace:
@@ -540,6 +541,7 @@ class CancelDeltaMapper(IdentityMapper):
         else:
             indices = expr.indices
 
+        # fix this so that the replacements happen from the bottom up.
         if indices[1] in sum_indices:
             replace[indices[1]] = indices[0]
             indices = (indices[0], indices[0])
