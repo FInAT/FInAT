@@ -5,8 +5,10 @@ from .derivatives import grad
 from .ast import Recipe, CompoundVector, IndexSum
 from FIAT.reference_element import two_product_cell
 
+
 class ProductElement(object):
     """Mixin class describing product elements."""
+
 
 class ScalarProductElement(ProductElement, ScalarElementMixin, FiniteElementBase):
     """A scalar-valued tensor product element."""
