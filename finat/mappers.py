@@ -5,7 +5,7 @@ from pymbolic.mapper import WalkMapper as WM
 from pymbolic.mapper.graphviz import GraphvizMapper as GVM
 from pymbolic.primitives import Product, Sum, flattened_product, flattened_sum
 from .indices import IndexBase, TensorIndex, PointIndexBase, BasisFunctionIndexBase,\
-    DimensionIndex
+    DimensionIndex, flattened
 from .ast import Recipe, ForAll, IndexSum, Let, Variable, Delta, CompoundVector
 try:
     from termcolor import colored
@@ -402,25 +402,48 @@ class CancelCompoundVectorMapper(IdentityMapper):
     """
     def map_index_sum(self, expr, *args, **kwargs):
 
-        if isinstance(expr.body, (Product, Sum)):
-            fs = []
-            body = self.rec(expr.body, *args,
-                            sum_indices=expr.indices, factored_summands=fs)
+        body = self.rec(expr.body, *args, sum_indices=expr.indices)
 
-            if fs:
-                assert len(fs) == 1
-                indices = tuple(i for i in expr.indices if i != fs[0][0])
+        if isinstance(body, CompoundVector):
+
+            if body.index in flattened(expr.indices):
+
+                # Flatten the CompoundVector.
+                flattened_vector = 0
+                r = {}
+                replacer = _IndexMapper(r)
+                for i in body.index.as_range:
+                    r[body.index] = i
+                    flattened_vector += replacer(body)
+
+                indices = tuple(i for i in expr.indices if i != body.index)
+
                 if indices:
-                    return IndexSum(indices, fs[0][1])
+                    return IndexSum(indices, flattened_vector)
                 else:
-                    return fs[0][1]
-            else:
-                return IndexSum(expr.indices, body)
-        else:
-            return super(CancelCompoundVectorMapper, self).map_index_sum(
-                expr, *args, **kwargs)
+                    return flattened_vector
 
-    def map_product(self, expr, sum_indices=None, factored_summands=None, *args,
+            else:
+                # Push the indexsum inside the CompoundVector in the hope
+                # that better cancellation will occur.
+                return CompoundVector(body.index, body.indices,
+                                      tuple(IndexSum(expr.indices, b) for b in body.body))
+        else:
+                return IndexSum(expr.indices, body)
+        #     if fs:
+        #         assert len(fs) == 1
+        #         indices = tuple(i for i in expr.indices if i != fs[0][0])
+        #         if indices:
+        #             return IndexSum(indices, fs[0][1])
+        #         else:
+        #             return fs[0][1]
+        #     else:
+        #         return IndexSum(expr.indices, body)
+        # else:
+        #     return super(CancelCompoundVectorMapper, self).map_index_sum(
+        #         expr, *args, **kwargs)
+
+    def map_product(self, expr, sum_indices=None, *args,
                     **kwargs):
 
         try:
@@ -442,20 +465,34 @@ class CancelCompoundVectorMapper(IdentityMapper):
             if vec_i is None:
                 raise ValueError  # No CompoundVector
 
-            # Flatten the CompoundVector.
-            flattened = 0
+            # if vec_i in sum_indices:
+            #     # Flatten the CompoundVector.
+            #     flattened = 0
 
-            r = {}
-            replacer = _IndexMapper(r)
-            for i in vec_i.as_range:
-                r[vec_i] = i
-                prod = 1
-                for c in expr.children:
-                    prod *= replacer(c)
-                flattened += prod
+            #     r = {}
+            #     replacer = _IndexMapper(r)
+            #     for i in vec_i.as_range:
+            #         r[vec_i] = i
+            #         prod = 1
+            #         for c in expr.children:
+            #             prod *= replacer(c)
+            #         flattened += prod
 
-            factored_summands.append((vec_i, flattened))
-            return 0.0
+            #         factored_summands.append((vec_i, flattened))
+            #         return 0.0
+
+            elif len(vectors) == 1:
+                # Push the factors inside the CompoundVector in the
+                # hope that something further can be done.
+                vector = vectors[0]
+                bodies = list(vector.body)
+                for f in factors:
+                    for b in range(len(bodies)):
+                        bodies[b] *= f
+
+                return CompoundVector(vector.index, vector.indices, tuple(bodies))
+            else:
+                raise ValueError
 
         except ValueError:
             # Drop to here if this is not a cancellation opportunity for whatever reason.
@@ -525,6 +562,7 @@ class CancelDeltaMapper(IdentityMapper):
                         new_indices.append(i)
             else:
                 new_indices.append(index[0])
+            # Do we need to also drop indices on the RHS of replaces?
 
         if new_indices:
             return IndexSum(new_indices, body)
@@ -542,12 +580,15 @@ class CancelDeltaMapper(IdentityMapper):
             indices = expr.indices
 
         # fix this so that the replacements happen from the bottom up.
-        if indices[1] in sum_indices:
-            replace[indices[1]] = indices[0]
-            indices = (indices[0], indices[0])
-        elif indices[0] in sum_indices:
-            replace[indices[0]] = indices[1]
-            indices = (indices[1], indices[1])
+        for i in sum_indices[::-1]:
+            if i == indices[1]:
+                replace[indices[1]] = indices[0]
+                indices = (indices[0], indices[0])
+                break
+            elif i == indices[0]:
+                replace[indices[0]] = indices[1]
+                indices = (indices[1], indices[1])
+                break
 
         # Only attempt new replacements if we are in transmitting node stacks.
         if sum_indices and indices[0] != indices[1]:
@@ -613,7 +654,11 @@ class CancelDeltaMapper(IdentityMapper):
 
     def map_index(self, expr, replace=None, *args, **kwargs):
 
-        return replace[expr] if replace and expr in replace else expr
+        if hasattr(expr, "factors"):
+            return expr.__class__(*self.rec(expr.factors, *args,
+                                            replace=replace, **kwargs))
+        else:
+            return replace[expr] if replace and expr in replace else expr
 
 
 class _DoNotFactorSet(set):
