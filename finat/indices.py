@@ -7,7 +7,15 @@ from .points import TensorPointSet
 __all__ = ["PointIndex", "TensorPointIndex", "BasisFunctionIndex",
            "TensorBasisFunctionIndex",
            "SimpliciallyGradedBasisFunctionIndex",
-           "DimensionIndex"]
+           "DimensionIndex", "flattened"]
+
+
+def flattened(indices):
+    """Flatten an index or a tuple of indices into a tuple of scalar indices."""
+    if isinstance(indices, IndexBase):
+        return indices.flattened
+    else:
+        return reduce(tuple.__add__, (flattened(i) for i in indices))
 
 
 class IndexBase(ast.Variable):
