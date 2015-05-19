@@ -75,6 +75,12 @@ class IndexBase(ast.Variable):
     def set_error(self):
         self._error = True
 
+    @property
+    def flattened(self):
+        """For tensor product indices, this returns their factors. In the
+        simple index case, this returns the 1-tuple of the list itself."""
+        return (self,)
+
 
 class PointIndexBase(object):
     # Marker class for point indices.
@@ -104,6 +110,12 @@ class TensorIndex(IndexBase):
         name = "_x_".join(f.name for f in factors)
 
         super(TensorIndex, self).__init__(-1, name)
+
+    @property
+    def flattened(self):
+        """Return the tuple of scalar indices of which this tensor index is made."""
+
+        return reduce(tuple.__add__, (f.flattened for f in self.factors))
 
 
 class TensorPointIndex(TensorIndex, PointIndexBase):
@@ -155,8 +167,6 @@ class TensorBasisFunctionIndex(BasisFunctionIndexBase, TensorIndex):
     factors.
     """
     def __init__(self, *args):
-
-        assert all([isinstance(a, BasisFunctionIndex) for a in args])
 
         super(TensorBasisFunctionIndex, self).__init__(args)
 
