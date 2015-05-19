@@ -129,10 +129,10 @@ class IndexSum(StringifyMixin, p._MultiChildExpression):
 
         # Inline import to avoid circular dependency.
         from indices import IndexBase
-        if isinstance(indices[0], IndexBase):
-            indices = tuple(indices)
-        else:
+        if isinstance(indices, IndexBase):
             indices = (indices,)
+        else:
+            indices = tuple(indices)
 
         # Perform trivial simplification of repeated indexsum.
         if isinstance(body, IndexSum):
