@@ -528,7 +528,7 @@ class CancelDeltaMapper(IdentityMapper):
     """Mapper to cancel and/or replace indices according to the rules for Deltas."""
 
     # Those nodes through which it is legal to transmit sum_indices.
-    _transmitting_nodes = (IndexSum, ForAll, Delta, Let)
+    _transmitting_nodes = (IndexSum, ForAll, Delta)
 
     def map_index_sum(self, expr, replace=None, sum_indices=(), *args, **kwargs):
 
@@ -560,6 +560,8 @@ class CancelDeltaMapper(IdentityMapper):
                 for i in index[1:]:
                     if i not in replace:
                         new_indices.append(i)
+                    else:
+                        replace.pop(i)
             else:
                 new_indices.append(index[0])
             # Do we need to also drop indices on the RHS of replaces?
