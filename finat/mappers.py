@@ -758,6 +758,19 @@ class SumFactorMapper(IdentityMapper):
 
             return result
 
+    def map_delta(self, expr, index_groups=None, *args, **kwargs):
+        """Treat this as the delta times its body."""
+        if index_groups is None:
+            return super(SumFactorMapper, self).map_delta(expr, *args, **kwargs)
+        else:
+            igroup = set()
+            body = self.rec(expr.body, *args, index_groups=igroup, **kwargs)
+            index_groups |= igroup
+            igroup = set()
+            indices = self.rec(expr.indices, *args, index_groups=igroup, **kwargs)
+            index_groups |= igroup
+            return expr.__class__(indices, body)
+
     def map_sum(self, expr, index_groups=None, *args, **kwargs):
         """If the summands have the same factors, propagate them up.
         Otherwise (for the moment) put a _DoNotFactorSet in the output.
@@ -786,7 +799,7 @@ class _Factors(object):
     def __init__(self, index, expr=None, indices=None):
         self.index = index
         self.factor = 1
-        self.remainder = 1
+        self.multiplicand = 1
 
         if expr:
             self.insert(expr, indices)
@@ -795,7 +808,7 @@ class _Factors(object):
         if self.index in indices:
             self.factor *= expr
         else:
-            self.remainder *= expr
+            self.multiplicand *= expr
 
     def __imul__(self, other):
 
@@ -803,7 +816,7 @@ class _Factors(object):
             if other.index != self.index:
                 raise ValueError("Can only multiply _Factors with the same index")
             self.factor *= other.factor
-            self.remainder *= other.remainder
+            self.multiplicand *= other.multiplicand
         else:
             self.insert(*other)
         return self
@@ -818,7 +831,7 @@ class _Factors(object):
         b = tuple(i for i in indices if isinstance(i, BasisFunctionIndexBase))
         p = tuple(i for i in indices if isinstance(i, PointIndexBase))
         return Let(((temp, Recipe((d, b, p), IndexSum((self.index,), self.factor))),),
-                   IndexSum(tuple(indices), temp[d + b + p] * self.remainder))
+                   IndexSum(tuple(indices), temp[d + b + p] * self.multiplicand))
 
 
 class _FactorSum(object):
@@ -875,6 +888,31 @@ class SumFactorSubTreeMapper(IdentityMapper):
             indices.add(expr)
 
         return expr
+
+    def map_delta(self, expr, indices=None, *args, **kwargs):
+        """Turn the delta back into a product and recurse on that."""
+
+        def deltafactor(f, indices):
+            if self.factor_index in indices:
+                f.factor = Delta(expr.indices, f.factor)
+            else:
+                f.multiplicand = Delta(expr.indices, f.multiplicand)
+
+        i=set()
+        rc = self.rec(expr.body, *args, indices=i, **kwargs)
+        indices = flattened(expr.indices)
+        if isinstance(rc, _Factors):
+            deltafactor(rc, indices)
+        elif isinstance(rc, _FactorSum):
+            for f in rc.factors:
+                deltafactor(f, indices)
+        else:
+            f = _Factors(self.factor_index)
+            f *= (rc, i)
+            deltafactor(f, indices)
+            rc = f
+
+        return rc
 
     def map_product(self, expr, indices=None, *args, **kwargs):
 
