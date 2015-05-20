@@ -540,7 +540,7 @@ class FactorDeltaMapper(IdentityMapper):
         result = (flattened_product(tuple(factors)),)
 
         for s in sums:
-            result = (r*t for r in result for t in s.children)
+            result = (r * t for r in result for t in s.children)
         if sums:
             # We need to pull the Deltas up the terms we have just processed.
             result = (self.rec(r, *args, **kwargs) for r in result)
@@ -944,7 +944,7 @@ class SumFactorSubTreeMapper(IdentityMapper):
             else:
                 f.multiplicand = Delta(expr.indices, f.multiplicand)
 
-        i=set()
+        i = set()
         rc = self.rec(expr.body, *args, indices=i, **kwargs)
         indices = flattened(expr.indices)
         if isinstance(rc, _Factors):
