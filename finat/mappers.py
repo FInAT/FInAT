@@ -503,25 +503,71 @@ class CancelCompoundVectorMapper(IdentityMapper):
 class FactorDeltaMapper(IdentityMapper):
     """Mapper to pull deltas up the expression tree to maximise the opportunities for cancellation."""
 
-    def map_product(self, expr, *args, **kwargs):
+    def map_index_sum(self, expr, deltas=None, *args, **kwargs):
 
-        children = (self.rec(child, *args, **kwargs) for child in expr.children)
+        d = [False]
+        body = self.rec(expr.body, *args, deltas=d, **kwargs)
+
+        if isinstance(body, Sum) and d[0]:
+            body = tuple(IndexSum(expr.indices, b) for b in body.children)
+            return flattened_sum(body)
+        else:
+            return IndexSum(expr.indices, body)
+
+    def map_product(self, expr, deltas=None, *args, **kwargs):
+
+        if deltas is not None:
+            in_deltas = deltas
+        else:
+            in_deltas = [False]
+
+        child_deltas = tuple([False] for i in expr.children)
+        children = (self.rec(child, *args, deltas=delta, **kwargs)
+                    for child, delta in zip(expr.children, child_deltas))
         factors = []
+        sums = []
         deltas = []
 
-        for child in children:
+        for child, delta in zip(children, child_deltas):
             if isinstance(child, Delta):
                 deltas.append(child)
                 factors.append(child.body)
+            elif isinstance(child, Sum) and delta[0]:
+                sums.append(child)
             else:
                 factors.append(child)
 
-        result = flattened_product(tuple(factors))
+        result = (flattened_product(tuple(factors)),)
+
+        for s in sums:
+            result = (r*t for r in result for t in s.children)
+        if sums:
+            # We need to pull the Deltas up the terms we have just processed.
+            result = (self.rec(r, *args, **kwargs) for r in result)
+            # If sums then there are deltas in the sums.
+            in_deltas[0] = True
 
         for delta in deltas:
-            result = Delta(delta.indices, result)
+            result = (Delta(delta.indices, r) for r in result)
+            in_deltas[0] = True
 
-        return result
+        result = tuple(result)
+
+        if len(result) == 1:
+            return result[0]
+        else:
+            return flattened_sum(result)
+
+    def map_sum(self, expr, deltas=None, *args, **kwargs):
+
+        terms = tuple(self.rec(c, *args, **kwargs) for c in expr.children)
+
+        if deltas is not None:
+            for term in terms:
+                if isinstance(term, Delta):
+                    deltas[0] = True
+
+        return flattened_sum(terms)
 
 
 class CancelDeltaMapper(IdentityMapper):
