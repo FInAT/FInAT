@@ -181,17 +181,26 @@ class LeviCivita(StringifyMixin, p._MultiChildExpression):
 class ForAll(StringifyMixin, p._MultiChildExpression):
     """A symbolic expression to indicate that the body will actually be
     evaluated for all of the values of its free indices. This enables
-    index simplification to take place.
+    index simplification to take place. It may be possible for FInAT
+    to reason that it is not neccesary to iterate over some values of
+    the free indices. For this reason a list of index bindings may be
+    provided which bind the indices specified to the expressions
+    given. The indices so bound will not be iterated over.
 
     :param indices: a sequence of indices to bind.
     :param body: the expression to evaluate.
-
+    :param bindings: a tuple of (index, expression) pairs for indices
+       which should take particular values rather than being iterated over.
     """
-    def __init__(self, indices, body):
+    def __init__(self, indices, body, bindings=None):
 
         self.indices = indices
         self.body = body
-        self.children = (self.indices, self.body)
+        self.bindings = bindings
+        if bindings:
+            self.children = (self.indices, self.body, self.bindings)
+        else:
+            self.children = (self.indices, self.body)
         self._color = "blue"
 
     def __getinitargs__(self):

@@ -212,6 +212,14 @@ class WalkMapper(WM):
         self.rec(expr.body, *args, **kwargs)
         self.post_visit(expr, *args, **kwargs)
 
+    def map_let(self, expr, *args, **kwargs):
+        if not self.visit(expr, *args, **kwargs):
+            return
+        for symbol, value in expr.bindings:
+            self.rec(symbol, *args, **kwargs)
+        self.rec(expr.body, *args, **kwargs)
+        self.post_visit(expr, *args, **kwargs)
+
     map_delta = map_index_sum
     map_for_all = map_index_sum
     map_wave = map_index_sum
@@ -234,12 +242,14 @@ class IndicesMapper(WalkMapper):
 
     def post_visit(self, expr, *args, **kwargs):
         # The frame contains any indices we directly saw:
-        expr._indices_below = tuple(self._index_stack.pop())
+        indices_below = tuple(self._index_stack.pop())
 
         if isinstance(expr, IndexBase):
-            expr._indices_below += expr
+            indices_below += flattened(expr)
 
-        self._index_stack[-1].union(expr._indices_below)
+        self._indices_below = indices_below
+
+        self._index_stack[-1].union(indices_below)
 
 
 class GraphvizMapper(WalkMapper, GVM):
