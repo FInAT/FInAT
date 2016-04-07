@@ -1,4 +1,4 @@
-git+https://bitbucket.org/mapdes/fiat.git@quadrature_extensions#egg=fiat
+fiat
 pytest-pep8
 numpy>=1.6.1
 sympy

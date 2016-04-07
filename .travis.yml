@@ -15,7 +15,8 @@ virtualenv:
   system_site_packages: true
 before_install:
   - sudo apt-get install -qq liblapack-dev libblas-dev python-scipy
-install: 
+install:
+  - pip install git+https://github.com/firedrake/fiat.git@quadrature_extensions#egg=fiat 
   - pip install -r requirements.txt
   - pip install pytest-pep8
 # command to run tests, e.g. python setup.py test
