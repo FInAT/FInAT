@@ -22,7 +22,7 @@ class ScalarProductElement(ProductElement, ScalarElementMixin, FiniteElementBase
         self._degree = max([a._degree for a in args])
 
         cellprod = lambda cells: TensorProductCell(cells[0], cells[1] if len(cells) < 3
-                                                  else cellprod(cells[1:]))
+                                                   else cellprod(cells[1:]))
 
         self._cell = cellprod([a.cell for a in args])
 
