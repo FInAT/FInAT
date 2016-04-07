@@ -17,6 +17,7 @@ before_install:
   - sudo apt-get install -qq liblapack-dev libblas-dev python-scipy
 install: 
   - pip install -r requirements.txt
+  - pip install pytest-pep8
 # command to run tests, e.g. python setup.py test
 script: 
   - export PYTHONPATH=`pwd`:$PYTHONPATH
