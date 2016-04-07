@@ -59,7 +59,7 @@ class KernelData(object):
         where n is guaranteed to be unique to that combination of element and
         points."""
 
-        key = (id(element), id(points))
+        key = (element, id(points))
 
         try:
             return self._variable_cache[key]

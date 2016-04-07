@@ -1,5 +1,6 @@
 import numpy as np
-from ast import Recipe, IndexSum, Variable, Abs
+from .ast import Recipe, IndexSum, Variable, Abs
+from .indices import TensorPointIndex
 
 
 class UndefinedError(Exception):
@@ -123,6 +124,17 @@ class FiniteElementBase(object):
 
         raise NotImplementedError
 
+    def __hash__(self):
+        """Elements are equal if they have the same class, degree, and cell."""
+
+        return hash((type(self), self._cell, self._degree))
+
+    def __eq__(self, other):
+        """Elements are equal if they have the same class, degree, and cell."""
+
+        return type(self) == type(other) and self._cell == other._cell and\
+            self._degree == other._degree
+
 
 class ScalarElementMixin(object):
     """Mixin class containing field evaluation and moment rules for scalar
@@ -144,23 +156,31 @@ class ScalarElementMixin(object):
                           kernel_data, derivative=None, pullback=True):
 
         basis = self.basis_evaluation(q, kernel_data, derivative, pullback)
-        (d, b, p__) = basis.indices
+        (d, b, p) = basis.indices
         phi = basis.body
 
         (d_, b_, p_) = value.indices
-        psi = value.replace_indices(zip(d_ + p_, d + p__)).body
+        psi = value.replace_indices(zip(d_ + p_, d + p)).body
 
-        w = weights.kernel_variable("w", kernel_data)
+        if isinstance(p[0], TensorPointIndex):
+            ws = [w_.kernel_variable("w", kernel_data)[p__]
+                  for w_, p__ in zip(weights, p[0].factors)]
+            w = reduce(lambda a, b: a * b, ws)
+        else:
+            w = weights.kernel_variable("w", kernel_data)[p]
 
-        expr = psi * phi * w[p__]
+        expr = psi * phi
 
         if d:
             expr = IndexSum(d, expr)
 
+        # The quadrature weights go outside any indexsum!
+        expr *= w
+
         if pullback:
             expr *= Abs(kernel_data.detJ)
 
-        return Recipe(((), b + b_, ()), IndexSum(p__, expr))
+        return Recipe(((), b + b_, ()), IndexSum(p, expr))
 
 
 class FiatElementBase(ScalarElementMixin, FiniteElementBase):

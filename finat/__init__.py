@@ -1,4 +1,4 @@
-from lagrange import Lagrange, DiscontinuousLagrange
+from scalar_elements import Lagrange, DiscontinuousLagrange, GaussLobatto
 from hdiv import RaviartThomas, BrezziDouglasMarini, BrezziDouglasFortinMarini
 from bernstein import Bernstein
 from vectorfiniteelement import VectorFiniteElement

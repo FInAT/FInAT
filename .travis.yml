@@ -11,10 +11,13 @@ python:
   - "2.7"
 #  - "2.6"
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
+virtualenv:
+  system_site_packages: true
 before_install:
-  - sudo apt-get install -qq liblapack-dev libblas-dev
+  - sudo apt-get install -qq liblapack-dev libblas-dev python-scipy
 install: 
   - pip install -r requirements.txt
+  - pip install pytest-pep8
 # command to run tests, e.g. python setup.py test
 script: 
   - export PYTHONPATH=`pwd`:$PYTHONPATH

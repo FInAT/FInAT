@@ -1,4 +1,4 @@
-git+https://bitbucket.org/mapdes/fiat.git#egg=fiat
+git+https://bitbucket.org/mapdes/fiat.git@quadrature_extensions#egg=fiat
 hg+https://bitbucket.org/khinsen/scientificpython
 pytest-pep8
 git+https://github.com/inducer/pymbolic.git

@@ -1,8 +1,9 @@
 from .finiteelementbase import FiatElementBase
-from .ast import Recipe, IndexSum
+from .ast import Recipe, IndexSum, Delta
 import FIAT
 import indices
 from .derivatives import grad
+from .points import GaussLobattoPointSet
 
 
 class ScalarElement(FiatElementBase):
@@ -64,6 +65,34 @@ class Lagrange(ScalarElement):
         super(Lagrange, self).__init__(cell, degree)
 
         self._fiat_element = FIAT.Lagrange(cell, degree)
+
+
+class GaussLobatto(ScalarElement):
+    def __init__(self, cell, degree):
+        super(GaussLobatto, self).__init__(cell, degree)
+
+        self._fiat_element = FIAT.GaussLobatto(cell, degree)
+
+    def basis_evaluation(self, q, kernel_data, derivative=None, pullback=True):
+        '''Produce the variable for the tabulation of the basis
+        functions or their derivative. Also return the relevant indices.
+
+        For basis evaluation with no gradient on a matching
+        Gauss-Lobatto quadrature, this implements the standard
+        spectral element diagonal mass trick by returning a delta
+        function.
+        '''
+        if (derivative is None and isinstance(q.points, GaussLobattoPointSet) and
+                q.length == self._fiat_element.space_dimension()):
+
+            i = indices.BasisFunctionIndex(self._fiat_element.space_dimension())
+
+            return Recipe(((), (i,), (q,)), Delta((i, q), 1.0))
+
+        else:
+            # Fall through to the default recipe.
+            return super(GaussLobatto, self).basis_evaluation(q, kernel_data,
+                                                              derivative, pullback)
 
 
 class DiscontinuousLagrange(ScalarElement):

@@ -66,6 +66,7 @@ class TensorPointSet(PointSetBase):
 
         self.factor_sets = factor_sets
 
+    @property
     def points(self):
         def helper(loi):
             if len(loi) == 1:
@@ -98,3 +99,8 @@ class StroudPointSet(TensorPointSet, DuffyMappedMixin):
 
     def __init__(self, factor_sets):
         super(StroudPointSet, self).__init__(factor_sets)
+
+
+class GaussLobattoPointSet(PointSet):
+    """A set of 1D Gauss Lobatto points. This is a separate class in order
+    to allow elements to apply spectral element tricks."""

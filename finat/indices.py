@@ -2,11 +2,20 @@ from . import ast
 import pymbolic.primitives as p
 from pymbolic.mapper.stringifier import StringifyMapper
 import math
+from .points import TensorPointSet
 
 __all__ = ["PointIndex", "TensorPointIndex", "BasisFunctionIndex",
            "TensorBasisFunctionIndex",
            "SimpliciallyGradedBasisFunctionIndex",
-           "DimensionIndex"]
+           "DimensionIndex", "flattened"]
+
+
+def flattened(indices):
+    """Flatten an index or a tuple of indices into a tuple of scalar indices."""
+    if isinstance(indices, IndexBase):
+        return indices.flattened
+    else:
+        return reduce(tuple.__add__, (flattened(i) for i in indices))
 
 
 class IndexBase(ast.Variable):
@@ -22,6 +31,10 @@ class IndexBase(ast.Variable):
             raise TypeError("Extent must be a slice or an int")
         self._color = "yellow"
 
+        self.start = self._extent.start
+        self.stop = self._extent.stop
+        self.step = self._extent.step
+
     @property
     def extent(self):
         '''A slice indicating the values this index can take.'''
@@ -35,6 +48,16 @@ class IndexBase(ast.Variable):
         step = self._extent.step or 1
 
         return int(math.ceil((stop - start) / step))
+
+    @property
+    def as_range(self):
+        """Convert a slice to a range. If the range has expressions as bounds,
+        evaluate them.
+        """
+
+        return range(int(self._extent.start or 0),
+                     int(self._extent.stop),
+                     int(self._extent.step or 1))
 
     @property
     def _str_extent(self):
@@ -60,8 +83,19 @@ class IndexBase(ast.Variable):
     def set_error(self):
         self._error = True
 
+    @property
+    def flattened(self):
+        """For tensor product indices, this returns their factors. In the
+        simple index case, this returns the 1-tuple of the list itself."""
+        return (self,)
 
-class PointIndex(IndexBase):
+
+class PointIndexBase(object):
+    # Marker class for point indices.
+    pass
+
+
+class PointIndex(IndexBase, PointIndexBase):
     '''An index running over a set of points, for example quadrature points.'''
     def __init__(self, pointset):
 
@@ -75,19 +109,38 @@ class PointIndex(IndexBase):
     _count = 0
 
 
-class TensorPointIndex(IndexBase):
+class TensorIndex(IndexBase):
+    """A mixin to create tensor product indices."""
+    def __init__(self, factors):
+
+        self.factors = factors
+
+        name = "_x_".join(f.name for f in factors)
+
+        super(TensorIndex, self).__init__(-1, name)
+
+    @property
+    def flattened(self):
+        """Return the tuple of scalar indices of which this tensor index is made."""
+
+        return reduce(tuple.__add__, (f.flattened for f in self.factors))
+
+
+class TensorPointIndex(TensorIndex, PointIndexBase):
     """An index running over a set of points which have a tensor product
     structure. This index is actually composed of multiple factors."""
-    def __init__(self, pointset):
+    def __init__(self, *args):
 
-        self.points = pointset
+        if isinstance(args[0], TensorPointSet):
+            assert len(args) == 1
 
-        name = 'q_' + str(PointIndex._count)
-        PointIndex._count += 1
+            self.points = args[0]
 
-        super(TensorPointIndex, self).__init__(-1, name)
+            factors = [PointIndex(f) for f in args[0].factor_sets]
+        else:
+            factors = args
 
-        self.factors = [PointIndex(f) for f in pointset.factor_sets]
+        super(TensorPointIndex, self).__init__(factors)
 
     def __getattr__(self, name):
 
@@ -98,7 +151,12 @@ class TensorPointIndex(IndexBase):
         raise AttributeError
 
 
-class BasisFunctionIndex(IndexBase):
+class BasisFunctionIndexBase(object):
+    # Marker class for point indices.
+    pass
+
+
+class BasisFunctionIndex(BasisFunctionIndexBase, IndexBase):
     '''An index over a local set of basis functions.
     E.g. test functions on an element.'''
     def __init__(self, extent):
@@ -111,21 +169,14 @@ class BasisFunctionIndex(IndexBase):
     _count = 0
 
 
-class TensorBasisFunctionIndex(IndexBase):
+class TensorBasisFunctionIndex(BasisFunctionIndexBase, TensorIndex):
     """An index running over a set of basis functions which have a tensor
     product structure. This index is actually composed of multiple
     factors.
     """
     def __init__(self, *args):
 
-        assert all([isinstance(a, BasisFunctionIndex) for a in args])
-
-        name = 'i_' + str(BasisFunctionIndex._count)
-        BasisFunctionIndex._count += 1
-
-        super(TensorBasisFunctionIndex, self).__init__(-1, name)
-
-        self.factors = args
+        super(TensorBasisFunctionIndex, self).__init__(args)
 
     def __getattr__(self, name):
 

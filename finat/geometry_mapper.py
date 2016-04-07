@@ -1,5 +1,5 @@
 from .points import PointSet
-from .indices import PointIndex
+from .indices import PointIndex, PointIndexBase
 from .ast import Let, Det, Inverse, Recipe
 from .mappers import IdentityMapper
 from .derivatives import grad
@@ -39,6 +39,9 @@ class GeometryMapper(IdentityMapper):
             body = self._bind_geometry(q, body)
 
         elif self.local_geometry:
+            for s in self.local_geometry:
+                s.set_error()
+            print expr
             raise ValueError("Unbound local geometry in tree")
 
         # Reconstruct the recipe
@@ -58,7 +61,7 @@ class GeometryMapper(IdentityMapper):
 
         if not self.kernel_data.affine \
            and self.local_geometry \
-           and isinstance(expr.indices[-1], PointIndex):
+           and isinstance(expr.indices[-1], PointIndexBase):
             q = expr.indices[-1]
 
             body = self._bind_geometry(q, body)
@@ -76,10 +79,13 @@ class GeometryMapper(IdentityMapper):
         element = kd.coordinate_element
         J = element.field_evaluation(phi_x, q, kd, grad, pullback=False)
 
+        d, b, q = J.indices
+        # In the affine case, there is only one point. In the
+        # non-affine case, binding the point index is the problem of
+        # kernel as a whole
         if self.kernel_data.affine:
-            d, b, q = J.indices
             J = J.replace_indices(zip(q, (0,)))
-            J.indices = (d, b, ())
+        J.indices = (d, b, ())
 
         inner_lets = ((kd.detJ, Det(kd.J)),) if kd.detJ in self.local_geometry else ()
         inner_lets += ((kd.invJ, Inverse(kd.J)),) if kd.invJ in self.local_geometry else ()
