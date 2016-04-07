@@ -1,7 +1,4 @@
 git+https://bitbucket.org/mapdes/fiat.git@quadrature_extensions#egg=fiat
-hg+https://bitbucket.org/khinsen/scientificpython
 pytest-pep8
-git+https://github.com/inducer/pymbolic.git
 numpy>=1.6.1
 sympy
-git+https://github.com/coneoproject/COFFEE.git
