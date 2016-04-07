@@ -1,5 +1,4 @@
 import numpy
-from .ast import Variable
 
 
 class PointSetBase(object):
@@ -38,20 +37,20 @@ class PointSet(PointSetBase):
 
         return self._points
 
-    def kernel_variable(self, name, kernel_data):
-        '''Produce a variable in the kernel data for this point set.'''
-        static_key = (id(self), )
+    # def kernel_variable(self, name, kernel_data):
+    #     '''Produce a variable in the kernel data for this point set.'''
+    #     static_key = (id(self), )
 
-        static_data = kernel_data.static
+    #     static_data = kernel_data.static
 
-        if static_key in static_data:
-            w = static_data[static_key][0]
-        else:
-            w = Variable(name)
-            data = self._points
-            static_data[static_key] = (w, lambda: data)
+    #     if static_key in static_data:
+    #         w = static_data[static_key][0]
+    #     else:
+    #         w = Variable(name)
+    #         data = self._points
+    #         static_data[static_key] = (w, lambda: data)
 
-        return w
+    #     return w
 
     def __getitem__(self, i):
         if isinstance(i, int):
