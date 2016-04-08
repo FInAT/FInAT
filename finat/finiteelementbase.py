@@ -53,16 +53,15 @@ class FiniteElementBase(object):
 
         raise NotImplementedError
 
-    def basis_evaluation(self, index, q, q_index, derivative=None,
-                         pullback=None):
+    def basis_evaluation(self, index, q, q_index, entity=None, derivative=None):
         '''Return code for evaluating the element at known points on the
         reference element.
 
         :param index: the basis function index.
         :param q: the quadrature rule.
         :param q_index: the quadrature index.
-        :param derivative: the derivative to take of the test function.
-        :param pullback: whether to pull back to the reference cell.
+        :param entity: the cell entity on which to tabulate.
+        :param derivative: the derivative to take of the basis functions.
         '''
 
         raise NotImplementedError
