@@ -64,7 +64,13 @@ class FiniteElementBase(object):
         '''A tuple of GEM :class:`Index` of the correct extents to loop over
         the basis functions of this element.'''
 
-        raise NotImplementedError
+        return tuple(gem.Index(d) for d in self.index_shape)
+
+    def get_value_indices():
+        '''A tuple of GEM :class:`~gem.Index` of the correct extents to loop over
+        the value shape of this element.'''
+
+        return tuple(gem.Index(d) for d in self.value_shape)
 
     def basis_evaluation(self, q, entity=None, derivative=None):
         '''Return code for evaluating the element at known points on the
@@ -78,6 +84,15 @@ class FiniteElementBase(object):
         '''
 
         raise NotImplementedError
+
+    @property
+    def preferred_quadrature(self):
+        '''A list of quadrature rules whose structure this element is capable
+        of exploiting. Each entry in the list should be a pair (rule,
+        degree), where the degree might be `None` if the element has
+        no preferred quadrature degree.'''
+
+        return ()
 
     def dual_evaluation(self, kernel_data):
         '''Return code for evaluating an expression at the dual set.
@@ -108,11 +123,13 @@ class FiatElementBase(FiniteElementBase):
         self._cell = cell
         self._degree = degree
 
-    def get_indices():
-        '''A tuple of GEM :class:`Index` of the correct extents to loop over
-        the basis functions of this element.'''
+    @property
+    def index_shape(self):
+        return (self._fiat_element.space_dimension(),)
 
-        return (gem.Index(self_fiat_element.get_spatial_dimension()),)
+    @property
+    def value_shape(self):
+        return self._fiat_element.value_shape()
 
     def basis_evaluation(self, q, entity=None, derivative=0):
         '''Return code for evaluating the element at known points on the
@@ -128,20 +145,25 @@ class FiatElementBase(FiniteElementBase):
         dim = self.cell.get_spatial_dimension()
 
         i = self.get_indices()
+        vi = self.get_value_indices()
         qi = q.get_indices()
         di = tuple(gem.Index() for i in range(dim)) 
 
         fiat_tab = self._fiat_element.tabulate(derivative, q.points)
 
+        # Work out the correct transposition between FIAT storage and ours.
+        tr = (2, 0, 1) if self.value_shape else (1, 0)
+
+        # Convert the FIAT tabulation into a gem tensor.
         def tabtensor(pre_indices=()):
             if len(pre_indices) < dim:
                 return gem.ListTensor([tabtensor(pre_indices + (i,))
                                        for i in range(derivative + 1)])
             else:
-                return gem.ListTensor([gem.Literal(fiat_tab.get(pre_indices + (i,)).T, None)
+                return gem.ListTensor([gem.Literal(fiat_tab.get(pre_indices + (i,)).transpose(tr), None)
                                        for i in range(derivative + 1)])
 
-        return ComponentTensor(Indexed(tabtensor(), di + qi + i), qi + i + di)
+        return ComponentTensor(Indexed(tabtensor(), di + qi + i + vi), qi + i + vi + di)
 
     @property
     def entity_dofs(self):

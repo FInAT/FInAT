@@ -1,4 +1,5 @@
 from finiteelementbase import FiniteElementBase
+import gem
 
 
 class VectorFiniteElement(FiniteElementBase):
@@ -35,22 +36,38 @@ class VectorFiniteElement(FiniteElementBase):
 
         self._base_element = element
 
-    def basis_evaluation(self, q, kernel_data, derivative=None, pullback=True):
-        r"""Produce the recipe for basis function evaluation at a set of points
-:math:`q`:
+    @property
+    def index_shape(self):
+        return self._base_element.index_shape() + (self._dimension,)
+
+    @property
+    def value_shape(self):
+        return self._base_element.value_shape() + (self._dimension,)
+
+    def basis_evaluation(self, q, entity=None, derivative=0):
+        r"""Produce the recipe for basis function evaluation at a set of points :math:`q`:
 
         .. math::
             \boldsymbol\phi_{\alpha (i \beta) q} = \delta_{\alpha \beta}\phi_{i q}
 
             \nabla\boldsymbol\phi_{(\alpha \gamma) (i \beta) q} = \delta_{\alpha \beta}\nabla\phi_{\gamma i q}
-
-            \nabla\times\boldsymbol\phi_{(i \beta) q} = \epsilon_{2 \beta \gamma}\nabla\phi_{\gamma i q} \qquad\textrm{(2D)}
-
-            \nabla\times\boldsymbol\phi_{\alpha (i \beta) q} = \epsilon_{\alpha \beta \gamma}\nabla\phi_{\gamma i q} \qquad\textrm{(3D)}
-
-            \nabla\cdot\boldsymbol\phi_{(i \beta) q} = \nabla\phi_{\beta i q}
         """
-        raise NotImplementedError
+
+        scalarbasis = self._base_element.basis_evaluation(q, entity, derivative)
+
+        indices = tuple(gem.Index() for i in scalarbasis.shape)
+
+        # Work out which of the indices are for what.
+        qi = len(q.index_shape) + len(self._base_element.index_shape)
+        d = derivative
+
+        # New basis function and value indices.
+        i = gem.Index(self._dimension)
+        vi = gem.Index(self._dimension)
+
+        new_indices = indices[:qi] + i + indices[qi: -d] + vi + indices[-d:]
+
+        return gem.ComponentTensor(gem.Product(gem.Delta(i, vi), scalarbasis), new_indices)
 
     def __hash__(self):
         """VectorFiniteElements are equal if they have the same base element

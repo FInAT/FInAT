@@ -3,6 +3,13 @@ from gauss_jacobi import gauss_jacobi_rule
 from points import StroudPointSet, PointSet, TensorPointSet, GaussLobattoPointSet
 import FIAT
 
+def make_quadrature(cell, degree, preferred_quadrature):
+    '''Return a quadrature rule of the suggested degree in accordance with
+    the quadrature preferences provided.'''
+
+    # Currently just do the dumb thing. Smart quadrature happens later.
+    return CollapsedGaussJacobiQuadrature(cell, degree)
+
 
 class QuadratureRule(object):
     """Object representing a quadrature rule as a set of points
@@ -10,17 +17,58 @@ class QuadratureRule(object):
 
     :param cell: The :class:`~FIAT.reference_element.ReferenceElement`
     on which this quadrature rule is defined.
-    :param points: An instance of a subclass of :class:`points.PointSetBase`
-    giving the points for this quadrature rule.
-    :param weights: The quadrature weights. If ``points`` is a
-    :class:`points.TensorPointSet` then weights is an iterable whose
-    members are the sets of weights along the respective dimensions.
     """
 
     def __init__(self, cell, points, weights):
         self.cell = cell
-        self.points = points
-        self.weights = weights
+        self._points = points
+        self._weights = weights
+
+    @property
+    def points(self):
+        '''The quadrature points. For a rule with internal structure, this is
+        the flattened points.'''
+
+        return self._points
+
+    @property
+    def weights(self):
+        '''The quadrature weights. For a rule with internal structure, this is
+        the flattenened weights.'''
+
+        return self._weights
+
+    @property
+    def index_shape(self):
+        '''A tuple indicating the shape of the indices needed to loop over the points.'''
+
+        raise NotImplementedError
+
+    def get_indices(self):
+        '''A tuple of GEM :class:`Index` of the correct extents to loop over
+        the basis functions of this element.'''
+
+        return tuple(gem.Index(d) for d in self.index_shape)
+
+
+class CollapsedGaussJacobiQuadrature(QuadratureRule):
+    def __init__(self, cell, degree):
+        """Gauss Jacobi Quadrature rule using collapsed coordinates to
+        accommodate higher order simplices."""
+
+        points = (degree + 1) // 2
+
+        rule = FIAT.make_quadrature(cell, points)
+
+        super(CollapsedGaussJacobiQuadrature, self).__init__(cell,
+                                                             rule.pts,
+                                                             rule.wts)
+
+    @property
+    def index_shape(self):
+        '''A tuple indicating the shape of the indices needed to loop over the points.'''
+
+        return (len(self.points),)
 
 
 class StroudQuadrature(QuadratureRule):
