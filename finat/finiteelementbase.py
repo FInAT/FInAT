@@ -154,14 +154,14 @@ class FiatElementBase(FiniteElementBase):
         # Work out the correct transposition between FIAT storage and ours.
         tr = (2, 0, 1) if self.value_shape else (1, 0)
 
-        # Convert the FIAT tabulation into a gem tensor.
-        def tabtensor(pre_indices=()):
-            if len(pre_indices) < dim:
-                return gem.ListTensor([tabtensor(pre_indices + (i,))
-                                       for i in range(derivative + 1)])
+        # Convert the FIAT tabulation into a gem tensor. Note that
+        # this does not exploit the symmetry of the derivative tensor.
+        def tabtensor(index = (0,) * dim):
+            if sum(index) < derivative:
+                return gem.ListTensor([tabtensor(tuple(index[id] + (1 if id == i else 0) for id in range(dim)))
+                                       for i in range(dim)])
             else:
-                return gem.ListTensor([gem.Literal(fiat_tab.get(pre_indices + (i,)).transpose(tr), None)
-                                       for i in range(derivative + 1)])
+                return gem.Literal(fiat_tab[index].transpose(tr))
 
         return ComponentTensor(Indexed(tabtensor(), di + qi + i + vi), qi + i + vi + di)
 
