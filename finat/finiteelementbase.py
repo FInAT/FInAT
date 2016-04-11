@@ -140,7 +140,7 @@ class FiatElementBase(FiniteElementBase):
         :param derivative: the derivative to take of the basis functions.
         '''
 
-        assert entity == None
+        assert entity is None
 
         dim = self.cell.get_spatial_dimension()
 
