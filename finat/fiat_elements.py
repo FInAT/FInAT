@@ -55,10 +55,11 @@ class FiatElementBase(FiniteElementBase):
                 derivative_multi_index = tuple(i[it.index, :].sum(0))
                 it[0] = gem.Literal(fiat_tab[derivative_multi_index].transpose(tr))
                 it.iternext()
+            tensor = gem.ListTensor(tensor)
         else:
-            tensor = fiat_tab[(0,) * dim].transpose(tr)
+            tensor = gem.Literal(fiat_tab[(0,) * dim].transpose(tr))
 
-        return gem.ComponentTensor(gem.Indexed(gem.Literal(tensor),
+        return gem.ComponentTensor(gem.Indexed(tensor,
                                                di + qi + i + vi),
                                    qi + i + vi + di)
 
