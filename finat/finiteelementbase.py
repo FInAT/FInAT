@@ -147,7 +147,7 @@ class FiatElementBase(FiniteElementBase):
         i = self.get_indices()
         vi = self.get_value_indices()
         qi = q.get_indices()
-        di = tuple(gem.Index() for i in range(dim)) 
+        di = tuple(gem.Index() for i in range(dim))
 
         fiat_tab = self._fiat_element.tabulate(derivative, q.points)
 
@@ -156,14 +156,19 @@ class FiatElementBase(FiniteElementBase):
 
         # Convert the FIAT tabulation into a gem tensor. Note that
         # this does not exploit the symmetry of the derivative tensor.
-        def tabtensor(index = (0,) * dim):
-            if sum(index) < derivative:
-                return gem.ListTensor([tabtensor(tuple(index[id] + (1 if id == i else 0) for id in range(dim)))
-                                       for i in range(dim)])
-            else:
-                return gem.Literal(fiat_tab[index].transpose(tr))
+        i = np.eye(dim, dtype=np.int)
 
-        return ComponentTensor(Indexed(tabtensor(), di + qi + i + vi), qi + i + vi + di)
+        if derivative:
+            tensor = np.empty((dim,) * derivative, dtype=np.object)
+            it = np.nditer(tensor, flags=['multi_index'], op_flags=["writeonly"])
+            while not it.finished:
+                derivative_multi_index = tuple(i[it.index, :].sum(0))
+                it[0] = gem.Literal(fiat_tab[derivative_multi_index].transpose(tr))
+                it.iternext()
+        else:
+            tensor = gem.Literal(fiat_tab[(0,) * dim].transpose(tr))
+
+        return gem.ComponentTensor(gem.Indexed(tensor(), di + qi + i + vi), qi + i + vi + di)
 
     @property
     def entity_dofs(self):
