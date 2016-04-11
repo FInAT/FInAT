@@ -1,6 +1,7 @@
 from .finiteelementbase import FiniteElementBase
 import FIAT
 import gem
+import numpy as np
 
 
 class FiatElementBase(FiniteElementBase):
