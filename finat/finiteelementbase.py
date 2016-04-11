@@ -166,9 +166,11 @@ class FiatElementBase(FiniteElementBase):
                 it[0] = gem.Literal(fiat_tab[derivative_multi_index].transpose(tr))
                 it.iternext()
         else:
-            tensor = gem.Literal(fiat_tab[(0,) * dim].transpose(tr))
+            tensor = fiat_tab[(0,) * dim].transpose(tr)
 
-        return gem.ComponentTensor(gem.Indexed(tensor(), di + qi + i + vi), qi + i + vi + di)
+        return gem.ComponentTensor(gem.Indexed(gem.Literal(tensor),
+                                               di + qi + i + vi),
+                                   qi + i + vi + di)
 
     @property
     def entity_dofs(self):
