@@ -64,13 +64,13 @@ class FiniteElementBase(object):
         '''A tuple of GEM :class:`Index` of the correct extents to loop over
         the basis functions of this element.'''
 
-        return tuple(gem.Index(d) for d in self.index_shape)
+        return tuple(gem.Index(extent=d) for d in self.index_shape)
 
     def get_value_indices(self):
         '''A tuple of GEM :class:`~gem.Index` of the correct extents to loop over
         the value shape of this element.'''
 
-        return tuple(gem.Index(d) for d in self.value_shape)
+        return tuple(gem.Index(extent=d) for d in self.value_shape)
 
     def basis_evaluation(self, q, entity=None, derivative=None):
         '''Return code for evaluating the element at known points on the

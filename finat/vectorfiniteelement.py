@@ -62,8 +62,8 @@ class VectorFiniteElement(FiniteElementBase):
         d = derivative
 
         # New basis function and value indices.
-        i = gem.Index(self._dimension)
-        vi = gem.Index(self._dimension)
+        i = gem.Index(extent=self._dimension)
+        vi = gem.Index(extent=self._dimension)
 
         new_indices = indices[:qi] + i + indices[qi: -d] + vi + indices[-d:]
 

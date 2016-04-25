@@ -50,7 +50,7 @@ class QuadratureRule(object):
         '''A tuple of GEM :class:`Index` of the correct extents to loop over
         the basis functions of this element.'''
 
-        return tuple(gem.Index(d) for d in self.index_shape)
+        return tuple(gem.Index(extent=d) for d in self.index_shape)
 
 
 class CollapsedGaussJacobiQuadrature(QuadratureRule):
