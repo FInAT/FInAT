@@ -89,6 +89,7 @@ class FiatElementBase(FiniteElementBase):
 
 
 class ScalarFiatElement(FiatElementBase):
+    @property
     def value_shape(self):
         return ()
 
@@ -115,6 +116,7 @@ class DiscontinuousLagrange(ScalarFiatElement):
 
 
 class VectorFiatElement(FiatElementBase):
+    @property
     def value_shape(self):
         return (self.cell.get_spatial_dimension(),)
 
