@@ -37,7 +37,7 @@ class FiatElementBase(FiniteElementBase):
         i = self.get_indices()
         vi = self.get_value_indices()
         qi = q.get_indices()
-        di = tuple(gem.Index() for i in range(dim))
+        di = tuple(gem.Index(extent=dim) for i in range(derivative))
 
         fiat_tab = self._fiat_element.tabulate(derivative, q.points)
 
@@ -46,8 +46,6 @@ class FiatElementBase(FiniteElementBase):
 
         # Convert the FIAT tabulation into a gem tensor. Note that
         # this does not exploit the symmetry of the derivative tensor.
-        i = np.eye(dim, dtype=np.int)
-
         if derivative:
             tensor = np.empty((dim,) * derivative, dtype=np.object)
             it = np.nditer(tensor, flags=['multi_index'], op_flags=["writeonly"])

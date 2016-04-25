@@ -38,11 +38,11 @@ class VectorFiniteElement(FiniteElementBase):
 
     @property
     def index_shape(self):
-        return self._base_element.index_shape() + (self._dimension,)
+        return self._base_element.index_shape + (self._dimension,)
 
     @property
     def value_shape(self):
-        return self._base_element.value_shape() + (self._dimension,)
+        return self._base_element.value_shape + (self._dimension,)
 
     def basis_evaluation(self, q, entity=None, derivative=0):
         r"""Produce the recipe for basis function evaluation at a set of points :math:`q`:
@@ -65,9 +65,11 @@ class VectorFiniteElement(FiniteElementBase):
         i = gem.Index(extent=self._dimension)
         vi = gem.Index(extent=self._dimension)
 
-        new_indices = indices[:qi] + i + indices[qi: -d] + vi + indices[-d:]
+        new_indices = indices[:qi] + (i,) + indices[qi: len(indices) - d] + (vi,) + indices[len(indices) - d:]
 
-        return gem.ComponentTensor(gem.Product(gem.Delta(i, vi), scalarbasis), new_indices)
+        return gem.ComponentTensor(gem.Product(gem.Delta(i, vi),
+                                               gem.Indexed(scalarbasis, indices)),
+                                   new_indices)
 
     def __hash__(self):
         """VectorFiniteElements are equal if they have the same base element
