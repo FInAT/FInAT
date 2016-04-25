@@ -47,10 +47,11 @@ class FiatElementBase(FiniteElementBase):
         # Convert the FIAT tabulation into a gem tensor. Note that
         # this does not exploit the symmetry of the derivative tensor.
         if derivative:
+            e = np.eye(dim, dtype=np.int)
             tensor = np.empty((dim,) * derivative, dtype=np.object)
-            it = np.nditer(tensor, flags=['multi_index'], op_flags=["writeonly"])
+            it = np.nditer(tensor, flags=['multi_index', 'refs_ok'], op_flags=["writeonly"])
             while not it.finished:
-                derivative_multi_index = tuple(i[it.index, :].sum(0))
+                derivative_multi_index = tuple(e[it.multi_index, :].sum(0))
                 it[0] = gem.Literal(fiat_tab[derivative_multi_index].transpose(tr))
                 it.iternext()
             tensor = gem.ListTensor(tensor)
