@@ -2,6 +2,7 @@ import numpy as np
 from gauss_jacobi import gauss_jacobi_rule
 from points import StroudPointSet, PointSet, TensorPointSet, GaussLobattoPointSet
 import FIAT
+import gem
 
 
 def make_quadrature(cell, degree, preferred_quadrature):

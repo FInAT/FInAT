@@ -1,5 +1,4 @@
 from fiat_elements import Lagrange, DiscontinuousLagrange, GaussLobatto
-from hdiv import RaviartThomas, BrezziDouglasMarini, BrezziDouglasFortinMarini
 from bernstein import Bernstein
 from vectorfiniteelement import VectorFiniteElement
 from product_elements import ScalarProductElement
