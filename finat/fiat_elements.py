@@ -109,7 +109,7 @@ class GaussLobatto(ScalarFiatElement):
 
 class DiscontinuousLagrange(ScalarFiatElement):
     def __init__(self, cell, degree):
-        super(Lagrange, self).__init__(cell, degree)
+        super(DiscontinuousLagrange, self).__init__(cell, degree)
 
         self._fiat_element = FIAT.DiscontinuousLagrange(cell, degree)
 
