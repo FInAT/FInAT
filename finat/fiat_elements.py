@@ -102,6 +102,13 @@ class Lagrange(ScalarFiatElement):
         self._fiat_element = FIAT.Lagrange(cell, degree)
 
 
+class Regge(ScalarFiatElement):
+    def __init__(self, cell, degree):
+        super(Regge, self).__init__(cell, degree)
+
+        self._fiat_element = FIAT.Regge(cell, degree)
+
+
 class GaussLobatto(ScalarFiatElement):
     def __init__(self, cell, degree):
         super(GaussLobatto, self).__init__(cell, degree)
@@ -129,6 +136,13 @@ class RaviartThomas(VectorFiatElement):
         self._fiat_element = FIAT.RaviartThomas(cell, degree)
 
 
+class DiscontinuousRaviartThomas(VectorFiatElement):
+    def __init__(self, cell, degree):
+        super(DiscontinuousRaviartThomas, self).__init__(cell, degree)
+
+        self._fiat_element = FIAT.DiscontinuousRaviartThomas(cell, degree)
+
+
 class BrezziDouglasMarini(VectorFiatElement):
     def __init__(self, cell, degree):
         super(BrezziDouglasMarini, self).__init__(cell, degree)
@@ -141,3 +155,17 @@ class BrezziDouglasFortinMarini(VectorFiatElement):
         super(BrezziDouglasFortinMarini, self).__init__(cell, degree)
 
         self._fiat_element = FIAT.BrezziDouglasFortinMarini(cell, degree)
+
+
+class Nedelec(VectorFiatElement):
+    def __init__(self, cell, degree):
+        super(Nedelec, self).__init__(cell, degree)
+
+        self._fiat_element = FIAT.Nedelec(cell, degree)
+
+
+class NedelecSecondKind(VectorFiatElement):
+    def __init__(self, cell, degree):
+        super(NedelecSecondKind, self).__init__(cell, degree)
+
+        self._fiat_element = FIAT.NedelecSecondKind(cell, degree)
