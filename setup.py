@@ -1,6 +1,5 @@
 from distutils.core import setup
 import sys
-import re
 
 if sys.version_info < (2, 7):
     print("Python 2.7 or higher required, please upgrade.")

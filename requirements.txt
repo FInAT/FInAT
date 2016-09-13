@@ -1,3 +1,2 @@
-pytest-pep8
-numpy>=1.6.1
-sympy
+-r requirements-ext.txt
+-r requirements-git.txt

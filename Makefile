@@ -1,4 +1,6 @@
 PYTHONPATH := $(PWD):$(PYTHONPATH)
 
-test:
-	py.test --pep8 --verbose
+lint:
+	flake8 .
+
+test: lint
