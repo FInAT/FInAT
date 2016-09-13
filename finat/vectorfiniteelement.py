@@ -1,4 +1,6 @@
-from finiteelementbase import FiniteElementBase
+from __future__ import absolute_import, print_function, division
+
+from .finiteelementbase import FiniteElementBase
 import gem
 
 

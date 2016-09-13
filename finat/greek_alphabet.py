@@ -2,6 +2,8 @@
 https://gist.github.com/piquadrat/765262#file-greek_alphabet-py
 """
 
+from __future__ import absolute_import, print_function, division
+
 
 def translate_symbol(symbol):
     """Translates utf-8 sub-strings into compilable variable names"""

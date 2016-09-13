@@ -1,4 +1,7 @@
 """Preliminary support for tensor product elements."""
+
+from __future__ import absolute_import, print_function, division
+
 from .finiteelementbase import FiniteElementBase
 from FIAT.reference_element import TensorProductCell
 

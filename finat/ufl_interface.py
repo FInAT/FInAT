@@ -1,4 +1,7 @@
 """Provide interface functions which take UFL objects and return FInAT ones."""
+
+from __future__ import absolute_import, print_function, division
+
 import finat
 import FIAT
 
