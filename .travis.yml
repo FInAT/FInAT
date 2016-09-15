@@ -3,14 +3,12 @@ sudo: false
 language: python
 python:
   - "2.7"
-#  - "3.4"
-
-virtualenv:
-  system_site_packages: true
+  - "3.4"
 
 before_install:
   - pip install -r requirements.txt
   - pip install flake8
+  - pip install flake8-future-import
 
 install:
   - python setup.py install

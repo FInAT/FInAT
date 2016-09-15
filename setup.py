@@ -1,3 +1,5 @@
+from __future__ import absolute_import, print_function, division
+
 from distutils.core import setup
 import sys
 
