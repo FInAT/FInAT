@@ -1,5 +1,6 @@
 from __future__ import absolute_import, print_function, division
 
+from .point_set import restore_shape
 from .finiteelementbase import FiniteElementBase
 import FIAT
 import gem
@@ -38,7 +39,6 @@ class FiatElementBase(FiniteElementBase):
         vi = self.get_value_indices()
         pi = ps.indices
         di = tuple(gem.Index(extent=dim) for i in range(derivative))
-        q_shape = tuple(pd.extent for pd in pi)
 
         fiat_tab = self._fiat_element.tabulate(derivative, ps.points, entity)
 
@@ -53,15 +53,11 @@ class FiatElementBase(FiniteElementBase):
             it = np.nditer(tensor, flags=['multi_index', 'refs_ok'], op_flags=["writeonly"])
             while not it.finished:
                 derivative_multi_index = tuple(e[it.multi_index, :].sum(0))
-                tab = fiat_tab[derivative_multi_index].transpose(tr)
-                tab = tab.reshape(q_shape + tab.shape[1:])
-                it[0] = gem.Literal(tab)
+                it[0] = gem.Literal(restore_shape(fiat_tab[derivative_multi_index].transpose(tr), ps))
                 it.iternext()
             tensor = gem.ListTensor(tensor)
         else:
-            tab = fiat_tab[(0,) * dim].transpose(tr)
-            tab = tab.reshape(q_shape + tab.shape[1:])
-            tensor = gem.Literal(tab)
+            tensor = gem.Literal(restore_shape(fiat_tab[(0,) * dim].transpose(tr), ps))
 
         return gem.ComponentTensor(gem.Indexed(tensor,
                                                di + pi + i + vi),
