@@ -73,13 +73,12 @@ class FiniteElementBase(object):
 
         return tuple(gem.Index(extent=d) for d in self.value_shape)
 
-    def basis_evaluation(self, q, entity=None, derivative=None):
+    def basis_evaluation(self, ps, entity=None, derivative=None):
         '''Return code for evaluating the element at known points on the
         reference element.
 
         :param index: the basis function index.
-        :param q: the quadrature rule.
-        :param q_index: the quadrature index.
+        :param ps: the point set object.
         :param entity: the cell entity on which to tabulate.
         :param derivative: the derivative to take of the basis functions.
         '''
