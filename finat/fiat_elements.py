@@ -39,12 +39,12 @@ class FiatElementBase(FiniteElementBase):
 
         if derivative < self._degree:
             points = ps.points
-            pi = ps.indices
+            point_indices = ps.indices
         elif derivative == self._degree:
             # Tabulate on cell centre
             points = np.mean(self._cell.get_vertices(), axis=0, keepdims=True)
             entity = (self._cell.get_dimension(), 0)
-            pi = ()  # no point indices used
+            point_indices = ()  # no point indices used
         else:
             return gem.Zero(tuple(index.extent for index in i + vi + di))
 
@@ -53,18 +53,17 @@ class FiatElementBase(FiniteElementBase):
         # Work out the correct transposition between FIAT storage and ours.
         tr = (2, 0, 1) if self.value_shape else (1, 0)
 
+        def restore_point_shape(array):
+            shape = tuple(index.extent for index in point_indices)
+            return array.reshape(shape + array.shape[1:])
+
         e = np.eye(dim, dtype=np.int)
         tensor = np.empty((dim,) * derivative, dtype=np.object)
-        it = np.nditer(tensor, flags=['multi_index', 'refs_ok'], op_flags=["writeonly"])
-        while not it.finished:
-            def restore_shape(array, indices):
-                shape = tuple(index.extent for index in indices)
-                return array.reshape(shape + array.shape[1:])
-
-            derivative_multi_index = tuple(e[it.multi_index, :].sum(0))
-            it[0] = gem.Indexed(gem.Literal(restore_shape(fiat_tab[derivative_multi_index].transpose(tr), pi)),
-                                pi + i + vi)
-            it.iternext()
+        for multi_index in np.ndindex(tensor.shape):
+            derivative_multi_index = tuple(e[multi_index, :].sum(axis=0))
+            transposed_table = fiat_tab[derivative_multi_index].transpose(tr)
+            tensor[multi_index] = gem.Indexed(gem.Literal(restore_point_shape(transposed_table)),
+                                              point_indices + i + vi)
 
         if derivative:
             tensor = gem.Indexed(gem.ListTensor(tensor), di)
