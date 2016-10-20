@@ -45,18 +45,19 @@ class FiatElementBase(FiniteElementBase):
         # Work out the correct transposition between FIAT storage and ours.
         tr = (2, 0, 1) if self.value_shape else (1, 0)
 
+        e = np.eye(dim, dtype=np.int)
+        tensor = np.empty((dim,) * derivative, dtype=np.object)
+        it = np.nditer(tensor, flags=['multi_index', 'refs_ok'], op_flags=["writeonly"])
+        while not it.finished:
+            derivative_multi_index = tuple(e[it.multi_index, :].sum(0))
+            it[0] = gem.Indexed(gem.Literal(restore_shape(fiat_tab[derivative_multi_index].transpose(tr), ps)),
+                                pi + i + vi)
+            it.iternext()
+
         if derivative:
-            e = np.eye(dim, dtype=np.int)
-            tensor = np.empty((dim,) * derivative, dtype=np.object)
-            it = np.nditer(tensor, flags=['multi_index', 'refs_ok'], op_flags=["writeonly"])
-            while not it.finished:
-                derivative_multi_index = tuple(e[it.multi_index, :].sum(0))
-                it[0] = gem.Indexed(gem.Literal(restore_shape(fiat_tab[derivative_multi_index].transpose(tr), ps)),
-                                    pi + i + vi)
-                it.iternext()
             tensor = gem.Indexed(gem.ListTensor(tensor), di)
         else:
-            tensor = gem.Indexed(gem.Literal(restore_shape(fiat_tab[(0,) * dim].transpose(tr), ps)), pi + i + vi)
+            tensor = tensor[()]
 
         return gem.ComponentTensor(tensor, i + vi + di)
 
