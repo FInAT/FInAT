@@ -1,5 +1,6 @@
 from __future__ import absolute_import, print_function, division
 
+from .point_set import restore_shape
 from .finiteelementbase import FiniteElementBase
 import FIAT
 import gem
@@ -23,25 +24,23 @@ class FiatElementBase(FiniteElementBase):
     def value_shape(self):
         return self._fiat_element.value_shape()
 
-    def basis_evaluation(self, q, entity=None, derivative=0):
+    def basis_evaluation(self, ps, entity=None, derivative=0):
         '''Return code for evaluating the element at known points on the
         reference element.
 
-        :param q: the quadrature rule.
+        :param ps: the point set.
         :param entity: the cell entity on which to tabulate.
         :param derivative: the derivative to take of the basis functions.
         '''
-
-        assert entity is None
 
         dim = self.cell.get_spatial_dimension()
 
         i = self.get_indices()
         vi = self.get_value_indices()
-        qi = q.get_indices()
+        pi = ps.indices
         di = tuple(gem.Index(extent=dim) for i in range(derivative))
 
-        fiat_tab = self._fiat_element.tabulate(derivative, q.points)
+        fiat_tab = self._fiat_element.tabulate(derivative, ps.points, entity)
 
         # Work out the correct transposition between FIAT storage and ours.
         tr = (2, 0, 1) if self.value_shape else (1, 0)
@@ -54,15 +53,15 @@ class FiatElementBase(FiniteElementBase):
             it = np.nditer(tensor, flags=['multi_index', 'refs_ok'], op_flags=["writeonly"])
             while not it.finished:
                 derivative_multi_index = tuple(e[it.multi_index, :].sum(0))
-                it[0] = gem.Literal(fiat_tab[derivative_multi_index].transpose(tr))
+                it[0] = gem.Literal(restore_shape(fiat_tab[derivative_multi_index].transpose(tr), ps))
                 it.iternext()
             tensor = gem.ListTensor(tensor)
         else:
-            tensor = gem.Literal(fiat_tab[(0,) * dim].transpose(tr))
+            tensor = gem.Literal(restore_shape(fiat_tab[(0,) * dim].transpose(tr), ps))
 
         return gem.ComponentTensor(gem.Indexed(tensor,
-                                               di + qi + i + vi),
-                                   qi + i + vi + di)
+                                               di + pi + i + vi),
+                                   pi + i + vi + di)
 
     @property
     def entity_dofs(self):

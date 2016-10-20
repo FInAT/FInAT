@@ -55,7 +55,7 @@ class TensorFiniteElement(FiniteElementBase):
     def value_shape(self):
         return self._base_element.value_shape + self._shape
 
-    def basis_evaluation(self, q, entity=None, derivative=0):
+    def basis_evaluation(self, ps, entity=None, derivative=0):
         r"""Produce the recipe for basis function evaluation at a set of points :math:`q`:
 
         .. math::
@@ -64,19 +64,19 @@ class TensorFiniteElement(FiniteElementBase):
             \nabla\boldsymbol\phi_{(\epsilon \gamma \zeta) (i \alpha \beta) q} = \delta_{\alpha \epsilon} \deta{\beta \gamma}\nabla\phi_{\zeta i q}
         """
 
-        scalarbasis = self._base_element.basis_evaluation(q, entity, derivative)
+        scalarbasis = self._base_element.basis_evaluation(ps, entity, derivative)
 
         indices = tuple(gem.Index() for i in scalarbasis.shape)
 
         # Work out which of the indices are for what.
-        qi = len(q.index_shape) + len(self._base_element.index_shape)
+        pi = len(ps.indices) + len(self._base_element.index_shape)
         d = derivative
 
         # New basis function and value indices.
         i = tuple(gem.Index(extent=d) for d in self._shape)
         vi = tuple(gem.Index(extent=d) for d in self._shape)
 
-        new_indices = indices[:qi] + i + indices[qi: len(indices) - d] + vi + indices[len(indices) - d:]
+        new_indices = indices[:pi] + i + indices[pi: len(indices) - d] + vi + indices[len(indices) - d:]
 
         return gem.ComponentTensor(gem.Product(reduce(gem.Product,
                                                       (gem.Delta(j, k)
