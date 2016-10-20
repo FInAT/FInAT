@@ -69,7 +69,7 @@ class TensorFiniteElement(FiniteElementBase):
         indices = tuple(gem.Index() for i in scalarbasis.shape)
 
         # Work out which of the indices are for what.
-        pi = len(ps.indices) + len(self._base_element.index_shape)
+        pi = len(self._base_element.index_shape)
         d = derivative
 
         # New basis function and value indices.

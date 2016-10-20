@@ -61,7 +61,7 @@ class FiatElementBase(FiniteElementBase):
 
         return gem.ComponentTensor(gem.Indexed(tensor,
                                                di + pi + i + vi),
-                                   pi + i + vi + di)
+                                   i + vi + di)
 
     @property
     def entity_dofs(self):
