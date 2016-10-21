@@ -1,6 +1,5 @@
 from __future__ import absolute_import, print_function, division
 
-from .point_set import restore_shape
 from .finiteelementbase import FiniteElementBase
 import FIAT
 import gem
@@ -32,36 +31,46 @@ class FiatElementBase(FiniteElementBase):
         :param entity: the cell entity on which to tabulate.
         :param derivative: the derivative to take of the basis functions.
         '''
-
         dim = self.cell.get_spatial_dimension()
 
         i = self.get_indices()
         vi = self.get_value_indices()
-        pi = ps.indices
         di = tuple(gem.Index(extent=dim) for i in range(derivative))
 
-        fiat_tab = self._fiat_element.tabulate(derivative, ps.points, entity)
+        if derivative < self._degree:
+            points = ps.points
+            point_indices = ps.indices
+        elif derivative == self._degree:
+            # Tabulate on cell centre
+            points = np.mean(self._cell.get_vertices(), axis=0, keepdims=True)
+            entity = (self._cell.get_dimension(), 0)
+            point_indices = ()  # no point indices used
+        else:
+            return gem.Zero(tuple(index.extent for index in i + vi + di))
+
+        fiat_tab = self._fiat_element.tabulate(derivative, points, entity)
 
         # Work out the correct transposition between FIAT storage and ours.
         tr = (2, 0, 1) if self.value_shape else (1, 0)
 
-        # Convert the FIAT tabulation into a gem tensor. Note that
-        # this does not exploit the symmetry of the derivative tensor.
-        if derivative:
-            e = np.eye(dim, dtype=np.int)
-            tensor = np.empty((dim,) * derivative, dtype=np.object)
-            it = np.nditer(tensor, flags=['multi_index', 'refs_ok'], op_flags=["writeonly"])
-            while not it.finished:
-                derivative_multi_index = tuple(e[it.multi_index, :].sum(0))
-                it[0] = gem.Literal(restore_shape(fiat_tab[derivative_multi_index].transpose(tr), ps))
-                it.iternext()
-            tensor = gem.ListTensor(tensor)
-        else:
-            tensor = gem.Literal(restore_shape(fiat_tab[(0,) * dim].transpose(tr), ps))
+        def restore_point_shape(array):
+            shape = tuple(index.extent for index in point_indices)
+            return array.reshape(shape + array.shape[1:])
 
-        return gem.ComponentTensor(gem.Indexed(tensor,
-                                               di + pi + i + vi),
-                                   pi + i + vi + di)
+        e = np.eye(dim, dtype=np.int)
+        tensor = np.empty((dim,) * derivative, dtype=np.object)
+        for multi_index in np.ndindex(tensor.shape):
+            derivative_multi_index = tuple(e[multi_index, :].sum(axis=0))
+            transposed_table = fiat_tab[derivative_multi_index].transpose(tr)
+            tensor[multi_index] = gem.Indexed(gem.Literal(restore_point_shape(transposed_table)),
+                                              point_indices + i + vi)
+
+        if derivative:
+            tensor = gem.Indexed(gem.ListTensor(tensor), di)
+        else:
+            tensor = tensor[()]
+
+        return gem.ComponentTensor(tensor, i + vi + di)
 
     @property
     def entity_dofs(self):

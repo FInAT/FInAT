@@ -108,16 +108,3 @@ class TensorPointSet(AbstractPointSet):
 # class GaussLobattoPointSet(PointSet):
 #     """A set of 1D Gauss Lobatto points. This is a separate class in order
 #     to allow elements to apply spectral element tricks."""
-
-
-def restore_shape(array, ps):
-    """Restores the shape of a point set for a numpy array.
-
-    :arg array: numpy array of arbitrary rank with the first dimension
-                representing the points.
-    :arg ps: point set object
-    :returns: reshaped numpy array with the first dimension replaced
-              with the shape of the point set.
-    """
-    shape = tuple(index.extent for index in ps.indices)
-    return array.reshape(shape + array.shape[1:])
