@@ -11,7 +11,7 @@ from FIAT.reference_element import TensorProductCell
 import gem
 
 from finat.finiteelementbase import FiniteElementBase
-from finat.point_set import TensorPointSet
+from finat.point_set import PointSet, TensorPointSet
 
 
 class TensorProductElement(FiniteElementBase):
@@ -30,10 +30,6 @@ class TensorProductElement(FiniteElementBase):
         return tuple(chain(*[fe.index_shape for fe in self.factors]))
 
     def basis_evaluation(self, ps, entity=None, derivative=0):
-        if not isinstance(ps, TensorPointSet):
-            raise NotImplementedError("How to tabulate TensorProductElement on non-TensorPointSet?")
-        assert len(ps.factors) == len(self.factors)
-
         if entity is None:
             entity = (self.cell.get_dimension(), 0)
         entity_dim, entity_id = entity
@@ -45,6 +41,8 @@ class TensorProductElement(FiniteElementBase):
                       for c, d in zip(self.cell.cells, entity_dim))
         entities = list(zip(entity_dim, numpy.unravel_index(entity_id, shape)))
 
+        ps_factors = factor_point_set(self.cell, entity_dim, ps)
+
         dimension = self.cell.get_spatial_dimension()
         tensor = numpy.empty((dimension,) * derivative, dtype=object)
         eye = numpy.eye(dimension, dtype=int)
@@ -55,7 +53,7 @@ class TensorProductElement(FiniteElementBase):
             D_ = tuple(eye[delta, :].sum(axis=0))
             Ds = [D_[s] for s in dim_slices]
             scalars = []
-            for fe, ps_, e, D, alpha in zip(self.factors, ps.factors, entities, Ds, alphas):
+            for fe, ps_, e, D, alpha in zip(self.factors, ps_factors, entities, Ds, alphas):
                 value = fe.basis_evaluation(ps_, entity=e, derivative=sum(D))
                 d = tuple(chain(*[(dim,) * count for dim, count in enumerate(D)]))
                 scalars.append(gem.Indexed(value, alpha + d))
@@ -68,3 +66,26 @@ class TensorProductElement(FiniteElementBase):
             value = tensor[()]
 
         return gem.ComponentTensor(value, tuple(chain(*alphas)) + delta)
+
+
+def factor_point_set(product_cell, product_dim, point_set):
+    assert len(product_cell.cells) == len(product_dim)
+    point_dims = [cell.construct_subelement(dim).get_spatial_dimension()
+                  for cell, dim in zip(product_cell.cells, product_dim)]
+
+    if isinstance(point_set, TensorPointSet):
+        assert len(point_set.factors) == len(point_dims)
+        assert all(ps.dimension == dim
+                   for ps, dim in zip(point_set.factors, point_dims))
+        return point_set.factors
+    elif isinstance(point_set, PointSet):
+        assert point_set.dimension == sum(point_dims)
+        slices = TensorProductCell._split_slices(point_dims)
+        result = []
+        for s in slices:
+            ps = PointSet(point_set.points[:, s])
+            ps.indices = point_set.indices
+            result.append(ps)
+        return result
+    else:
+        raise NotImplementedError("How to tabulate TensorProductElement on %s?" % (type(point_set).__name__,))
