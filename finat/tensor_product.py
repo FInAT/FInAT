@@ -29,6 +29,10 @@ class TensorProductElement(FiniteElementBase):
     def index_shape(self):
         return tuple(chain(*[fe.index_shape for fe in self.factors]))
 
+    @property
+    def value_shape(self):
+        return ()  # TODO: non-scalar factors not supported yet
+
     def basis_evaluation(self, ps, entity=None, derivative=0):
         if entity is None:
             entity = (self.cell.get_dimension(), 0)
