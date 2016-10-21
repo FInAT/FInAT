@@ -144,16 +144,27 @@ class TensorProductElement(FiniteElementBase):
 
 
 def factor_point_set(product_cell, product_dim, point_set):
+    """Factors a point set for the product element into a point sets for
+    each subelement.
+
+    :arg product_cell: a TensorProductCell
+    :arg product_dim: entity dimension for the product cell
+    :arg point_set: point set for the product element
+    """
     assert len(product_cell.cells) == len(product_dim)
     point_dims = [cell.construct_subelement(dim).get_spatial_dimension()
                   for cell, dim in zip(product_cell.cells, product_dim)]
 
     if isinstance(point_set, TensorPointSet):
+        # Just give the factors asserting matching dimensions.
         assert len(point_set.factors) == len(point_dims)
         assert all(ps.dimension == dim
                    for ps, dim in zip(point_set.factors, point_dims))
         return point_set.factors
     elif isinstance(point_set, PointSet):
+        # Split the point coordinates along the point dimensions
+        # required by the subelements, but use the same point index
+        # for the new point sets.
         assert point_set.dimension == sum(point_dims)
         slices = TensorProductCell._split_slices(point_dims)
         result = []
