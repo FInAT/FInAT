@@ -17,13 +17,13 @@ class QuadrilateralElement(FiniteElementBase):
 
         self.product = element
 
-    def basis_evaluation(self, ps, entity=None, derivative=0):
+    def basis_evaluation(self, order, ps, entity=None):
         """Return code for evaluating the element at known points on the
         reference element.
 
+        :param order: return derivatives up to this order.
         :param ps: the point set object.
         :param entity: the cell entity on which to tabulate.
-        :param derivative: the derivative to take of the basis functions.
         """
         if entity is None:
             entity = (2, 0)
@@ -46,7 +46,7 @@ class QuadrilateralElement(FiniteElementBase):
         else:
             raise ValueError("Illegal entity dimension %s" % entity_dim)
 
-        return self.product.basis_evaluation(ps, product_entity, derivative)
+        return self.product.basis_evaluation(order, ps, product_entity)
 
     @property
     def index_shape(self):

@@ -1,8 +1,11 @@
 from __future__ import absolute_import, print_function, division
+from six import iteritems
 
 from functools import reduce
-from .finiteelementbase import FiniteElementBase
+
 import gem
+
+from finat.finiteelementbase import FiniteElementBase
 
 
 class TensorFiniteElement(FiniteElementBase):
@@ -55,7 +58,7 @@ class TensorFiniteElement(FiniteElementBase):
     def value_shape(self):
         return self._base_element.value_shape + self._shape
 
-    def basis_evaluation(self, ps, entity=None, derivative=0):
+    def basis_evaluation(self, order, ps, entity=None):
         r"""Produce the recipe for basis function evaluation at a set of points :math:`q`:
 
         .. math::
@@ -63,26 +66,26 @@ class TensorFiniteElement(FiniteElementBase):
 
             \nabla\boldsymbol\phi_{(\epsilon \gamma \zeta) (i \alpha \beta) q} = \delta_{\alpha \epsilon} \deta{\beta \gamma}\nabla\phi_{\zeta i q}
         """
+        # Old basis function and value indices
+        scalar_i = self._base_element.get_indices()
+        scalar_vi = self._base_element.get_value_indices()
 
-        scalarbasis = self._base_element.basis_evaluation(ps, entity, derivative)
+        # New basis function and value indices
+        tensor_i = tuple(gem.Index(extent=d) for d in self._shape)
+        tensor_vi = tuple(gem.Index(extent=d) for d in self._shape)
 
-        indices = tuple(gem.Index() for i in scalarbasis.shape)
+        # Couple new basis function and value indices
+        deltas = reduce(gem.Product, (gem.Delta(j, k)
+                                      for j, k in zip(tensor_i, tensor_vi)))
 
-        # Work out which of the indices are for what.
-        pi = len(self._base_element.index_shape)
-        d = derivative
-
-        # New basis function and value indices.
-        i = tuple(gem.Index(extent=d) for d in self._shape)
-        vi = tuple(gem.Index(extent=d) for d in self._shape)
-
-        new_indices = indices[:pi] + i + indices[pi: len(indices) - d] + vi + indices[len(indices) - d:]
-
-        return gem.ComponentTensor(gem.Product(reduce(gem.Product,
-                                                      (gem.Delta(j, k)
-                                                       for j, k in zip(i, vi))),
-                                               gem.Indexed(scalarbasis, indices)),
-                                   new_indices)
+        scalar_result = self._base_element.basis_evaluation(order, ps, entity)
+        result = {}
+        for alpha, expr in iteritems(scalar_result):
+            result[alpha] = gem.ComponentTensor(
+                gem.Product(deltas, gem.Indexed(expr, scalar_i + scalar_vi)),
+                scalar_i + tensor_i + scalar_vi + tensor_vi
+            )
+        return result
 
     def __hash__(self):
         """TensorFiniteElements are equal if they have the same base element
