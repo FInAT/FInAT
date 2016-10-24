@@ -1,6 +1,5 @@
 from __future__ import absolute_import, print_function, division
 from six import iteritems
-from six.moves import range
 
 from .finiteelementbase import FiniteElementBase
 import FIAT
@@ -29,17 +28,15 @@ class FiatElementBase(FiniteElementBase):
         '''Return code for evaluating the element at known points on the
         reference element.
 
+        :param order: return derivatives up to this order.
         :param ps: the point set.
         :param entity: the cell entity on which to tabulate.
-        :param derivative: the derivative to take of the basis functions.
         '''
         fiat_result = self._fiat_element.tabulate(order, ps.points, entity)
         result = {}
         for alpha, table in iteritems(fiat_result):
             # Points be the first dimension, not last.
-            reordering = list(range(len(table.shape)))
-            reordering = [reordering[-1]] + reordering[:-1]
-            table = table.transpose(reordering)
+            table = np.rollaxis(table, -1, 0)
 
             derivative = sum(alpha)
             if derivative < self._degree:
