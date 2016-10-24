@@ -1,4 +1,5 @@
 from __future__ import absolute_import, print_function, division
+from six import iteritems
 
 from .finiteelementbase import FiniteElementBase
 import FIAT
@@ -23,54 +24,38 @@ class FiatElementBase(FiniteElementBase):
     def value_shape(self):
         return self._fiat_element.value_shape()
 
-    def basis_evaluation(self, ps, entity=None, derivative=0):
+    def basis_evaluation(self, order, ps, entity=None):
         '''Return code for evaluating the element at known points on the
         reference element.
 
+        :param order: return derivatives up to this order.
         :param ps: the point set.
         :param entity: the cell entity on which to tabulate.
-        :param derivative: the derivative to take of the basis functions.
         '''
-        dim = self.cell.get_spatial_dimension()
+        fiat_result = self._fiat_element.tabulate(order, ps.points, entity)
+        result = {}
+        for alpha, table in iteritems(fiat_result):
+            # Points be the first dimension, not last.
+            table = np.rollaxis(table, -1, 0)
 
-        i = self.get_indices()
-        vi = self.get_value_indices()
-        di = tuple(gem.Index(extent=dim) for i in range(derivative))
-
-        if derivative < self._degree:
-            points = ps.points
-            point_indices = ps.indices
-        elif derivative == self._degree:
-            # Tabulate on cell centre
-            points = np.mean(self._cell.get_vertices(), axis=0, keepdims=True)
-            entity = (self._cell.get_dimension(), 0)
-            point_indices = ()  # no point indices used
-        else:
-            return gem.Zero(tuple(index.extent for index in i + vi + di))
-
-        fiat_tab = self._fiat_element.tabulate(derivative, points, entity)
-
-        # Work out the correct transposition between FIAT storage and ours.
-        tr = (2, 0, 1) if self.value_shape else (1, 0)
-
-        def restore_point_shape(array):
-            shape = tuple(index.extent for index in point_indices)
-            return array.reshape(shape + array.shape[1:])
-
-        e = np.eye(dim, dtype=np.int)
-        tensor = np.empty((dim,) * derivative, dtype=np.object)
-        for multi_index in np.ndindex(tensor.shape):
-            derivative_multi_index = tuple(e[multi_index, :].sum(axis=0))
-            transposed_table = fiat_tab[derivative_multi_index].transpose(tr)
-            tensor[multi_index] = gem.Indexed(gem.Literal(restore_point_shape(transposed_table)),
-                                              point_indices + i + vi)
-
-        if derivative:
-            tensor = gem.Indexed(gem.ListTensor(tensor), di)
-        else:
-            tensor = tensor[()]
-
-        return gem.ComponentTensor(tensor, i + vi + di)
+            derivative = sum(alpha)
+            if derivative < self._degree:
+                point_indices = ps.indices
+                point_shape = tuple(index.extent for index in point_indices)
+                shape = point_shape + self.index_shape + self.value_shape
+                result[alpha] = gem.partial_indexed(
+                    gem.Literal(table.reshape(shape)),
+                    point_indices
+                )
+            elif derivative == self._degree:
+                # Make sure numerics satisfies theory
+                assert np.allclose(table, table.mean(axis=0, keepdims=True))
+                result[alpha] = gem.Literal(table[0])
+            else:
+                # Make sure numerics satisfies theory
+                assert np.allclose(table, 0.0)
+                result[alpha] = gem.Zero(self.index_shape + self.value_shape)
+        return result
 
     @property
     def entity_dofs(self):
