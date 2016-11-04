@@ -35,6 +35,10 @@ class FiatElementBase(FiniteElementBase):
         fiat_result = self._fiat_element.tabulate(order, ps.points, entity)
         result = {}
         for alpha, table in iteritems(fiat_result):
+            if isinstance(table, Exception):
+                result[alpha] = gem.Failure(self.index_shape + self.value_shape, table)
+                continue
+
             # Points be the first dimension, not last.
             table = np.rollaxis(table, -1, 0)
 
