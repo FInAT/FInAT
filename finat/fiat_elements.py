@@ -32,33 +32,51 @@ class FiatElementBase(FiniteElementBase):
         :param ps: the point set.
         :param entity: the cell entity on which to tabulate.
         '''
+        space_dimension = self._fiat_element.space_dimension()
+        value_size = np.prod(self._fiat_element.value_shape(), dtype=int)
         fiat_result = self._fiat_element.tabulate(order, ps.points, entity)
         result = {}
-        for alpha, table in iteritems(fiat_result):
-            if isinstance(table, Exception):
-                result[alpha] = gem.Failure(self.index_shape + self.value_shape, table)
+        for alpha, fiat_table in iteritems(fiat_result):
+            if isinstance(fiat_table, Exception):
+                result[alpha] = gem.Failure(self.index_shape + self.value_shape, fiat_table)
                 continue
 
-            # Points be the first dimension, not last.
-            table = np.rollaxis(table, -1, 0)
-
             derivative = sum(alpha)
-            if derivative < self._degree:
-                point_indices = ps.indices
-                point_shape = tuple(index.extent for index in point_indices)
-                shape = point_shape + self.index_shape + self.value_shape
-                result[alpha] = gem.partial_indexed(
-                    gem.Literal(table.reshape(shape)),
-                    point_indices
+            table_roll = fiat_table.reshape(
+                space_dimension, value_size, len(ps.points)
+            ).transpose(1, 2, 0)
+
+            exprs = []
+            for table in table_roll:
+                if derivative < self._degree:
+                    point_indices = ps.indices
+                    point_shape = tuple(index.extent for index in point_indices)
+                    exprs.append(gem.partial_indexed(
+                        gem.Literal(table.reshape(point_shape + self.index_shape)),
+                        point_indices
+                    ))
+                elif derivative == self._degree:
+                    # Make sure numerics satisfies theory
+                    assert np.allclose(table, table.mean(axis=0, keepdims=True))
+                    exprs.append(gem.Literal(table[0]))
+                else:
+                    # Make sure numerics satisfies theory
+                    assert np.allclose(table, 0.0)
+                    exprs.append(gem.Zero(self.index_shape))
+            if self.value_shape:
+                beta = self.get_indices()
+                zeta = self.get_value_indices()
+                result[alpha] = gem.ComponentTensor(
+                    gem.Indexed(
+                        gem.ListTensor(np.array(
+                            [gem.Indexed(expr, beta) for expr in exprs]
+                        ).reshape(self.value_shape)),
+                        zeta),
+                    beta + zeta
                 )
-            elif derivative == self._degree:
-                # Make sure numerics satisfies theory
-                assert np.allclose(table, table.mean(axis=0, keepdims=True))
-                result[alpha] = gem.Literal(table[0])
             else:
-                # Make sure numerics satisfies theory
-                assert np.allclose(table, 0.0)
-                result[alpha] = gem.Zero(self.index_shape + self.value_shape)
+                expr, = exprs
+                result[alpha] = expr
         return result
 
     @property
