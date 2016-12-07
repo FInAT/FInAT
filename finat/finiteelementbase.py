@@ -8,21 +8,16 @@ import gem
 
 class FiniteElementBase(with_metaclass(ABCMeta)):
 
-    @property
+    @abstractproperty
     def cell(self):
-        '''The reference cell on which the element is defined.
-        '''
+        '''The reference cell on which the element is defined.'''
 
-        return self._cell
-
-    @property
+    @abstractproperty
     def degree(self):
         '''The degree of the embedding polynomial space.
 
         In the tensor case this is a tuple.
         '''
-
-        return self._degree
 
     @abstractproperty
     def index_shape(self):
@@ -56,23 +51,3 @@ class FiniteElementBase(with_metaclass(ABCMeta)):
         :param ps: the point set object.
         :param entity: the cell entity on which to tabulate.
         '''
-
-    @property
-    def preferred_quadrature(self):
-        '''A list of quadrature rules whose structure this element is capable
-        of exploiting. Each entry in the list should be a pair (rule,
-        degree), where the degree might be `None` if the element has
-        no preferred quadrature degree.'''
-
-        return ()
-
-    def __hash__(self):
-        """Elements are equal if they have the same class, degree, and cell."""
-
-        return hash((type(self), self._cell, self._degree))
-
-    def __eq__(self, other):
-        """Elements are equal if they have the same class, degree, and cell."""
-
-        return type(self) == type(other) and self._cell == other._cell and\
-            self._degree == other._degree

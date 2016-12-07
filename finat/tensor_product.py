@@ -10,6 +10,7 @@ from FIAT.polynomial_set import mis
 from FIAT.reference_element import TensorProductCell
 
 import gem
+from gem.utils import cached_property
 
 from finat.finiteelementbase import FiniteElementBase
 from finat.point_set import PointSet, TensorPointSet
@@ -18,13 +19,17 @@ from finat.point_set import PointSet, TensorPointSet
 class TensorProductElement(FiniteElementBase):
 
     def __init__(self, factors):
+        super(TensorProductElement, self).__init__()
         self.factors = tuple(factors)
         assert all(fe.value_shape == () for fe in self.factors)
 
-        self._cell = TensorProductCell(*[fe.cell for fe in self.factors])
-        # self._degree = sum(fe.degree for fe in factors)  # correct?
-        # self._degree = max(fe.degree for fe in factors)  # FIAT
-        self._degree = None  # not used?
+    @cached_property
+    def cell(self):
+        return TensorProductCell(*[fe.cell for fe in self.factors])
+
+    @property
+    def degree(self):
+        raise NotImplementedError("Unused property.")
 
     @property
     def index_shape(self):

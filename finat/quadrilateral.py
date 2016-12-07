@@ -2,6 +2,8 @@ from __future__ import absolute_import, print_function, division
 
 from FIAT.reference_element import FiredrakeQuadrilateral
 
+from gem.utils import cached_property
+
 from finat.finiteelementbase import FiniteElementBase
 
 
@@ -12,10 +14,15 @@ class QuadrilateralElement(FiniteElementBase):
 
     def __init__(self, element):
         super(QuadrilateralElement, self).__init__()
-        self._cell = FiredrakeQuadrilateral()
-        self._degree = None  # Who cares? Not used.
-
         self.product = element
+
+    @cached_property
+    def cell(self):
+        return FiredrakeQuadrilateral()
+
+    @property
+    def degree(self):
+        raise NotImplementedError("Unused property.")
 
     def basis_evaluation(self, order, ps, entity=None):
         """Return code for evaluating the element at known points on the
