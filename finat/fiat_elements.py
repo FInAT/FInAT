@@ -79,30 +79,6 @@ class FiatElementBase(FiniteElementBase):
                 result[alpha] = expr
         return result
 
-    @property
-    def entity_dofs(self):
-        '''The map of topological entities to degrees of
-        freedom for the finite element.
-
-        Note that entity numbering needs to take into account the tensor case.
-        '''
-
-        return self._fiat_element.entity_dofs()
-
-    @property
-    def entity_closure_dofs(self):
-        '''The map of topological entities to degrees of
-        freedom on the closure of those entities for the finite element.'''
-
-        return self._fiat_element.entity_closure_dofs()
-
-    @property
-    def facet_support_dofs(self):
-        '''The map of facet id to the degrees of freedom for which the
-        corresponding basis functions take non-zero values.'''
-
-        return self._fiat_element.entity_support_dofs()
-
 
 class ScalarFiatElement(FiatElementBase):
     @property
