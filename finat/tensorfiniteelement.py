@@ -37,18 +37,21 @@ class TensorFiniteElement(FiniteElementBase):
         This form enables the simplification of the loop nests which
         will eventually be created, so it is the form we employ here."""
         super(TensorFiniteElement, self).__init__()
-
-        self._cell = element._cell
-        self._degree = element._degree
-
-        self._shape = shape
-
         self._base_element = element
+        self._shape = shape
 
     @property
     def base_element(self):
         """The base element of this tensor element."""
         return self._base_element
+
+    @property
+    def cell(self):
+        return self._base_element.cell
+
+    @property
+    def degree(self):
+        return self._base_element.degree
 
     @property
     def index_shape(self):
@@ -86,14 +89,3 @@ class TensorFiniteElement(FiniteElementBase):
                 scalar_i + tensor_i + scalar_vi + tensor_vi
             )
         return result
-
-    def __hash__(self):
-        """TensorFiniteElements are equal if they have the same base element
-        and shape."""
-        return hash((self._shape, self._base_element))
-
-    def __eq__(self, other):
-        """TensorFiniteElements are equal if they have the same base element
-        and shape."""
-        return type(self) == type(other) and self._shape == other._shape and \
-            self._base_element == other._base_element

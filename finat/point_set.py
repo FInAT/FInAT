@@ -80,31 +80,3 @@ class TensorPointSet(AbstractPointSet):
             for i in range(point_set.dimension):
                 result.append(gem.Indexed(point_set.expression, (i,)))
         return gem.ListTensor(result)
-
-
-# class MappedMixin(object):
-#     def __init__(self, *args):
-#         super(MappedMixin, self).__init__(*args)
-
-#     def map_points(self):
-#         raise NotImplementedError
-
-
-# class DuffyMappedMixin(MappedMixin):
-#     def __init__(self, *args):
-#         super(DuffyMappedMixin, self).__init__(*args)
-
-#     def map_points(self):
-#         raise NotImplementedError
-
-
-# class StroudPointSet(TensorPointSet, DuffyMappedMixin):
-#     """A set of points with the structure required for Stroud quadrature."""
-
-#     def __init__(self, factor_sets):
-#         super(StroudPointSet, self).__init__(factor_sets)
-
-
-# class GaussLobattoPointSet(PointSet):
-#     """A set of 1D Gauss Lobatto points. This is a separate class in order
-#     to allow elements to apply spectral element tricks."""
