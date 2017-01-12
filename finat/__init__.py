@@ -1,6 +1,6 @@
 from __future__ import absolute_import, print_function, division
 
-from .fiat_elements import Lagrange, DiscontinuousLagrange, GaussLobatto  # noqa: F401
+from .fiat_elements import Lagrange, DiscontinuousLagrange, GaussLobattoLegendre, GaussLegendre  # noqa: F401
 from .fiat_elements import RaviartThomas, DiscontinuousRaviartThomas  # noqa: F401
 from .fiat_elements import BrezziDouglasMarini, BrezziDouglasFortinMarini  # noqa: F401
 from .fiat_elements import Nedelec, NedelecSecondKind, Regge  # noqa: F401
