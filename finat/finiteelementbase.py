@@ -1,9 +1,11 @@
 from __future__ import absolute_import, print_function, division
-from six import with_metaclass
+from six import with_metaclass, iteritems
 
 from abc import ABCMeta, abstractproperty, abstractmethod
+from itertools import chain
 
 import gem
+from gem.utils import cached_property
 
 
 class FiniteElementBase(with_metaclass(ABCMeta)):
@@ -18,6 +20,30 @@ class FiniteElementBase(with_metaclass(ABCMeta)):
 
         In the tensor case this is a tuple.
         '''
+
+    @abstractmethod
+    def entity_dofs(self):
+        '''Return the map of topological entities to degrees of
+        freedom for the finite element.'''
+
+    @cached_property
+    def _entity_closure_dofs(self):
+        # Compute the nodes on the closure of each sub_entity.
+        entity_dofs = self.entity_dofs()
+        return {dim: {e: list(chain(*[entity_dofs[d][se]
+                                      for d, se in sub_entities]))
+                      for e, sub_entities in iteritems(entities)}
+                for dim, entities in iteritems(self.cell.sub_entities)}
+
+    def entity_closure_dofs(self):
+        '''Return the map of topological entities to degrees of
+        freedom on the closure of those entities for the finite
+        element.'''
+        return self._entity_closure_dofs
+
+    @abstractmethod
+    def space_dimension(self):
+        '''Return the dimension of the finite element space.'''
 
     @abstractproperty
     def index_shape(self):

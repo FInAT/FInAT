@@ -2,7 +2,7 @@ from __future__ import absolute_import, print_function, division
 from six.moves import range, zip
 
 from functools import reduce
-from itertools import chain
+from itertools import chain, product
 
 import numpy
 
@@ -30,6 +30,34 @@ class TensorProductElement(FiniteElementBase):
     @property
     def degree(self):
         raise NotImplementedError("Unused property.")
+
+    @cached_property
+    def _entity_dofs(self):
+        shape = tuple(fe.space_dimension() for fe in self.factors)
+        entity_dofs = {}
+        for dim in product(*[fe.cell.get_topology().keys()
+                             for fe in self.factors]):
+            entity_dofs[dim] = {}
+            topds = [fe.entity_dofs()[d]
+                     for fe, d in zip(self.factors, dim)]
+            for tuple_ei in product(*[sorted(topd) for topd in topds]):
+                tuple_vs = list(product(*[topd[ei]
+                                          for topd, ei in zip(topds, tuple_ei)]))
+                if tuple_vs:
+                    vs = list(numpy.ravel_multi_index(numpy.transpose(tuple_vs), shape))
+                else:
+                    vs = []
+                entity_dofs[dim][tuple_ei] = vs
+            # flatten entity numbers
+            entity_dofs[dim] = dict(enumerate(entity_dofs[dim][key]
+                                              for key in sorted(entity_dofs[dim])))
+        return entity_dofs
+
+    def entity_dofs(self):
+        return self._entity_dofs
+
+    def space_dimension(self):
+        return numpy.prod([fe.space_dimension() for fe in self.factors])
 
     @property
     def index_shape(self):

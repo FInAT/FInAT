@@ -23,6 +23,15 @@ class FiatElementBase(FiniteElementBase):
         # Requires FIAT.CiarletElement
         return self._element.degree()
 
+    def entity_dofs(self):
+        return self._element.entity_dofs()
+
+    def entity_closure_dofs(self):
+        return self._element.entity_closure_dofs()
+
+    def space_dimension(self):
+        return self._element.space_dimension()
+
     @property
     def index_shape(self):
         return (self._element.space_dimension(),)
