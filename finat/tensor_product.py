@@ -29,7 +29,7 @@ class TensorProductElement(FiniteElementBase):
 
     @property
     def degree(self):
-        raise NotImplementedError("Unused property.")
+        return tuple(fe.degree for fe in self.factors)
 
     @cached_property
     def _entity_dofs(self):

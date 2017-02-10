@@ -23,7 +23,8 @@ class QuadrilateralElement(FiniteElementBase):
 
     @property
     def degree(self):
-        raise NotImplementedError("Unused property.")
+        unique_degree, = set(self.product.degree)
+        return unique_degree
 
     @cached_property
     def _entity_dofs(self):
