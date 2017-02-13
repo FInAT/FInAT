@@ -37,7 +37,7 @@ class TensorProductElement(FiniteElementBase):
         entity_dofs = {}
         for dim in product(*[fe.cell.get_topology().keys()
                              for fe in self.factors]):
-            entity_dofs[dim] = {}
+            dim_dofs = []
             topds = [fe.entity_dofs()[d]
                      for fe, d in zip(self.factors, dim)]
             for tuple_ei in product(*[sorted(topd) for topd in topds]):
@@ -45,12 +45,11 @@ class TensorProductElement(FiniteElementBase):
                                           for topd, ei in zip(topds, tuple_ei)]))
                 if tuple_vs:
                     vs = list(numpy.ravel_multi_index(numpy.transpose(tuple_vs), shape))
+                    dim_dofs.append((tuple_ei, vs))
                 else:
-                    vs = []
-                entity_dofs[dim][tuple_ei] = vs
+                    dim_dofs.append((tuple_ei, []))
             # flatten entity numbers
-            entity_dofs[dim] = dict(enumerate(entity_dofs[dim][key]
-                                              for key in sorted(entity_dofs[dim])))
+            entity_dofs[dim] = dict(enumerate(v for k, v in sorted(dim_dofs)))
         return entity_dofs
 
     def entity_dofs(self):
