@@ -3,6 +3,8 @@ from six import iteritems
 
 from functools import reduce
 
+import numpy
+
 import gem
 
 from finat.finiteelementbase import FiniteElementBase
@@ -52,6 +54,12 @@ class TensorFiniteElement(FiniteElementBase):
     @property
     def degree(self):
         return self._base_element.degree
+
+    def entity_dofs(self):
+        raise NotImplementedError("No one uses this!")
+
+    def space_dimension(self):
+        return numpy.prod((self._base_element.space_dimension(),) + self._shape)
 
     @property
     def index_shape(self):

@@ -1,4 +1,5 @@
 from __future__ import absolute_import, print_function, division
+from six import iteritems
 
 from FIAT.reference_element import FiredrakeQuadrilateral
 
@@ -22,7 +23,26 @@ class QuadrilateralElement(FiniteElementBase):
 
     @property
     def degree(self):
-        raise NotImplementedError("Unused property.")
+        unique_degree, = set(self.product.degree)
+        return unique_degree
+
+    @cached_property
+    def _entity_dofs(self):
+        entity_dofs = self.product.entity_dofs()
+        flat_entity_dofs = {}
+        flat_entity_dofs[0] = entity_dofs[(0, 0)]
+        flat_entity_dofs[1] = dict(enumerate(
+            [v for k, v in sorted(iteritems(entity_dofs[(0, 1)]))] +
+            [v for k, v in sorted(iteritems(entity_dofs[(1, 0)]))]
+        ))
+        flat_entity_dofs[2] = entity_dofs[(1, 1)]
+        return flat_entity_dofs
+
+    def entity_dofs(self):
+        return self._entity_dofs
+
+    def space_dimension(self):
+        return self.product.space_dimension()
 
     def basis_evaluation(self, order, ps, entity=None):
         """Return code for evaluating the element at known points on the
