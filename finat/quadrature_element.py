@@ -30,10 +30,8 @@ class QuadratureElement(FiniteElementBase):
     @cached_property
     def _entity_dofs(self):
         # Inspired by ffc/quadratureelement.py
-        entity_dofs = {
-            {entity: [] for entity in entities}
-            for dim, entities in iteritems(self.cell.get_topology())
-        }
+        entity_dofs = {dim: {entity: [] for entity in entities}
+                       for dim, entities in iteritems(self.cell.get_topology())}
         entity_dofs[self.cell.get_dimension()] = {0: list(range(self.space_dimension()))}
         return entity_dofs
 
