@@ -1,6 +1,6 @@
 from __future__ import absolute_import, print_function, division
 from six import with_metaclass
-from six.moves import range
+from six.moves import range, zip
 
 from abc import ABCMeta, abstractproperty
 from itertools import chain, product
@@ -57,6 +57,12 @@ class PointSet(AbstractPointSet):
     def expression(self):
         return gem.partial_indexed(gem.Literal(self.points), self.indices)
 
+    def almost_equal(self, other, tolerance=1e-12):
+        """Approximate numerical equality of point sets"""
+        return type(self) == type(other) and \
+            self.points.shape == other.points.shape and \
+            numpy.allclose(self.points, other.points, rtol=0, atol=tolerance)
+
 
 class TensorPointSet(AbstractPointSet):
 
@@ -80,3 +86,10 @@ class TensorPointSet(AbstractPointSet):
             for i in range(point_set.dimension):
                 result.append(gem.Indexed(point_set.expression, (i,)))
         return gem.ListTensor(result)
+
+    def almost_equal(self, other, tolerance=1e-12):
+        """Approximate numerical equality of point sets"""
+        return type(self) == type(other) and \
+            len(self.factors) == len(other.factors) and \
+            all(s.almost_equal(o, tolerance=tolerance)
+                for s, o in zip(self.factors, other.factors))
