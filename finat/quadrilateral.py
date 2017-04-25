@@ -75,6 +75,30 @@ class QuadrilateralElement(FiniteElementBase):
 
         return self.product.basis_evaluation(order, ps, product_entity)
 
+    def point_evaluation(self, order, point, entity=None):
+        if entity is None:
+            entity = (2, 0)
+
+        # Entity is provided in flattened form (d, i)
+        # We factor the entity and construct an appropriate
+        # entity id for a TensorProductCell: ((d1, d2), i)
+        entity_dim, entity_id = entity
+        if entity_dim == 2:
+            assert entity_id == 0
+            product_entity = ((1, 1), 0)
+        elif entity_dim == 1:
+            facets = [((0, 1), 0),
+                      ((0, 1), 1),
+                      ((1, 0), 0),
+                      ((1, 0), 1)]
+            product_entity = facets[entity_id]
+        elif entity_dim == 0:
+            raise NotImplementedError("Not implemented for 0 dimension entities")
+        else:
+            raise ValueError("Illegal entity dimension %s" % entity_dim)
+
+        return self.product.point_evaluation(order, point, product_entity)
+
     @property
     def index_shape(self):
         return self.product.index_shape
