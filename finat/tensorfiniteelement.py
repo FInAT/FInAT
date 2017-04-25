@@ -97,3 +97,25 @@ class TensorFiniteElement(FiniteElementBase):
                 scalar_i + tensor_i + scalar_vi + tensor_vi
             )
         return result
+
+    def point_evaluation(self, order, point, entity=None):
+        # Old basis function and value indices
+        scalar_i = self._base_element.get_indices()
+        scalar_vi = self._base_element.get_value_indices()
+
+        # New basis function and value indices
+        tensor_i = tuple(gem.Index(extent=d) for d in self._shape)
+        tensor_vi = tuple(gem.Index(extent=d) for d in self._shape)
+
+        # Couple new basis function and value indices
+        deltas = reduce(gem.Product, (gem.Delta(j, k)
+                                      for j, k in zip(tensor_i, tensor_vi)))
+
+        scalar_result = self._base_element.point_evaluation(order, point, entity)
+        result = {}
+        for alpha, expr in iteritems(scalar_result):
+            result[alpha] = gem.ComponentTensor(
+                gem.Product(deltas, gem.Indexed(expr, scalar_i + scalar_vi)),
+                scalar_i + tensor_i + scalar_vi + tensor_vi
+            )
+        return result
