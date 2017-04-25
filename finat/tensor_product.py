@@ -120,6 +120,70 @@ class TensorProductElement(FiniteElementBase):
                 )
         return result
 
+    def point_evaluation(self, order, point, entity=None):
+        # Default entity
+        if entity is None:
+            entity = (self.cell.get_dimension(), 0)
+        entity_dim, entity_id = entity
+
+        # Factor entity
+        assert isinstance(entity_dim, tuple)
+        assert len(entity_dim) == len(self.factors)
+
+        shape = tuple(len(c.get_topology()[d])
+                      for c, d in zip(self.cell.cells, entity_dim))
+        entities = list(zip(entity_dim, numpy.unravel_index(entity_id, shape)))
+
+        # Split point expression
+        assert len(self.cell.cells) == len(entity_dim)
+        point_dims = [cell.construct_subelement(dim).get_spatial_dimension()
+                      for cell, dim in zip(self.cell.cells, entity_dim)]
+        assert isinstance(point, gem.Node) and point.shape == (sum(point_dims),)
+        slices = TensorProductCell._split_slices(point_dims)
+        point_factors = []
+        for s in slices:
+            point_factors.append(gem.ListTensor(
+                [gem.Indexed(point, (i,))
+                 for i in range(s.start, s.stop)]
+            ))
+
+        # Subelement results
+        factor_results = [fe.point_evaluation(order, p_, e)
+                          for fe, p_, e in zip(self.factors, point_factors, entities)]
+
+        # Spatial dimension
+        dimension = self.cell.get_spatial_dimension()
+
+        # A list of slices that are used to select dimensions
+        # corresponding to each subelement.
+        dim_slices = TensorProductCell._split_slices([c.get_spatial_dimension()
+                                                      for c in self.cell.cells])
+
+        # A list of multiindices, one multiindex per subelement, each
+        # multiindex describing the shape of basis functions of the
+        # subelement.
+        alphas = [fe.get_indices() for fe in self.factors]
+
+        result = {}
+        for derivative in range(order + 1):
+            for Delta in mis(dimension, derivative):
+                # Split the multiindex for the subelements
+                deltas = [Delta[s] for s in dim_slices]
+                # GEM scalars (can have free indices) for collecting
+                # the contributions from the subelements.
+                scalars = []
+                for fr, delta, alpha in zip(factor_results, deltas, alphas):
+                    # Turn basis shape to free indices, select the
+                    # right derivative entry, and collect the result.
+                    scalars.append(gem.Indexed(fr[delta], alpha))
+                # Multiply the values from the subelements and wrap up
+                # non-point indices into shape.
+                result[Delta] = gem.ComponentTensor(
+                    reduce(gem.Product, scalars),
+                    tuple(chain(*alphas))
+                )
+        return result
+
 
 def factor_point_set(product_cell, product_dim, point_set):
     """Factors a point set for the product element into a point sets for
