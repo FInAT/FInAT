@@ -257,13 +257,13 @@ def sympy2gem_pow(node, self):
 
 
 @sympy2gem.register(sp.Integer)
-# @sympy2gem.register(int)
+@sympy2gem.register(int)
 def sympy2gem_integer(node, self):
-    return gem.Literal(int(node))
+    return gem.Literal(node)
 
 
 @sympy2gem.register(sp.Float)
-# @sympy2gem.register(float)
+@sympy2gem.register(float)
 def sympy2gem_float(node, self):
     return gem.Literal(node)
 
