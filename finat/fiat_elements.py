@@ -140,7 +140,7 @@ class FiatElementBase(FiniteElementBase):
         # Convert SymPy expression to GEM
         mapper = gem.node.Memoizer(sympy2gem)
         mapper.bindings = {s: gem.Indexed(refcoords, (i,))
-                           for i, s in enumerate(X)}
+                           for i, s in enumerate(Xi)}
         base_values = gem.ListTensor(list(map(mapper, base_values.flat)))
 
         # Populate result dict, creating precomputed coefficient
