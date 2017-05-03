@@ -46,6 +46,40 @@ class FiniteElementBase(with_metaclass(ABCMeta)):
         element.'''
         return self._entity_closure_dofs
 
+    @cached_property
+    def _entity_support_dofs(self):
+        esd = {}
+        for entity_dim in self.cell.sub_entities.keys():
+            beta = self.get_indices()
+            zeta = self.get_value_indices()
+
+            entity_cell = self.cell.construct_subelement(entity_dim)
+            quad = make_quadrature(entity_cell, (2*numpy.array(self.degree)).tolist())
+
+            eps = 1.e-8  # Is this a safe value?
+
+            result = {}
+            for f in self.entity_dofs()[entity_dim].keys():
+                # Tabulate basis functions on the facet
+                vals, = itervalues(self.basis_evaluation(0, quad.point_set, entity=(entity_dim, f)))
+                # Integrate the square of the basis functions on the facet.
+                ints = gem.IndexSum(
+                    gem.Product(gem.IndexSum(gem.Product(gem.Indexed(vals, beta + zeta),
+                                                         gem.Indexed(vals, beta + zeta)), zeta),
+                                quad.weight_expression),
+                    quad.point_set.indices
+                )
+                ints = aggressive_unroll(gem.ComponentTensor(ints, beta)).array.flatten()
+                result[f] = [dof for dof, i in enumerate(ints) if i > eps]
+            esd[entity_dim] = result
+        return esd
+
+    def entity_support_dofs(self):
+        '''Return the map of topological entities to degrees of
+        freedom that have non-zero support on those entities for the
+        finite element.'''
+        return self._entity_support_dofs
+
     @abstractmethod
     def space_dimension(self):
         '''Return the dimension of the finite element space.'''
@@ -91,35 +125,4 @@ def entity_support_dofs(elem, entity_dim):
     :arg elem: FInAT finite element
     :arg entity_dim: Dimension of the cell subentity.
     """
-    if not hasattr(elem, "_entity_support_dofs"):
-        elem._entity_support_dofs = {}
-    cache = elem._entity_support_dofs
-    try:
-        return cache[entity_dim]
-    except KeyError:
-        pass
-
-    beta = elem.get_indices()
-    zeta = elem.get_value_indices()
-
-    entity_cell = elem.cell.construct_subelement(entity_dim)
-    quad = make_quadrature(entity_cell, (2*numpy.array(elem.degree)).tolist())
-
-    eps = 1.e-8  # Is this a safe value?
-
-    result = {}
-    for f in elem.entity_dofs()[entity_dim].keys():
-        # Tabulate basis functions on the facet
-        vals, = itervalues(elem.basis_evaluation(0, quad.point_set, entity=(entity_dim, f)))
-        # Integrate the square of the basis functions on the facet.
-        ints = gem.IndexSum(
-            gem.Product(gem.IndexSum(gem.Product(gem.Indexed(vals, beta + zeta),
-                                                 gem.Indexed(vals, beta + zeta)), zeta),
-                        quad.weight_expression),
-            quad.point_set.indices
-        )
-        ints = aggressive_unroll(gem.ComponentTensor(ints, beta)).array.flatten()
-        result[f] = [dof for dof, i in enumerate(ints) if i > eps]
-
-    cache[entity_dim] = result
-    return result
+    return elem.entity_support_dofs()[entity_dim]
