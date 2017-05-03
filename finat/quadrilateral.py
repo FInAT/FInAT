@@ -92,6 +92,6 @@ def productise(entity):
                   ((1, 0), 1)]
         return facets[entity_id]
     elif entity_dim == 0:
-        raise NotImplementedError("Not implemented for 0 dimension entities")
+        return ((0, 0), entity_id)
     else:
         raise ValueError("Illegal entity dimension %s" % entity_dim)
