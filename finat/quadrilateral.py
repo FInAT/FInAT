@@ -69,7 +69,7 @@ class QuadrilateralElement(FiniteElementBase):
                       ((1, 0), 1)]
             product_entity = facets[entity_id]
         elif entity_dim == 0:
-            raise NotImplementedError("Not implemented for 0 dimension entities")
+            product_entity = ((0, 0), entity_id)
         else:
             raise ValueError("Illegal entity dimension %s" % entity_dim)
 
