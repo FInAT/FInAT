@@ -3,6 +3,7 @@ from six import iteritems
 
 import numpy as np
 import sympy as sp
+from singledispatch import singledispatch
 
 import FIAT
 from FIAT.polynomial_set import mis, form_matrix_product
@@ -112,54 +113,107 @@ class FiatElementBase(FiniteElementBase):
                           free indices are arbitrary.
         :param entity: the cell entity on which to tabulate.
         '''
-        assert isinstance(self._element, FIAT.CiarletElement)
-        cell = self.cell
-
         if entity is None:
-            entity = (cell.get_dimension(), 0)
+            entity = (self.cell.get_dimension(), 0)
         entity_dim, entity_i = entity
 
         # Spatial dimension of the entity
-        esd = cell.construct_subelement(entity_dim).get_spatial_dimension()
+        esd = self.cell.construct_subelement(entity_dim).get_spatial_dimension()
         assert isinstance(refcoords, gem.Node) and refcoords.shape == (esd,)
 
-        # Coordinates on the reference entity (SymPy)
-        Xi = sp.symbols('X Y Z')[:esd]
-        # Coordinates on the reference cell
-        X = cell.get_entity_transform(entity_dim, entity_i)(Xi)
+        # Dispatch on FIAT element class
+        return point_evaluation(self._element, self, order, refcoords, (entity_dim, entity_i))
 
-        # Evaluate expansion set at SymPy point
-        poly_set = self._element.get_nodal_basis()
-        degree = poly_set.get_embedded_degree()
-        base_values = poly_set.get_expansion_set().tabulate(degree, [X])
-        m = len(base_values)
-        assert base_values.shape == (m, 1)
+
+@singledispatch
+def point_evaluation(element, self, order, refcoords, entity):
+    raise AssertionError("FIAT element expected!")
+
+
+@point_evaluation.register(FIAT.FiniteElement)
+def point_evaluation_generic(element, self, order, refcoords, entity):
+    # Coordinates on the reference entity (SymPy)
+    esd, = refcoords.shape
+    Xi = sp.symbols('X Y Z')[:esd]
+
+    space_dimension = element.space_dimension()
+    value_size = np.prod(element.value_shape(), dtype=int)
+    fiat_result = element.tabulate(order, [Xi], entity)
+    result = {}
+    for alpha, fiat_table in iteritems(fiat_result):
+        if isinstance(fiat_table, Exception):
+            result[alpha] = gem.Failure(self.index_shape + self.value_shape, fiat_table)
+            continue
 
         # Convert SymPy expression to GEM
         mapper = gem.node.Memoizer(sympy2gem)
         mapper.bindings = {s: gem.Indexed(refcoords, (i,))
                            for i, s in enumerate(Xi)}
-        base_values = gem.ListTensor(list(map(mapper, base_values.flat)))
+        gem_table = np.vectorize(mapper)(fiat_table)
 
-        # Populate result dict, creating precomputed coefficient
-        # matrices for each derivative tuple.
-        result = {}
-        for i in range(order + 1):
-            for alpha in mis(cell.get_spatial_dimension(), i):
-                D = form_matrix_product(poly_set.get_dmats(), alpha)
-                table = np.dot(poly_set.get_coeffs(), np.transpose(D))
-                assert table.shape[-1] == m
-                beta = tuple(gem.Index() for s in table.shape[:-1])
-                k = gem.Index()
-                result[alpha] = gem.ComponentTensor(
-                    gem.IndexSum(
-                        gem.Product(gem.Indexed(gem.Literal(table), beta + (k,)),
-                                    gem.Indexed(base_values, (k,))),
-                        (k,)
-                    ),
-                    beta
-                )
-        return result
+        table_roll = gem_table.reshape(space_dimension, value_size).transpose()
+
+        exprs = []
+        for table in table_roll:
+            exprs.append(gem.ListTensor(table.reshape(self.index_shape)))
+        if self.value_shape:
+            beta = self.get_indices()
+            zeta = self.get_value_indices()
+            result[alpha] = gem.ComponentTensor(
+                gem.Indexed(
+                    gem.ListTensor(np.array(
+                        [gem.Indexed(expr, beta) for expr in exprs]
+                    ).reshape(self.value_shape)),
+                    zeta),
+                beta + zeta
+            )
+        else:
+            expr, = exprs
+            result[alpha] = expr
+    return result
+
+
+@point_evaluation.register(FIAT.CiarletElement)
+def point_evaluation_ciarlet(element, self, order, refcoords, entity):
+    # Coordinates on the reference entity (SymPy)
+    esd, = refcoords.shape
+    Xi = sp.symbols('X Y Z')[:esd]
+
+    # Coordinates on the reference cell
+    X = self.cell.get_entity_transform(*entity)(Xi)
+
+    # Evaluate expansion set at SymPy point
+    poly_set = element.get_nodal_basis()
+    degree = poly_set.get_embedded_degree()
+    base_values = poly_set.get_expansion_set().tabulate(degree, [X])
+    m = len(base_values)
+    assert base_values.shape == (m, 1)
+
+    # Convert SymPy expression to GEM
+    mapper = gem.node.Memoizer(sympy2gem)
+    mapper.bindings = {s: gem.Indexed(refcoords, (i,))
+                       for i, s in enumerate(Xi)}
+    base_values = gem.ListTensor(list(map(mapper, base_values.flat)))
+
+    # Populate result dict, creating precomputed coefficient
+    # matrices for each derivative tuple.
+    result = {}
+    for i in range(order + 1):
+        for alpha in mis(self.cell.get_spatial_dimension(), i):
+            D = form_matrix_product(poly_set.get_dmats(), alpha)
+            table = np.dot(poly_set.get_coeffs(), np.transpose(D))
+            assert table.shape[-1] == m
+            beta = tuple(gem.Index() for s in table.shape[:-1])
+            k = gem.Index()
+            result[alpha] = gem.ComponentTensor(
+                gem.IndexSum(
+                    gem.Product(gem.Indexed(gem.Literal(table), beta + (k,)),
+                                gem.Indexed(base_values, (k,))),
+                    (k,)
+                ),
+                beta
+            )
+    return result
 
 
 class Regge(FiatElementBase):  # naturally tensor valued
