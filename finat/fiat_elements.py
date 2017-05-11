@@ -126,23 +126,23 @@ class FiatElementBase(FiniteElementBase):
 
 
 @singledispatch
-def point_evaluation(element, order, refcoords, entity):
+def point_evaluation(fiat_element, order, refcoords, entity):
     raise AssertionError("FIAT element expected!")
 
 
 @point_evaluation.register(FIAT.FiniteElement)
-def point_evaluation_generic(element, order, refcoords, entity):
+def point_evaluation_generic(fiat_element, order, refcoords, entity):
     # Coordinates on the reference entity (SymPy)
     esd, = refcoords.shape
     Xi = sp.symbols('X Y Z')[:esd]
 
-    space_dimension = element.space_dimension()
-    value_size = np.prod(element.value_shape(), dtype=int)
-    fiat_result = element.tabulate(order, [Xi], entity)
+    space_dimension = fiat_element.space_dimension()
+    value_size = np.prod(fiat_element.value_shape(), dtype=int)
+    fiat_result = fiat_element.tabulate(order, [Xi], entity)
     result = {}
     for alpha, fiat_table in iteritems(fiat_result):
         if isinstance(fiat_table, Exception):
-            result[alpha] = gem.Failure((space_dimension,) + element.value_shape(), fiat_table)
+            result[alpha] = gem.Failure((space_dimension,) + fiat_element.value_shape(), fiat_table)
             continue
 
         # Convert SymPy expression to GEM
@@ -156,15 +156,15 @@ def point_evaluation_generic(element, order, refcoords, entity):
         exprs = []
         for table in table_roll:
             exprs.append(gem.ListTensor(table.reshape(space_dimension)))
-        if element.value_shape():
+        if fiat_element.value_shape():
             beta = (gem.Index(extent=space_dimension),)
             zeta = tuple(gem.Index(extent=d)
-                         for d in element.value_shape())
+                         for d in fiat_element.value_shape())
             result[alpha] = gem.ComponentTensor(
                 gem.Indexed(
                     gem.ListTensor(np.array(
                         [gem.Indexed(expr, beta) for expr in exprs]
-                    ).reshape(element.value_shape())),
+                    ).reshape(fiat_element.value_shape())),
                     zeta),
                 beta + zeta
             )
@@ -175,17 +175,17 @@ def point_evaluation_generic(element, order, refcoords, entity):
 
 
 @point_evaluation.register(FIAT.CiarletElement)
-def point_evaluation_ciarlet(element, order, refcoords, entity):
+def point_evaluation_ciarlet(fiat_element, order, refcoords, entity):
     # Coordinates on the reference entity (SymPy)
     esd, = refcoords.shape
     Xi = sp.symbols('X Y Z')[:esd]
 
     # Coordinates on the reference cell
-    cell = element.get_reference_element()
+    cell = fiat_element.get_reference_element()
     X = cell.get_entity_transform(*entity)(Xi)
 
     # Evaluate expansion set at SymPy point
-    poly_set = element.get_nodal_basis()
+    poly_set = fiat_element.get_nodal_basis()
     degree = poly_set.get_embedded_degree()
     base_values = poly_set.get_expansion_set().tabulate(degree, [X])
     m = len(base_values)
