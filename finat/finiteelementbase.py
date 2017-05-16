@@ -83,6 +83,19 @@ class FiniteElementBase(with_metaclass(ABCMeta)):
         :param entity: the cell entity on which to tabulate.
         '''
 
+    @abstractmethod
+    def point_evaluation(self, order, refcoords, entity=None):
+        '''Return code for evaluating the element at an arbitrary points on
+        the reference element.
+
+        :param order: return derivatives up to this order.
+        :param refcoords: GEM expression representing the coordinates
+                          on the reference entity.  Its shape must be
+                          a vector with the correct dimension, its
+                          free indices are arbitrary.
+        :param entity: the cell entity on which to tabulate.
+        '''
+
 
 def entity_support_dofs(elem, entity_dim):
     """Return the map of entity id to the degrees of freedom for which

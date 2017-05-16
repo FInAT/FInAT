@@ -66,7 +66,7 @@ class TensorProductElement(FiniteElementBase):
     def value_shape(self):
         return ()  # TODO: non-scalar factors not supported yet
 
-    def basis_evaluation(self, order, ps, entity=None):
+    def _factor_entity(self, entity):
         # Default entity
         if entity is None:
             entity = (self.cell.get_dimension(), 0)
@@ -79,16 +79,14 @@ class TensorProductElement(FiniteElementBase):
         shape = tuple(len(c.get_topology()[d])
                       for c, d in zip(self.cell.cells, entity_dim))
         entities = list(zip(entity_dim, numpy.unravel_index(entity_id, shape)))
+        return entities
 
-        # Factor point set
-        ps_factors = factor_point_set(self.cell, entity_dim, ps)
-
-        # Subelement results
-        factor_results = [fe.basis_evaluation(order, ps_, e)
-                          for fe, ps_, e in zip(self.factors, ps_factors, entities)]
-
+    def _merge_evaluations(self, factor_results):
         # Spatial dimension
         dimension = self.cell.get_spatial_dimension()
+
+        # Derivative order
+        order = max(map(sum, chain(*factor_results)))
 
         # A list of slices that are used to select dimensions
         # corresponding to each subelement.
@@ -119,6 +117,40 @@ class TensorProductElement(FiniteElementBase):
                     tuple(chain(*alphas))
                 )
         return result
+
+    def basis_evaluation(self, order, ps, entity=None):
+        entities = self._factor_entity(entity)
+        entity_dim, _ = zip(*entities)
+
+        ps_factors = factor_point_set(self.cell, entity_dim, ps)
+
+        factor_results = [fe.basis_evaluation(order, ps_, e)
+                          for fe, ps_, e in zip(self.factors, ps_factors, entities)]
+
+        return self._merge_evaluations(factor_results)
+
+    def point_evaluation(self, order, point, entity=None):
+        entities = self._factor_entity(entity)
+        entity_dim, _ = zip(*entities)
+
+        # Split point expression
+        assert len(self.cell.cells) == len(entity_dim)
+        point_dims = [cell.construct_subelement(dim).get_spatial_dimension()
+                      for cell, dim in zip(self.cell.cells, entity_dim)]
+        assert isinstance(point, gem.Node) and point.shape == (sum(point_dims),)
+        slices = TensorProductCell._split_slices(point_dims)
+        point_factors = []
+        for s in slices:
+            point_factors.append(gem.ListTensor(
+                [gem.Indexed(point, (i,))
+                 for i in range(s.start, s.stop)]
+            ))
+
+        # Subelement results
+        factor_results = [fe.point_evaluation(order, p_, e)
+                          for fe, p_, e in zip(self.factors, point_factors, entities)]
+
+        return self._merge_evaluations(factor_results)
 
 
 def factor_point_set(product_cell, product_dim, point_set):

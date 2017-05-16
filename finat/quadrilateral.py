@@ -52,28 +52,10 @@ class QuadrilateralElement(FiniteElementBase):
         :param ps: the point set object.
         :param entity: the cell entity on which to tabulate.
         """
-        if entity is None:
-            entity = (2, 0)
+        return self.product.basis_evaluation(order, ps, productise(entity))
 
-        # Entity is provided in flattened form (d, i)
-        # We factor the entity and construct an appropriate
-        # entity id for a TensorProductCell: ((d1, d2), i)
-        entity_dim, entity_id = entity
-        if entity_dim == 2:
-            assert entity_id == 0
-            product_entity = ((1, 1), 0)
-        elif entity_dim == 1:
-            facets = [((0, 1), 0),
-                      ((0, 1), 1),
-                      ((1, 0), 0),
-                      ((1, 0), 1)]
-            product_entity = facets[entity_id]
-        elif entity_dim == 0:
-            raise NotImplementedError("Not implemented for 0 dimension entities")
-        else:
-            raise ValueError("Illegal entity dimension %s" % entity_dim)
-
-        return self.product.basis_evaluation(order, ps, product_entity)
+    def point_evaluation(self, order, point, entity=None):
+        return self.product.point_evaluation(order, point, productise(entity))
 
     @property
     def index_shape(self):
@@ -82,3 +64,26 @@ class QuadrilateralElement(FiniteElementBase):
     @property
     def value_shape(self):
         return self.product.value_shape
+
+
+def productise(entity):
+    if entity is None:
+        entity = (2, 0)
+
+    # Entity is provided in flattened form (d, i)
+    # We factor the entity and construct an appropriate
+    # entity id for a TensorProductCell: ((d1, d2), i)
+    entity_dim, entity_id = entity
+    if entity_dim == 2:
+        assert entity_id == 0
+        return ((1, 1), 0)
+    elif entity_dim == 1:
+        facets = [((0, 1), 0),
+                  ((0, 1), 1),
+                  ((1, 0), 0),
+                  ((1, 0), 1)]
+        return facets[entity_id]
+    elif entity_dim == 0:
+        raise NotImplementedError("Not implemented for 0 dimension entities")
+    else:
+        raise ValueError("Illegal entity dimension %s" % entity_dim)

@@ -77,6 +77,14 @@ class TensorFiniteElement(FiniteElementBase):
 
             \nabla\boldsymbol\phi_{(\epsilon \gamma \zeta) (i \alpha \beta) q} = \delta_{\alpha \epsilon} \deta{\beta \gamma}\nabla\phi_{\zeta i q}
         """
+        scalar_evaluation = self._base_element.basis_evaluation
+        return self._tensorise(scalar_evaluation(order, ps, entity))
+
+    def point_evaluation(self, order, point, entity=None):
+        scalar_evaluation = self._base_element.point_evaluation
+        return self._tensorise(scalar_evaluation(order, point, entity))
+
+    def _tensorise(self, scalar_evaluation):
         # Old basis function and value indices
         scalar_i = self._base_element.get_indices()
         scalar_vi = self._base_element.get_value_indices()
@@ -89,9 +97,8 @@ class TensorFiniteElement(FiniteElementBase):
         deltas = reduce(gem.Product, (gem.Delta(j, k)
                                       for j, k in zip(tensor_i, tensor_vi)))
 
-        scalar_result = self._base_element.basis_evaluation(order, ps, entity)
         result = {}
-        for alpha, expr in iteritems(scalar_result):
+        for alpha, expr in iteritems(scalar_evaluation):
             result[alpha] = gem.ComponentTensor(
                 gem.Product(deltas, gem.Indexed(expr, scalar_i + scalar_vi)),
                 scalar_i + tensor_i + scalar_vi + tensor_vi
