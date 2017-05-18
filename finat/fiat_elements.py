@@ -190,6 +190,16 @@ def point_evaluation_ciarlet(fiat_element, order, refcoords, entity):
     base_values = poly_set.get_expansion_set().tabulate(degree, [X])
     m = len(base_values)
     assert base_values.shape == (m, 1)
+    base_values_sympy = np.array(list(base_values.flat))
+
+    # Find constant polynomials
+    def is_const(expr):
+        try:
+            float(expr)
+            return True
+        except TypeError:
+            return False
+    const_mask = np.array(list(map(is_const, base_values_sympy)))
 
     # Convert SymPy expression to GEM
     mapper = gem.node.Memoizer(sympy2gem)
@@ -205,16 +215,21 @@ def point_evaluation_ciarlet(fiat_element, order, refcoords, entity):
             D = form_matrix_product(poly_set.get_dmats(), alpha)
             table = np.dot(poly_set.get_coeffs(), np.transpose(D))
             assert table.shape[-1] == m
-            beta = tuple(gem.Index() for s in table.shape[:-1])
-            k = gem.Index()
-            result[alpha] = gem.ComponentTensor(
-                gem.IndexSum(
-                    gem.Product(gem.Indexed(gem.Literal(table), beta + (k,)),
-                                gem.Indexed(base_values, (k,))),
-                    (k,)
-                ),
-                beta
-            )
+            zerocols = np.isclose(abs(table).max(axis=tuple(range(table.ndim - 1))), 0.0)
+            if all(np.logical_or(const_mask, zerocols)):
+                vals = base_values_sympy[const_mask]
+                result[alpha] = gem.Literal(table[..., const_mask].dot(vals))
+            else:
+                beta = tuple(gem.Index() for s in table.shape[:-1])
+                k = gem.Index()
+                result[alpha] = gem.ComponentTensor(
+                    gem.IndexSum(
+                        gem.Product(gem.Indexed(gem.Literal(table), beta + (k,)),
+                                    gem.Indexed(base_values, (k,))),
+                        (k,)
+                    ),
+                    beta
+                )
     return result
 
 
