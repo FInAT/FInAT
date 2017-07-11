@@ -1,7 +1,7 @@
 from __future__ import absolute_import, print_function, division
 from six import iteritems
 
-from FIAT.reference_element import FiredrakeQuadrilateral
+from FIAT.reference_element import UFCQuadrilateral
 
 from gem.utils import cached_property
 
@@ -19,7 +19,7 @@ class QuadrilateralElement(FiniteElementBase):
 
     @cached_property
     def cell(self):
-        return FiredrakeQuadrilateral()
+        return UFCQuadrilateral()
 
     @property
     def degree(self):
