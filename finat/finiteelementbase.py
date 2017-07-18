@@ -7,7 +7,7 @@ from itertools import chain
 import numpy
 
 import gem
-from gem.optimise import aggressive_unroll
+from gem.interpreter import evaluate
 from gem.utils import cached_property
 
 from finat.quadrature import make_quadrature
@@ -131,7 +131,9 @@ def entity_support_dofs(elem, entity_dim):
                         quad.weight_expression),
             quad.point_set.indices
         )
-        ints = aggressive_unroll(gem.ComponentTensor(ints, beta)).array.flatten()
+        evaluation, = evaluate([gem.ComponentTensor(ints, beta)])
+        ints = evaluation.arr.flatten()
+        assert evaluation.fids == ()
         result[f] = [dof for dof, i in enumerate(ints) if i > eps]
 
     cache[entity_dim] = result
