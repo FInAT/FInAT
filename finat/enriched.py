@@ -97,7 +97,7 @@ def tree_map(f, *args):
     """Like the built-in :py:func:`map`, but applies to a tuple tree."""
     nonleaf, = set(isinstance(arg, tuple) for arg in args)
     if nonleaf:
-        ndim, = set(map(len, args))
+        ndim, = set(map(len, args))  # asserts equal arity of all args
         return tuple(tree_map(f, *subargs) for subargs in zip(*args))
     else:
         return f(*args)
