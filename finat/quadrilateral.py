@@ -69,6 +69,10 @@ class QuadrilateralElement(FiniteElementBase):
     def value_shape(self):
         return self.product.value_shape
 
+    @property
+    def mapping(self):
+        return self.product.mapping
+
 
 def productise(entity):
     if entity is None:

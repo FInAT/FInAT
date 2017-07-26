@@ -128,6 +128,15 @@ class FiatElementBase(FiniteElementBase):
         # Dispatch on FIAT element class
         return point_evaluation(self._element, order, refcoords, (entity_dim, entity_i))
 
+    @property
+    def mapping(self):
+        mappings = set(self._element.mapping())
+        if len(mappings) != 1:
+            return None
+        else:
+            result, = mappings
+            return result
+
 
 @singledispatch
 def point_evaluation(fiat_element, order, refcoords, entity):

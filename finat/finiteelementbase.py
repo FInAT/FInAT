@@ -100,6 +100,11 @@ class FiniteElementBase(with_metaclass(ABCMeta)):
         :param entity: the cell entity on which to tabulate.
         '''
 
+    @abstractproperty
+    def mapping(self):
+        '''Appropriate mapping from the reference cell to a physical cell for
+        all basis functions of the finite element.'''
+
 
 def entity_support_dofs(elem, entity_dim):
     """Return the map of entity id to the degrees of freedom for which

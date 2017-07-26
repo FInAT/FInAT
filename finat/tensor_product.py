@@ -159,6 +159,16 @@ class TensorProductElement(FiniteElementBase):
 
         return self._merge_evaluations(factor_results)
 
+    @cached_property
+    def mapping(self):
+        mappings = [fe.mapping for fe in self.factors if fe.mapping != "affine"]
+        if len(mappings) == 0:
+            return "affine"
+        elif len(mappings) == 1:
+            return mappings[0]
+        else:
+            return None
+
 
 def factor_point_set(product_cell, product_dim, point_set):
     """Factors a point set for the product element into a point sets for

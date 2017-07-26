@@ -108,3 +108,7 @@ class TensorFiniteElement(FiniteElementBase):
                 scalar_i + tensor_i + scalar_vi + tensor_vi
             )
         return result
+
+    @property
+    def mapping(self):
+        return self._base_element.mapping

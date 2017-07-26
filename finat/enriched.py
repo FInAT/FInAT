@@ -100,6 +100,15 @@ class EnrichedElement(FiniteElementBase):
                    for element in self.elements]
         return self._compose_evaluations(results)
 
+    @property
+    def mapping(self):
+        mappings = set(elem.mapping for elem in self.elements)
+        if len(mappings) != 1:
+            return None
+        else:
+            result, = mappings
+            return result
+
 
 def tree_map(f, *args):
     """Like the built-in :py:func:`map`, but applies to a tuple tree."""
