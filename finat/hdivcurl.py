@@ -52,7 +52,7 @@ class HDivElement(FiniteElementBase):
     def value_shape(self):
         return (self.cell.get_spatial_dimension(),)
 
-    def basis_evaluation(self, order, ps, entity=None):
+    def _transform_evaluation(self, core_eval):
         beta = self.get_indices()
         zeta = self.get_value_indices()
 
@@ -61,12 +61,16 @@ class HDivElement(FiniteElementBase):
             u = gem.ListTensor(self.transform(v))
             return gem.ComponentTensor(gem.Indexed(u, zeta), beta + zeta)
 
-        core_eval = self.wrapped.basis_evaluation(order, ps, entity)
         return {alpha: promote(table)
                 for alpha, table in iteritems(core_eval)}
 
+    def basis_evaluation(self, order, ps, entity=None):
+        core_eval = self.wrapped.basis_evaluation(order, ps, entity)
+        return self._transform_evaluation(core_eval)
+
     def point_evaluation(self, order, refcoords, entity=None):
-        raise NotImplementedError
+        core_eval = self.wrapped.point_evaluation(order, refcoords, entity)
+        return self._transform_evaluation(core_eval)
 
     @property
     def mapping(self):
