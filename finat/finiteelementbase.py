@@ -26,6 +26,10 @@ class FiniteElementBase(with_metaclass(ABCMeta)):
         In the tensor case this is a tuple.
         '''
 
+    @abstractproperty
+    def formdegree(self):
+        '''Degree of the associated form (FEEC)'''
+
     @abstractmethod
     def entity_dofs(self):
         '''Return the map of topological entities to degrees of

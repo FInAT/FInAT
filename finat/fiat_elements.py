@@ -30,6 +30,10 @@ class FiatElementBase(FiniteElementBase):
         # Requires FIAT.CiarletElement
         return self._element.degree()
 
+    @property
+    def formdegree(self):
+        return self._element.get_formdegree()
+
     def entity_dofs(self):
         return self._element.entity_dofs()
 

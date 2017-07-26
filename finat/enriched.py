@@ -24,6 +24,14 @@ class EnrichedElement(FiniteElementBase):
     def degree(self):
         return tree_map(max, *[elem.degree for elem in self.elements])
 
+    @cached_property
+    def formdegree(self):
+        ks = set(elem.formdegree for elem in self.elements)
+        if None in ks:
+            return None
+        else:
+            return max(ks)
+
     def entity_dofs(self):
         '''Return the map of topological entities to degrees of
         freedom for the finite element.'''

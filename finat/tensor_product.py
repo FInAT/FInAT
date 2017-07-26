@@ -32,6 +32,13 @@ class TensorProductElement(FiniteElementBase):
         return tuple(fe.degree for fe in self.factors)
 
     @cached_property
+    def formdegree(self):
+        if any(fe.formdegree is None for fe in self.factors):
+            return None
+        else:
+            return sum(fe.formdegree for fe in self.factors)
+
+    @cached_property
     def _entity_dofs(self):
         shape = tuple(fe.space_dimension() for fe in self.factors)
         entity_dofs = {}
