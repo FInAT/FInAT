@@ -21,7 +21,14 @@ class TensorProductElement(FiniteElementBase):
     def __init__(self, factors):
         super(TensorProductElement, self).__init__()
         self.factors = tuple(factors)
-        assert all(fe.value_shape == () for fe in self.factors)
+
+        shapes = [fe.value_shape for fe in self.factors if fe.value_shape != ()]
+        if len(shapes) == 0:
+            self._value_shape = ()
+        elif len(shapes) == 1:
+            self._value_shape = shapes[0]
+        else:
+            raise NotImplementedError("Only one nonscalar factor permitted!")
 
     @cached_property
     def cell(self):
@@ -71,7 +78,7 @@ class TensorProductElement(FiniteElementBase):
 
     @property
     def value_shape(self):
-        return ()  # TODO: non-scalar factors not supported yet
+        return self._value_shape
 
     def _factor_entity(self, entity):
         # Default entity
@@ -105,6 +112,10 @@ class TensorProductElement(FiniteElementBase):
         # subelement.
         alphas = [fe.get_indices() for fe in self.factors]
 
+        # A list of multiindices, one multiindex per subelement, each
+        # multiindex describing the value shape of the subelement.
+        zetas = [fe.get_value_indices() for fe in self.factors]
+
         result = {}
         for derivative in range(order + 1):
             for Delta in mis(dimension, derivative):
@@ -113,15 +124,15 @@ class TensorProductElement(FiniteElementBase):
                 # GEM scalars (can have free indices) for collecting
                 # the contributions from the subelements.
                 scalars = []
-                for fr, delta, alpha in zip(factor_results, deltas, alphas):
+                for fr, delta, alpha, zeta in zip(factor_results, deltas, alphas, zetas):
                     # Turn basis shape to free indices, select the
                     # right derivative entry, and collect the result.
-                    scalars.append(gem.Indexed(fr[delta], alpha))
+                    scalars.append(gem.Indexed(fr[delta], alpha + zeta))
                 # Multiply the values from the subelements and wrap up
                 # non-point indices into shape.
                 result[Delta] = gem.ComponentTensor(
                     reduce(gem.Product, scalars),
-                    tuple(chain(*alphas))
+                    tuple(chain(*(alphas + zetas)))
                 )
         return result
 
