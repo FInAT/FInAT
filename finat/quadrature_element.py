@@ -27,6 +27,10 @@ class QuadratureElement(FiniteElementBase):
     def degree(self):
         raise NotImplementedError("QuadratureElement does not represent a polynomial space.")
 
+    @property
+    def formdegree(self):
+        return None
+
     @cached_property
     def _entity_dofs(self):
         # Inspired by ffc/quadratureelement.py
@@ -77,3 +81,7 @@ class QuadratureElement(FiniteElementBase):
 
     def point_evaluation(self, order, refcoords, entity=None):
         raise NotImplementedError("QuadratureElement cannot do point evaluation!")
+
+    @property
+    def mapping(self):
+        return "affine"
