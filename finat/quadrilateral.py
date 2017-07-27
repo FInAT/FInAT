@@ -26,6 +26,10 @@ class QuadrilateralElement(FiniteElementBase):
         unique_degree, = set(self.product.degree)
         return unique_degree
 
+    @property
+    def formdegree(self):
+        return self.product.formdegree
+
     @cached_property
     def _entity_dofs(self):
         entity_dofs = self.product.entity_dofs()
@@ -64,6 +68,10 @@ class QuadrilateralElement(FiniteElementBase):
     @property
     def value_shape(self):
         return self.product.value_shape
+
+    @property
+    def mapping(self):
+        return self.product.mapping
 
 
 def productise(entity):

@@ -30,6 +30,10 @@ class FiatElementBase(FiniteElementBase):
         # Requires FIAT.CiarletElement
         return self._element.degree()
 
+    @property
+    def formdegree(self):
+        return self._element.get_formdegree()
+
     def entity_dofs(self):
         return self._element.entity_dofs()
 
@@ -123,6 +127,15 @@ class FiatElementBase(FiniteElementBase):
 
         # Dispatch on FIAT element class
         return point_evaluation(self._element, order, refcoords, (entity_dim, entity_i))
+
+    @property
+    def mapping(self):
+        mappings = set(self._element.mapping())
+        if len(mappings) != 1:
+            return None
+        else:
+            result, = mappings
+            return result
 
 
 @singledispatch

@@ -55,6 +55,10 @@ class TensorFiniteElement(FiniteElementBase):
     def degree(self):
         return self._base_element.degree
 
+    @property
+    def formdegree(self):
+        return self._base_element.formdegree
+
     def entity_dofs(self):
         raise NotImplementedError("No one uses this!")
 
@@ -104,3 +108,7 @@ class TensorFiniteElement(FiniteElementBase):
                 scalar_i + tensor_i + scalar_vi + tensor_vi
             )
         return result
+
+    @property
+    def mapping(self):
+        return self._base_element.mapping

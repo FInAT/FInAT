@@ -8,5 +8,6 @@ from .tensorfiniteelement import TensorFiniteElement  # noqa: F401
 from .tensor_product import TensorProductElement  # noqa: F401
 from .quadrilateral import QuadrilateralElement  # noqa: F401
 from .enriched import EnrichedElement  # noqa: F401
+from .hdivcurl import HCurlElement, HDivElement  # noqa: F401
 from .quadrature_element import QuadratureElement  # noqa: F401
 from . import quadrature  # noqa: F401

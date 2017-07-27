@@ -26,6 +26,10 @@ class FiniteElementBase(with_metaclass(ABCMeta)):
         In the tensor case this is a tuple.
         '''
 
+    @abstractproperty
+    def formdegree(self):
+        '''Degree of the associated form (FEEC)'''
+
     @abstractmethod
     def entity_dofs(self):
         '''Return the map of topological entities to degrees of
@@ -95,6 +99,11 @@ class FiniteElementBase(with_metaclass(ABCMeta)):
                           free indices are arbitrary.
         :param entity: the cell entity on which to tabulate.
         '''
+
+    @abstractproperty
+    def mapping(self):
+        '''Appropriate mapping from the reference cell to a physical cell for
+        all basis functions of the finite element.'''
 
 
 def entity_support_dofs(elem, entity_dim):
