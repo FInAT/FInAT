@@ -48,7 +48,7 @@ def make_quadrature(ref_el, degree, scheme="default"):
         raise ValueError("Need positive degree, not %d" % degree)
 
     fiat_rule = fiat_scheme(ref_el, degree, scheme)
-    return QuadratureRule(fiat_rule.get_points(), fiat_rule.get_weights())
+    return QuadratureRule(PointSet(fiat_rule.get_points()), fiat_rule.get_weights())
 
 
 class AbstractQuadratureRule(with_metaclass(ABCMeta)):
@@ -68,16 +68,16 @@ class AbstractQuadratureRule(with_metaclass(ABCMeta)):
 class QuadratureRule(AbstractQuadratureRule):
     """Generic quadrature rule with no internal structure."""
 
-    def __init__(self, points, weights):
+    def __init__(self, point_set, weights):
         weights = numpy.asarray(weights)
-        assert len(points) == len(weights)
+        assert len(point_set.points) == len(weights)
 
-        self._points = numpy.asarray(points)
+        self.point_set = point_set
         self.weights = numpy.asarray(weights)
 
     @cached_property
     def point_set(self):
-        return PointSet(self._points)
+        pass  # set at initialisation
 
     @cached_property
     def weight_expression(self):
