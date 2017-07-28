@@ -9,11 +9,11 @@ import numpy
 import gem
 from gem.utils import cached_property
 
-from FIAT.reference_element import QUADRILATERAL, TENSORPRODUCT
-# from FIAT.quadrature import compute_gauss_jacobi_rule as gauss_jacobi_rule
+from FIAT.reference_element import LINE, QUADRILATERAL, TENSORPRODUCT
+from FIAT.quadrature import GaussLegendreQuadratureLineRule
 from FIAT.quadrature_schemes import create_quadrature as fiat_scheme
 
-from finat.point_set import PointSet, TensorPointSet
+from finat.point_set import PointSet, GaussLegendrePointSet, TensorPointSet
 
 
 def make_quadrature(ref_el, degree, scheme="default"):
@@ -46,6 +46,16 @@ def make_quadrature(ref_el, degree, scheme="default"):
 
     if degree < 0:
         raise ValueError("Need positive degree, not %d" % degree)
+
+    if ref_el.get_shape() == LINE:
+        # FIAT uses Gauss-Legendre line quadature, however, since we
+        # symbolically label it as such, we wish not to risk attaching
+        # the wrong label in case FIAT changes.  So we explicitly ask
+        # for Gauss-Legendre line quadature.
+        num_points = (degree + 1 + 1) // 2  # exact integration
+        fiat_rule = GaussLegendreQuadratureLineRule(ref_el, num_points)
+        point_set = GaussLegendrePointSet(fiat_rule.get_points())
+        return QuadratureRule(point_set, fiat_rule.get_weights())
 
     fiat_rule = fiat_scheme(ref_el, degree, scheme)
     return QuadratureRule(PointSet(fiat_rule.get_points()), fiat_rule.get_weights())
