@@ -10,10 +10,12 @@ import gem
 from gem.utils import cached_property
 
 from FIAT.reference_element import LINE, QUADRILATERAL, TENSORPRODUCT
-from FIAT.quadrature import GaussLegendreQuadratureLineRule
+from FIAT.quadrature import (GaussLegendreQuadratureLineRule,
+                             GaussLobattoLegendreQuadratureLineRule)
 from FIAT.quadrature_schemes import create_quadrature as fiat_scheme
 
-from finat.point_set import PointSet, GaussLegendrePointSet, TensorPointSet
+from finat.point_set import (PointSet, GaussLobattoLegendrePointSet,
+                             GaussLegendrePointSet, TensorPointSet)
 
 
 def make_quadrature(ref_el, degree, scheme="default"):
@@ -55,6 +57,14 @@ def make_quadrature(ref_el, degree, scheme="default"):
         num_points = (degree + 1 + 1) // 2  # exact integration
         fiat_rule = GaussLegendreQuadratureLineRule(ref_el, num_points)
         point_set = GaussLegendrePointSet(fiat_rule.get_points())
+        return QuadratureRule(point_set, fiat_rule.get_weights())
+
+    if scheme == "gauss-lobatto-legendre":
+        if ref_el.get_shape() != LINE:
+            raise ValueError("Gauss-Lobatto-Legendre quadrature limited to intervals.")
+        num_points = (degree + 3 + 1) // 2  # exact integration
+        fiat_rule = GaussLobattoLegendreQuadratureLineRule(ref_el, num_points)
+        point_set = GaussLobattoLegendrePointSet(fiat_rule.get_points())
         return QuadratureRule(point_set, fiat_rule.get_weights())
 
     fiat_rule = fiat_scheme(ref_el, degree, scheme)
