@@ -262,19 +262,9 @@ class Lagrange(ScalarFiatElement):
         super(Lagrange, self).__init__(FIAT.Lagrange(cell, degree))
 
 
-class GaussLobattoLegendre(ScalarFiatElement):
-    def __init__(self, cell, degree):
-        super(GaussLobattoLegendre, self).__init__(FIAT.GaussLobattoLegendre(cell, degree))
-
-
 class DiscontinuousLagrange(ScalarFiatElement):
     def __init__(self, cell, degree):
         super(DiscontinuousLagrange, self).__init__(FIAT.DiscontinuousLagrange(cell, degree))
-
-
-class GaussLegendre(ScalarFiatElement):
-    def __init__(self, cell, degree):
-        super(GaussLegendre, self).__init__(FIAT.GaussLegendre(cell, degree))
 
 
 class VectorFiatElement(FiatElementBase):
