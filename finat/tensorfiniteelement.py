@@ -12,7 +12,7 @@ from finat.finiteelementbase import FiniteElementBase
 
 class TensorFiniteElement(FiniteElementBase):
 
-    def __init__(self, element, shape):
+    def __init__(self, element, shape, transpose=False):
         # TODO: Update docstring for arbitrary rank!
         r"""A Finite element whose basis functions have the form:
 
@@ -29,6 +29,8 @@ class TensorFiniteElement(FiniteElementBase):
 
         :param element: The scalar finite element.
         :param shape: The geometric shape of the tensor element.
+        :param transpose: Tensor indices come before scalar basis
+                          function indices (boolean).
 
         :math:`\boldsymbol\phi_{i\alpha\beta}` is, of course, tensor-valued. If
         we subscript the vector-value with :math:`\gamma\epsilon` then we can write:
@@ -41,6 +43,7 @@ class TensorFiniteElement(FiniteElementBase):
         super(TensorFiniteElement, self).__init__()
         self._base_element = element
         self._shape = shape
+        self._transpose = transpose
 
     @property
     def base_element(self):
@@ -63,15 +66,18 @@ class TensorFiniteElement(FiniteElementBase):
         raise NotImplementedError("No one uses this!")
 
     def space_dimension(self):
-        return numpy.prod((self._base_element.space_dimension(),) + self._shape)
+        return int(numpy.prod(self.index_shape))
 
     @property
     def index_shape(self):
-        return self._base_element.index_shape + self._shape
+        if self._transpose:
+            return self._shape + self._base_element.index_shape
+        else:
+            return self._base_element.index_shape + self._shape
 
     @property
     def value_shape(self):
-        return self._base_element.value_shape + self._shape
+        return self._shape + self._base_element.value_shape
 
     def basis_evaluation(self, order, ps, entity=None):
         r"""Produce the recipe for basis function evaluation at a set of points :math:`q`:
@@ -101,11 +107,16 @@ class TensorFiniteElement(FiniteElementBase):
         deltas = reduce(gem.Product, (gem.Delta(j, k)
                                       for j, k in zip(tensor_i, tensor_vi)))
 
+        if self._transpose:
+            index_ordering = tensor_i + scalar_i + tensor_vi + scalar_vi
+        else:
+            index_ordering = scalar_i + tensor_i + tensor_vi + scalar_vi
+
         result = {}
         for alpha, expr in iteritems(scalar_evaluation):
             result[alpha] = gem.ComponentTensor(
                 gem.Product(deltas, gem.Indexed(expr, scalar_i + scalar_vi)),
-                scalar_i + tensor_i + scalar_vi + tensor_vi
+                index_ordering
             )
         return result
 
