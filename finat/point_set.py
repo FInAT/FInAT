@@ -64,6 +64,26 @@ class PointSet(AbstractPointSet):
             numpy.allclose(self.points, other.points, rtol=0, atol=tolerance)
 
 
+class GaussLegendrePointSet(PointSet):
+    """Gauss-Legendre quadrature points on the interval.
+
+    This facilitates implementing discontinuous spectral elements.
+    """
+    def __init__(self, points):
+        super(GaussLegendrePointSet, self).__init__(points)
+        assert self.points.shape[1] == 1
+
+
+class GaussLobattoLegendrePointSet(PointSet):
+    """Gauss-Lobatto-Legendre quadrature points on the interval.
+
+    This facilitates implementing continuous spectral elements.
+    """
+    def __init__(self, points):
+        super(GaussLobattoLegendrePointSet, self).__init__(points)
+        assert self.points.shape[1] == 1
+
+
 class TensorPointSet(AbstractPointSet):
 
     def __init__(self, factors):
