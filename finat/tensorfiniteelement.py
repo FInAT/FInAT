@@ -29,8 +29,11 @@ class TensorFiniteElement(FiniteElementBase):
 
         :param element: The scalar finite element.
         :param shape: The geometric shape of the tensor element.
-        :param transpose: Tensor indices come before scalar basis
-                          function indices (boolean).
+        :param transpose: Changes the DoF ordering from the
+                          Firedrake-style XYZ XYZ XYZ XYZ to the
+                          FEniCS-style XXXX YYYY ZZZZ.  That is,
+                          tensor shape indices come before the scalar
+                          basis function indices when transpose=True.
 
         :math:`\boldsymbol\phi_{i\alpha\beta}` is, of course, tensor-valued. If
         we subscript the vector-value with :math:`\gamma\epsilon` then we can write:
