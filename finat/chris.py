@@ -11,6 +11,8 @@ from finat.finiteelementbase import FiniteElementBase
 
 class Chris(FiniteElementBase):
 
+    suffix = ""
+
     def __init__(self, cell, degree, shift_axes):
         assert cell.get_shape() == LINE
         self.cell = cell
@@ -52,7 +54,7 @@ class Chris(FiniteElementBase):
         result = {}
         for derivative in range(order + 1):
             for alpha in mis(dimension, derivative):
-                name = "chris{}d{}sa{}".format(self.degree, ''.join(map(str, alpha)), self.shift_axes)
+                name = "chris{}d{}sa{}{}".format(self.degree, ''.join(map(str, alpha)), self.shift_axes, self.suffix)
                 result[alpha] = gem.partial_indexed(gem.Variable(name, shape), ps.indices)
         return result
 
@@ -73,6 +75,8 @@ class Chris(FiniteElementBase):
 
 
 class DiscontinuousChris(Chris):
+
+    suffix = "_disc"
 
     @property
     def formdegree(self):
