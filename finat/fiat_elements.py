@@ -251,10 +251,25 @@ class Regge(FiatElementBase):  # naturally tensor valued
         super(Regge, self).__init__(FIAT.Regge(cell, degree))
 
 
+class HellanHerrmannJohnson(FiatElementBase):  # symmetric matrix valued
+    def __init__(self, cell, degree):
+        super(HellanHerrmannJohnson, self).__init__(FIAT.HellanHerrmannJohnson(cell, degree))
+
+
 class ScalarFiatElement(FiatElementBase):
     @property
     def value_shape(self):
         return ()
+
+
+class Bubble(ScalarFiatElement):
+    def __init__(self, cell, degree):
+        super(Bubble, self).__init__(FIAT.Bubble(cell, degree))
+
+
+class CrouzeixRaviart(ScalarFiatElement):
+    def __init__(self, cell, degree):
+        super(CrouzeixRaviart, self).__init__(FIAT.CrouzeixRaviart(cell, degree))
 
 
 class Lagrange(ScalarFiatElement):
@@ -265,6 +280,11 @@ class Lagrange(ScalarFiatElement):
 class DiscontinuousLagrange(ScalarFiatElement):
     def __init__(self, cell, degree):
         super(DiscontinuousLagrange, self).__init__(FIAT.DiscontinuousLagrange(cell, degree))
+
+
+class DiscontinuousTaylor(ScalarFiatElement):
+    def __init__(self, cell, degree):
+        super(DiscontinuousTaylor, self).__init__(FIAT.DiscontinuousTaylor(cell, degree))
 
 
 class VectorFiatElement(FiatElementBase):

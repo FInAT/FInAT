@@ -1,9 +1,12 @@
 from __future__ import absolute_import, print_function, division
 
+from .fiat_elements import Bubble, CrouzeixRaviart, DiscontinuousTaylor  # noqa: F401
 from .fiat_elements import Lagrange, DiscontinuousLagrange  # noqa: F401
 from .fiat_elements import RaviartThomas, DiscontinuousRaviartThomas  # noqa: F401
 from .fiat_elements import BrezziDouglasMarini, BrezziDouglasFortinMarini  # noqa: F401
-from .fiat_elements import Nedelec, NedelecSecondKind, Regge  # noqa: F401
+from .fiat_elements import Nedelec, NedelecSecondKind  # noqa: F401
+from .fiat_elements import HellanHerrmannJohnson, Regge  # noqa: F401
+from .trace import HDivTrace  # noqa: F401
 from .spectral import GaussLobattoLegendre, GaussLegendre  # noqa: F401
 from .tensorfiniteelement import TensorFiniteElement  # noqa: F401
 from .tensor_product import TensorProductElement  # noqa: F401
