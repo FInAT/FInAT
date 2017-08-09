@@ -9,15 +9,21 @@ from gem.utils import cached_property
 from finat.finiteelementbase import FiniteElementBase
 
 
-class Chris(FiniteElementBase):
+class RuntimeTabulated(FiniteElementBase):
 
-    suffix = ""
+    def __init__(self, cell, degree, variant=None, shift_axes=0, continuous=True):
+        if cell.get_shape() != LINE:
+            raise NotImplementedError("Runtime tabulated elements limited to 1D.")
 
-    def __init__(self, cell, degree, shift_axes):
-        assert cell.get_shape() == LINE
+        assert isinstance(variant, str)
+        assert isinstance(shift_axes, int) and 0 <= shift_axes
+        assert isinstance(continuous, bool)
+
         self.cell = cell
         self.degree = degree
+        self.variant = variant
         self.shift_axes = shift_axes
+        self.continuous = continuous
 
     @cached_property
     def cell(self):
@@ -27,12 +33,15 @@ class Chris(FiniteElementBase):
     def degree(self):
         pass  # set at initialization
 
-    @property
+    @cached_property
     def formdegree(self):
-        return 0
+        if self.continuous:
+            return 0
+        else:
+            return self.cell.get_spatial_dimension()
 
     def entity_dofs(self):
-        raise NotImplementedError
+        raise NotImplementedError("I cannot tell where my DoFs are... :-/")
 
     def space_dimension(self):
         return self.degree + 1
@@ -54,12 +63,17 @@ class Chris(FiniteElementBase):
         result = {}
         for derivative in range(order + 1):
             for alpha in mis(dimension, derivative):
-                name = "chris{}d{}sa{}{}".format(self.degree, ''.join(map(str, alpha)), self.shift_axes, self.suffix)
+                name = str.format("rt_{}{}d{}sa{}{}",
+                                  self.variant,
+                                  self.degree,
+                                  ''.join(map(str, alpha)),
+                                  self.shift_axes,
+                                  'c' if self.continuous else 'd')
                 result[alpha] = gem.partial_indexed(gem.Variable(name, shape), ps.indices)
         return result
 
     def point_evaluation(self, order, point, entity=None):
-        raise NotImplementedError
+        raise NotImplementedError("Point evaluation supported for runtime tabulated elements")
 
     @property
     def index_shape(self):
@@ -72,12 +86,3 @@ class Chris(FiniteElementBase):
     @property
     def mapping(self):
         return "affine"
-
-
-class DiscontinuousChris(Chris):
-
-    suffix = "_disc"
-
-    @property
-    def formdegree(self):
-        return self.cell.get_spatial_dimension()
