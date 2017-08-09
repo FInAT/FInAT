@@ -14,11 +14,11 @@ from finat.finiteelementbase import FiniteElementBase
 from finat.sympy2gem import sympy2gem
 
 
-class FiatElementBase(FiniteElementBase):
+class FiatElement(FiniteElementBase):
     """Base class for finite elements for which the tabulation is provided
     by FIAT."""
     def __init__(self, fiat_element):
-        super(FiatElementBase, self).__init__()
+        super(FiatElement, self).__init__()
         self._element = fiat_element
 
     @property
@@ -246,17 +246,17 @@ def point_evaluation_ciarlet(fiat_element, order, refcoords, entity):
     return result
 
 
-class Regge(FiatElementBase):  # naturally tensor valued
+class Regge(FiatElement):  # naturally tensor valued
     def __init__(self, cell, degree):
         super(Regge, self).__init__(FIAT.Regge(cell, degree))
 
 
-class HellanHerrmannJohnson(FiatElementBase):  # symmetric matrix valued
+class HellanHerrmannJohnson(FiatElement):  # symmetric matrix valued
     def __init__(self, cell, degree):
         super(HellanHerrmannJohnson, self).__init__(FIAT.HellanHerrmannJohnson(cell, degree))
 
 
-class ScalarFiatElement(FiatElementBase):
+class ScalarFiatElement(FiatElement):
     @property
     def value_shape(self):
         return ()
@@ -287,7 +287,7 @@ class DiscontinuousTaylor(ScalarFiatElement):
         super(DiscontinuousTaylor, self).__init__(FIAT.DiscontinuousTaylor(cell, degree))
 
 
-class VectorFiatElement(FiatElementBase):
+class VectorFiatElement(FiatElement):
     @property
     def value_shape(self):
         return (self.cell.get_spatial_dimension(),)
