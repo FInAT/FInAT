@@ -65,7 +65,7 @@ class RuntimeTabulated(FiniteElementBase):
         result = {}
         for derivative in range(order + 1):
             for alpha in mis(dimension, derivative):
-                name = str.format("rt_{}{}d{}sa{}{}{}",
+                name = str.format("rt_{}_{}_{}_{}_{}_{}",
                                   self.variant,
                                   self.degree,
                                   ''.join(map(str, alpha)),
