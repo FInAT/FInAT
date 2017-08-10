@@ -72,8 +72,8 @@ class RuntimeTabulated(FiniteElementBase):
                                   self.shift_axes,
                                   'c' if self.continuous else 'd',
                                   {None: "",
-                                   '+': "_p",
-                                   '-': "_m"}[self.restriction])
+                                   '+': "p",
+                                   '-': "m"}[self.restriction])
                 result[alpha] = gem.partial_indexed(gem.Variable(name, shape), ps.indices)
         return result
 
