@@ -298,11 +298,6 @@ class RaviartThomas(VectorFiatElement):
         super(RaviartThomas, self).__init__(FIAT.RaviartThomas(cell, degree))
 
 
-class DiscontinuousRaviartThomas(VectorFiatElement):
-    def __init__(self, cell, degree):
-        super(DiscontinuousRaviartThomas, self).__init__(FIAT.DiscontinuousRaviartThomas(cell, degree))
-
-
 class BrezziDouglasMarini(VectorFiatElement):
     def __init__(self, cell, degree):
         super(BrezziDouglasMarini, self).__init__(FIAT.BrezziDouglasMarini(cell, degree))
