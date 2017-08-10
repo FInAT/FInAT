@@ -11,18 +11,20 @@ from finat.finiteelementbase import FiniteElementBase
 
 class RuntimeTabulated(FiniteElementBase):
 
-    def __init__(self, cell, degree, variant=None, shift_axes=0, continuous=True):
+    def __init__(self, cell, degree, variant=None, shift_axes=0, restriction=None, continuous=True):
         if cell.get_shape() != LINE:
             raise NotImplementedError("Runtime tabulated elements limited to 1D.")
 
         assert isinstance(variant, str)
         assert isinstance(shift_axes, int) and 0 <= shift_axes
         assert isinstance(continuous, bool)
+        assert restriction in [None, '+', '-']
 
         self.cell = cell
         self.degree = degree
         self.variant = variant
         self.shift_axes = shift_axes
+        self.restriction = restriction
         self.continuous = continuous
 
     @cached_property
@@ -63,12 +65,15 @@ class RuntimeTabulated(FiniteElementBase):
         result = {}
         for derivative in range(order + 1):
             for alpha in mis(dimension, derivative):
-                name = str.format("rt_{}{}d{}sa{}{}",
+                name = str.format("rt_{}{}d{}sa{}{}{}",
                                   self.variant,
                                   self.degree,
                                   ''.join(map(str, alpha)),
                                   self.shift_axes,
-                                  'c' if self.continuous else 'd')
+                                  'c' if self.continuous else 'd',
+                                  {None: "",
+                                   '+': "_p",
+                                   '-': "_m"}[self.restriction])
                 result[alpha] = gem.partial_indexed(gem.Variable(name, shape), ps.indices)
         return result
 
