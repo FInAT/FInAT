@@ -78,7 +78,7 @@ class RuntimeTabulated(FiniteElementBase):
         return result
 
     def point_evaluation(self, order, point, entity=None):
-        raise NotImplementedError("Point evaluation supported for runtime tabulated elements")
+        raise NotImplementedError("Point evaluation not supported for runtime tabulated elements")
 
     @property
     def index_shape(self):
