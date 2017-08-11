@@ -14,11 +14,11 @@ from finat.finiteelementbase import FiniteElementBase
 from finat.sympy2gem import sympy2gem
 
 
-class FiatElementBase(FiniteElementBase):
+class FiatElement(FiniteElementBase):
     """Base class for finite elements for which the tabulation is provided
     by FIAT."""
     def __init__(self, fiat_element):
-        super(FiatElementBase, self).__init__()
+        super(FiatElement, self).__init__()
         self._element = fiat_element
 
     @property
@@ -246,15 +246,30 @@ def point_evaluation_ciarlet(fiat_element, order, refcoords, entity):
     return result
 
 
-class Regge(FiatElementBase):  # naturally tensor valued
+class Regge(FiatElement):  # naturally tensor valued
     def __init__(self, cell, degree):
         super(Regge, self).__init__(FIAT.Regge(cell, degree))
 
 
-class ScalarFiatElement(FiatElementBase):
+class HellanHerrmannJohnson(FiatElement):  # symmetric matrix valued
+    def __init__(self, cell, degree):
+        super(HellanHerrmannJohnson, self).__init__(FIAT.HellanHerrmannJohnson(cell, degree))
+
+
+class ScalarFiatElement(FiatElement):
     @property
     def value_shape(self):
         return ()
+
+
+class Bubble(ScalarFiatElement):
+    def __init__(self, cell, degree):
+        super(Bubble, self).__init__(FIAT.Bubble(cell, degree))
+
+
+class CrouzeixRaviart(ScalarFiatElement):
+    def __init__(self, cell, degree):
+        super(CrouzeixRaviart, self).__init__(FIAT.CrouzeixRaviart(cell, degree))
 
 
 class Lagrange(ScalarFiatElement):
@@ -267,7 +282,12 @@ class DiscontinuousLagrange(ScalarFiatElement):
         super(DiscontinuousLagrange, self).__init__(FIAT.DiscontinuousLagrange(cell, degree))
 
 
-class VectorFiatElement(FiatElementBase):
+class DiscontinuousTaylor(ScalarFiatElement):
+    def __init__(self, cell, degree):
+        super(DiscontinuousTaylor, self).__init__(FIAT.DiscontinuousTaylor(cell, degree))
+
+
+class VectorFiatElement(FiatElement):
     @property
     def value_shape(self):
         return (self.cell.get_spatial_dimension(),)
@@ -276,11 +296,6 @@ class VectorFiatElement(FiatElementBase):
 class RaviartThomas(VectorFiatElement):
     def __init__(self, cell, degree):
         super(RaviartThomas, self).__init__(FIAT.RaviartThomas(cell, degree))
-
-
-class DiscontinuousRaviartThomas(VectorFiatElement):
-    def __init__(self, cell, degree):
-        super(DiscontinuousRaviartThomas, self).__init__(FIAT.DiscontinuousRaviartThomas(cell, degree))
 
 
 class BrezziDouglasMarini(VectorFiatElement):
