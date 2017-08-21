@@ -10,11 +10,30 @@ from finat.finiteelementbase import FiniteElementBase
 
 
 class RuntimeTabulated(FiniteElementBase):
+    """Element placeholder for tabulations provided at run time through a
+    kernel argument.
 
-    def __init__(self, cell, degree, variant=None, shift_axes=0, restriction=None, continuous=True):
+    Used by Themis.
+    """
+
+    def __init__(self, cell, degree, variant=None, shift_axes=0,
+                 restriction=None, continuous=True):
+        """Construct a runtime tabulated element.
+
+        :arg cell: reference cell
+        :arg degree: polynomial degree (int)
+        :arg variant: variant string of the UFL element
+        :arg shift_axes: first dimension
+        :arg restriction: None for single-cell integrals, '+' or '-'
+                          for interior facet integrals depending on
+                          which we need the tabulation on
+        :arg continuous: continuous or discontinuous element?
+        """
+        # Currently only interval elements are accepted.
         if cell.get_shape() != LINE:
             raise NotImplementedError("Runtime tabulated elements limited to 1D.")
 
+        # Sanity check
         assert isinstance(variant, str)
         assert isinstance(shift_axes, int) and 0 <= shift_axes
         assert isinstance(continuous, bool)
