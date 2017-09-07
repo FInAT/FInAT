@@ -13,7 +13,7 @@ import gem
 from gem.utils import cached_property
 
 from finat.finiteelementbase import FiniteElementBase
-from finat.point_set import PointSet, TensorPointSet
+from finat.point_set import PointSingleton, PointSet, TensorPointSet
 
 
 class TensorProductElement(FiniteElementBase):
@@ -199,17 +199,21 @@ def factor_point_set(product_cell, product_dim, point_set):
         assert all(ps.dimension == dim
                    for ps, dim in zip(point_set.factors, point_dims))
         return point_set.factors
+
+    # Split the point coordinates along the point dimensions
+    # required by the subelements.
+    assert point_set.dimension == sum(point_dims)
+    slices = TensorProductCell._split_slices(point_dims)
+
+    if isinstance(point_set, PointSingleton):
+        return [PointSingleton(point_set.point[s]) for s in slices]
     elif isinstance(point_set, PointSet):
-        # Split the point coordinates along the point dimensions
-        # required by the subelements, but use the same point index
-        # for the new point sets.
-        assert point_set.dimension == sum(point_dims)
-        slices = TensorProductCell._split_slices(point_dims)
+        # Use the same point index for the new point sets.
         result = []
         for s in slices:
             ps = PointSet(point_set.points[:, s])
             ps.indices = point_set.indices
             result.append(ps)
         return result
-    else:
-        raise NotImplementedError("How to tabulate TensorProductElement on %s?" % (type(point_set).__name__,))
+
+    raise NotImplementedError("How to tabulate TensorProductElement on %s?" % (type(point_set).__name__,))
