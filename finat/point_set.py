@@ -37,6 +37,27 @@ class AbstractPointSet(with_metaclass(ABCMeta)):
         ``self.indices`` and shape (point dimension,)."""
 
 
+class PointSingleton(AbstractPointSet):
+    """Just a single point."""
+
+    def __init__(self, point):
+        point = numpy.asarray(point)
+        assert len(point.shape) == 1
+        self.point = point
+
+    @property
+    def points(self):
+        return self.point.reshape(1, -1)
+
+    @property
+    def indices(self):
+        return ()
+
+    @cached_property
+    def expression(self):
+        return gem.Literal(self.point)
+
+
 class PointSet(AbstractPointSet):
     """A basic point set with no internal structure."""
 
