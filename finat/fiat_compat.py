@@ -38,12 +38,12 @@ class FinatElementWrapper(FIAT.FiniteElement):
     def entity_dofs(self):
         """Return the map of topological entities to degrees of
         freedom for the finite element."""
-        return self._element.get_entity_ids()
+        return self._element.entity_dofs()
 
     def entity_closure_dofs(self):
         """Return the map of topological entities to degrees of
         freedom on the closure of those entities for the finite element."""
-        return self._element.get_entity_closure_ids()
+        return self._element.entity_closure_dofs()
 
     def get_formdegree(self):
         """Return the degree of the associated form (FEEC)"""
