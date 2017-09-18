@@ -39,8 +39,8 @@ class FiniteElementBase(with_metaclass(ABCMeta)):
     def _entity_closure_dofs(self):
         # Compute the nodes on the closure of each sub_entity.
         entity_dofs = self.entity_dofs()
-        return {dim: {e: list(chain(*[entity_dofs[d][se]
-                                      for d, se in sub_entities]))
+        return {dim: {e: sorted(chain(*[entity_dofs[d][se]
+                                        for d, se in sub_entities]))
                       for e, sub_entities in iteritems(entities)}
                 for dim, entities in iteritems(self.cell.sub_entities)}
 
