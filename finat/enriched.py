@@ -1,5 +1,11 @@
 from __future__ import absolute_import, print_function, division
+from six import iteritems
 from six.moves import map, zip
+
+from functools import partial
+from operator import add, methodcaller
+
+import numpy
 
 import gem
 from gem.utils import cached_property
@@ -35,8 +41,13 @@ class EnrichedElement(FiniteElementBase):
     def entity_dofs(self):
         '''Return the map of topological entities to degrees of
         freedom for the finite element.'''
-        from FIAT.mixed import concatenate_entity_dofs
-        return concatenate_entity_dofs(self.cell, self.elements)
+        return concatenate_entity_dofs(self.cell, self.elements,
+                                       methodcaller("entity_dofs"))
+
+    @cached_property
+    def _entity_support_dofs(self):
+        return concatenate_entity_dofs(self.cell, self.elements,
+                                       methodcaller("entity_support_dofs"))
 
     def space_dimension(self):
         '''Return the dimension of the finite element space.'''
@@ -118,3 +129,24 @@ def tree_map(f, *args):
         return tuple(tree_map(f, *subargs) for subargs in zip(*args))
     else:
         return f(*args)
+
+
+def concatenate_entity_dofs(ref_el, elements, method):
+    """Combine the entity DoFs from a list of elements into a combined
+    dict containing the information for the concatenated DoFs of all
+    the elements.
+
+    :arg ref_el: the reference cell
+    :arg elements: subelement whose DoFs are concatenated
+    :arg method: method to obtain the entity DoFs dict
+    :returns: concatenated entity DoFs dict
+    """
+    entity_dofs = {dim: {i: [] for i in entities}
+                   for dim, entities in iteritems(ref_el.get_topology())}
+    offsets = numpy.cumsum([0] + list(e.space_dimension()
+                                      for e in elements), dtype=int)
+    for i, d in enumerate(map(method, elements)):
+        for dim, dofs in iteritems(d):
+            for ent, off in iteritems(dofs):
+                entity_dofs[dim][ent] += list(map(partial(add, offsets[i]), off))
+    return entity_dofs

@@ -55,6 +55,9 @@ class MixedSubElement(FiniteElementBase):
     def entity_closure_dofs(self):
         return self.element.entity_closure_dofs()
 
+    def entity_support_dofs(self):
+        return self.element.entity_support_dofs()
+
     def space_dimension(self):
         return self.element.space_dimension()
 
