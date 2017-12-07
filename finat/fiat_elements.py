@@ -2,7 +2,7 @@ from __future__ import absolute_import, print_function, division
 
 import numpy as np
 import sympy as sp
-from singledispatch import singledispatch
+from functools import singledispatch
 
 import FIAT
 from FIAT.polynomial_set import mis, form_matrix_product
