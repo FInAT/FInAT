@@ -1,5 +1,3 @@
-from __future__ import absolute_import, print_function, division
-
 from gem.utils import cached_property
 
 from finat.finiteelementbase import FiniteElementBase

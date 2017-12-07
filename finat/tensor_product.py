@@ -1,5 +1,3 @@
-from __future__ import absolute_import, print_function, division
-
 from functools import reduce
 from itertools import chain, product
 from operator import methodcaller

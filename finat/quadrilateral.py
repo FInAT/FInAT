@@ -1,5 +1,3 @@
-from __future__ import absolute_import, print_function, division
-
 from FIAT.reference_element import UFCQuadrilateral
 
 from gem.utils import cached_property

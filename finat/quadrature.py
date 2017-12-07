@@ -1,5 +1,3 @@
-from __future__ import absolute_import, print_function, division
-
 from abc import ABCMeta, abstractproperty
 from functools import reduce
 
