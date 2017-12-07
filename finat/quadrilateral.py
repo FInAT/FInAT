@@ -1,5 +1,4 @@
 from __future__ import absolute_import, print_function, division
-from six import iteritems
 
 from FIAT.reference_element import UFCQuadrilateral
 
@@ -74,8 +73,8 @@ def flatten(dofs):
     flat_dofs = {}
     flat_dofs[0] = dofs[(0, 0)]
     flat_dofs[1] = dict(enumerate(
-        [v for k, v in sorted(iteritems(dofs[(0, 1)]))] +
-        [v for k, v in sorted(iteritems(dofs[(1, 0)]))]
+        [v for k, v in sorted(dofs[(0, 1)].items())] +
+        [v for k, v in sorted(dofs[(1, 0)].items())]
     ))
     flat_dofs[2] = dofs[(1, 1)]
     return flat_dofs

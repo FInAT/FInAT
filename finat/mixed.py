@@ -1,6 +1,4 @@
 from __future__ import absolute_import, print_function, division
-from six import iteritems
-from six.moves import zip
 
 import numpy
 
@@ -85,7 +83,7 @@ class MixedSubElement(FiniteElementBase):
             return gem.ComponentTensor(gem.Indexed(u, zeta), beta + zeta)
 
         return {alpha: promote(table)
-                for alpha, table in iteritems(core_eval)}
+                for alpha, table in core_eval.items()}
 
     def basis_evaluation(self, order, ps, entity=None):
         core_eval = self.element.basis_evaluation(order, ps, entity)

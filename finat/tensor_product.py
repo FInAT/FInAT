@@ -1,5 +1,4 @@
 from __future__ import absolute_import, print_function, division
-from six.moves import range, zip
 
 from functools import reduce
 from itertools import chain, product

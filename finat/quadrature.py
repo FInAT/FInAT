@@ -1,5 +1,4 @@
 from __future__ import absolute_import, print_function, division
-from six import with_metaclass
 
 from abc import ABCMeta, abstractproperty
 from functools import reduce
@@ -61,7 +60,7 @@ def make_quadrature(ref_el, degree, scheme="default"):
     return QuadratureRule(PointSet(fiat_rule.get_points()), fiat_rule.get_weights())
 
 
-class AbstractQuadratureRule(with_metaclass(ABCMeta)):
+class AbstractQuadratureRule(metaclass=ABCMeta):
     """Abstract class representing a quadrature rule as point set and a
     corresponding set of weights."""
 

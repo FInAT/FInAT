@@ -1,6 +1,4 @@
 from __future__ import absolute_import, print_function, division
-from six import iteritems
-from six.moves import map, zip
 
 from functools import partial
 from operator import add, methodcaller
@@ -142,11 +140,11 @@ def concatenate_entity_dofs(ref_el, elements, method):
     :returns: concatenated entity DoFs dict
     """
     entity_dofs = {dim: {i: [] for i in entities}
-                   for dim, entities in iteritems(ref_el.get_topology())}
+                   for dim, entities in ref_el.get_topology().items()}
     offsets = numpy.cumsum([0] + list(e.space_dimension()
                                       for e in elements), dtype=int)
     for i, d in enumerate(map(method, elements)):
-        for dim, dofs in iteritems(d):
-            for ent, off in iteritems(dofs):
+        for dim, dofs in d.items():
+            for ent, off in dofs.items():
                 entity_dofs[dim][ent] += list(map(partial(add, offsets[i]), off))
     return entity_dofs

@@ -1,6 +1,4 @@
 from __future__ import absolute_import, print_function, division
-from six import iteritems
-from six.moves import range, zip
 from functools import reduce
 
 import numpy
@@ -35,7 +33,7 @@ class QuadratureElement(FiniteElementBase):
     def _entity_dofs(self):
         # Inspired by ffc/quadratureelement.py
         entity_dofs = {dim: {entity: [] for entity in entities}
-                       for dim, entities in iteritems(self.cell.get_topology())}
+                       for dim, entities in self.cell.get_topology().items()}
         entity_dofs[self.cell.get_dimension()] = {0: list(range(self.space_dimension()))}
         return entity_dofs
 

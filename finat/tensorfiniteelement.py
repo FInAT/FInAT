@@ -1,5 +1,4 @@
 from __future__ import absolute_import, print_function, division
-from six import iteritems
 
 from functools import reduce
 
@@ -116,7 +115,7 @@ class TensorFiniteElement(FiniteElementBase):
             index_ordering = scalar_i + tensor_i + tensor_vi + scalar_vi
 
         result = {}
-        for alpha, expr in iteritems(scalar_evaluation):
+        for alpha, expr in scalar_evaluation.items():
             result[alpha] = gem.ComponentTensor(
                 gem.Product(deltas, gem.Indexed(expr, scalar_i + scalar_vi)),
                 index_ordering
