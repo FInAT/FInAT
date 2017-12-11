@@ -1,6 +1,3 @@
-from __future__ import absolute_import, print_function, division
-from six import iteritems
-
 from gem.utils import cached_property
 
 from finat.finiteelementbase import FiniteElementBase
@@ -29,7 +26,7 @@ class DiscontinuousElement(FiniteElementBase):
     @cached_property
     def _entity_dofs(self):
         result = {dim: {i: [] for i in entities}
-                  for dim, entities in iteritems(self.cell.get_topology())}
+                  for dim, entities in self.cell.get_topology().items()}
         cell_dimension = self.cell.get_dimension()
         result[cell_dimension][0].extend(range(self.space_dimension()))
         return result

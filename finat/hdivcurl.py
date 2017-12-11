@@ -1,7 +1,3 @@
-from __future__ import absolute_import, division, print_function
-
-from six import iteritems
-
 from FIAT.reference_element import LINE
 
 import gem
@@ -62,7 +58,7 @@ class WrapperElementBase(FiniteElementBase):
             return gem.ComponentTensor(gem.Indexed(u, zeta), beta + zeta)
 
         return {alpha: promote(table)
-                for alpha, table in iteritems(core_eval)}
+                for alpha, table in core_eval.items()}
 
     def basis_evaluation(self, order, ps, entity=None):
         core_eval = self.wrappee.basis_evaluation(order, ps, entity)

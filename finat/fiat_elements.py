@@ -1,9 +1,6 @@
-from __future__ import absolute_import, print_function, division
-from six import iteritems
-
 import numpy as np
 import sympy as sp
-from singledispatch import singledispatch
+from functools import singledispatch
 
 import FIAT
 from FIAT.polynomial_set import mis, form_matrix_product
@@ -63,7 +60,7 @@ class FiatElement(FiniteElementBase):
         value_size = np.prod(self._element.value_shape(), dtype=int)
         fiat_result = self._element.tabulate(order, ps.points, entity)
         result = {}
-        for alpha, fiat_table in iteritems(fiat_result):
+        for alpha, fiat_table in fiat_result.items():
             if isinstance(fiat_table, Exception):
                 result[alpha] = gem.Failure(self.index_shape + self.value_shape, fiat_table)
                 continue
@@ -153,7 +150,7 @@ def point_evaluation_generic(fiat_element, order, refcoords, entity):
     value_size = np.prod(fiat_element.value_shape(), dtype=int)
     fiat_result = fiat_element.tabulate(order, [Xi], entity)
     result = {}
-    for alpha, fiat_table in iteritems(fiat_result):
+    for alpha, fiat_table in fiat_result.items():
         if isinstance(fiat_table, Exception):
             result[alpha] = gem.Failure((space_dimension,) + fiat_element.value_shape(), fiat_table)
             continue

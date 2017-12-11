@@ -1,10 +1,8 @@
-from __future__ import absolute_import, print_function, division
-
 from distutils.core import setup
 import sys
 
-if sys.version_info < (2, 7):
-    print("Python 2.7 or higher required, please upgrade.")
+if sys.version_info < (3, 5):
+    print("Python 3.5 or higher required, please upgrade.")
     sys.exit(1)
 
 
