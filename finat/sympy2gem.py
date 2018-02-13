@@ -1,9 +1,5 @@
-from __future__ import absolute_import, print_function, division
-from six.moves import map
+from functools import singledispatch, reduce
 
-from functools import reduce
-
-from singledispatch import singledispatch
 import sympy
 
 import gem

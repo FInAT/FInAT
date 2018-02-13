@@ -1,6 +1,3 @@
-from __future__ import absolute_import, print_function, division
-from six import with_metaclass, iteritems, itervalues
-
 from abc import ABCMeta, abstractproperty, abstractmethod
 from itertools import chain
 
@@ -13,7 +10,7 @@ from gem.utils import cached_property
 from finat.quadrature import make_quadrature
 
 
-class FiniteElementBase(with_metaclass(ABCMeta)):
+class FiniteElementBase(metaclass=ABCMeta):
 
     @abstractproperty
     def cell(self):
@@ -39,10 +36,10 @@ class FiniteElementBase(with_metaclass(ABCMeta)):
     def _entity_closure_dofs(self):
         # Compute the nodes on the closure of each sub_entity.
         entity_dofs = self.entity_dofs()
-        return {dim: {e: list(chain(*[entity_dofs[d][se]
-                                      for d, se in sub_entities]))
-                      for e, sub_entities in iteritems(entities)}
-                for dim, entities in iteritems(self.cell.sub_entities)}
+        return {dim: {e: sorted(chain(*[entity_dofs[d][se]
+                                        for d, se in sub_entities]))
+                      for e, sub_entities in entities.items()}
+                for dim, entities in self.cell.sub_entities.items()}
 
     def entity_closure_dofs(self):
         '''Return the map of topological entities to degrees of
@@ -65,7 +62,7 @@ class FiniteElementBase(with_metaclass(ABCMeta)):
             result = {}
             for f in self.entity_dofs()[entity_dim].keys():
                 # Tabulate basis functions on the facet
-                vals, = itervalues(self.basis_evaluation(0, quad.point_set, entity=(entity_dim, f)))
+                vals, = self.basis_evaluation(0, quad.point_set, entity=(entity_dim, f)).values()
                 # Integrate the square of the basis functions on the facet.
                 ints = gem.IndexSum(
                     gem.Product(gem.IndexSum(gem.Product(gem.Indexed(vals, beta + zeta),

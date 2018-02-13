@@ -1,5 +1,3 @@
-from __future__ import absolute_import, print_function, division
-
 from FIAT.polynomial_set import mis
 from FIAT.reference_element import LINE
 

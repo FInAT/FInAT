@@ -1,6 +1,3 @@
-from __future__ import absolute_import, print_function, division
-from six import iteritems
-
 import pytest
 
 import FIAT
@@ -22,7 +19,7 @@ def test_cellwise_constant(cell, degree):
     point = gem.partial_indexed(gem.Variable('X', (17, dim)), (index,))
 
     order = 2
-    for alpha, table in iteritems(element.point_evaluation(order, point)):
+    for alpha, table in element.point_evaluation(order, point).items():
         if sum(alpha) < degree:
             assert table.free_indices == (index,)
         else:

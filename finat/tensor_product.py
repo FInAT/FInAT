@@ -1,8 +1,6 @@
-from __future__ import absolute_import, print_function, division
-from six.moves import range, zip
-
 from functools import reduce
 from itertools import chain, product
+from operator import methodcaller
 
 import numpy
 
@@ -47,24 +45,11 @@ class TensorProductElement(FiniteElementBase):
 
     @cached_property
     def _entity_dofs(self):
-        shape = tuple(fe.space_dimension() for fe in self.factors)
-        entity_dofs = {}
-        for dim in product(*[fe.cell.get_topology().keys()
-                             for fe in self.factors]):
-            dim_dofs = []
-            topds = [fe.entity_dofs()[d]
-                     for fe, d in zip(self.factors, dim)]
-            for tuple_ei in product(*[sorted(topd) for topd in topds]):
-                tuple_vs = list(product(*[topd[ei]
-                                          for topd, ei in zip(topds, tuple_ei)]))
-                if tuple_vs:
-                    vs = list(numpy.ravel_multi_index(numpy.transpose(tuple_vs), shape))
-                    dim_dofs.append((tuple_ei, vs))
-                else:
-                    dim_dofs.append((tuple_ei, []))
-            # flatten entity numbers
-            entity_dofs[dim] = dict(enumerate(v for k, v in sorted(dim_dofs)))
-        return entity_dofs
+        return productise(self.factors, methodcaller("entity_dofs"))
+
+    @cached_property
+    def _entity_support_dofs(self):
+        return productise(self.factors, methodcaller("entity_support_dofs"))
 
     def entity_dofs(self):
         return self._entity_dofs
@@ -179,6 +164,31 @@ class TensorProductElement(FiniteElementBase):
             return mappings[0]
         else:
             return None
+
+
+def productise(factors, method):
+    '''Tensor product the dict mapping topological entities to dofs across factors.
+
+    :arg factors: element factors.
+    :arg method: instance method to call on each factor to get dofs.'''
+    shape = tuple(fe.space_dimension() for fe in factors)
+    dofs = {}
+    for dim in product(*[fe.cell.get_topology().keys()
+                         for fe in factors]):
+        dim_dofs = []
+        topds = [method(fe)[d]
+                 for fe, d in zip(factors, dim)]
+        for tuple_ei in product(*[sorted(topd) for topd in topds]):
+            tuple_vs = list(product(*[topd[ei]
+                                      for topd, ei in zip(topds, tuple_ei)]))
+            if tuple_vs:
+                vs = list(numpy.ravel_multi_index(numpy.transpose(tuple_vs), shape))
+                dim_dofs.append((tuple_ei, vs))
+            else:
+                dim_dofs.append((tuple_ei, []))
+        # flatten entity numbers
+        dofs[dim] = dict(enumerate(v for k, v in sorted(dim_dofs)))
+    return dofs
 
 
 def factor_point_set(product_cell, product_dim, point_set):

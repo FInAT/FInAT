@@ -1,6 +1,3 @@
-from __future__ import absolute_import, print_function, division
-from six import iteritems
-
 from FIAT.reference_element import UFCQuadrilateral
 
 from gem.utils import cached_property
@@ -32,15 +29,11 @@ class QuadrilateralElement(FiniteElementBase):
 
     @cached_property
     def _entity_dofs(self):
-        entity_dofs = self.product.entity_dofs()
-        flat_entity_dofs = {}
-        flat_entity_dofs[0] = entity_dofs[(0, 0)]
-        flat_entity_dofs[1] = dict(enumerate(
-            [v for k, v in sorted(iteritems(entity_dofs[(0, 1)]))] +
-            [v for k, v in sorted(iteritems(entity_dofs[(1, 0)]))]
-        ))
-        flat_entity_dofs[2] = entity_dofs[(1, 1)]
-        return flat_entity_dofs
+        return flatten(self.product.entity_dofs())
+
+    @cached_property
+    def _entity_support_dofs(self):
+        return flatten(self.product.entity_support_dofs())
 
     def entity_dofs(self):
         return self._entity_dofs
@@ -72,6 +65,17 @@ class QuadrilateralElement(FiniteElementBase):
     @property
     def mapping(self):
         return self.product.mapping
+
+
+def flatten(dofs):
+    flat_dofs = {}
+    flat_dofs[0] = dofs[(0, 0)]
+    flat_dofs[1] = dict(enumerate(
+        [v for k, v in sorted(dofs[(0, 1)].items())] +
+        [v for k, v in sorted(dofs[(1, 0)].items())]
+    ))
+    flat_dofs[2] = dofs[(1, 1)]
+    return flat_dofs
 
 
 def productise(entity):

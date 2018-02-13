@@ -1,7 +1,3 @@
-from __future__ import absolute_import, print_function, division
-from six import with_metaclass
-from six.moves import range, zip
-
 from abc import ABCMeta, abstractproperty
 from itertools import chain, product
 
@@ -11,7 +7,7 @@ import gem
 from gem.utils import cached_property
 
 
-class AbstractPointSet(with_metaclass(ABCMeta)):
+class AbstractPointSet(metaclass=ABCMeta):
     """A way of specifying a known set of points, perhaps with some
     (tensor) structure."""
 

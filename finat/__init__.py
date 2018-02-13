@@ -1,5 +1,3 @@
-from __future__ import absolute_import, print_function, division
-
 from .fiat_elements import Bubble, CrouzeixRaviart, DiscontinuousTaylor  # noqa: F401
 from .fiat_elements import Lagrange, DiscontinuousLagrange  # noqa: F401
 from .fiat_elements import BrezziDouglasMarini, BrezziDouglasFortinMarini  # noqa: F401

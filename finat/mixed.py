@@ -1,7 +1,3 @@
-from __future__ import absolute_import, print_function, division
-from six import iteritems
-from six.moves import zip
-
 import numpy
 
 import gem
@@ -55,6 +51,9 @@ class MixedSubElement(FiniteElementBase):
     def entity_closure_dofs(self):
         return self.element.entity_closure_dofs()
 
+    def entity_support_dofs(self):
+        return self.element.entity_support_dofs()
+
     def space_dimension(self):
         return self.element.space_dimension()
 
@@ -82,7 +81,7 @@ class MixedSubElement(FiniteElementBase):
             return gem.ComponentTensor(gem.Indexed(u, zeta), beta + zeta)
 
         return {alpha: promote(table)
-                for alpha, table in iteritems(core_eval)}
+                for alpha, table in core_eval.items()}
 
     def basis_evaluation(self, order, ps, entity=None):
         core_eval = self.element.basis_evaluation(order, ps, entity)
