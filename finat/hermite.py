@@ -16,23 +16,29 @@ class CubicHermite(ScalarFiatElement):
 
     def basis_evaluation(self, order, ps, entity=None, coordinate_mapping=None):
         assert coordinate_mapping is not None
-        JA, JB, JC = [coordinate_mapping.jacobian_at(vertex)
-                      for vertex in self.cell.get_vertices()]
+        Js = [coordinate_mapping.jacobian_at(vertex)
+              for vertex in self.cell.get_vertices()]
+
+        d = self.cell.get_dimension()
+        numbf = self.space_dimension()
 
         def n(J):
-            assert J.shape == (2, 2)
+            assert J.shape == (d, d)
             return numpy.array(
-                [[gem.Indexed(J, (0, 0)),
-                  gem.Indexed(J, (0, 1))],
-                 [gem.Indexed(J, (1, 0)),
-                  gem.Indexed(J, (1, 1))]]
-            )
-        M = numpy.eye(10, dtype=object)
+                [[gem.Indexed(J, (i, j)) for j in range(d)]
+                 for i in range(d)])
+
+        M = numpy.eye(numbf, dtype=object)
+
         for multiindex in numpy.ndindex(M.shape):
             M[multiindex] = gem.Literal(M[multiindex])
-        M[1:3, 1:3] = n(JA)
-        M[4:6, 4:6] = n(JB)
-        M[7:9, 7:9] = n(JC)
+
+        cur = 0
+        for i in range(d+1):
+            cur += 1  # skip the vertex
+            M[cur:cur+d, cur:cur+d] = n(Js[i])
+            cur += d
+
         M = gem.ListTensor(M)
 
         def matvec(table):
