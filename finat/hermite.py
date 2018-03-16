@@ -1,7 +1,5 @@
 from __future__ import absolute_import, print_function, division
-from six import iteritems, with_metaclass
-
-from abc import ABCMeta, abstractmethod
+from six import iteritems
 
 import numpy
 
@@ -10,12 +8,6 @@ import FIAT
 import gem
 
 from finat.fiat_elements import ScalarFiatElement
-
-
-class PhysicalGeometry(with_metaclass(ABCMeta)):
-    @abstractmethod
-    def jacobian_at(self, point):
-        pass
 
 
 class CubicHermite(ScalarFiatElement):
