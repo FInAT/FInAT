@@ -3,6 +3,7 @@ from .fiat_elements import Lagrange, DiscontinuousLagrange  # noqa: F401
 from .fiat_elements import BrezziDouglasMarini, BrezziDouglasFortinMarini  # noqa: F401
 from .fiat_elements import Nedelec, NedelecSecondKind, RaviartThomas  # noqa: F401
 from .fiat_elements import HellanHerrmannJohnson, Regge  # noqa: F401
+from .fiat_elements import FacetBubble  # noqa: F401
 from .trace import HDivTrace  # noqa: F401
 from .spectral import GaussLobattoLegendre, GaussLegendre  # noqa: F401
 from .tensorfiniteelement import TensorFiniteElement  # noqa: F401
