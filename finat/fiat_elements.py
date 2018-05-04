@@ -264,6 +264,11 @@ class Bubble(ScalarFiatElement):
         super(Bubble, self).__init__(FIAT.Bubble(cell, degree))
 
 
+class FacetBubble(ScalarFiatElement):
+    def __init__(self, cell, degree):
+        super(FacetBubble, self).__init__(FIAT.FacetBubble(cell, degree))
+
+
 class CrouzeixRaviart(ScalarFiatElement):
     def __init__(self, cell, degree):
         super(CrouzeixRaviart, self).__init__(FIAT.CrouzeixRaviart(cell, degree))
