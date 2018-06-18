@@ -21,10 +21,10 @@ class Morley(ScalarFiatElement):
         J = coordinate_mapping.jacobian_at([1/3, 1/3])
 
         rns = [coordinate_mapping.reference_normal(i) for i in range(3)]
-        pns = [coordinate_mapping.physical_normal(i) for i in range(3)]
+        pns = coordinate_mapping.physical_normals()
 
         rts = [coordinate_mapping.reference_tangent(i) for i in range(3)]
-        pts = [coordinate_mapping.physical_tangent(i) for i in range(3)]
+        pts = coordinate_mapping.physical_tangents()
 
         pel = coordinate_mapping.physical_edge_lengths()
 
@@ -33,26 +33,26 @@ class Morley(ScalarFiatElement):
         # B12 = rns[i, 0]*(pns[i, 1]*J[0,0] + pts[i, 1]*J[1, 0]) + rts[i, 1]*(pns[i, 1]*J[0, 1] + pts[i, 1]*J[1,1])
 
         B11 = [gem.Sum(gem.Product(gem.Indexed(rns[i], (0, )),
-                                   gem.Sum(gem.Product(gem.Indexed(pns[i], (0, )),
+                                   gem.Sum(gem.Product(gem.Indexed(pns, (i, 0)),
                                                        gem.Indexed(J, (0, 0))),
-                                           gem.Product(gem.Indexed(pts[i], (0, )),
+                                           gem.Product(gem.Indexed(pns, (i, 1)),
                                                        gem.Indexed(J, (1, 0))))),
-                       gem.Product(gem.Indexed(rts[i], (0, )),
-                                   gem.Sum(gem.Product(gem.Indexed(pns[i], (0, )),
+                       gem.Product(gem.Indexed(rns[i], (1, )),
+                                   gem.Sum(gem.Product(gem.Indexed(pns, (i, 0)),
                                                        gem.Indexed(J, (0, 1))),
-                                           gem.Product(gem.Indexed(pts[i], (0, )),
+                                           gem.Product(gem.Indexed(pns, (i, 1)),
                                                        gem.Indexed(J, (1, 1))))))
                for i in range(3)]
 
         B12 = [gem.Sum(gem.Product(gem.Indexed(rns[i], (0, )),
-                                   gem.Sum(gem.Product(gem.Indexed(pns[i], (1, )),
+                                   gem.Sum(gem.Product(gem.Indexed(pts, (i, 0)),
                                                        gem.Indexed(J, (0, 0))),
-                                           gem.Product(gem.Indexed(pts[i], (1, )),
+                                           gem.Product(gem.Indexed(pts, (i, 1)),
                                                        gem.Indexed(J, (1, 0))))),
-                       gem.Product(gem.Indexed(rts[i], (0, )),
-                                   gem.Sum(gem.Product(gem.Indexed(pns[i], (1, )),
+                       gem.Product(gem.Indexed(rns[i], (1, )),
+                                   gem.Sum(gem.Product(gem.Indexed(pts, (i, 0)),
                                                        gem.Indexed(J, (0, 1))),
-                                           gem.Product(gem.Indexed(pts[i], (1, )),
+                                           gem.Product(gem.Indexed(pts, (i, 1)),
                                                        gem.Indexed(J, (1, 1))))))
                for i in range(3)]
 
@@ -63,14 +63,9 @@ class Morley(ScalarFiatElement):
         for i in range(3):
             V[i + 3, i + 3] = B11[i]
 
-        V[3, 1] = gem.Division(gem.Product(gem.Literal(-1), B12[0]), gem.Indexed(pel, (0, )))
-        V[3, 2] = gem.Division(B12[0], gem.Indexed(pel, (0, )))
-
-        V[4, 0] = gem.Division(gem.Product(gem.Literal(-1), B12[1]), gem.Indexed(pel, (1, )))
-        V[4, 2] = gem.Division(B12[1], gem.Indexed(pel, (1, )))
-
-        V[5, 0] = gem.Division(gem.Product(gem.Literal(-1), B12[2]), gem.Indexed(pel, (2, )))
-        V[5, 1] = gem.Division(B12[2], gem.Indexed(pel, (2, )))
+        for i, c in enumerate([(1, 2), (0, 2), (0, 1)]):
+            V[3+i, c[0]] = gem.Division(gem.Product(gem.Literal(-1), B12[i]), gem.Indexed(pel, (i, )))
+            V[3+i, c[1]] = gem.Division(B12[i], gem.Indexed(pel, (i, )))
 
         M = V.T
 
