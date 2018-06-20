@@ -23,7 +23,6 @@ class Morley(ScalarFiatElement):
         rns = [coordinate_mapping.reference_normal(i) for i in range(3)]
         pns = coordinate_mapping.physical_normals()
 
-        rts = [coordinate_mapping.reference_tangent(i) for i in range(3)]
         pts = coordinate_mapping.physical_tangents()
 
         pel = coordinate_mapping.physical_edge_lengths()
