@@ -75,8 +75,10 @@ class FiatElement(FiniteElementBase):
                 if derivative < self.degree:
                     point_indices = ps.indices
                     point_shape = tuple(index.extent for index in point_indices)
+
+                    indshp = (self._element.space_dimension(),)
                     exprs.append(gem.partial_indexed(
-                        gem.Literal(table.reshape(point_shape + self.index_shape)),
+                        gem.Literal(table.reshape(point_shape + indshp)),
                         point_indices
                     ))
                 elif derivative == self.degree:
