@@ -1,6 +1,3 @@
-from __future__ import absolute_import, print_function, division
-from six import iteritems
-
 import numpy
 
 import FIAT
@@ -125,7 +122,7 @@ class Bell(ScalarFiatElement):
         result = super(Bell, self).basis_evaluation(order, ps, entity=entity)
 
         return {alpha: matvec(table)
-                for alpha, table in iteritems(result)}
+                for alpha, table in result.items()}
 
     # This wipes out the edge dofs.  FIAT gives a 21 DOF element
     # because we need some extra functions to help with transforming

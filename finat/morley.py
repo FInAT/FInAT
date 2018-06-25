@@ -1,6 +1,3 @@
-from __future__ import absolute_import, print_function, division
-from six import iteritems
-
 import numpy
 
 import FIAT
@@ -83,7 +80,7 @@ class Morley(ScalarFiatElement):
 
         result = super(Morley, self).basis_evaluation(order, ps, entity=entity)
         return {alpha: matvec(table)
-                for alpha, table in iteritems(result)}
+                for alpha, table in result.items()}
 
     def point_evaluation(self, order, refcoords, entity=None):
         raise NotImplementedError  # TODO: think about it later!
