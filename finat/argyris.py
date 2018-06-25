@@ -2,18 +2,17 @@ import numpy
 
 import FIAT
 
-import gem
+from gem import Division, Indexed, Literal, ListTensor, Power, Product, Sum
 
 from finat.fiat_elements import ScalarFiatElement
+from finat.physically_mapped import PhysicallyMappedElement
 
 
-class Argyris(ScalarFiatElement):
+class Argyris(PhysicallyMappedElement, ScalarFiatElement):
     def __init__(self, cell):
-        super(Argyris, self).__init__(FIAT.QuinticArgyris(cell))
+        super().__init__(FIAT.QuinticArgyris(cell))
 
-    def basis_evaluation(self, order, ps, entity=None, coordinate_mapping=None):
-        assert coordinate_mapping is not None
-
+    def basis_transformation(self, coordinate_mapping):
         # Jacobians at edge midpoints
         J = coordinate_mapping.jacobian_at([1/3, 1/3])
 
@@ -25,8 +24,6 @@ class Argyris(ScalarFiatElement):
         pel = coordinate_mapping.physical_edge_lengths()
 
         V = numpy.zeros((21, 21), dtype=object)
-
-        from gem import Product, Literal, Division, Sum, Indexed, Power
 
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
@@ -134,23 +131,4 @@ class Argyris(ScalarFiatElement):
                         Product(Indexed(J, (1, 1)),
                                 Indexed(pns, (e, 1))))))
 
-        M = V.T
-        M = gem.ListTensor(M)
-
-        def matvec(table):
-            i = gem.Index()
-            j = gem.Index()
-            val = gem.ComponentTensor(
-                gem.IndexSum(gem.Product(gem.Indexed(M, (i, j)),
-                                         gem.Indexed(table, (j,))),
-                             (j,)),
-                (i,))
-            # Eliminate zeros
-            return gem.optimise.aggressive_unroll(val)
-
-        result = super(Argyris, self).basis_evaluation(order, ps, entity=entity)
-        return {alpha: matvec(table)
-                for alpha, table in result.items()}
-
-    def point_evaluation(self, order, refcoords, entity=None):
-        raise NotImplementedError  # TODO: think about it later!
+        return ListTensor(V.T)

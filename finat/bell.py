@@ -2,18 +2,17 @@ import numpy
 
 import FIAT
 
-import gem
+from gem import Division, Indexed, Literal, ListTensor, Power, Product, Sum
 
 from finat.fiat_elements import ScalarFiatElement
+from finat.physically_mapped import PhysicallyMappedElement
 
 
-class Bell(ScalarFiatElement):
+class Bell(PhysicallyMappedElement, ScalarFiatElement):
     def __init__(self, cell):
-        super(Bell, self).__init__(FIAT.Bell(cell))
+        super().__init__(FIAT.Bell(cell))
 
-    def basis_evaluation(self, order, ps, entity=None, coordinate_mapping=None):
-        assert coordinate_mapping is not None
-
+    def basis_transformation(self, coordinate_mapping):
         # Jacobians at edge midpoints
         J = coordinate_mapping.jacobian_at([1/3, 1/3])
 
@@ -24,8 +23,6 @@ class Bell(ScalarFiatElement):
         pel = coordinate_mapping.physical_edge_lengths()
 
         V = numpy.zeros((21, 18), dtype=object)
-
-        from gem import Product, Literal, Division, Sum, Indexed, Power
 
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
@@ -105,30 +102,12 @@ class Bell(ScalarFiatElement):
                             Product(foo, tau[i])),
                     Literal(252))
 
-        M = V.T
-        M = gem.ListTensor(M)
-
-        def matvec(table):
-            i = gem.Index()
-            j = gem.Index()
-            val = gem.ComponentTensor(
-                gem.IndexSum(gem.Product(gem.Indexed(M, (i, j)),
-                                         gem.Indexed(table, (j,))),
-                             (j,)),
-                (i,))
-            # Eliminate zeros
-            return gem.optimise.aggressive_unroll(val)
-
-        result = super(Bell, self).basis_evaluation(order, ps, entity=entity)
-
-        return {alpha: matvec(table)
-                for alpha, table in result.items()}
+        return ListTensor(V.T)
 
     # This wipes out the edge dofs.  FIAT gives a 21 DOF element
     # because we need some extra functions to help with transforming
     # under the edge constraint.  However, we only have an 18 DOF
     # element.
-
     def entity_dofs(self):
         return {0: {0: range(6),
                     1: range(6, 12),
@@ -142,6 +121,3 @@ class Bell(ScalarFiatElement):
 
     def space_dimension(self):
         return 18
-
-    def point_evaluation(self, order, refcoords, entity=None):
-        raise NotImplementedError  # TODO: think about it later!

@@ -2,18 +2,17 @@ import numpy
 
 import FIAT
 
-import gem
+from gem import Division, Indexed, Literal, ListTensor, Product, Sum
 
 from finat.fiat_elements import ScalarFiatElement
+from finat.physically_mapped import PhysicallyMappedElement
 
 
-class Morley(ScalarFiatElement):
+class Morley(PhysicallyMappedElement, ScalarFiatElement):
     def __init__(self, cell):
-        super(Morley, self).__init__(FIAT.Morley(cell))
+        super().__init__(FIAT.Morley(cell))
 
-    def basis_evaluation(self, order, ps, entity=None, coordinate_mapping=None):
-        assert coordinate_mapping is not None
-
+    def basis_transformation(self, coordinate_mapping):
         # Jacobians at edge midpoints
         J = coordinate_mapping.jacobian_at([1/3, 1/3])
 
@@ -28,59 +27,39 @@ class Morley(ScalarFiatElement):
 
         # B12 = rns[i, 0]*(pns[i, 1]*J[0,0] + pts[i, 1]*J[1, 0]) + rts[i, 1]*(pns[i, 1]*J[0, 1] + pts[i, 1]*J[1,1])
 
-        B11 = [gem.Sum(gem.Product(gem.Indexed(rns[i], (0, )),
-                                   gem.Sum(gem.Product(gem.Indexed(pns, (i, 0)),
-                                                       gem.Indexed(J, (0, 0))),
-                                           gem.Product(gem.Indexed(pns, (i, 1)),
-                                                       gem.Indexed(J, (1, 0))))),
-                       gem.Product(gem.Indexed(rns[i], (1, )),
-                                   gem.Sum(gem.Product(gem.Indexed(pns, (i, 0)),
-                                                       gem.Indexed(J, (0, 1))),
-                                           gem.Product(gem.Indexed(pns, (i, 1)),
-                                                       gem.Indexed(J, (1, 1))))))
+        B11 = [Sum(Product(Indexed(rns[i], (0, )),
+                           Sum(Product(Indexed(pns, (i, 0)),
+                                       Indexed(J, (0, 0))),
+                               Product(Indexed(pns, (i, 1)),
+                                       Indexed(J, (1, 0))))),
+                   Product(Indexed(rns[i], (1, )),
+                           Sum(Product(Indexed(pns, (i, 0)),
+                                       Indexed(J, (0, 1))),
+                               Product(Indexed(pns, (i, 1)),
+                                       Indexed(J, (1, 1))))))
                for i in range(3)]
 
-        B12 = [gem.Sum(gem.Product(gem.Indexed(rns[i], (0, )),
-                                   gem.Sum(gem.Product(gem.Indexed(pts, (i, 0)),
-                                                       gem.Indexed(J, (0, 0))),
-                                           gem.Product(gem.Indexed(pts, (i, 1)),
-                                                       gem.Indexed(J, (1, 0))))),
-                       gem.Product(gem.Indexed(rns[i], (1, )),
-                                   gem.Sum(gem.Product(gem.Indexed(pts, (i, 0)),
-                                                       gem.Indexed(J, (0, 1))),
-                                           gem.Product(gem.Indexed(pts, (i, 1)),
-                                                       gem.Indexed(J, (1, 1))))))
+        B12 = [Sum(Product(Indexed(rns[i], (0, )),
+                           Sum(Product(Indexed(pts, (i, 0)),
+                                       Indexed(J, (0, 0))),
+                               Product(Indexed(pts, (i, 1)),
+                                       Indexed(J, (1, 0))))),
+                   Product(Indexed(rns[i], (1, )),
+                           Sum(Product(Indexed(pts, (i, 0)),
+                                       Indexed(J, (0, 1))),
+                               Product(Indexed(pts, (i, 1)),
+                                       Indexed(J, (1, 1))))))
                for i in range(3)]
 
         V = numpy.eye(6, dtype=object)
         for multiindex in numpy.ndindex(V.shape):
-            V[multiindex] = gem.Literal(V[multiindex])
+            V[multiindex] = Literal(V[multiindex])
 
         for i in range(3):
             V[i + 3, i + 3] = B11[i]
 
         for i, c in enumerate([(1, 2), (0, 2), (0, 1)]):
-            V[3+i, c[0]] = gem.Division(gem.Product(gem.Literal(-1), B12[i]), gem.Indexed(pel, (i, )))
-            V[3+i, c[1]] = gem.Division(B12[i], gem.Indexed(pel, (i, )))
+            V[3+i, c[0]] = Division(Product(Literal(-1), B12[i]), Indexed(pel, (i, )))
+            V[3+i, c[1]] = Division(B12[i], Indexed(pel, (i, )))
 
-        M = V.T
-
-        M = gem.ListTensor(M)
-
-        def matvec(table):
-            i = gem.Index()
-            j = gem.Index()
-            val = gem.ComponentTensor(
-                gem.IndexSum(gem.Product(gem.Indexed(M, (i, j)),
-                                         gem.Indexed(table, (j,))),
-                             (j,)),
-                (i,))
-            # Eliminate zeros
-            return gem.optimise.aggressive_unroll(val)
-
-        result = super(Morley, self).basis_evaluation(order, ps, entity=entity)
-        return {alpha: matvec(table)
-                for alpha, table in result.items()}
-
-    def point_evaluation(self, order, refcoords, entity=None):
-        raise NotImplementedError  # TODO: think about it later!
+        return ListTensor(V.T)

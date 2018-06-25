@@ -1,18 +1,17 @@
 import numpy
 
 import FIAT
-
-import gem
+from gem import Indexed, Literal, ListTensor
 
 from finat.fiat_elements import ScalarFiatElement
+from finat.physically_mapped import PhysicallyMappedElement
 
 
-class CubicHermite(ScalarFiatElement):
+class CubicHermite(PhysicallyMappedElement, ScalarFiatElement):
     def __init__(self, cell):
-        super(CubicHermite, self).__init__(FIAT.CubicHermite(cell))
+        super().__init__(FIAT.CubicHermite(cell))
 
-    def basis_evaluation(self, order, ps, entity=None, coordinate_mapping=None):
-        assert coordinate_mapping is not None
+    def basis_transformation(self, coordinate_mapping):
         Js = [coordinate_mapping.jacobian_at(vertex)
               for vertex in self.cell.get_vertices()]
 
@@ -22,13 +21,13 @@ class CubicHermite(ScalarFiatElement):
         def n(J):
             assert J.shape == (d, d)
             return numpy.array(
-                [[gem.Indexed(J, (i, j)) for j in range(d)]
+                [[Indexed(J, (i, j)) for j in range(d)]
                  for i in range(d)])
 
         M = numpy.eye(numbf, dtype=object)
 
         for multiindex in numpy.ndindex(M.shape):
-            M[multiindex] = gem.Literal(M[multiindex])
+            M[multiindex] = Literal(M[multiindex])
 
         cur = 0
         for i in range(d+1):
@@ -36,22 +35,4 @@ class CubicHermite(ScalarFiatElement):
             M[cur:cur+d, cur:cur+d] = n(Js[i])
             cur += d
 
-        M = gem.ListTensor(M)
-
-        def matvec(table):
-            i = gem.Index()
-            j = gem.Index()
-            val = gem.ComponentTensor(
-                gem.IndexSum(gem.Product(gem.Indexed(M, (i, j)),
-                                         gem.Indexed(table, (j,))),
-                             (j,)),
-                (i,))
-            # Eliminate zeros
-            return gem.optimise.aggressive_unroll(val)
-
-        result = super(CubicHermite, self).basis_evaluation(order, ps, entity=entity)
-        return {alpha: matvec(table)
-                for alpha, table in result.items()}
-
-    def point_evaluation(self, order, refcoords, entity=None):
-        raise NotImplementedError  # TODO: think about it later!
+        return ListTensor(M)
