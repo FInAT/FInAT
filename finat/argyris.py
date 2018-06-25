@@ -143,11 +143,13 @@ class Argyris(ScalarFiatElement):
         def matvec(table):
             i = gem.Index()
             j = gem.Index()
-            return gem.ComponentTensor(
+            val = gem.ComponentTensor(
                 gem.IndexSum(gem.Product(gem.Indexed(M, (i, j)),
                                          gem.Indexed(table, (j,))),
                              (j,)),
                 (i,))
+            # Eliminate zeros
+            return gem.optimise.aggressive_unroll(val)
 
         result = super(Argyris, self).basis_evaluation(order, ps, entity=entity)
         return {alpha: matvec(table)

@@ -114,21 +114,18 @@ class Bell(ScalarFiatElement):
         def matvec(table):
             i = gem.Index()
             j = gem.Index()
-            return gem.ComponentTensor(
+            val = gem.ComponentTensor(
                 gem.IndexSum(gem.Product(gem.Indexed(M, (i, j)),
                                          gem.Indexed(table, (j,))),
                              (j,)),
                 (i,))
+            # Eliminate zeros
+            return gem.optimise.aggressive_unroll(val)
 
         result = super(Bell, self).basis_evaluation(order, ps, entity=entity)
 
-        # print(result[(0,0)].shape)
-
-        results = {alpha: matvec(table)
-                   for alpha, table in iteritems(result)}
-
-        # print(results[(0,0)].shape)
-        return results
+        return {alpha: matvec(table)
+                for alpha, table in iteritems(result)}
 
     # This wipes out the edge dofs.  FIAT gives a 21 DOF element
     # because we need some extra functions to help with transforming
