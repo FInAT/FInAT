@@ -1,10 +1,34 @@
 import gem
 from abc import ABCMeta, abstractmethod
 
+try:
+    from firedrake_citations import Citations
+    Citations().add("Kirby2018zany", """
+@Article{Kirby2018zany,
+  author =       {Robert C. Kirby},
+  title =        {A general approach to transforming finite elements},
+  journal =      {SMAI Journal of Computational Mathematics},
+  year =         2018,
+  volume =       4,
+  pages =        {197-224},
+  doi =          {10.5802/smai-jcm.33},
+  archiveprefix ={arXiv},
+  eprint =       {1706.09017},
+  primaryclass = {math.NA}
+}
+""")
+except ImportError:
+    Citations = None
+
 
 class PhysicallyMappedElement(metaclass=ABCMeta):
     """A mixin that applies a "physical" transformation to tabulated
     basis functions."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if Citations is not None:
+            Citations().register("Kirby2018zany")
 
     @abstractmethod
     def basis_transformation(self, coordinate_mapping):
