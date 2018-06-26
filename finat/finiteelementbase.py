@@ -119,6 +119,9 @@ class FiniteElementBase(metaclass=ABCMeta):
         :param order: return derivatives up to this order.
         :param ps: the point set object.
         :param entity: the cell entity on which to tabulate.
+        :param coordinate_mapping: a
+        :class:`~.physically_mapped.PhysicalGeometry` object that
+           provides physical geometry callbacks (may be None).
         '''
 
     @abstractmethod

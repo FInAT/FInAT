@@ -65,7 +65,7 @@ class RuntimeTabulated(FiniteElementBase):
     def space_dimension(self):
         return self.degree + 1
 
-    def basis_evaluation(self, order, ps, entity=None):
+    def basis_evaluation(self, order, ps, entity=None, coordinate_mapping=None):
         """Return code for evaluating the element at known points on the
         reference element.
 

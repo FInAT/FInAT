@@ -45,8 +45,8 @@ class DiscontinuousElement(FiniteElementBase):
     def value_shape(self):
         return self.element.value_shape
 
-    def basis_evaluation(self, order, ps, entity=None):
-        return self.element.basis_evaluation(order, ps, entity)
+    def basis_evaluation(self, order, ps, entity=None, coordinate_mapping=None):
+        return self.element.basis_evaluation(order, ps, entity, coordinate_mapping=coordinate_mapping)
 
     def point_evaluation(self, order, refcoords, entity=None):
         return self.element.point_evaluation(order, refcoords, entity)

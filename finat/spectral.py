@@ -13,7 +13,7 @@ class GaussLobattoLegendre(ScalarFiatElement):
         fiat_element = FIAT.GaussLobattoLegendre(cell, degree)
         super(GaussLobattoLegendre, self).__init__(fiat_element)
 
-    def basis_evaluation(self, order, ps, entity=None):
+    def basis_evaluation(self, order, ps, entity=None, coordinate_mapping=None):
         '''Return code for evaluating the element at known points on the
         reference element.
 
@@ -21,6 +21,7 @@ class GaussLobattoLegendre(ScalarFiatElement):
         :param ps: the point set.
         :param entity: the cell entity on which to tabulate.
         '''
+        assert coordinate_mapping is None
         result = super(GaussLobattoLegendre, self).basis_evaluation(order, ps, entity)
         cell_dimension = self.cell.get_dimension()
         if entity is None or entity == (cell_dimension, 0):  # on cell interior
@@ -41,7 +42,7 @@ class GaussLegendre(ScalarFiatElement):
         fiat_element = FIAT.GaussLegendre(cell, degree)
         super(GaussLegendre, self).__init__(fiat_element)
 
-    def basis_evaluation(self, order, ps, entity=None):
+    def basis_evaluation(self, order, ps, entity=None, coordinate_mapping=None):
         '''Return code for evaluating the element at known points on the
         reference element.
 
@@ -49,6 +50,7 @@ class GaussLegendre(ScalarFiatElement):
         :param ps: the point set.
         :param entity: the cell entity on which to tabulate.
         '''
+        assert coordinate_mapping is None
         result = super(GaussLegendre, self).basis_evaluation(order, ps, entity)
         cell_dimension = self.cell.get_dimension()
         if entity is None or entity == (cell_dimension, 0):  # on cell interior
