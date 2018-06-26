@@ -5,13 +5,15 @@ import FIAT
 from gem import Division, Indexed, Literal, ListTensor, Product, Sum
 
 from finat.fiat_elements import ScalarFiatElement
-from finat.physically_mapped import PhysicallyMappedElement
+from finat.physically_mapped import PhysicallyMappedElement, Citations
 
 
 class Morley(PhysicallyMappedElement, ScalarFiatElement):
     def __init__(self, cell, degree):
         if degree != 2:
             raise ValueError("Degree must be 2 for Morley element")
+        if Citations is not None:
+            Citations().register("Morley1971")
         super().__init__(FIAT.Morley(cell))
 
     def basis_transformation(self, coordinate_mapping):
