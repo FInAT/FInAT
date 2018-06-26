@@ -5,13 +5,15 @@ import FIAT
 from gem import Division, Indexed, Literal, ListTensor, Power, Product, Sum
 
 from finat.fiat_elements import ScalarFiatElement
-from finat.physically_mapped import PhysicallyMappedElement
+from finat.physically_mapped import PhysicallyMappedElement, Citations
 
 
 class Argyris(PhysicallyMappedElement, ScalarFiatElement):
     def __init__(self, cell, degree):
         if degree != 5:
             raise ValueError("Degree must be 5 for Argyris element")
+        if Citations is not None:
+            Citations().register("Argyris1968")
         super().__init__(FIAT.QuinticArgyris(cell))
 
     def basis_transformation(self, coordinate_mapping):

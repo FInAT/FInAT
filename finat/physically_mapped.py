@@ -17,6 +17,58 @@ try:
   primaryclass = {math.NA}
 }
 """)
+    Citations().add("Argyris1968", """
+@Article{Argyris1968,
+  author =       {J. H. Argyris and I. Fried and D. W. Scharpf},
+  title =        {{The TUBA family of plate elements for the matrix
+                  displacement method}},
+  journal =      {The Aeronautical Journal},
+  year =         1968,
+  volume =       72,
+  pages =        {701-709},
+  doi =          {10.1017/S000192400008489X}
+}
+""")
+    Citations().add("Bell1969", """
+@Article{Bell1969,
+  author =       {Kolbein Bell},
+  title =        {A refined triangular plate bending finite element},
+  journal =      {International Journal for Numerical Methods in
+                  Engineering},
+  year =         1969,
+  volume =       1,
+  number =       1,
+  pages =        {101-122},
+  doi =          {10.1002/nme.1620010108}
+}
+""")
+    Citations().add("Ciarlet1972", """
+@Article{Ciarlet1972,
+  author =       {P. G. Ciarlet and P. A. Raviart},
+  title =        {{General Lagrange and Hermite interpolation in
+                  $\mathbb{R}^n$ with applications to finite element
+                  methods}},
+  journal =      {Archive for Rational Mechanics and Analysis},
+  year =         1972,
+  volume =       46,
+  number =       3,
+  pages =        {177-199},
+  doi =          {10.1007/BF0025245}
+}
+""")
+    Citations().add("Morley1971", """
+@Article{Morley1971,
+  author =       {L. S. D. Morley},
+  title =        {The constant-moment plate-bending element},
+  journal =      {The Journal of Strain Analysis for Engineering
+                  Design},
+  year =         1971,
+  volume =       6,
+  number =       1,
+  pages =        {20-24},
+  doi =          {10.1243/03093247V061020}
+}
+""")
 except ImportError:
     Citations = None
 
