@@ -119,14 +119,14 @@ class Argyris(PhysicallyMappedElement, ScalarFiatElement):
 
             Sum(
                 Product(
-                    Indexed(rns[e], (0,)),
+                    Indexed(rns, (e, 0)),
                     Sum(
                         Product(Indexed(J, (0, 0)),
                                 Indexed(pns, (e, 0))),
                         Product(Indexed(J, (1, 0)),
                                 Indexed(pns, (e, 1))))),
                 Product(
-                    Indexed(rns[e], (1,)),
+                    Indexed(rns, (e, 1)),
                     Sum(
                         Product(Indexed(J, (0, 1)),
                                 Indexed(pns, (e, 0))),
