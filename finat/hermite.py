@@ -7,8 +7,10 @@ from finat.fiat_elements import ScalarFiatElement
 from finat.physically_mapped import PhysicallyMappedElement
 
 
-class CubicHermite(PhysicallyMappedElement, ScalarFiatElement):
-    def __init__(self, cell):
+class Hermite(PhysicallyMappedElement, ScalarFiatElement):
+    def __init__(self, cell, degree):
+        if degree != 3:
+            raise ValueError("Degree must be 3 for Hermite element")
         super().__init__(FIAT.CubicHermite(cell))
 
     def basis_transformation(self, coordinate_mapping):

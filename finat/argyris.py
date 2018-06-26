@@ -9,14 +9,16 @@ from finat.physically_mapped import PhysicallyMappedElement
 
 
 class Argyris(PhysicallyMappedElement, ScalarFiatElement):
-    def __init__(self, cell):
+    def __init__(self, cell, degree):
+        if degree != 5:
+            raise ValueError("Degree must be 5 for Argyris element")
         super().__init__(FIAT.QuinticArgyris(cell))
 
     def basis_transformation(self, coordinate_mapping):
         # Jacobians at edge midpoints
         J = coordinate_mapping.jacobian_at([1/3, 1/3])
 
-        rns = [coordinate_mapping.reference_normal(i) for i in range(3)]
+        rns = coordinate_mapping.reference_normals()
         pns = coordinate_mapping.physical_normals()
 
         pts = coordinate_mapping.physical_tangents()
@@ -57,12 +59,12 @@ class Argyris(PhysicallyMappedElement, ScalarFiatElement):
             v0id, v1id = [i for i in range(3) if i != e]
 
             # nhat . J^{-T} . t
-            foo = Sum(Product(Indexed(rns[e], (0,)),
+            foo = Sum(Product(Indexed(rns, (e, 0)),
                               Sum(Product(Indexed(J, (0, 0)),
                                           Indexed(pts, (e, 0))),
                                   Product(Indexed(J, (1, 0)),
                                           Indexed(pts, (e, 1))))),
-                      Product(Indexed(rns[e], (1,)),
+                      Product(Indexed(rns, (e, 1)),
                               Sum(Product(Indexed(J, (0, 1)),
                                           Indexed(pts, (e, 0))),
                                   Product(Indexed(J, (1, 1)),
@@ -104,12 +106,12 @@ class Argyris(PhysicallyMappedElement, ScalarFiatElement):
                             Product(foo, tau[i])),
                     Literal(32))
 
-            V[18+e, 18+e] = Sum(Product(Indexed(rns[e], (0,)),
+            V[18+e, 18+e] = Sum(Product(Indexed(rns, (e, 0)),
                                         Sum(Product(Indexed(J, (0, 0)),
                                                     Indexed(pns, (e, 0))),
                                             Product(Indexed(J, (1, 0)),
                                                     Indexed(pns, (e, 1))))),
-                                Product(Indexed(rns[e], (1,)),
+                                Product(Indexed(rns, (e, 1)),
                                         Sum(Product(Indexed(J, (0, 1)),
                                                     Indexed(pns, (e, 0))),
                                             Product(Indexed(J, (1, 1)),

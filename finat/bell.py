@@ -9,14 +9,16 @@ from finat.physically_mapped import PhysicallyMappedElement
 
 
 class Bell(PhysicallyMappedElement, ScalarFiatElement):
-    def __init__(self, cell):
+    def __init__(self, cell, degree):
+        if degree != 5:
+            raise ValueError("Degree must be 3 for Bell element")
         super().__init__(FIAT.Bell(cell))
 
     def basis_transformation(self, coordinate_mapping):
         # Jacobians at edge midpoints
         J = coordinate_mapping.jacobian_at([1/3, 1/3])
 
-        rns = [coordinate_mapping.reference_normal(i) for i in range(3)]
+        rns = coordinate_mapping.reference_normals()
 
         pts = coordinate_mapping.physical_tangents()
 
@@ -56,12 +58,12 @@ class Bell(PhysicallyMappedElement, ScalarFiatElement):
             v0id, v1id = [i for i in range(3) if i != e]
 
             # nhat . J^{-T} . t
-            foo = Sum(Product(Indexed(rns[e], (0,)),
+            foo = Sum(Product(Indexed(rns, (e, 0)),
                               Sum(Product(Indexed(J, (0, 0)),
                                           Indexed(pts, (e, 0))),
                                   Product(Indexed(J, (1, 0)),
                                           Indexed(pts, (e, 1))))),
-                      Product(Indexed(rns[e], (1,)),
+                      Product(Indexed(rns, (e, 1)),
                               Sum(Product(Indexed(J, (0, 1)),
                                           Indexed(pts, (e, 0))),
                                   Product(Indexed(J, (1, 1)),
