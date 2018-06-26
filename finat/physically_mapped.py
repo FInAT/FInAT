@@ -60,3 +60,57 @@ class PhysicallyMappedElement(metaclass=ABCMeta):
 
     def point_evaluation(self, order, refcoords, entity=None):
         raise NotImplementedError("TODO: not yet thought about it")
+
+
+class PhysicalGeometry(metaclass=ABCMeta):
+
+    @abstractmethod
+    def jacobian_at(self, point):
+        """The jacobian of the physical coordinates at a point.
+
+        :arg point: The point in reference space to evaluate the Jacobian.
+        :returns: A GEM expression for the Jacobian, shape (gdim, tdim).
+        """
+        pass
+
+    @abstractmethod
+    def reference_normals(self):
+        """The (unit) reference cell normals for each facet.
+
+        :returns: A GEM expression for the normal to each
+           facet (numbered according to FIAT conventions), shape
+           (nfacet, tdim).
+        """
+        pass
+
+    @abstractmethod
+    def physical_normals(self):
+        """The (unit) physical cell normals for each facet.
+
+        :returns: A GEM expression for the normal to each
+           facet (numbered according to FIAT conventions).  These are
+           all computed by a clockwise rotation of the physical
+           tangents, shape (nfacet, gdim).
+        """
+        pass
+
+    @abstractmethod
+    def physical_tangents(self):
+        """The (unit) physical cell tangents on each facet.
+
+        :returns: A GEM expression for the tangent to each
+           facet (numbered according to FIAT conventions).  These
+           always point from low to high numbered local vertex, shape
+           (nfacet, gdim).
+        """
+        pass
+
+    @abstractmethod
+    def physical_edge_lengths(self):
+        """The length of each edge of the physical cell.
+
+        :returns: A GEM expression for the length of each
+           edge (numbered according to FIAT conventions), shape
+           (nfacet, ).
+        """
+        pass

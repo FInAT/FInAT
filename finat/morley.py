@@ -9,14 +9,16 @@ from finat.physically_mapped import PhysicallyMappedElement
 
 
 class Morley(PhysicallyMappedElement, ScalarFiatElement):
-    def __init__(self, cell):
+    def __init__(self, cell, degree):
+        if degree != 2:
+            raise ValueError("Degree must be 2 for Morley element")
         super().__init__(FIAT.Morley(cell))
 
     def basis_transformation(self, coordinate_mapping):
         # Jacobians at edge midpoints
         J = coordinate_mapping.jacobian_at([1/3, 1/3])
 
-        rns = [coordinate_mapping.reference_normal(i) for i in range(3)]
+        rns = coordinate_mapping.reference_normals()
         pns = coordinate_mapping.physical_normals()
 
         pts = coordinate_mapping.physical_tangents()
@@ -27,24 +29,24 @@ class Morley(PhysicallyMappedElement, ScalarFiatElement):
 
         # B12 = rns[i, 0]*(pns[i, 1]*J[0,0] + pts[i, 1]*J[1, 0]) + rts[i, 1]*(pns[i, 1]*J[0, 1] + pts[i, 1]*J[1,1])
 
-        B11 = [Sum(Product(Indexed(rns[i], (0, )),
+        B11 = [Sum(Product(Indexed(rns, (i, 0)),
                            Sum(Product(Indexed(pns, (i, 0)),
                                        Indexed(J, (0, 0))),
                                Product(Indexed(pns, (i, 1)),
                                        Indexed(J, (1, 0))))),
-                   Product(Indexed(rns[i], (1, )),
+                   Product(Indexed(rns, (i, 1)),
                            Sum(Product(Indexed(pns, (i, 0)),
                                        Indexed(J, (0, 1))),
                                Product(Indexed(pns, (i, 1)),
                                        Indexed(J, (1, 1))))))
                for i in range(3)]
 
-        B12 = [Sum(Product(Indexed(rns[i], (0, )),
+        B12 = [Sum(Product(Indexed(rns, (i, 0)),
                            Sum(Product(Indexed(pts, (i, 0)),
                                        Indexed(J, (0, 0))),
                                Product(Indexed(pts, (i, 1)),
                                        Indexed(J, (1, 0))))),
-                   Product(Indexed(rns[i], (1, )),
+                   Product(Indexed(rns, (i, 1)),
                            Sum(Product(Indexed(pts, (i, 0)),
                                        Indexed(J, (0, 1))),
                                Product(Indexed(pts, (i, 1)),
