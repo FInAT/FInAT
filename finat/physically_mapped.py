@@ -117,13 +117,19 @@ class PhysicallyMappedElement(metaclass=ABCMeta):
 class PhysicalGeometry(metaclass=ABCMeta):
 
     @abstractmethod
+    def cell_size(self):
+        """The cell size at each vertex.
+
+        :returns: A GEM expression for the cell size, shape (nvertex, ).
+        """
+
+    @abstractmethod
     def jacobian_at(self, point):
         """The jacobian of the physical coordinates at a point.
 
         :arg point: The point in reference space to evaluate the Jacobian.
         :returns: A GEM expression for the Jacobian, shape (gdim, tdim).
         """
-        pass
 
     @abstractmethod
     def reference_normals(self):
@@ -133,7 +139,6 @@ class PhysicalGeometry(metaclass=ABCMeta):
            facet (numbered according to FIAT conventions), shape
            (nfacet, tdim).
         """
-        pass
 
     @abstractmethod
     def physical_normals(self):
@@ -144,7 +149,6 @@ class PhysicalGeometry(metaclass=ABCMeta):
            all computed by a clockwise rotation of the physical
            tangents, shape (nfacet, gdim).
         """
-        pass
 
     @abstractmethod
     def physical_tangents(self):
@@ -155,7 +159,6 @@ class PhysicalGeometry(metaclass=ABCMeta):
            always point from low to high numbered local vertex, shape
            (nfacet, gdim).
         """
-        pass
 
     @abstractmethod
     def physical_edge_lengths(self):
@@ -165,4 +168,3 @@ class PhysicalGeometry(metaclass=ABCMeta):
            edge (numbered according to FIAT conventions), shape
            (nfacet, ).
         """
-        pass
