@@ -106,6 +106,19 @@ class Bell(PhysicallyMappedElement, ScalarFiatElement):
                             Product(foo, tau[i])),
                     Literal(252))
 
+        h = coordinate_mapping.cell_size()
+
+        for v in range(3):
+            for k in range(2):
+                for i in range(21):
+                    V[i, 6*v+1+k] = Division(V[i, 6*v+1+k],
+                                             Indexed(h, (v,)))
+            for k in range(3):
+                for i in range(21):
+                    V[i, 6*v+3+k] = Division(V[i, 6*v+3+k],
+                                             Power(Indexed(h, (v,)),
+                                                   Literal(2)))
+
         return ListTensor(V.T)
 
     # This wipes out the edge dofs.  FIAT gives a 21 DOF element

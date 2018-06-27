@@ -119,20 +119,26 @@ class Argyris(PhysicallyMappedElement, ScalarFiatElement):
                                             Product(Indexed(J, (1, 1)),
                                                     Indexed(pns, (e, 1))))))
 
-            Sum(
-                Product(
-                    Indexed(rns, (e, 0)),
-                    Sum(
-                        Product(Indexed(J, (0, 0)),
-                                Indexed(pns, (e, 0))),
-                        Product(Indexed(J, (1, 0)),
-                                Indexed(pns, (e, 1))))),
-                Product(
-                    Indexed(rns, (e, 1)),
-                    Sum(
-                        Product(Indexed(J, (0, 1)),
-                                Indexed(pns, (e, 0))),
-                        Product(Indexed(J, (1, 1)),
-                                Indexed(pns, (e, 1))))))
+        # Patch up conditioning
+        h = coordinate_mapping.cell_size()
+
+        for v in range(3):
+            for k in range(2):
+                for i in range(21):
+                    V[i, 6*v+1+k] = Division(V[i, 6*v+1+k],
+                                             Indexed(h, (v,)))
+            for k in range(3):
+                for i in range(21):
+                    V[i, 6*v+3+k] = Division(V[i, 6*v+3+k],
+                                             Power(Indexed(h, (v,)),
+                                                   Literal(2)))
+        for e in range(3):
+            v0id, v1id = [i for i in range(3) if i != e]
+            for i in range(21):
+                V[i, 18+e] = Division(V[i, 18+e],
+                                      Division(
+                                          Sum(Indexed(h, (v0id,)),
+                                              Indexed(h, (v1id,))),
+                                          Literal(2)))
 
         return ListTensor(V.T)

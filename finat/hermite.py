@@ -1,7 +1,7 @@
 import numpy
 
 import FIAT
-from gem import Indexed, Literal, ListTensor
+from gem import Indexed, Literal, ListTensor, Division
 
 from finat.fiat_elements import ScalarFiatElement
 from finat.physically_mapped import PhysicallyMappedElement, Citations
@@ -18,6 +18,8 @@ class Hermite(PhysicallyMappedElement, ScalarFiatElement):
     def basis_transformation(self, coordinate_mapping):
         Js = [coordinate_mapping.jacobian_at(vertex)
               for vertex in self.cell.get_vertices()]
+
+        h = coordinate_mapping.cell_size()
 
         d = self.cell.get_dimension()
         numbf = self.space_dimension()
@@ -36,7 +38,11 @@ class Hermite(PhysicallyMappedElement, ScalarFiatElement):
         cur = 0
         for i in range(d+1):
             cur += 1  # skip the vertex
-            M[cur:cur+d, cur:cur+d] = n(Js[i])
+            nJsi = n(Js[i])
+            for j in range(d):
+                for k in range(d):
+                    M[cur+j, cur+k] = Division(nJsi[j, k],
+                                               Indexed(h, (i,)))
             cur += d
 
         return ListTensor(M)

@@ -27,10 +27,6 @@ class Morley(PhysicallyMappedElement, ScalarFiatElement):
 
         pel = coordinate_mapping.physical_edge_lengths()
 
-        # B11 = rns[i, 0]*(pns[i, 0]*J[0,0] + pts[i, 0]*J[1, 0]) + rts[i, 0]*(pns[i, 0]*J[0, 1] + pts[i, 0]*J[1,1])
-
-        # B12 = rns[i, 0]*(pns[i, 1]*J[0,0] + pts[i, 1]*J[1, 0]) + rts[i, 1]*(pns[i, 1]*J[0, 1] + pts[i, 1]*J[1,1])
-
         B11 = [Sum(Product(Indexed(rns, (i, 0)),
                            Sum(Product(Indexed(pns, (i, 0)),
                                        Indexed(J, (0, 0))),
@@ -65,5 +61,12 @@ class Morley(PhysicallyMappedElement, ScalarFiatElement):
         for i, c in enumerate([(1, 2), (0, 2), (0, 1)]):
             V[3+i, c[0]] = Division(Product(Literal(-1), B12[i]), Indexed(pel, (i, )))
             V[3+i, c[1]] = Division(B12[i], Indexed(pel, (i, )))
+
+        # diagonal post-scaling to patch up conditioning
+        h = coordinate_mapping.cell_size()
+
+        for j in range(3):
+            for i in range(6):
+                V[i, 3+j] = Division(V[i, 3+j], Indexed(h, (j,)))
 
         return ListTensor(V.T)
