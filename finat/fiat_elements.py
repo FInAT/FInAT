@@ -60,6 +60,14 @@ class FiatElement(FiniteElementBase):
         value_size = np.prod(self._element.value_shape(), dtype=int)
         fiat_result = self._element.tabulate(order, ps.points, entity)
         result = {}
+        # In almost all cases, we have
+        # self.space_dimension() == self._element.space_dimension()
+        # But for Bell, FIAT reports 21 basis functions,
+        # but FInAT only 18 (because there are actually 18
+        # basis functions, and the additional 3 are for
+        # dealing with transformations between physical
+        # and reference space).
+        index_shape = (self._element.space_dimension(),)
         for alpha, fiat_table in fiat_result.items():
             if isinstance(fiat_table, Exception):
                 result[alpha] = gem.Failure(self.index_shape + self.value_shape, fiat_table)
@@ -76,9 +84,8 @@ class FiatElement(FiniteElementBase):
                     point_indices = ps.indices
                     point_shape = tuple(index.extent for index in point_indices)
 
-                    indshp = (self._element.space_dimension(),)
                     exprs.append(gem.partial_indexed(
-                        gem.Literal(table.reshape(point_shape + indshp)),
+                        gem.Literal(table.reshape(point_shape + index_shape)),
                         point_indices
                     ))
                 elif derivative == self.degree:
