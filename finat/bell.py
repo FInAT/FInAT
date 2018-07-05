@@ -2,7 +2,7 @@ import numpy
 
 import FIAT
 
-from gem import Division, Indexed, Literal, ListTensor, Power, Product, Sum
+from gem import Literal, ListTensor
 
 from finat.fiat_elements import ScalarFiatElement
 from finat.physically_mapped import PhysicallyMappedElement, Citations
@@ -36,88 +36,51 @@ class Bell(PhysicallyMappedElement, ScalarFiatElement):
             V[s, s] = Literal(1)
             for i in range(2):
                 for j in range(2):
-                    V[s+1+i, s+1+j] = Indexed(J, (j, i))
-            V[s+3, s+3] = Power(Indexed(J, (0, 0)), Literal(2))
-            V[s+3, s+4] = Product(Literal(2),
-                                  Product(Indexed(J, (0, 0)),
-                                          Indexed(J, (1, 0))))
-            V[s+3, s+5] = Power(Indexed(J, (1, 0)), Literal(2))
-            V[s+4, s+3] = Product(Indexed(J, (0, 0)),
-                                  Indexed(J, (0, 1)))
-            V[s+4, s+4] = Sum(Product(Indexed(J, (0, 0)),
-                                      Indexed(J, (1, 1))),
-                              Product(Indexed(J, (1, 0)),
-                                      Indexed(J, (0, 1))))
-            V[s+4, s+5] = Product(Indexed(J, (1, 0)),
-                                  Indexed(J, (1, 1)))
-            V[s+5, s+3] = Power(Indexed(J, (0, 1)), Literal(2))
-            V[s+5, s+4] = Product(Literal(2),
-                                  Product(Indexed(J, (0, 1)),
-                                          Indexed(J, (1, 1))))
-            V[s+5, s+5] = Power(Indexed(J, (1, 1)), Literal(2))
+                    V[s+1+i, s+1+j] = J[j, i]
+            V[s+3, s+3] = J[0, 0]*J[0, 0]
+            V[s+3, s+4] = 2*J[0, 0]*J[1, 0]
+            V[s+3, s+5] = J[1, 0]*J[1, 0]
+            V[s+4, s+3] = J[0, 0]*J[0, 1]
+            V[s+4, s+4] = J[0, 0]*J[1, 1] + J[1, 0]*J[0, 1]
+            V[s+4, s+5] = J[1, 0]*J[1, 1]
+            V[s+5, s+3] = J[0, 1]*J[0, 1]
+            V[s+5, s+4] = 2*J[0, 1]*J[1, 1]
+            V[s+5, s+5] = J[1, 1]*J[1, 1]
 
         for e in range(3):
             v0id, v1id = [i for i in range(3) if i != e]
 
             # nhat . J^{-T} . t
-            foo = Sum(Product(Indexed(rns, (e, 0)),
-                              Sum(Product(Indexed(J, (0, 0)),
-                                          Indexed(pts, (e, 0))),
-                                  Product(Indexed(J, (1, 0)),
-                                          Indexed(pts, (e, 1))))),
-                      Product(Indexed(rns, (e, 1)),
-                              Sum(Product(Indexed(J, (0, 1)),
-                                          Indexed(pts, (e, 0))),
-                                  Product(Indexed(J, (1, 1)),
-                                          Indexed(pts, (e, 1))))))
+            foo = (rns[e, 0]*(J[0, 0]*pts[e, 0] + J[1, 0]*pts[e, 1]) +
+                   rns[e, 1]*(J[0, 1]*pts[e, 0] + J[1, 1]*pts[e, 1]))
 
             # vertex points
-            V[18+e, 6*v0id] = Division(
-                Product(Literal(-1), foo),
-                Product(Literal(21), Indexed(pel, (e,))))
-            V[18+e, 6*v1id] = Division(
-                foo,
-                Product(Literal(21), Indexed(pel, (e,))))
+            V[18+e, 6*v0id] = -1/21 * (foo / pel[e])
+            V[18+e, 6*v1id] = 1/21 * (foo / pel[e])
 
             # vertex derivatives
             for i in (0, 1):
-                V[18+e, 6*v0id+1+i] = Division(
-                    Product(Literal(-1),
-                            Product(foo,
-                                    Indexed(pts, (e, i)))),
-                    Literal(42))
+                V[18+e, 6*v0id+1+i] = -1/42*foo*pts[e, i]
                 V[18+e, 6*v1id+1+i] = V[18+e, 6*v0id+1+i]
 
             # second derivatives
-            tau = [Power(Indexed(pts, (e, 0)), Literal(2)),
-                   Product(Literal(2),
-                           Product(Indexed(pts, (e, 0)),
-                                   Indexed(pts, (e, 1)))),
-                   Power(Indexed(pts, (e, 1)), Literal(2))]
+            tau = [pts[e, 0]*pts[e, 0],
+                   2*pts[e, 0]*pts[e, 1],
+                   pts[e, 1]*pts[e, 1]]
 
             for i in (0, 1, 2):
-                V[18+e, 6*v0id+3+i] = Division(
-                    Product(Literal(-1),
-                            Product(Indexed(pel, (e,)),
-                                    Product(foo, tau[i]))),
-                    Literal(252))
-                V[18+e, 6*v1id+3+i] = Division(
-                    Product(Indexed(pel, (e,)),
-                            Product(foo, tau[i])),
-                    Literal(252))
+                V[18+e, 6*v0id+3+i] = -1/252 * (pel[e]*foo*tau[i])
+                V[18+e, 6*v1id+3+i] = 1/252 * (pel[e]*foo*tau[i])
 
         h = coordinate_mapping.cell_size()
 
         for v in range(3):
             for k in range(2):
                 for i in range(21):
-                    V[i, 6*v+1+k] = Division(V[i, 6*v+1+k],
-                                             Indexed(h, (v,)))
+                    V[i, 6*v+1+k] = V[i, 6*v+1+k] / h[v]
             for k in range(3):
                 for i in range(21):
-                    V[i, 6*v+3+k] = Division(V[i, 6*v+3+k],
-                                             Power(Indexed(h, (v,)),
-                                                   Literal(2)))
+                    V[i, 6*v+3+k] = V[i, 6*v+3+k] / (h[v]*h[v])
 
         return ListTensor(V.T)
 

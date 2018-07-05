@@ -95,13 +95,8 @@ class PhysicallyMappedElement(metaclass=ABCMeta):
         M = self.basis_transformation(coordinate_mapping)
 
         def matvec(table):
-            i = gem.Index()
-            j = gem.Index()
-            val = gem.ComponentTensor(
-                gem.IndexSum(gem.Product(gem.Indexed(M, (i, j)),
-                                         gem.Indexed(table, (j,))),
-                             (j,)),
-                (i,))
+            i, j = gem.indices(2)
+            val = gem.ComponentTensor(gem.IndexSum(M[i, j]*table[j], (j,)), (i,))
             # Eliminate zeros
             return gem.optimise.aggressive_unroll(val)
 
