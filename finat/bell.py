@@ -126,9 +126,9 @@ class Bell(PhysicallyMappedElement, ScalarFiatElement):
     # under the edge constraint.  However, we only have an 18 DOF
     # element.
     def entity_dofs(self):
-        return {0: {0: range(6),
-                    1: range(6, 12),
-                    2: range(12, 18)},
+        return {0: {0: list(range(6)),
+                    1: list(range(6, 12)),
+                    2: list(range(12, 18))},
                 1: {0: [], 1: [], 2: []},
                 2: {0: []}}
 
