@@ -80,7 +80,7 @@ class EnrichedElement(FiniteElementBase):
         return {key: merge(result[key] for result in results)
                 for key in keys}
 
-    def basis_evaluation(self, order, ps, entity=None):
+    def basis_evaluation(self, order, ps, entity=None, coordinate_mapping=None):
         '''Return code for evaluating the element at known points on the
         reference element.
 
@@ -88,7 +88,7 @@ class EnrichedElement(FiniteElementBase):
         :param ps: the point set object.
         :param entity: the cell entity on which to tabulate.
         '''
-        results = [element.basis_evaluation(order, ps, entity)
+        results = [element.basis_evaluation(order, ps, entity, coordinate_mapping=coordinate_mapping)
                    for element in self.elements]
         return self._compose_evaluations(results)
 

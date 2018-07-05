@@ -121,7 +121,7 @@ class TensorProductElement(FiniteElementBase):
                 )
         return result
 
-    def basis_evaluation(self, order, ps, entity=None):
+    def basis_evaluation(self, order, ps, entity=None, coordinate_mapping=None):
         entities = self._factor_entity(entity)
         entity_dim, _ = zip(*entities)
 

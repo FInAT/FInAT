@@ -60,7 +60,7 @@ class WrapperElementBase(FiniteElementBase):
         return {alpha: promote(table)
                 for alpha, table in core_eval.items()}
 
-    def basis_evaluation(self, order, ps, entity=None):
+    def basis_evaluation(self, order, ps, entity=None, coordinate_mapping=None):
         core_eval = self.wrappee.basis_evaluation(order, ps, entity)
         return self._transform_evaluation(core_eval)
 

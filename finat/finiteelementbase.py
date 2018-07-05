@@ -112,13 +112,16 @@ class FiniteElementBase(metaclass=ABCMeta):
         return tuple(gem.Index(extent=d) for d in self.value_shape)
 
     @abstractmethod
-    def basis_evaluation(self, order, ps, entity=None):
+    def basis_evaluation(self, order, ps, entity=None, coordinate_mapping=None):
         '''Return code for evaluating the element at known points on the
         reference element.
 
         :param order: return derivatives up to this order.
         :param ps: the point set object.
         :param entity: the cell entity on which to tabulate.
+        :param coordinate_mapping: a
+        :class:`~.physically_mapped.PhysicalGeometry` object that
+           provides physical geometry callbacks (may be None).
         '''
 
     @abstractmethod
