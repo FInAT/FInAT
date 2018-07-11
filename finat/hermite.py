@@ -1,7 +1,7 @@
 import numpy
 
 import FIAT
-from gem import Indexed, Literal, ListTensor, Division
+from gem import Literal, ListTensor
 
 from finat.fiat_elements import ScalarFiatElement
 from finat.physically_mapped import PhysicallyMappedElement, Citations
@@ -24,12 +24,6 @@ class Hermite(PhysicallyMappedElement, ScalarFiatElement):
         d = self.cell.get_dimension()
         numbf = self.space_dimension()
 
-        def n(J):
-            assert J.shape == (d, d)
-            return numpy.array(
-                [[Indexed(J, (i, j)) for j in range(d)]
-                 for i in range(d)])
-
         M = numpy.eye(numbf, dtype=object)
 
         for multiindex in numpy.ndindex(M.shape):
@@ -38,11 +32,10 @@ class Hermite(PhysicallyMappedElement, ScalarFiatElement):
         cur = 0
         for i in range(d+1):
             cur += 1  # skip the vertex
-            nJsi = n(Js[i])
+            J = Js[i]
             for j in range(d):
                 for k in range(d):
-                    M[cur+j, cur+k] = Division(nJsi[j, k],
-                                               Indexed(h, (i,)))
+                    M[cur+j, cur+k] = J[j, k] / h[i]
             cur += d
 
         return ListTensor(M)

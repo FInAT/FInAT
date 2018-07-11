@@ -2,7 +2,7 @@ import numpy
 
 import FIAT
 
-from gem import Division, Indexed, Literal, ListTensor, Product, Sum
+from gem import Literal, ListTensor
 
 from finat.fiat_elements import ScalarFiatElement
 from finat.physically_mapped import PhysicallyMappedElement, Citations
@@ -27,46 +27,25 @@ class Morley(PhysicallyMappedElement, ScalarFiatElement):
 
         pel = coordinate_mapping.physical_edge_lengths()
 
-        B11 = [Sum(Product(Indexed(rns, (i, 0)),
-                           Sum(Product(Indexed(pns, (i, 0)),
-                                       Indexed(J, (0, 0))),
-                               Product(Indexed(pns, (i, 1)),
-                                       Indexed(J, (1, 0))))),
-                   Product(Indexed(rns, (i, 1)),
-                           Sum(Product(Indexed(pns, (i, 0)),
-                                       Indexed(J, (0, 1))),
-                               Product(Indexed(pns, (i, 1)),
-                                       Indexed(J, (1, 1))))))
-               for i in range(3)]
-
-        B12 = [Sum(Product(Indexed(rns, (i, 0)),
-                           Sum(Product(Indexed(pts, (i, 0)),
-                                       Indexed(J, (0, 0))),
-                               Product(Indexed(pts, (i, 1)),
-                                       Indexed(J, (1, 0))))),
-                   Product(Indexed(rns, (i, 1)),
-                           Sum(Product(Indexed(pts, (i, 0)),
-                                       Indexed(J, (0, 1))),
-                               Product(Indexed(pts, (i, 1)),
-                                       Indexed(J, (1, 1))))))
-               for i in range(3)]
-
         V = numpy.eye(6, dtype=object)
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
 
         for i in range(3):
-            V[i + 3, i + 3] = B11[i]
+            V[i+3, i+3] = (rns[i, 0]*(pns[i, 0]*J[0, 0] + pns[i, 1]*J[1, 0]) +
+                           rns[i, 1]*(pns[i, 0]*J[0, 1] + pns[i, 1]*J[1, 1]))
 
         for i, c in enumerate([(1, 2), (0, 2), (0, 1)]):
-            V[3+i, c[0]] = Division(Product(Literal(-1), B12[i]), Indexed(pel, (i, )))
-            V[3+i, c[1]] = Division(B12[i], Indexed(pel, (i, )))
+            B12 = (rns[i, 0]*(pts[i, 0]*J[0, 0] + pts[i, 1]*J[1, 0]) +
+                   rns[i, 1]*(pts[i, 0]*J[0, 1] + pts[i, 1]*J[1, 1]))
+            V[3+i, c[0]] = -1*B12 / pel[i]
+            V[3+i, c[1]] = B12 / pel[i]
 
         # diagonal post-scaling to patch up conditioning
         h = coordinate_mapping.cell_size()
 
         for j in range(3):
             for i in range(6):
-                V[i, 3+j] = Division(V[i, 3+j], Indexed(h, (j,)))
+                V[i, 3+j] = V[i, 3+j] / h[j]
 
         return ListTensor(V.T)
