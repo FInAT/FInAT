@@ -127,7 +127,8 @@ class TensorProductElement(FiniteElementBase):
 
         ps_factors = factor_point_set(self.cell, entity_dim, ps)
 
-        factor_results = [fe.basis_evaluation(order, ps_, e)
+        # XXX: presumably the coordinate_mapping should be decomposed into submaps?
+        factor_results = [fe.basis_evaluation(order, ps_, e, coordinate_mapping=coordinate_mapping)
                           for fe, ps_, e in zip(self.factors, ps_factors, entities)]
 
         return self._merge_evaluations(factor_results)
