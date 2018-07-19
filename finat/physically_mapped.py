@@ -108,6 +108,9 @@ class PhysicallyMappedElement(metaclass=ABCMeta):
     def point_evaluation(self, order, refcoords, entity=None):
         raise NotImplementedError("TODO: not yet thought about it")
 
+    def entity_support_dofs(self):
+        raise NotImplementedError("TODO: not yet thought about it")
+
 
 class PhysicalGeometry(metaclass=ABCMeta):
 
