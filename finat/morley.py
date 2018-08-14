@@ -44,8 +44,9 @@ class Morley(PhysicallyMappedElement, ScalarFiatElement):
         # diagonal post-scaling to patch up conditioning
         h = coordinate_mapping.cell_size()
 
-        for j in range(3):
+        for e in range(3):
+            v0id, v1id = [i for i in range(3) if i != e]
             for i in range(6):
-                V[i, 3+j] = V[i, 3+j] / h[j]
+                V[i, 3+e] = 2*V[i, 3+e] / (h[v0id] + h[v1id])
 
         return ListTensor(V.T)
