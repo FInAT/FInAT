@@ -52,8 +52,8 @@ class Argyris(PhysicallyMappedElement, ScalarFiatElement):
             v0id, v1id = [i for i in range(3) if i != e]
 
             # nhat . J^{-T} . t
-            foo = (rns[e, 0]*(J[0, 0]*pts[e, 0] + J[1, 0]*pts[e, 1]) +
-                   rns[e, 1]*(J[0, 1]*pts[e, 0] + J[1, 1]*pts[e, 1]))
+            foo = (rns[e, 0]*(J[0, 0]*pts[e, 0] + J[1, 0]*pts[e, 1])
+                   + rns[e, 1]*(J[0, 1]*pts[e, 0] + J[1, 1]*pts[e, 1]))
 
             # vertex points
             V[18+e, 6*v0id] = -15/8 * (foo / pel[e])
@@ -73,8 +73,8 @@ class Argyris(PhysicallyMappedElement, ScalarFiatElement):
                 V[18+e, 6*v0id+3+i] = -1/32 * (pel[e]*foo*tau[i])
                 V[18+e, 6*v1id+3+i] = 1/32 * (pel[e]*foo*tau[i])
 
-            V[18+e, 18+e] = (rns[e, 0]*(J[0, 0]*pns[e, 0] + J[1, 0]*pns[e, 1]) +
-                             rns[e, 1]*(J[0, 1]*pns[e, 0] + J[1, 1]*pns[e, 1]))
+            V[18+e, 18+e] = (rns[e, 0]*(J[0, 0]*pns[e, 0] + J[1, 0]*pns[e, 1])
+                             + rns[e, 1]*(J[0, 1]*pns[e, 0] + J[1, 1]*pns[e, 1]))
 
         # Patch up conditioning
         h = coordinate_mapping.cell_size()

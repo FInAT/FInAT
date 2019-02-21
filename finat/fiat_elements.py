@@ -293,6 +293,11 @@ class DiscontinuousLagrange(ScalarFiatElement):
         super(DiscontinuousLagrange, self).__init__(FIAT.DiscontinuousLagrange(cell, degree))
 
 
+class DPC(ScalarFiatElement):
+    def __init__(self, cell, degree):
+        super(DPC, self).__init__(FIAT.DPC(cell, degree))
+
+
 class DiscontinuousTaylor(ScalarFiatElement):
     def __init__(self, cell, degree):
         super(DiscontinuousTaylor, self).__init__(FIAT.DiscontinuousTaylor(cell, degree))

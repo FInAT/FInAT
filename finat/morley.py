@@ -32,12 +32,12 @@ class Morley(PhysicallyMappedElement, ScalarFiatElement):
             V[multiindex] = Literal(V[multiindex])
 
         for i in range(3):
-            V[i+3, i+3] = (rns[i, 0]*(pns[i, 0]*J[0, 0] + pns[i, 1]*J[1, 0]) +
-                           rns[i, 1]*(pns[i, 0]*J[0, 1] + pns[i, 1]*J[1, 1]))
+            V[i+3, i+3] = (rns[i, 0]*(pns[i, 0]*J[0, 0] + pns[i, 1]*J[1, 0])
+                           + rns[i, 1]*(pns[i, 0]*J[0, 1] + pns[i, 1]*J[1, 1]))
 
         for i, c in enumerate([(1, 2), (0, 2), (0, 1)]):
-            B12 = (rns[i, 0]*(pts[i, 0]*J[0, 0] + pts[i, 1]*J[1, 0]) +
-                   rns[i, 1]*(pts[i, 0]*J[0, 1] + pts[i, 1]*J[1, 1]))
+            B12 = (rns[i, 0]*(pts[i, 0]*J[0, 0] + pts[i, 1]*J[1, 0])
+                   + rns[i, 1]*(pts[i, 0]*J[0, 1] + pts[i, 1]*J[1, 1]))
             V[3+i, c[0]] = -1*B12 / pel[i]
             V[3+i, c[1]] = B12 / pel[i]
 

@@ -42,7 +42,7 @@ try:
   doi =          {10.1002/nme.1620010108}
 }
 """)
-    Citations().add("Ciarlet1972", """
+    Citations().add("Ciarlet1972", r"""
 @Article{Ciarlet1972,
   author =       {P. G. Ciarlet and P. A. Raviart},
   title =        {{General Lagrange and Hermite interpolation in
