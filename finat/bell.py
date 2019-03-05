@@ -51,8 +51,8 @@ class Bell(PhysicallyMappedElement, ScalarFiatElement):
             v0id, v1id = [i for i in range(3) if i != e]
 
             # nhat . J^{-T} . t
-            foo = (rns[e, 0]*(J[0, 0]*pts[e, 0] + J[1, 0]*pts[e, 1]) +
-                   rns[e, 1]*(J[0, 1]*pts[e, 0] + J[1, 1]*pts[e, 1]))
+            foo = (rns[e, 0]*(J[0, 0]*pts[e, 0] + J[1, 0]*pts[e, 1])
+                   + rns[e, 1]*(J[0, 1]*pts[e, 0] + J[1, 1]*pts[e, 1]))
 
             # vertex points
             V[18+e, 6*v0id] = -1/21 * (foo / pel[e])
