@@ -9,8 +9,10 @@ from finat.physically_mapped import PhysicallyMappedElement, Citations
 from .wu_xu_fiat import WuXuH3
 
 class WuXu(PhysicallyMappedElement, ScalarFiatElement):
-    def __init__(self, cell, degree):
-        if degree != 3:
+    def __init__(self, cell, degree=None):
+        if degree is None:
+            degree = 7
+        if degree != 7:
             raise ValueError("Degree must be 3 for Wu-Xu element")
         if Citations is not None:
             Citations().register("WuXu2019")

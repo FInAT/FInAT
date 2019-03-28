@@ -9,7 +9,9 @@ from finat.physically_mapped import PhysicallyMappedElement, Citations
 
 
 class Morley(PhysicallyMappedElement, ScalarFiatElement):
-    def __init__(self, cell, degree):
+    def __init__(self, cell, degree=None):
+        if degree is None:
+            degree = 2
         if degree != 2:
             raise ValueError("Degree must be 2 for Morley element")
         if Citations is not None:

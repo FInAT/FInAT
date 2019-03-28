@@ -443,7 +443,7 @@ class WuXuH3(finite_element.CiarletElement):
     def __init__(self, ref_el, avg=True):
         poly_set = WuXuH3Space(ref_el)
         dual = WuXuH3DualSet(ref_el, avg)
-        super(WuXuH3, self).__init__(poly_set, dual, 3)
+        super(WuXuH3, self).__init__(poly_set, dual, 7)
 
 
 def getD(phys_el):

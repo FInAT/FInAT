@@ -9,7 +9,9 @@ from finat.physically_mapped import PhysicallyMappedElement, Citations
 
 
 class Argyris(PhysicallyMappedElement, ScalarFiatElement):
-    def __init__(self, cell, degree):
+    def __init__(self, cell, degree=None):
+        if degree is None:
+            degree = 5
         if degree != 5:
             raise ValueError("Degree must be 5 for Argyris element")
         if Citations is not None:
