@@ -1,5 +1,5 @@
 from .fiat_elements import Bubble, CrouzeixRaviart, DiscontinuousTaylor  # noqa: F401
-from .fiat_elements import Lagrange, DiscontinuousLagrange  # noqa: F401
+from .fiat_elements import Lagrange, DiscontinuousLagrange, S2  # noqa: F401
 from .fiat_elements import DPC, Serendipity  # noqa: F401
 from .fiat_elements import BrezziDouglasMarini, BrezziDouglasFortinMarini  # noqa: F401
 from .fiat_elements import Nedelec, NedelecSecondKind, RaviartThomas  # noqa: F401
@@ -9,7 +9,6 @@ from .argyris import Argyris            # noqa: F401
 from .bell import Bell                  # noqa: F401
 from .hermite import Hermite            # noqa: F401
 from .morley import Morley              # noqa: F401
-#from .serendipity import Serendipity  # noqa: F401
 from .trace import HDivTrace  # noqa: F401
 from .spectral import GaussLobattoLegendre, GaussLegendre  # noqa: F401
 from .tensorfiniteelement import TensorFiniteElement  # noqa: F401

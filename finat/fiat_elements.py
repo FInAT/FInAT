@@ -312,7 +312,7 @@ class S2(ScalarFiatElement):
     def __init__(self, cell, degree):
         super(S2, self).__init__(FIAT.S2(cell, degree))
 
-        
+
 class VectorFiatElement(FiatElement):
     @property
     def value_shape(self):
