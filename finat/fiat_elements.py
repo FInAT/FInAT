@@ -308,9 +308,9 @@ class DiscontinuousTaylor(ScalarFiatElement):
         super(DiscontinuousTaylor, self).__init__(FIAT.DiscontinuousTaylor(cell, degree))
 
 
-class S2(ScalarFiatElement):
+class S(ScalarFiatElement):
     def __init__(self, cell, degree):
-        super(S2, self).__init__(FIAT.S2(cell, degree))
+        super(S, self).__init__(FIAT.S(cell, degree))
 
 
 class VectorFiatElement(FiatElement):
