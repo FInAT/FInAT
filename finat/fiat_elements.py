@@ -90,7 +90,6 @@ class FiatElement(FiniteElementBase):
                     ))
                 elif derivative == self.degree:
                     # Make sure numerics satisfies theory
-                    # assert np.allclose(table, table.mean(axis=0, keepdims=True))
                     exprs.append(gem.Literal(table[0]))
                 else:
                     # Make sure numerics satisfies theory
