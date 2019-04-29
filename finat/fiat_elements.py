@@ -90,7 +90,6 @@ class FiatElement(FiniteElementBase):
                     ))
                 elif derivative == self.degree:
                     # Make sure numerics satisfies theory
-                    assert np.allclose(table, table.mean(axis=0, keepdims=True))
                     exprs.append(gem.Literal(table[0]))
                 else:
                     # Make sure numerics satisfies theory
@@ -291,6 +290,11 @@ class Lagrange(ScalarFiatElement):
 class DiscontinuousLagrange(ScalarFiatElement):
     def __init__(self, cell, degree):
         super(DiscontinuousLagrange, self).__init__(FIAT.DiscontinuousLagrange(cell, degree))
+
+
+class Serendipity(ScalarFiatElement):
+    def __init__(self, cell, degree):
+        super(Serendipity, self).__init__(FIAT.Serendipity(cell, degree))
 
 
 class DPC(ScalarFiatElement):
