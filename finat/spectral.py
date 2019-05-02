@@ -51,7 +51,6 @@ class GaussLegendre(ScalarFiatElement):
         :param entity: the cell entity on which to tabulate.
         '''
 
-        assert coordinate_mapping is None
         result = super(GaussLegendre, self).basis_evaluation(order, ps, entity)
         cell_dimension = self.cell.get_dimension()
         if entity is None or entity == (cell_dimension, 0):  # on cell interior
