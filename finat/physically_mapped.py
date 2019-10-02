@@ -129,6 +129,14 @@ class PhysicalGeometry(metaclass=ABCMeta):
         """
 
     @abstractmethod
+    def detJ_at(self, point):
+        """The determinant of the jacobian of the physical coordinates at a point.
+
+        :arg point: The point in reference space to evaluate the Jacobian determinant.
+        :returns: A GEM expression for the Jacobian determinant.
+        """
+
+    @abstractmethod
     def reference_normals(self):
         """The (unit) reference cell normals for each facet.
 
