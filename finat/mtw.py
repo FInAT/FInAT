@@ -8,19 +8,20 @@ from finat.fiat_elements import FiatElement
 from finat.physically_mapped import PhysicallyMappedElement, Citations
 
 
-class ArnoldAwanouWinther(PhysicallyMappedElement, FiatElement):
+class MardalTaiWinther(PhysicallyMappedElement, FiatElement):
     def __init__(self, cell, degree):
-        super(ArnoldAwanouWinther, self).__init__(FIAT.ArnoldAwanouWinther(cell, degree))
+        super(MardalTaiWinther, self).__init__(FIAT.MardalTaiWinther(cell, degree))
 
 
     def basis_transformation(self, coordinate_mapping):
-        V = numpy.zeros((18, 15), dtype=object)
+        V = numpy.zeros((20, 9), dtype=object)
 
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
 
-        for i in range(0, 12, 2):
+        for i in range(0, 9, 3):
             V[i, i] = Literal(1)
+            V[i+2, i+2] = Literal(1)
 
         T = self.cell
 
@@ -42,15 +43,9 @@ class ArnoldAwanouWinther(PhysicallyMappedElement, FiatElement):
             (alpha, beta) = Ghat_T @ JTJ @ that[e,:] / detJ
 
             # Stuff into the right rows and columns.
-            (idx1, idx2) = (4*e + 1, 4*e + 3)
-            V[idx1, idx1-1] = Literal(-1) * alpha / beta
-            V[idx1, idx1] = Literal(1) / beta
-            V[idx2, idx2-1] = Literal(-1) * alpha / beta
-            V[idx2, idx2] = Literal(1) / beta
-
-        # internal dofs
-        for i in range(12, 15):
-            V[i, i] = Literal(1)
+            idx = 3*e + 1
+            V[idx, idx-1] = Literal(-1) * alpha / beta
+            V[idx, idx] = Literal(1) / beta
 
         return ListTensor(V.T)
 
@@ -59,14 +54,14 @@ class ArnoldAwanouWinther(PhysicallyMappedElement, FiatElement):
         return {0: {0: [],
                     1: [],
                     2: []},
-                1: {0: [0, 1, 2, 3], 1: [4, 5, 6, 7], 2: [8, 9, 10, 11]},
-                2: {0: [12, 13, 14]}}
+                1: {0: [0, 1, 2], 1: [3, 4, 5], 2: [6, 7, 8]},
+                2: {0: []}}
 
 
     @property
     def index_shape(self):
-        return (15,)
+        return (9,)
 
 
     def space_dimension(self):
-        return 15
+        return 9

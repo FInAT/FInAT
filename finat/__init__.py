@@ -8,6 +8,7 @@ from .fiat_elements import FacetBubble  # noqa: F401
 from .argyris import Argyris            # noqa: F401
 from .bell import Bell                  # noqa: F401
 from .hermite import Hermite            # noqa: F401
+from .mtw import MardalTaiWinther       # noqa: F401
 from .morley import Morley              # noqa: F401
 from .aaw import ArnoldAwanouWinther    # noqa: F401
 from .trace import HDivTrace  # noqa: F401
