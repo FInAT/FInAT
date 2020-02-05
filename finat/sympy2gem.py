@@ -45,3 +45,8 @@ def sympy2gem_float(node, self):
 @sympy2gem.register(sympy.Symbol)
 def sympy2gem_symbol(node, self):
     return self.bindings[node]
+
+
+@sympy2gem.register(sympy.Rational)
+def sympy2gem_rational(node, self):
+    return gem.Literal(node.numerator()) / gem.Literal(node.denominator())
