@@ -73,7 +73,13 @@ except ImportError:
     Citations = None
 
 
-class PhysicallyMappedElement(metaclass=ABCMeta):
+class NeedsCoordinateMappingElement(metaclass=ABCMeta):
+    """Abstract class for elements that require physical information
+    either to map or construct their basis functions."""
+    pass
+    
+
+class PhysicallyMappedElement(NeedsCoordinateMappingElement):
     """A mixin that applies a "physical" transformation to tabulated
     basis functions."""
 
@@ -108,6 +114,12 @@ class PhysicallyMappedElement(metaclass=ABCMeta):
     def point_evaluation(self, order, refcoords, entity=None):
         raise NotImplementedError("TODO: not yet thought about it")
 
+
+class DirectlyDefinedElement(NeedsCoordinateMappingElement):
+    """Base class for directly defined elements such as direct
+    serendipity that bypass a coordinate mapping."""
+    pass
+    
 
 class PhysicalGeometry(metaclass=ABCMeta):
 
@@ -163,3 +175,17 @@ class PhysicalGeometry(metaclass=ABCMeta):
            edge (numbered according to FIAT conventions), shape
            (nfacet, ).
         """
+
+    @abstractmethod
+    def physical_points(self, pt_set):
+        """Maps reference element points to GEM for the physical coordinates
+        
+        :returns a GEM expression for the physical locations of the points
+        """
+
+    @abstractmethod
+    def physical_vertices(self):
+        """Physical locations of the cell vertices.
+
+        :returns a GEM expression for the physical vertices."""
+
