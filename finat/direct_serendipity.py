@@ -10,10 +10,12 @@ import gem
 import sympy
 from finat.sympy2gem import sympy2gem
 
+
+
 class DirectSerendipity(DirectlyDefinedElement, FiniteElementBase):
     def __init__(self, cell, degree):
         assert isinstance(cell, UFCQuadrilateral)
-        assert degree == 1
+        assert degree == 1 or degree == 2
         self._cell = cell
         self._degree = degree
         self.space_dim = 4 if degree == 1 else (self.degree+1)*(self.degree+2)/2 + 2
@@ -31,9 +33,14 @@ class DirectSerendipity(DirectlyDefinedElement, FiniteElementBase):
         return 0
     
     def entity_dofs(self):
-        return {0: {i: [i] for i in range(4)},
-                1: {i: [] for i in range(4)},
-                2: {0: []}}
+        if self.degree == 1:
+            return {0: {i: [i] for i in range(4)},
+                    1: {i: [] for i in range(4)},
+                    2: {0: []}}
+        else:
+            return {0: {i: [i] for i in range(4)},
+                    1: {i: [i+4] for i in range(4)},
+                    2: {0: []}}
 
     def space_dimension(self):
         return self.space_dim
@@ -54,55 +61,49 @@ class DirectSerendipity(DirectlyDefinedElement, FiniteElementBase):
         :param ps: the point set.
         :param entity: the cell entity on which to tabulate.
         '''
-
         ct = self.cell.topology
 
-        # # Build everything in sympy
-        # vs, xx, phis = ds1_sympy(ct)
+        # Build everything in sympy
+        if self.degree == 1:
+            vs, xx, phis = ds1_sympy(ct)
+        elif self.degree == 2:
+            vs, xx, phis = ds2_sympy(ct)
 
+            
         # and convert -- all this can be used for each derivative!
         phys_verts = coordinate_mapping.physical_vertices()
-        psflat = finat.point_set.PointSet(ps.points)
-        print(psflat.indices)
-        phys_points = coordinate_mapping.physical_points(psflat)
-        print(phys_points.free_indices)
+
+        if entity is not None and entity[0] < self.cell.get_spatial_dimension():
+            fps = finat.point_set.FacetMappedPointSet(self.cell, entity, ps)
+            phys_points = gem.partial_indexed(coordinate_mapping.physical_points(fps), ps.indices)
+        else:
+            phys_points = gem.partial_indexed(coordinate_mapping.physical_points(ps),
+                                              ps.indices)
 
         
-        # repl = {vs[i, j]: gem.Indexed(phys_verts, (i, j)) for i in range(4) for j in range(2)}
-
-        # repl.update({s: gem.Indexed(phys_points, (i,))
-        #              for i, s in enumerate(xx)})
-
-        # mapper = gem.node.Memoizer(sympy2gem)
-        # mapper.bindings = repl
-
-        # print(phys_points.free_indices)
-
+        repl = {vs[i, j]: gem.Indexed(phys_verts, (i, j)) for i in range(4) for j in range(2)}
         
-        # # foo = list(map(mapper, phis))
-        # # bar = gem.ListTensor(foo)
-        # # print(bar.free_indices)
-        # # print(phys_points.free_indices)
-
-        # result[(0, 0)] = None
+        repl.update({s: gem.Indexed(phys_points, (i,))
+                     for i, s in enumerate(xx)})
         
-        # # for i in range(order+1):
-        # #     alphas = mis(2, i)
+        mapper = gem.node.Memoizer(sympy2gem)
+        mapper.bindings = repl
 
-        # #     for alpha in alphas:
-        # #         dphis = [phi.diff(*tuple(zip(xx, alpha))) for phi in phis]
-        # #         foo = gem.ListTensor(list(map(mapper, dphis)))
-                
-        # #         result[alpha] = gem.ComponentTensor(gem.Indexed(foo, 
+        result = {}
+        for i in range(order+1):
+            alphas = mis(2, i)
+            for alpha in alphas:
+                dphis = [phi.diff(*tuple(zip(xx, alpha))) for phi in phis]
+                result[alpha] = gem.ListTensor(list(map(mapper, dphis)))
 
         return result
         
     def point_evaluation(self, order, refcoords, entity=None):
         1/0
 
-
     def mapping(self):
         1/0
+
 
 def ds1_sympy(ct):
     vs = numpy.asarray(list(zip(sympy.symbols('x:4'), sympy.symbols('y:4'))))
@@ -173,4 +174,78 @@ def ds1_sympy(ct):
 
     return vs, xx, numpy.asarray(phis)
 
+
+def ds2_sympy(ct):
+    vs = numpy.asarray(list(zip(sympy.symbols('x:4'), sympy.symbols('y:4'))))
+    xx = numpy.asarray(sympy.symbols("x,y"))
+
+    ts = numpy.zeros((4, 2), dtype=object)
+    for e in range(4):
+        v0id, v1id = ct[1][e][:]
+        for j in range(2):
+            ts[e, :] = vs[v1id, :] - vs[v0id, :]
+
+    ns = numpy.zeros((4, 2), dtype=object)
+    for e in (0, 3):
+        ns[e, 0] = -ts[e, 1]
+        ns[e, 1] = ts[e, 0]
+
+    for e in (1, 2):
+        ns[e, 0] = ts[e, 1]
+        ns[e, 1] = -ts[e, 0]
+
+    def xysub(x, y):
+        return {x[0]: y[0], x[1]: y[1]}
+
+    xstars = numpy.zeros((4, 2), dtype=object)
+    for e in range(4):
+        v0id, v1id = ct[1][e][:]
+        xstars[e, :] = (vs[v0id, :] + vs[v1id])/2
+
+    lams = [(xx-xstars[i, :]) @ ns[i, :] for i in range(4)]
+
+    RV = (lams[0] - lams[1]) / (lams[0] + lams[1])
+    RH = (lams[2] - lams[3]) / (lams[2] + lams[3])
+
+    vert_phis = []
+    xx2xstars = [xysub(xx, xstars[i]) for i in range(4)]
+    v_phitildes = [(lams[1] * lams[3]
+                    - lams[3].subs(xx2xstars[2])
+                    / lams[0].subs(xx2xstars[2])
+                    * lams[0] * lams[1] * (1-RH) / 2
+                    - lams[1].subs(xx2xstars[0])
+                    / lams[2].subs(xx2xstars[0])
+                    * lams[2] * lams[3] * (1-RV) / 2),
+                   (lams[1] * lams[2]
+                    - lams[2].subs(xx2xstars[3])
+                    / lams[0].subs(xx2xstars[3])
+                    * lams[0] * lams[1] * (1+RH) / 2
+                    - lams[1].subs(xx2xstars[0])
+                    / lams[3].subs(xx2xstars[0])
+                    * lams[2] * lams[3] * (1-RV) / 2),
+                   (lams[0] * lams[3]
+                    - lams[3].subs(xx2xstars[2])
+                    / lams[1].subs(xx2xstars[2])
+                    * lams[0] * lams[1] * (1-RH) / 2
+                    - lams[0].subs(xx2xstars[1])
+                    / lams[2].subs(xx2xstars[1])
+                    * lams[2] * lams[3] * (1+RV) / 2),
+                   (lams[0] * lams[2]
+                    - lams[2].subs(xx2xstars[3])
+                    / lams[1].subs(xx2xstars[3])
+                    * lams[0] * lams[1] * (1+RH) / 2
+                    - lams[0].subs(xx2xstars[1])
+                    / lams[3].subs(xx2xstars[1])
+                    * lams[2] * lams[3] * (1+RV) / 2)]
+    phis_v = [phitilde_v / phitilde_v.subs(xysub(xx, vs[i, :]))
+              for i, phitilde_v in enumerate(v_phitildes)]
     
+    e_phitildes = [lams[2] * lams[3] * (1-RV) / 2,
+                   lams[2] * lams[3] * (1+RV) / 2,
+                   lams[0] * lams[1] * (1-RH) / 2,
+                   lams[0] * lams[1] * (1+RH) / 2]
+
+    phis_e = [ephi / ephi.subs(xx2xstars[i]) for i, ephi in enumerate(e_phitildes)]
+
+
+    return vs, xx, numpy.asarray(phis_v + phis_e)
