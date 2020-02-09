@@ -11,7 +11,6 @@ import sympy
 from finat.sympy2gem import sympy2gem
 
 
-
 class DirectSerendipity(DirectlyDefinedElement, FiniteElementBase):
     def __init__(self, cell, degree):
         assert isinstance(cell, UFCQuadrilateral)
@@ -31,7 +30,7 @@ class DirectSerendipity(DirectlyDefinedElement, FiniteElementBase):
     @property
     def formdegree(self):
         return 0
-    
+
     def entity_dofs(self):
         if self.degree == 1:
             return {0: {i: [i] for i in range(4)},
@@ -69,23 +68,16 @@ class DirectSerendipity(DirectlyDefinedElement, FiniteElementBase):
         elif self.degree == 2:
             vs, xx, phis = ds2_sympy(ct)
 
-            
         # and convert -- all this can be used for each derivative!
         phys_verts = coordinate_mapping.physical_vertices()
 
-        if entity is not None and entity[0] < self.cell.get_spatial_dimension():
-            fps = finat.point_set.FacetMappedPointSet(self.cell, entity, ps)
-            phys_points = gem.partial_indexed(coordinate_mapping.physical_points(fps), ps.indices)
-        else:
-            phys_points = gem.partial_indexed(coordinate_mapping.physical_points(ps),
-                                              ps.indices)
+        phys_points = gem.partial_indexed(coordinate_mapping.physical_points(ps, entity=entity),
+                                          ps.indices)
 
-        
-        repl = {vs[i, j]: gem.Indexed(phys_verts, (i, j)) for i in range(4) for j in range(2)}
-        
-        repl.update({s: gem.Indexed(phys_points, (i,))
-                     for i, s in enumerate(xx)})
-        
+        repl = {vs[i, j]: phys_verts[i, j] for i in range(4) for j in range(2)}
+
+        repl.update({s: phys_points[i] for i, s in enumerate(xx)})
+
         mapper = gem.node.Memoizer(sympy2gem)
         mapper.bindings = repl
 
@@ -97,12 +89,12 @@ class DirectSerendipity(DirectlyDefinedElement, FiniteElementBase):
                 result[alpha] = gem.ListTensor(list(map(mapper, dphis)))
 
         return result
-        
+
     def point_evaluation(self, order, refcoords, entity=None):
-        1/0
+        raise NotImplementedError("Not done yet, sorry!")
 
     def mapping(self):
-        1/0
+        return "physical"
 
 
 def ds1_sympy(ct):
@@ -127,7 +119,6 @@ def ds1_sympy(ct):
     def xysub(x, y):
         return {x[0]: y[0], x[1]: y[1]}
 
-
     xstars = numpy.zeros((4, 2), dtype=object)
     for e in range(4):
         v0id, v1id = ct[1][e][:]
@@ -144,7 +135,7 @@ def ds1_sympy(ct):
         dct = xysub(xx, xstars[e, :])
         i = 2*((3-e)//2)
         j = i + 1
-        xi = lams[i] * lams[j] * (1+ (-1)**(e+1) * Rs[e//2]) / lams[i].subs(dct) / lams[j].subs(dct) / 2
+        xi = lams[i] * lams[j] * (1 + (-1)**(e+1) * Rs[e//2]) / lams[i].subs(dct) / lams[j].subs(dct) / 2
         xis.append(xi)
 
     d = xysub(xx, vs[0, :])
@@ -207,7 +198,6 @@ def ds2_sympy(ct):
     RV = (lams[0] - lams[1]) / (lams[0] + lams[1])
     RH = (lams[2] - lams[3]) / (lams[2] + lams[3])
 
-    vert_phis = []
     xx2xstars = [xysub(xx, xstars[i]) for i in range(4)]
     v_phitildes = [(lams[1] * lams[3]
                     - lams[3].subs(xx2xstars[2])
@@ -239,13 +229,12 @@ def ds2_sympy(ct):
                     * lams[2] * lams[3] * (1+RV) / 2)]
     phis_v = [phitilde_v / phitilde_v.subs(xysub(xx, vs[i, :]))
               for i, phitilde_v in enumerate(v_phitildes)]
-    
+
     e_phitildes = [lams[2] * lams[3] * (1-RV) / 2,
                    lams[2] * lams[3] * (1+RV) / 2,
                    lams[0] * lams[1] * (1-RH) / 2,
                    lams[0] * lams[1] * (1+RH) / 2]
 
     phis_e = [ephi / ephi.subs(xx2xstars[i]) for i, ephi in enumerate(e_phitildes)]
-
 
     return vs, xx, numpy.asarray(phis_v + phis_e)
