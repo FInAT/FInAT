@@ -18,7 +18,7 @@ class DirectSerendipity(DirectlyDefinedElement, FiniteElementBase):
         assert degree == 1 or degree == 2
         self._cell = cell
         self._degree = degree
-        self.space_dim = 4 if degree == 1 else (self.degree+1)*(self.degree+2)/2 + 2
+        self.space_dim = 4 if degree == 1 else (self.degree+1)*(self.degree+2)//2 + 2
 
     @property
     def cell(self):
