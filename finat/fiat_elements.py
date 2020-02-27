@@ -320,12 +320,12 @@ class RaviartThomas(VectorFiatElement):
 
 class TrimmedSerendipityFace(VectorFiatElement):
     def __init__(self, cell, degree):
-        super(TrimmedSerendipity, self).__init__(FIAT.TrimmedSerendipityFace(cell, degree))
+        super(TrimmedSerendipityFace, self).__init__(FIAT.TrimmedSerendipityFace(cell, degree))
 
 
 class TrimmedSerendipityEdge(VectorFiatElement):
     def __init__(self, cell, degree):
-        super(TrimmedSerendipity, self).__init__(FIAT.TrimmedSerendipityEdge(cell, degree))
+        super(TrimmedSerendipityEdge, self).__init__(FIAT.TrimmedSerendipityEdge(cell, degree))
 
 
 class BrezziDouglasMarini(VectorFiatElement):
