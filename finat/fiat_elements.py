@@ -318,6 +318,16 @@ class RaviartThomas(VectorFiatElement):
         super(RaviartThomas, self).__init__(FIAT.RaviartThomas(cell, degree))
 
 
+class TrimmedSerendipityFace(VectorFiatElement):
+    def __init__(self, cell, degree):
+        super(TrimmedSerendipity, self).__init__(FIAT.TrimmedSerendipityFace(cell, degree))
+
+
+class TrimmedSerendipityEdge(VectorFiatElement):
+    def __init__(self, cell, degree):
+        super(TrimmedSerendipity, self).__init__(FIAT.TrimmedSerendipityEdge(cell, degree))
+
+
 class BrezziDouglasMarini(VectorFiatElement):
     def __init__(self, cell, degree):
         super(BrezziDouglasMarini, self).__init__(FIAT.BrezziDouglasMarini(cell, degree))
