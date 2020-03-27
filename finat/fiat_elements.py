@@ -327,6 +327,9 @@ class TrimmedSerendipityEdge(VectorFiatElement):
     def __init__(self, cell, degree):
         super(TrimmedSerendipityEdge, self).__init__(FIAT.TrimmedSerendipityEdge(cell, degree))
 
+class TrimmedSerendipityCurl3(VectorFiatElement):
+    def __init__(self, cell, degree):
+        super(TrimmedSerendipityCurl3, self).__init__(FIAT.TrimmedSerendipityCurl3(cell, degree))
 
 class BrezziDouglasMarini(VectorFiatElement):
     def __init__(self, cell, degree):
