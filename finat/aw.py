@@ -13,7 +13,6 @@ class ArnoldWintherNC(PhysicallyMappedElement, FiatElement):
     def __init__(self, cell, degree):
         super(ArnoldWintherNC, self).__init__(FIAT.ArnoldWintherNC(cell, degree))
 
-    @staticmethod
     def basis_transformation(self, coordinate_mapping, as_numpy=False):
         """Note, the extra 3 dofs which are removed here
         correspond to the constraints."""
@@ -38,7 +37,7 @@ class ArnoldWintherNC(PhysicallyMappedElement, FiatElement):
         JTJ = J_np.T @ J_np
 
         for e in range(3):
-            
+
             # Compute alpha and beta for the edge.
             Ghat_T = numpy.array([nhat[e, :], that[e, :]])
 
@@ -88,7 +87,7 @@ class ArnoldWinther(PhysicallyMappedElement, FiatElement):
 
         # The edge and internal dofs are as for the
         # nonconforming element.
-        V[9:24, 9:24] = (ArnoldWintherNC.basis_transformation(self, coordinate_mapping, True)).T
+        V[9:24, 9:24] = (ArnoldWintherNC(self.cell, self.degree).basis_transformation(self, coordinate_mapping, True)).T
 
         # vertex dofs
         # TODO: find a succinct expression for W in terms of J.
