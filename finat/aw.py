@@ -14,7 +14,7 @@ class ArnoldWintherNC(PhysicallyMappedElement, FiatElement):
         super(ArnoldWintherNC, self).__init__(FIAT.ArnoldWintherNC(cell, degree))
 
     @staticmethod
-    def basis_transformation(self, coordinate_mapping):
+    def basis_transformation(self, coordinate_mapping, as_numpy=False):
         """Note, the extra 3 dofs which are removed here
         correspond to the constraints."""
         V = numpy.zeros((18, 15), dtype=object)
@@ -55,7 +55,10 @@ class ArnoldWintherNC(PhysicallyMappedElement, FiatElement):
         for i in range(12, 15):
             V[i, i] = Literal(1)
 
-        return ListTensor(V.T)
+        if as_numpy: 
+            return V.T
+        else:
+            return ListTensor(V.T)
 
 
     def entity_dofs(self):
@@ -85,7 +88,7 @@ class ArnoldWinther(PhysicallyMappedElement, FiatElement):
 
         # The edge and internal dofs are as for the
         # nonconforming element.
-        V[9:24, 9:24] = (ArnoldWintherNC.basis_transformation(self, coordinate_mapping)).T
+        V[9:24, 9:24] = (ArnoldWintherNC.basis_transformation(self, coordinate_mapping, True)).T
 
         # vertex dofs
         # TODO: find a succinct expression for W in terms of J.
