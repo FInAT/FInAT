@@ -62,7 +62,8 @@ class FlattenedDimensions(FiniteElementBase):
         if entity is None:
             entity = (self.cell.get_spatial_dimension(), 0)
 
-        return self.product.basis_evaluation(order, ps, self._unflatten[entity])
+        return self.product.basis_evaluation(order, ps, self._unflatten[entity],
+                                             coordinate_mapping=coordinate_mapping)
 
     def point_evaluation(self, order, point, entity=None):
         if entity is None:
