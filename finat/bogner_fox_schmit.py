@@ -1,21 +1,17 @@
-from operator import methodcaller
-
-import numpy
-
 import FIAT
-from gem import Literal, ListTensor
+import gem
+from gem import ListTensor
 
-
-from finat.fiat_elements import ScalarFiatElement
 from finat.physically_mapped import PhysicallyMappedElement, Citations
 from finat.tensor_product import TensorProductElement, factor_point_set
 from finat.hermite import Hermite
 
+
 class CoordinateMapping1D(object):
     def __init__(self, coordinate_mapping, dimension, direction):
-       self.cm = coordinate_mapping
-       self.dimension = dimension
-       self.direction = direction
+        self.cm = coordinate_mapping
+        self.dimension = dimension
+        self.direction = direction
 
     def jacobian_at(self, vertex_1d):
         vertex_nd = vertex_1d + ((0.0,) * (self.dimension-1))
@@ -24,10 +20,8 @@ class CoordinateMapping1D(object):
         return ListTensor([[jac_nd[i, i]]])
 
     def cell_size(self):
-        import ipdb; ipdb.set_trace()
-        packing = [0] * (self.dimension-1)
-        h = self.cm.cell_size()
-        return ListTensor([h[packing + [0]], h[packing + [1]]])
+        packing = tuple([0] * (self.dimension-1))
+        return gem.partial_indexed(self.cm.cell_size(), packing)
 
 
 class BognerFoxSchmit(PhysicallyMappedElement, TensorProductElement):
