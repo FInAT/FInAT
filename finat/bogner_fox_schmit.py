@@ -29,13 +29,13 @@ class BognerFoxSchmit(PhysicallyMappedElement, TensorProductElement):
         if degree != 3:
             raise ValueError("Degree must be 3 for Bogner-Fox-Schmit element")
 
-        He = Hermite(FIAT.reference_element.UFCInterval(), degree)
         dim = cell.get_dimension()
         if isinstance(dim, tuple):
             dim = len(dim)
-        elements = [He] * dim
         self.dimension = dim
-        TensorProductElement.__init__(self, elements)
+        TensorProductElement.__init__(self, tuple(Hermite(FIAT.reference_element.UFCInterval(),
+                                                          degree)
+                                                  for _ in range(dim)))
 
     def basis_transformation(self, coordinate_mapping):
         raise NotImplementedError
