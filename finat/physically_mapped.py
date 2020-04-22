@@ -106,7 +106,7 @@ class PhysicallyMappedElement(metaclass=ABCMeta):
         pass
 
     def basis_evaluation(self, order, ps, entity=None, coordinate_mapping=None):
-        assert coordinate_mapping is not None
+        #assert coordinate_mapping is not None
 
         M = self.basis_transformation(coordinate_mapping)
 

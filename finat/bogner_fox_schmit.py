@@ -24,7 +24,7 @@ class CoordinateMapping1D(object):
         return gem.partial_indexed(self.cm.cell_size(), packing)
 
 
-class BognerFoxSchmit(PhysicallyMappedElement, TensorProductElement):
+class BognerFoxSchmit(TensorProductElement):
     def __init__(self, cell, degree):
         if degree != 3:
             raise ValueError("Degree must be 3 for Bogner-Fox-Schmit element")
@@ -37,19 +37,19 @@ class BognerFoxSchmit(PhysicallyMappedElement, TensorProductElement):
                                                           degree)
                                                   for _ in range(dim)))
 
-    def basis_transformation(self, coordinate_mapping):
-        raise NotImplementedError
+    #def basis_transformation(self, coordinate_mapping):
+    #    raise NotImplementedError
 
-    def basis_evaluation(self, order, ps, entity=None, coordinate_mapping=None):
-        entities = self._factor_entity(entity)
-        entity_dim, _ = zip(*entities)
-        ps_factors = factor_point_set(self.cell, entity_dim, ps)
-        factor_results = []
-        for (i, (fe, ps_, e)) in enumerate(zip(self.factors, ps_factors, entities)):
-            subcoordinatemap = CoordinateMapping1D(coordinate_mapping, self.dimension, i)
-            factor_results.append(fe.basis_evaluation(order, ps_, e, coordinate_mapping=subcoordinatemap))
-        evaluations = self._merge_evaluations(factor_results)
-        return evaluations
-
+#    def basis_evaluation(self, order, ps, entity=None, coordinate_mapping=None):
+#        entities = self._factor_entity(entity)
+#        entity_dim, _ = zip(*entities)
+#        ps_factors = factor_point_set(self.cell, entity_dim, ps)
+#        factor_results = []
+#        for (i, (fe, ps_, e)) in enumerate(zip(self.factors, ps_factors, entities)):
+#            subcoordinatemap = CoordinateMapping1D(coordinate_mapping, self.dimension, i)
+#            factor_results.append(fe.basis_evaluation(order, ps_, e, coordinate_mapping=subcoordinatemap))
+#        evaluations = self._merge_evaluations(factor_results)
+#        return evaluations
+#
     def entity_support_dofs(self):
         raise NotImplementedError
