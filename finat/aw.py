@@ -85,6 +85,9 @@ class ArnoldWinther(PhysicallyMappedElement, FiatElement):
         the constraints."""
         V = numpy.zeros((30, 24), dtype=object)
 
+        for multiindex in numpy.ndindex(V.shape):
+            V[multiindex] = Literal(V[multiindex])
+
         # The edge and internal dofs are as for the
         # nonconforming element.
         full_AWnc_dofs = (ArnoldWintherNC(self.cell, self.degree-1).basis_transformation(coordinate_mapping, True)).T
