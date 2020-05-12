@@ -87,7 +87,10 @@ class ArnoldWinther(PhysicallyMappedElement, FiatElement):
 
         # The edge and internal dofs are as for the
         # nonconforming element.
-        V[9:24, 9:24] = (ArnoldWintherNC(self.cell, self.degree).basis_transformation(self, coordinate_mapping, True)).T
+        full_AWnc_dofs = (ArnoldWintherNC(self.cell, self.degree-1).basis_transformation(coordinate_mapping, True)).T
+        edge_and_internal = full_AWnc_dofs[:15,:]
+        V[9:24, 9:24] = edge_and_internal
+        #V[9:24, 9:24] = (ArnoldWintherNC(self.cell, self.degree-1).basis_transformation(coordinate_mapping, True)).T
 
         # vertex dofs
         # TODO: find a succinct expression for W in terms of J.
