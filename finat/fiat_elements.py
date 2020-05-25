@@ -319,8 +319,8 @@ class RaviartThomas(VectorFiatElement):
 
 
 class BrezziDouglasMarini(VectorFiatElement):
-    def __init__(self, cell, degree):
-        super(BrezziDouglasMarini, self).__init__(FIAT.BrezziDouglasMarini(cell, degree))
+    def __init__(self, cell, degree, variant=None):
+        super(BrezziDouglasMarini, self).__init__(FIAT.BrezziDouglasMarini(cell, degree, variant=variant))
 
 
 class BrezziDouglasFortinMarini(VectorFiatElement):
@@ -334,5 +334,5 @@ class Nedelec(VectorFiatElement):
 
 
 class NedelecSecondKind(VectorFiatElement):
-    def __init__(self, cell, degree):
-        super(NedelecSecondKind, self).__init__(FIAT.NedelecSecondKind(cell, degree))
+    def __init__(self, cell, degree, variant=None):
+        super(NedelecSecondKind, self).__init__(FIAT.NedelecSecondKind(cell, degree, variant=variant))
