@@ -144,6 +144,17 @@ class FiniteElementBase(metaclass=ABCMeta):
         :param entity: the cell entity on which to tabulate.
         '''
 
+    @abstractmethod
+    def dual_evaluation(self, func, entity=None):
+        '''Return code for performing the dual evaluation at the nodes of the
+        reference element.
+        
+        :param func: Python function to perform the dual evaluation for
+                     (probably output from coffee.FunCall).
+        :param entity: the cell entity on which to tabulate for comparing
+                       results with FIAT.
+        '''
+
     @abstractproperty
     def mapping(self):
         '''Appropriate mapping from the reference cell to a physical cell for
