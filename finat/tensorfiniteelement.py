@@ -5,6 +5,8 @@ import numpy
 import gem
 
 from finat.finiteelementbase import FiniteElementBase
+from finat.tensor_product import total_num_factors
+from finat.cube import FlattenedDimensions
 
 
 class TensorFiniteElement(FiniteElementBase):
@@ -36,7 +38,7 @@ class TensorFiniteElement(FiniteElementBase):
         we subscript the vector-value with :math:`\gamma\epsilon` then we can write:
 
         .. math::
-           \boldsymbol\phi_{\gamma\epsilon(i\alpha\beta)} = \delta_{\gamma\alpha}\delta{\epsilon\beta}\phi_i
+           \boldsymbol\phi_{\gamma\epsilon(i\alpha\beta)} = \delta_{\gamma\alpha}\delta_{\epsilon\beta}\phi_i
 
         This form enables the simplification of the loop nests which
         will eventually be created, so it is the form we employ here."""
@@ -83,9 +85,9 @@ class TensorFiniteElement(FiniteElementBase):
         r"""Produce the recipe for basis function evaluation at a set of points :math:`q`:
 
         .. math::
-            \boldsymbol\phi_{(\gamma \epsilon) (i \alpha \beta) q} = \delta_{\alpha \gamma}\delta{\beta \epsilon}\phi_{i q}
+            \boldsymbol\phi_{(\gamma \epsilon) (i \alpha \beta) q} = \delta_{\alpha \gamma} \delta_{\beta \epsilon}\phi_{i q}
 
-            \nabla\boldsymbol\phi_{(\epsilon \gamma \zeta) (i \alpha \beta) q} = \delta_{\alpha \epsilon} \deta{\beta \gamma}\nabla\phi_{\zeta i q}
+            \nabla\boldsymbol\phi_{(\epsilon \gamma \zeta) (i \alpha \beta) q} = \delta_{\alpha \epsilon} \delta_{\beta \gamma}\nabla\phi_{\zeta i q}
         """
         scalar_evaluation = self._base_element.basis_evaluation
         return self._tensorise(scalar_evaluation(order, ps, entity, coordinate_mapping=coordinate_mapping))
@@ -119,6 +121,62 @@ class TensorFiniteElement(FiniteElementBase):
                 index_ordering
             )
         return result
+
+    @property
+    def dual_basis(self):
+
+        base = self.base_element
+        Q, points = base.dual_basis
+
+        # Suppose the tensor element has shape (2, 4)
+        # These identity matrices may have difference sizes depending the shapes
+        # tQ = Q ⊗ 𝟙₂ ⊗ 𝟙₄
+        Q_shape_indices = gem.indices(len(Q.shape))
+        i_s = tuple(gem.Index(extent=d) for d in self._shape)
+        j_s = tuple(gem.Index(extent=d) for d in self._shape)
+        # we need one delta for each shape axis
+        deltas = reduce(gem.Product, (gem.Delta(i, j) for i, j in zip(i_s, j_s)))
+        # TODO Need to check how this plays with the transpose argument to TensorFiniteElement.
+        tQ = gem.ComponentTensor(Q[Q_shape_indices]*deltas, Q_shape_indices + i_s + j_s)
+
+        return tQ, points
+
+    def dual_evaluation(self, fn):
+
+        Q, x = self.dual_basis
+        expr = fn(x)
+
+        # TODO: Add shortcut (if relevant) for Q being identity tensor
+
+        # NOTE: any shape indices in the expression are because the expression
+        # is tensor valued.
+        assert set(expr.shape) == set(self.value_shape)
+
+        base_value_indices = self.base_element.get_value_indices()
+
+        # Reconstruct the indices from the deltas in dual_basis above and
+        # contract Q with expr
+        Q_shape_indices = tuple(gem.Index(extent=ex) for ex in Q.shape)
+        expr_contraction_indices = tuple(gem.Index(extent=d) for d in self._shape)
+        basis_tensor_indices = tuple(gem.Index(extent=d) for d in self._shape)
+        # NOTE: here the first num_factors rows of Q are node sets (1 for
+        # each factor)
+        # TODO: work out if there are any other cases where the basis
+        # indices in the shape of the dual basis tensor Q are more than
+        # just the first shape index (e.g. with EnrichedElement)
+        if hasattr(self.base_element, 'factors'):
+            num_factors = total_num_factors(self.base_element.factors)
+        elif isinstance(self.base_element, FlattenedDimensions):
+            # Factor might be a FlattenedDimensions which introduces
+            # another factor without having a factors property
+            num_factors = 2
+        else:
+            num_factors = 1
+        Q_indexed = Q[Q_shape_indices[:num_factors] + base_value_indices + expr_contraction_indices + basis_tensor_indices]
+        expr_indexed = expr[expr_contraction_indices + base_value_indices]
+        dual_evaluation_indexed_sum = gem.optimise.make_product((Q_indexed, expr_indexed), x.indices + base_value_indices + expr_contraction_indices)
+        basis_indices = Q_shape_indices[:num_factors] + basis_tensor_indices
+        return dual_evaluation_indexed_sum, basis_indices
 
     @property
     def mapping(self):

@@ -3,6 +3,7 @@ from itertools import chain, product
 from operator import methodcaller
 
 import numpy
+import operator
 
 import FIAT
 from FIAT.polynomial_set import mis
@@ -13,6 +14,7 @@ from gem.utils import cached_property
 
 from finat.finiteelementbase import FiniteElementBase
 from finat.point_set import PointSingleton, PointSet, TensorPointSet
+from finat.cube import FlattenedDimensions
 
 
 class TensorProductElement(FiniteElementBase):
@@ -162,6 +164,64 @@ class TensorProductElement(FiniteElementBase):
 
         return self._merge_evaluations(factor_results)
 
+    @property
+    def dual_basis(self):
+        # Outer product the dual bases of the factors
+        qs, pss = zip(*(f.dual_basis for f in self.factors))
+        # TODO: check if this Q_is_identity calculation is correct
+        self.Q_is_identity = all(f.Q_is_identity for f in self.factors)
+        ps = TensorPointSet(pss)
+        tuples_of_q_shape_indices = tuple(gem.indices(len(q.shape)) for q in qs)
+        q_muls = reduce(operator.mul, (q[i] for q, i in zip(qs, tuples_of_q_shape_indices)))
+        # Flatten to get final shape indices
+        q_shape_indices = tuple(index for tuple_of_indices in tuples_of_q_shape_indices for index in tuple_of_indices)
+        Q = gem.ComponentTensor(q_muls, q_shape_indices)
+        return Q, ps
+
+    def dual_evaluation(self, fn):
+        if not hasattr(fn, 'factors'):
+
+            Q, x = self.dual_basis
+
+            #
+            # EVALUATE fn AT x
+            #
+            expr = fn(x)
+
+            #
+            # TENSOR CONTRACT Q WITH expr
+            #
+
+            # NOTE: any shape indices in the expression are because the
+            # expression is tensor valued.
+            # NOTE: here the first num_factors rows of Q are node sets (1 for
+            # each factor)
+            # TODO: work out if there are any other cases where the basis
+            # indices in the shape of the dual basis tensor Q are more than
+            # just the first shape index (e.g. with EnrichedElement)
+            num_factors = total_num_factors(self.factors)
+            assert expr.shape == Q.shape[num_factors:]
+            expr_shape_indices = tuple(gem.Index(extent=ex) for ex in expr.shape)
+            basis_indices = tuple(gem.Index(extent=ex) for ex in Q.shape[:num_factors])
+            # TODO: Work out how to deal with identity Q in this case.
+            dual_evaluation_indexed_sum = gem.optimise.make_product((Q[basis_indices + expr_shape_indices], expr[expr_shape_indices]), x.indices+expr_shape_indices)
+
+            return dual_evaluation_indexed_sum, basis_indices
+
+        else:
+            raise NotImplementedError('Sum factorised dual evaluation is not yet implemented')
+            # TODO do sum factorisation applying function factors to
+            # dual bases of factors and then putting back together again.
+            # Will look something like this:
+            # assert len(fn.factors) == len(self.factors)
+            # for i, factor in enumerate(self.factors):
+            #     factor_Q, factor_ps = factor.dual_basis
+            #     factor_gem_tensor = factor.dual_evaluation(fn.factors[i])
+            #     ...
+            #     somehow build up whole dual evaluation using above info
+            #     ...
+            # return gem_tensor
+
     @cached_property
     def mapping(self):
         mappings = [fe.mapping for fe in self.factors if fe.mapping != "affine"]
@@ -234,3 +294,21 @@ def factor_point_set(product_cell, product_dim, point_set):
         return result
 
     raise NotImplementedError("How to tabulate TensorProductElement on %s?" % (type(point_set).__name__,))
+
+
+def total_num_factors(factors):
+    '''Return the total number of (potentially nested) factors in a list
+    element factors.
+
+    :arg factors: An iterable of FInAT finite elements
+    :returns: The total number of factors in the flattened iterable
+    '''
+    num_factors = len(factors)
+    for factor in factors:
+        if hasattr(factor, 'factors'):
+            num_factors += total_num_factors(factor.factors)
+        if isinstance(factor, FlattenedDimensions):
+            # FlattenedDimensions introduces another factor without
+            # having a factors property
+            num_factors += 1
+    return num_factors

@@ -144,10 +144,97 @@ class FiniteElementBase(metaclass=ABCMeta):
         :param entity: the cell entity on which to tabulate.
         '''
 
+    @property
+    def dual_basis(self):
+        '''Return a dual evaluation gem weight tensor Q and point set x to dual
+        evaluate a function fn at.
+
+        The general dual evaluation is then Q * fn(x).
+
+        Note that the contraction index of the point set x is indexed out of Q
+        to avoid confusion when trying index it out of Q later in
+        dual_evaluation.
+
+        If the dual weights are scalar then Q, for a general scalar FIAT
+        element, is a matrix with dimensions
+        (num_nodes, num_points)
+        where num_points is made a free index that match the free index of x.
+
+        If the dual weights are tensor valued then Q, for a general tensor
+        valued FIAT element, is a tensor with dimensions
+        (num_nodes, num_points, dual_weight_shape[0], ..., dual_weight_shape[n])
+        where num_points made a free index that matches the free index of x.
+
+        If the dual basis is of a tensor product or FlattenedDimensions element
+        with N factors then Q in general is a tensor with dimensions
+        (num_nodes_factor1, ..., num_nodes_factorN,
+            num_points_factor1, ..., num_points_factorN,
+            dual_weight_shape[0], ..., dual_weight_shape[n])
+        where num_points_factorX are made free indices that match the free
+        indices of x (which is now a TensorPointSet).
+
+        If the dual basis is of a tensor finite element with some shape
+        (S1, S2, ..., Sn) then the tensor element tQ is constructed from the
+        base element's Q by taking the outer product with appropriately sized
+        identity matrices:
+        tQ = Q ⊗ 𝟙ₛ₁ ⊗ 𝟙ₛ₂ ⊗ ... ⊗ 𝟙ₛₙ
+        '''
+        raise NotImplementedError(
+            f"Dual basis not defined for element {type(self).__name__}"
+        )
+
+    def dual_evaluation(self, fn):
+        '''Return code for performing the dual basis evaluation at the nodes of
+        the reference element. Currently only works for non-derivatives (not
+        implemented) and flat elements (implemented in TensorFiniteElement and
+        TensorProductElement).
+
+        :param fn: Callable representing the function to dual evaluate.
+                   Callable should take in an :class:`AbstractPointSet` and
+                   return a GEM expression for evaluation of the function at
+                   those points. If the callable provides a ``.factors``
+                   property then it may be used for sum factorisation in
+                   :class:`TensorProductElement`s
+        :returns: A tuple (dual_evaluation_indexed_sum, basis_indices)
+        '''
+        # NOTE: This is a 'flat' implementation that does not deal with
+        # tensor valued expressions or points. These are dealt with in
+        # TensorFiniteElement and TensorProductElement
+
+        Q, x = self.dual_basis
+
+        #
+        # EVALUATE fn AT x
+        #
+        expr = fn(x)
+
+        #
+        # TENSOR CONTRACT Q WITH expr
+        #
+
+        # NOTE: any shape indices in the expression are because the expression
+        # is tensor valued.
+        assert expr.shape == Q.shape[1:]
+        expr_shape_indices = tuple(gem.Index(extent=ex) for ex in expr.shape)
+        basis_indices = tuple(gem.Index(extent=ex) for ex in Q.shape[:1])
+        try:
+            assert self.Q_is_identity
+            assert len(set(Q.shape)) == 1
+            assert len(basis_indices) == 1
+            # Skip the multiplication by an identity tensor
+            basis_indices = x.indices
+            dual_evaluation_indexed_sum = expr
+        except AssertionError:
+            dual_evaluation_indexed_sum = gem.optimise.make_product((Q[basis_indices + expr_shape_indices], expr[expr_shape_indices]), x.indices+expr_shape_indices)
+
+        return dual_evaluation_indexed_sum, basis_indices
+
     @abstractproperty
     def mapping(self):
         '''Appropriate mapping from the reference cell to a physical cell for
         all basis functions of the finite element.'''
+
+    Q_is_identity = None
 
 
 def entity_support_dofs(elem, entity_dim):
