@@ -128,6 +128,10 @@ class EnrichedElement(FiniteElementBase):
         return self._compose_evaluations(results)
 
     @property
+    def dual_basis(self):
+        return tuple(dual_vector for element in self.elements for dual_vector in element.dual_basis)
+
+    @property
     def mapping(self):
         mappings = set(elem.mapping for elem in self.elements)
         if len(mappings) != 1:

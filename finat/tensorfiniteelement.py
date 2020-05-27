@@ -36,7 +36,7 @@ class TensorFiniteElement(FiniteElementBase):
         we subscript the vector-value with :math:`\gamma\epsilon` then we can write:
 
         .. math::
-           \boldsymbol\phi_{\gamma\epsilon(i\alpha\beta)} = \delta_{\gamma\alpha}\delta{\epsilon\beta}\phi_i
+           \boldsymbol\phi_{\gamma\epsilon(i\alpha\beta)} = \delta_{\gamma\alpha}\delta_{\epsilon\beta}\phi_i
 
         This form enables the simplification of the loop nests which
         will eventually be created, so it is the form we employ here."""
@@ -83,9 +83,9 @@ class TensorFiniteElement(FiniteElementBase):
         r"""Produce the recipe for basis function evaluation at a set of points :math:`q`:
 
         .. math::
-            \boldsymbol\phi_{(\gamma \epsilon) (i \alpha \beta) q} = \delta_{\alpha \gamma}\delta{\beta \epsilon}\phi_{i q}
+            \boldsymbol\phi_{(\gamma \epsilon) (i \alpha \beta) q} = \delta_{\alpha \gamma} \delta_{\beta \epsilon}\phi_{i q}
 
-            \nabla\boldsymbol\phi_{(\epsilon \gamma \zeta) (i \alpha \beta) q} = \delta_{\alpha \epsilon} \deta{\beta \gamma}\nabla\phi_{\zeta i q}
+            \nabla\boldsymbol\phi_{(\epsilon \gamma \zeta) (i \alpha \beta) q} = \delta_{\alpha \epsilon} \delta_{\beta \gamma}\nabla\phi_{\zeta i q}
         """
         scalar_evaluation = self._base_element.basis_evaluation
         return self._tensorise(scalar_evaluation(order, ps, entity, coordinate_mapping=coordinate_mapping))
@@ -119,6 +119,23 @@ class TensorFiniteElement(FiniteElementBase):
                 index_ordering
             )
         return result
+
+    @property
+    def dual_basis(self):
+        base_dual_basis = self._base_element.dual_basis
+        base_rank = len(self._base_element.value_shape)
+
+        # Note: Does not assert idx of base_dual_basis is None
+        if not self._transpose:
+            tensor_dual_basis = tuple((base_dual, idx)
+                                      for base_dual, _ in base_dual_basis
+                                      for idx in numpy.ndindex(self.value_shape[base_rank:]))
+        else:
+            tensor_dual_basis = tuple((base_dual, idx)
+                                      for idx in numpy.ndindex(self.value_shape[base_rank:])
+                                      for base_dual, _ in base_dual_basis)
+
+        return tensor_dual_basis
 
     @property
     def mapping(self):
