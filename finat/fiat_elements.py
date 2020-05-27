@@ -1,6 +1,7 @@
 import numpy as np
 import sympy as sp
 from functools import singledispatch
+from itertools import chain
 
 import FIAT
 from FIAT.polynomial_set import mis, form_matrix_product
@@ -8,6 +9,7 @@ from FIAT.polynomial_set import mis, form_matrix_product
 import gem
 
 from finat.finiteelementbase import FiniteElementBase
+from finat.point_set import PointSet
 from finat.sympy2gem import sympy2gem
 
 try:
@@ -172,6 +174,98 @@ class FiatElement(FiniteElementBase):
 
         # Dispatch on FIAT element class
         return point_evaluation(self._element, order, refcoords, (entity_dim, entity_i))
+
+    @property
+    def dual_basis(self):
+        max_deriv_order = max([ell.max_deriv_order for ell in self._element.dual_basis()])
+
+        duals = []
+        point_set_cache = {}    # To avoid repeating points?
+        for dual in self._element.dual_basis():
+            # print(self._element, dual.get_point_dict(), dual.deriv_dict)
+            derivs = []
+            pts_in_derivs = []
+
+            # For non-derivatives
+            for pt, tups in sorted(dual.get_point_dict().items()):  # Ensure parallel safety
+                try:
+                    point_set = point_set_cache[(pt,)]
+                except KeyError:
+                    point_set = PointSet((pt,))
+                    point_set_cache[(pt,)] = point_set
+
+                # No derivative component extraction required
+                alpha_tensor = gem.Literal(1)
+
+                weight_dict = {c: w for w, c in tups}
+                # Each entry of tensor is weight of that component
+                if len(self.value_shape) == 0:
+                    weight_tensor = gem.Literal(weight_dict[tuple()])
+                else:
+                    weight_array = np.zeros(self.value_shape)
+                    for key, item in weight_dict.items():
+                        weight_array[key] = item
+                    weight_tensor = gem.Literal(weight_array)
+
+                pts_in_derivs.append((point_set, weight_tensor, alpha_tensor))
+            derivs.append(pts_in_derivs)
+
+            # For derivatives
+            deriv_dict_items = sorted(dual.deriv_dict.items())  # Ensure parallel safety
+            for derivative_order in range(1, max_deriv_order+1):
+                pts_in_derivs = []
+                # TODO: Combine tensors for tups of same derivative order
+                for pt, tups in deriv_dict_items:
+                    weights, alphas, cmps = zip(*tups)
+
+                    # TODO: Repeated points and repeated tups
+                    # Get evaluations of this derivative order
+                    weight, alpha, cmp = [], [], []
+                    for j, a in enumerate(alphas):
+                        if sum(a) == derivative_order:
+                            weight.append(weights[j])
+                            alpha.append(alphas[j])
+                            cmp.append(cmps[j])
+                    if len(alpha) == 0:
+                        continue
+
+                    # alpha_tensor assumes weights for each derivative component are equal
+                    # TODO: Case for unequal weights
+                    if len(alpha) > 1:
+                        if 0.0 not in weight:
+                            assert np.isclose(min(weight), max(weight))
+                        else:
+                            non_zero_weight = [w for w in weight if w != 0.0]
+                            assert np.isclose(min(non_zero_weight), max(non_zero_weight))
+
+                    # For direct indexing
+                    alpha_idx = tuple(tuple(chain(*[(j,)*a for j, a in enumerate(alph)])) for alph in alpha)
+                    # TODO: How to ensure correct combination (indexing) with weight_tensor?
+                    alpha_arr = np.zeros((self.cell.get_spatial_dimension(),) * derivative_order)
+                    for idx in alpha_idx:
+                        alpha_arr[idx] = 1
+                    alpha_tensor = gem.Literal(alpha_arr)
+
+                    try:
+                        point_set = point_set_cache[(pt,)]
+                    except KeyError:
+                        point_set = PointSet((pt,))
+                        point_set_cache[(pt,)] = point_set
+
+                    weight_dict = dict(zip(cmp, weight))
+                    # Each entry of tensor is weight of that component
+                    if len(self.value_shape) == 0:
+                        weight_tensor = gem.Literal(weight_dict[tuple()])
+                    else:
+                        weight_array = np.zeros(self.value_shape)
+                        for key, item in weight_dict.items():
+                            weight_array[key] = item
+                        weight_tensor = gem.Literal(weight_array)
+
+                    pts_in_derivs.append((point_set, weight_tensor, alpha_tensor))
+                derivs.append(tuple(pts_in_derivs))
+            duals.append(tuple([tuple(derivs), None]))
+        return tuple(duals)
 
     @property
     def mapping(self):
