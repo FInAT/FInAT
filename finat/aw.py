@@ -87,14 +87,10 @@ class ArnoldWinther(PhysicallyMappedElement, FiatElement):
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
 
-        # The edge and internal dofs are as for the
-        # nonconforming element.
-        full_AWnc_dofs = (ArnoldWintherNC(self.cell, self.degree-1).basis_transformation(coordinate_mapping, True)).T
-        edge_and_internal = full_AWnc_dofs[:15,:]
-        V[9:24, 9:24] = edge_and_internal
-        #V[9:24, 9:24] = (ArnoldWintherNC(self.cell, self.degree-1).basis_transformation(coordinate_mapping, True)).T
-
-        # vertex dofs
+        for i in range(24):
+            V[i, i] = Literal(1)
+        return ListTensor(V.T)
+            
         # TODO: find a succinct expression for W in terms of J.
         J = coordinate_mapping.jacobian_at([1/3, 1/3])
         detJ = coordinate_mapping.detJ_at([1/3, 1/3])
@@ -109,10 +105,45 @@ class ArnoldWinther(PhysicallyMappedElement, FiatElement):
         W[2, 0] = J[1, 0]*J[1, 0]
         W[2, 1] = 2*J[1, 0]*J[1, 1]
         W[2, 2] = J[1, 1]*J[1, 1]
-        W = W 
+        W = W / (detJ * detJ)
 
         # Put into the right rows and columns.
         V[0:3, 0:3] = V[3:6, 3:6] = V[6:9, 6:9] = W
+
+        # edge dofs, 4 per edge
+        for i in range(9, 21, 2):
+            V[i, i] = Literal(1)
+
+        T = self.cell
+
+        # This bypasses the GEM wrapper.
+        that = numpy.array([T.compute_normalized_edge_tangent(i) for i in range(3)])
+        nhat = numpy.array([T.compute_normal(i) for i in range(3)])
+
+        detJ = coordinate_mapping.detJ_at([1/3, 1/3])
+        J = coordinate_mapping.jacobian_at([1/3, 1/3])
+        J_np = numpy.array([[J[0, 0], J[0, 1]],
+                            [J[1, 0], J[1, 1]]])
+        JTJ = J_np.T @ J_np
+
+        for e in range(3):
+
+            # Compute alpha and beta for the edge.
+            Ghat_T = numpy.array([nhat[e, :], that[e, :]])
+
+            (alpha, beta) = Ghat_T @ JTJ @ that[e,:] / detJ
+
+            # Stuff into the right rows and columns.
+            (idx1, idx2) = (9 + 4*e + 1, 9 + 4*e + 3)
+            V[idx1, idx1-1] = Literal(-1) * alpha / beta
+            V[idx1, idx1] = Literal(1) / beta
+            V[idx2, idx2-1] = Literal(-1) * alpha / beta
+            V[idx2, idx2] = Literal(1) / beta
+
+        # internal dofs
+        for i in range(21, 24):
+            V[i, i] = Literal(1)
+
 
         return ListTensor(V.T)
 
