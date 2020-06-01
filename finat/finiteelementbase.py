@@ -145,14 +145,14 @@ class FiniteElementBase(metaclass=ABCMeta):
         '''
 
     @abstractmethod
-    def dual_evaluation(self, func, entity=None):
+    def dual_evaluation(self, expression, entity=None, callback_fn=None):
         '''Return code for performing the dual evaluation at the nodes of the
         reference element.
         
-        :param func: Python function to perform the dual evaluation for
-                     (probably output from coffee.FunCall).
+        :param expression: UFL expression to perform the dual evaluation for.
         :param entity: the cell entity on which to tabulate for comparing
                        results with FIAT.
+        :param callback_fn: TSFC callback function for converting UFL to GEM.
         '''
 
     @abstractproperty
