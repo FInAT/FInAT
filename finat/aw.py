@@ -87,15 +87,17 @@ class ArnoldWinther(PhysicallyMappedElement, FiatElement):
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
 
-        for i in range(24):
-            V[i, i] = Literal(1)
-        return ListTensor(V.T)
+        #for i in range(24):
+        #    V[i, i] = Literal(1)
+        #return ListTensor(V.T)
             
         # TODO: find a succinct expression for W in terms of J.
         J = coordinate_mapping.jacobian_at([1/3, 1/3])
+        #J = numpy.linalg.inv(J)
         detJ = coordinate_mapping.detJ_at([1/3, 1/3])
-
+        
         W = numpy.zeros((3,3), dtype=object)
+        """
         W[0, 0] = J[0, 0]*J[0, 0]
         W[0, 1] = 2*J[0, 0]*J[0, 1]
         W[0, 2] = J[0, 1]*J[0, 1]
@@ -105,11 +107,26 @@ class ArnoldWinther(PhysicallyMappedElement, FiatElement):
         W[2, 0] = J[1, 0]*J[1, 0]
         W[2, 1] = 2*J[1, 0]*J[1, 1]
         W[2, 2] = J[1, 1]*J[1, 1]
-        W = W / (detJ * detJ)
-
+        W_check = W / (detJ * detJ)
+        """
+        W[0, 0] = J[1,1]*J[1,1]
+        W[0, 1] = -2*J[1, 1]*J[0, 1]
+        W[0, 2] = J[0, 1]*J[0, 1]
+        W[1, 0] = -1*J[1, 1]*J[1, 0]
+        W[1, 1] = J[1, 1]*J[0, 0] + J[0, 1]*J[1, 0]
+        W[1, 2] = -1*J[0, 1]*J[0, 0]
+        W[2, 0] = J[1, 0]*J[1, 0]
+        W[2, 1] = -2*J[1, 0]*J[0, 0]
+        W[2, 2] = J[0, 0]*J[0, 0]
+        W_check = W
         # Put into the right rows and columns.
-        V[0:3, 0:3] = V[3:6, 3:6] = V[6:9, 6:9] = W
-
+        V[0:3, 0:3] = V[3:6, 3:6] = V[6:9, 6:9] = W_check
+        
+        """
+        for i in range(9):
+            V[i, i] = Literal(1)
+        """
+        #J = numpy.linalg.inv(J)
         # edge dofs, 4 per edge
         for i in range(9, 21, 2):
             V[i, i] = Literal(1)
@@ -125,7 +142,7 @@ class ArnoldWinther(PhysicallyMappedElement, FiatElement):
         J_np = numpy.array([[J[0, 0], J[0, 1]],
                             [J[1, 0], J[1, 1]]])
         JTJ = J_np.T @ J_np
-
+        
         for e in range(3):
 
             # Compute alpha and beta for the edge.
@@ -141,8 +158,9 @@ class ArnoldWinther(PhysicallyMappedElement, FiatElement):
             V[idx2, idx2] = Literal(1) / beta
 
         # internal dofs
-        for i in range(21, 24):
-            V[i, i] = Literal(1)
+        #for i in range(21, 24):
+        #    V[i, i] = Literal(1)
+        V[21: 24, 21:24] = W_check
 
 
         return ListTensor(V.T)
