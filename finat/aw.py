@@ -158,27 +158,27 @@ class ArnoldWinther(PhysicallyMappedElement, FiatElement):
             V[idx2, idx2] = Literal(1) / beta
 
         # internal dofs (AWnc has good conditioning, so leave this alone)
-        #for i in range(21, 24):
-        #    V[i, i] = Literal(1)
-        V[21: 24, 21:24] = W_check
+        for i in range(21, 24):
+           V[i, i] = Literal(1)
+        #V[21:24, 21:24] = W_check
 
         h = coordinate_mapping.cell_size()
         for v in range(3):
             for c in range(3):
                 for i in range(30):
-                    V[i, 3*v+c] = V[i, 3*v+c] / h[v] / h[v]
-        
-        # for e in range(3):
-        #     v0id, v1id = [i for i in range(3) if i != e]
-        #     he = (h[v0id] + h[v1id]) / 2
-        #     for j in range(4):
-        #         for i in range(30):
-        #             V[i, 9+4*e+j] = V[i, 9+4*e+j] / h[e]
+                    V[i, 3*v+c] = V[i, 3*v+c] 
 
-        # hc = (h[0] + h[1] + h[2]) / 3
-        # for j in range(3):
-        #     for i in range(30):
-        #         V[i, 21 + j] = V[i, 21 + j] / hc
+        for e in range(3):
+            v0id, v1id = [i for i in range(3) if i != e]
+            he = (h[v0id] + h[v1id]) / 2
+            for j in range(4):
+                for i in range(30):
+                    V[i, 9+4*e+j] = V[i, 9+4*e+j] * h[e] * h[e]
+
+        hc = (h[0] + h[1] + h[2]) / 3
+        for j in range(3):
+            for i in range(30):
+                V[i, 21 + j] = V[i, 21 + j] * hc * hc
         
         return ListTensor(V.T)
 
