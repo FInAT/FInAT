@@ -118,7 +118,7 @@ class ArnoldWinther(PhysicallyMappedElement, FiatElement):
         W[2, 0] = J[1, 0]*J[1, 0]
         W[2, 1] = -2*J[1, 0]*J[0, 0]
         W[2, 2] = J[0, 0]*J[0, 0]
-        W_check = W
+        W_check = W 
         # Put into the right rows and columns.
         V[0:3, 0:3] = V[3:6, 3:6] = V[6:9, 6:9] = W_check
         
@@ -157,12 +157,29 @@ class ArnoldWinther(PhysicallyMappedElement, FiatElement):
             V[idx2, idx2-1] = Literal(-1) * alpha / beta
             V[idx2, idx2] = Literal(1) / beta
 
-        # internal dofs
+        # internal dofs (AWnc has good conditioning, so leave this alone)
         #for i in range(21, 24):
         #    V[i, i] = Literal(1)
         V[21: 24, 21:24] = W_check
 
+        h = coordinate_mapping.cell_size()
+        for v in range(3):
+            for c in range(3):
+                for i in range(30):
+                    V[i, 3*v+c] = V[i, 3*v+c] / h[v] / h[v]
+        
+        # for e in range(3):
+        #     v0id, v1id = [i for i in range(3) if i != e]
+        #     he = (h[v0id] + h[v1id]) / 2
+        #     for j in range(4):
+        #         for i in range(30):
+        #             V[i, 9+4*e+j] = V[i, 9+4*e+j] / h[e]
 
+        # hc = (h[0] + h[1] + h[2]) / 3
+        # for j in range(3):
+        #     for i in range(30):
+        #         V[i, 21 + j] = V[i, 21 + j] / hc
+        
         return ListTensor(V.T)
 
 
