@@ -142,6 +142,69 @@ class FiatElement(FiniteElementBase):
         # Dispatch on FIAT element class
         return point_evaluation(self._element, order, refcoords, (entity_dim, entity_i))
 
+    def dual_evaluation(self, expression, callback_fn, callback_cfg, entity=None):
+        '''Return code for performing the dual evaluation at the nodes of the
+        reference element.
+        
+        :param expression: UFL expression to perform the dual evaluation for.
+        :param callback_fn: TSFC callback function for converting UFL to GEM.
+        :param callback_cfg: Dictionary containing kwargs for callback_fn.
+        :param entity: the cell entity on which to tabulate for comparing
+                       results with FIAT.
+        '''
+        import collections
+        from itertools import chain
+        from point_set import PointSet
+
+        if any(len(dual.deriv_dict) != 0 for dual in self._element.dual_basis()):
+            raise NotImplementedError("Can only interpolate onto dual basis functionals without derivative evaluation, sorry!")
+
+        if entity is None:
+            # TODO: Add comparison to FIAT
+            pass
+
+        # TODO: Add default kernel_cfg for UFL->GEM
+
+        # This is general code but is more unrolled than necessary.
+        dual_expressions = []   # one for each functional
+        broadcast_shape = len(expression.ufl_shape) - len(self.value_shape())
+        shape_indices = tuple(gem.Index() for _ in expression.ufl_shape[:broadcast_shape])
+        expr_cache = {}         # Sharing of evaluation of the expression at points
+        for dual in self._element.dual_basis():
+            # TODO: change from point evaluation to general 
+            pts = tuple(sorted(dual.get_point_dict().keys()))
+            try:
+                expr, point_set = expr_cache[pts]
+            except KeyError:
+                point_set = PointSet(pts)
+                # need config to convert to gem
+                config = callback_cfg.copy()
+                config.update(point_set=point_set)
+                # Converts UFL to GEM
+                expr, = callback_fn(expression, **config, point_sum=False)
+                expr = gem.partial_indexed(expr, shape_indices)
+                expr_cache[pts] = expr, point_set
+            weights = collections.defaultdict(list)
+            # TODO: replace by putting in all points and duals at once
+            for p in pts:
+                for (w, cmp) in dual.get_point_dict()[p]:
+                    weights[cmp].append(w)
+            qexprs = gem.Zero()
+            for cmp in sorted(weights):
+                qweights = gem.Literal(weights[cmp])
+                qexpr = gem.Indexed(expr, cmp)
+                qexpr = gem.index_sum(gem.Indexed(qweights, point_set.indices)*qexpr,
+                                      point_set.indices)
+                qexprs = gem.Sum(qexprs, qexpr)
+            assert qexprs.shape == ()
+            assert set(qexprs.free_indices) == set(chain(shape_indices, *(callback_cfg['argument_multiindices'])))
+            dual_expressions.append(qexprs)
+        basis_indices = (gem.Index(), )
+        ir = gem.Indexed(gem.ListTensor(dual_expressions), basis_indices)
+
+        # basis_indices is temporary before including kernel body in method
+        return (basis_indices, ir)
+
     @property
     def mapping(self):
         mappings = set(self._element.mapping())
