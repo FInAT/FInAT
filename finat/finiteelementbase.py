@@ -145,14 +145,15 @@ class FiniteElementBase(metaclass=ABCMeta):
         '''
 
     @abstractmethod
-    def dual_evaluation(self, expression, entity=None, callback_fn=None):
+    def dual_evaluation(self, expression, callback_fn, callback_cfg, entity=None):
         '''Return code for performing the dual evaluation at the nodes of the
         reference element.
         
         :param expression: UFL expression to perform the dual evaluation for.
+        :param callback_fn: TSFC callback function for converting UFL to GEM.
+        :param callback_cfg: Dictionary containing kwargs for callback_fn.
         :param entity: the cell entity on which to tabulate for comparing
                        results with FIAT.
-        :param callback_fn: TSFC callback function for converting UFL to GEM.
         '''
 
     @abstractproperty
