@@ -173,114 +173,68 @@ class FiatElement(FiniteElementBase):
         # Dispatch on FIAT element class
         return point_evaluation(self._element, order, refcoords, (entity_dim, entity_i))
 
-    def dual_basis(self):
-        '''Returns a tuple where each element of the tuple represents one
-        functional in the dual space. Each functional is represented by
-        a tuple of tuples containing the points (PointSet), a weight tensor
-        which holds the weights for each component of value_shape of functions,
-        and a alpha tensor for extracting the alpha components from ReferenceGrad,
-        sorted by total derivative order.
-
-        For example, a dual basis containing 2 functionals with maximum derivative
-        order of 1 would be represented by:
-        (((point_set_10, weight_tensor_10, alpha_tensor_10),
-          (point_set_11, weight_tensor_11, alpha_tensor_11))
-         ((point_set_20, weight_tensor_20, alpha_tensor_20),
-          ()))
-        where one of the innermost tuples is empty because there are no evaluations
-        at that order.
+    def dual_evaluation(self, expression, callback_fn, callback_cfg, entity=None):
+        '''Return code for performing the dual evaluation at the nodes of the
+        reference element.
+        
+        :param expression: UFL expression to perform the dual evaluation for.
+        :param callback_fn: TSFC callback function for converting UFL to GEM.
+        :param callback_cfg: Dictionary containing kwargs for callback_fn.
+        :param entity: the cell entity on which to tabulate for comparing
+                       results with FIAT.
         '''
+        import collections
         from itertools import chain
-        from finat.point_set import PointSet
+        from point_set import PointSet
 
-        max_deriv_order = max([ell.max_deriv_order for ell in self._element.dual_basis()])
+        if any(len(dual.deriv_dict) != 0 for dual in self._element.dual_basis()):
+            raise NotImplementedError("Can only interpolate onto dual basis functionals without derivative evaluation, sorry!")
 
-        duals = []
-        point_set_cache = {}    # To avoid repeating points?
+        if entity is None:
+            # TODO: Add comparison to FIAT
+            pass
+
+        # TODO: Add default kernel_cfg for UFL->GEM
+
+        # This is general code but is more unrolled than necessary.
+        dual_expressions = []   # one for each functional
+        broadcast_shape = len(expression.ufl_shape) - len(self.value_shape())
+        shape_indices = tuple(gem.Index() for _ in expression.ufl_shape[:broadcast_shape])
+        expr_cache = {}         # Sharing of evaluation of the expression at points
         for dual in self._element.dual_basis():
-            # print(dual.get_point_dict(), dual.deriv_dict)
-            derivs = []
-            # No of points = no of evaluations x no of (points as keys)
-            # tup = tuple(sorted((pt, wt, cmp) for pt, tup in dual.get_point_dict().items()
-            #                    for (wt, cmp) in tup))
-            pts_in_derivs = []
-            for pts, tups in sorted(dual.get_point_dict().items()):
-                try:
-                    point_set = point_set_cache[(pts,)]
-                except KeyError:
-                    point_set = PointSet((pts,))
-                    point_set_cache[(pts,)] = point_set
+            # TODO: change from point evaluation to general 
+            pts = tuple(sorted(dual.get_point_dict().keys()))
+            try:
+                expr, point_set = expr_cache[pts]
+            except KeyError:
+                point_set = PointSet(pts)
+                # need config to convert to gem
+                config = callback_cfg.copy()
+                config.update(point_set=point_set)
+                # Converts UFL to GEM
+                expr, = callback_fn(expression, **config, point_sum=False)
+                expr = gem.partial_indexed(expr, shape_indices)
+                expr_cache[pts] = expr, point_set
+            weights = collections.defaultdict(list)
+            # TODO: replace by putting in all points and duals at once
+            for p in pts:
+                for (w, cmp) in dual.get_point_dict()[p]:
+                    weights[cmp].append(w)
+            qexprs = gem.Zero()
+            for cmp in sorted(weights):
+                qweights = gem.Literal(weights[cmp])
+                qexpr = gem.Indexed(expr, cmp)
+                qexpr = gem.index_sum(gem.Indexed(qweights, point_set.indices)*qexpr,
+                                      point_set.indices)
+                qexprs = gem.Sum(qexprs, qexpr)
+            assert qexprs.shape == ()
+            assert set(qexprs.free_indices) == set(chain(shape_indices, *(callback_cfg['argument_multiindices'])))
+            dual_expressions.append(qexprs)
+        basis_indices = (gem.Index(), )
+        ir = gem.Indexed(gem.ListTensor(dual_expressions), basis_indices)
 
-                # alpha_tensor = gem.Literal(np.ones(self.value_shape))
-                alpha_tensor = gem.Literal(1)
-
-                # Perform Index of weight_tensor in dual_evaluation to be consistent with derivatives
-                weight_dict = {c: w for w, c in tups}
-                if len(self.value_shape) == 0:
-                    weight_tensor = gem.Literal(weight_dict[tuple()])
-                else:
-                    weight_array = np.zeros(self.value_shape)
-                    for key, item in weight_dict.items():
-                        weight_array[key] = item
-                    weight_tensor = gem.Literal(weight_array)
-
-                pts_in_derivs.append((point_set, weight_tensor, alpha_tensor, 1))
-            derivs.append(pts_in_derivs)
-
-            deriv_dict_items = sorted(dual.deriv_dict.items())  # Ensure parallel safety
-            for i in range(1, max_deriv_order+1):
-                pts_in_derivs = []
-                # TODO: Combine tensors for tups of same derivative order
-                for points, tups in deriv_dict_items:
-                    weights, alphas, cmps = zip(*tups)
-
-                    # TODO: repeated points and repeated tups
-                    weight, alpha, cmp = [], [], []
-                    for j, a in enumerate(alphas):
-                        if sum(a) == i:
-                            weight.append(weights[j])
-                            alpha.append(alphas[j])
-                            cmp.append(cmps[j])
-                    if len(alpha) == 0:
-                        continue
-
-                    # alpha_tensor assumes all weights are equal
-                    # TODO: Case for unequal weights
-                    if len(alpha) > 1:
-                        if 0.0 not in weight:
-                            assert np.isclose(min(weight), max(weight))
-                        else:
-                            non_zero_weight = [w for w in weight if w != 0.0]
-                            assert np.isclose(min(non_zero_weight), max(non_zero_weight))
-
-                    # For direct indexing
-                    alpha_idx = tuple(tuple(chain(*[(j,)*a for j, a in enumerate(alph)])) for alph in alpha)
-                    # TODO: how to ensure correct combination (indexing) with weight_tensor?
-                    alpha_arr = np.zeros((self._element.ref_el.get_spatial_dimension(),)*i)
-                    for idx in alpha_idx:
-                        alpha_arr[idx] = 1
-                    alpha_tensor = gem.Literal(alpha_arr)
-
-                    # try:
-                    #     point_set = point_set_cache[(pts,)]
-                    # except KeyError:
-                    point_set = PointSet((pts,))
-                    #     point_set_cache[(pts,)] = point_set
-
-                    # TODO: Change default for value_shape
-                    weight_dict = {c: w for w, c in zip(weight, cmp)}
-                    if len(self.value_shape) == 0:
-                        weight_tensor = gem.Literal(weight_dict[tuple()])
-                    else:
-                        weight_array = np.zeros(self.value_shape)
-                        for key, item in weight_dict.items():
-                            weight_array[key] = item
-                        weight_tensor = gem.Literal(weight_array)
-
-                    pts_in_derivs.append((point_set, weight_tensor, alpha_tensor, 1))
-                derivs.append(tuple(pts_in_derivs))
-            duals.append(tuple(derivs))
-        return tuple(duals)
+        # basis_indices is temporary before including kernel body in method
+        return (basis_indices, ir)
 
     @property
     def mapping(self):
