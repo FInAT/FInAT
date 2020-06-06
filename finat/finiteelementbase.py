@@ -144,7 +144,8 @@ class FiniteElementBase(metaclass=ABCMeta):
         :param entity: the cell entity on which to tabulate.
         '''
 
-    @abstractmethod
+    # Will be required when all elements are updated
+    # @abstractmethod
     def dual_evaluation(self, expression, callback_fn, callback_cfg, entity=None):
         '''Return code for performing the dual evaluation at the nodes of the
         reference element.
