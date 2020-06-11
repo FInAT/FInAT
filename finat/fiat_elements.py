@@ -173,13 +173,11 @@ class FiatElement(FiniteElementBase):
         # Dispatch on FIAT element class
         return point_evaluation(self._element, order, refcoords, (entity_dim, entity_i))
 
-    def dual_evaluation(self, expression, callback_fn, callback_cfg, entity=None):
+    def dual_evaluation(self, fn, entity=None):
         '''Return code for performing the dual evaluation at the nodes of the
-        reference element.
+        reference element. Currently only works for point evaluation and quadrature.
         
-        :param expression: UFL expression to perform the dual evaluation for.
-        :param callback_fn: TSFC callback function for converting UFL to GEM.
-        :param callback_cfg: Dictionary containing kwargs for callback_fn.
+        :param fn: Function that takes in PointSet and returns GEM expression.
         :param entity: the cell entity on which to tabulate for comparing
                        results with FIAT.
         '''
@@ -194,12 +192,10 @@ class FiatElement(FiniteElementBase):
             # TODO: Add comparison to FIAT
             pass
 
-        # TODO: Add default kernel_cfg for UFL->GEM
-
         # This is general code but is more unrolled than necessary.
         dual_expressions = []   # one for each functional
-        broadcast_shape = len(expression.ufl_shape) - len(self.value_shape())
-        shape_indices = tuple(gem.Index() for _ in expression.ufl_shape[:broadcast_shape])
+        # broadcast_shape = len(expression.ufl_shape) - len(self.value_shape())
+        # shape_indices = tuple(gem.Index() for _ in expression.ufl_shape[:broadcast_shape])
         expr_cache = {}         # Sharing of evaluation of the expression at points
         for dual in self._element.dual_basis():
             # TODO: change from point evaluation to general 
@@ -208,11 +204,15 @@ class FiatElement(FiniteElementBase):
                 expr, point_set = expr_cache[pts]
             except KeyError:
                 point_set = PointSet(pts)
-                # need config to convert to gem
-                config = callback_cfg.copy()
-                config.update(point_set=point_set)
-                # Converts UFL to GEM
-                expr, = callback_fn(expression, **config, point_sum=False)
+                expr, get_ufl_shape, argument_multiindices = fn(point_set)
+                
+                # Hack to define broadcast_shape, shape_indices (once)
+                try:
+                    broadcast_shape, shape_indices
+                except NameError:
+                    broadcast_shape = len(get_ufl_shape()) - len(self.value_shape())
+                    shape_indices = tuple(gem.Index() for _ in get_ufl_shape()[:broadcast_shape])
+
                 expr = gem.partial_indexed(expr, shape_indices)
                 expr_cache[pts] = expr, point_set
             weights = collections.defaultdict(list)
@@ -228,7 +228,7 @@ class FiatElement(FiniteElementBase):
                                       point_set.indices)
                 qexprs = gem.Sum(qexprs, qexpr)
             assert qexprs.shape == ()
-            assert set(qexprs.free_indices) == set(chain(shape_indices, *(callback_cfg['argument_multiindices'])))
+            assert set(qexprs.free_indices) == set(chain(shape_indices, *argument_multiindices))
             dual_expressions.append(qexprs)
         basis_indices = (gem.Index(), )
         ir = gem.Indexed(gem.ListTensor(dual_expressions), basis_indices)
