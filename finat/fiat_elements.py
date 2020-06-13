@@ -204,7 +204,7 @@ class FiatElement(FiniteElementBase):
                 expr, point_set = expr_cache[pts]
             except KeyError:
                 point_set = PointSet(pts)
-                expr, get_ufl_shape, argument_multiindices = fn(point_set)
+                expr, get_ufl_shape, get_argument_multiindices = fn(point_set)
                 
                 # Hack to define broadcast_shape, shape_indices (once)
                 try:
@@ -228,7 +228,7 @@ class FiatElement(FiniteElementBase):
                                       point_set.indices)
                 qexprs = gem.Sum(qexprs, qexpr)
             assert qexprs.shape == ()
-            assert set(qexprs.free_indices) == set(chain(shape_indices, *argument_multiindices()))
+            assert set(qexprs.free_indices) == set(chain(shape_indices, *get_argument_multiindices()))
             dual_expressions.append(qexprs)
         basis_indices = (gem.Index(), )
         ir = gem.Indexed(gem.ListTensor(dual_expressions), basis_indices)
