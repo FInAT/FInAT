@@ -183,7 +183,7 @@ class FiatElement(FiniteElementBase):
         '''
         import collections
         from itertools import chain
-        from point_set import PointSet
+        from finat.point_set import PointSet
 
         if any(len(dual.deriv_dict) != 0 for dual in self._element.dual_basis()):
             raise NotImplementedError("Can only interpolate onto dual basis functionals without derivative evaluation, sorry!")
@@ -210,7 +210,7 @@ class FiatElement(FiniteElementBase):
                 try:
                     broadcast_shape, shape_indices
                 except NameError:
-                    broadcast_shape = len(get_ufl_shape()) - len(self.value_shape())
+                    broadcast_shape = len(get_ufl_shape()) - len(self.value_shape)
                     shape_indices = tuple(gem.Index() for _ in get_ufl_shape()[:broadcast_shape])
 
                 expr = gem.partial_indexed(expr, shape_indices)
@@ -228,13 +228,20 @@ class FiatElement(FiniteElementBase):
                                       point_set.indices)
                 qexprs = gem.Sum(qexprs, qexpr)
             assert qexprs.shape == ()
-            assert set(qexprs.free_indices) == set(chain(shape_indices, *argument_multiindices))
+            assert set(qexprs.free_indices) == set(chain(shape_indices, *argument_multiindices()))
             dual_expressions.append(qexprs)
         basis_indices = (gem.Index(), )
         ir = gem.Indexed(gem.ListTensor(dual_expressions), basis_indices)
 
-        # basis_indices is temporary before including kernel body in method
-        return (basis_indices, ir)
+        # Derivative
+        max_deriv_order = max([ell.max_deriv_order for ell in self._element.dual_basis()])
+        if max_deriv_order > 0:
+            for dual in self._element.dual_basis():
+                dpts = tuple(sorted(dual.deriv_dict.keys()))
+            pass
+
+        # TODO: basis_indices and shape_indices are temporary before including kernel body in method
+        return (basis_indices, ir, shape_indices)
 
     @property
     def mapping(self):
