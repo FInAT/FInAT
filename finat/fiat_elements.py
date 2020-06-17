@@ -194,8 +194,6 @@ class FiatElement(FiniteElementBase):
 
         # This is general code but is more unrolled than necessary.
         dual_expressions = []   # one for each functional
-        # broadcast_shape = len(expression.ufl_shape) - len(self.value_shape())
-        # shape_indices = tuple(gem.Index() for _ in expression.ufl_shape[:broadcast_shape])
         expr_cache = {}         # Sharing of evaluation of the expression at points
         for dual in self._element.dual_basis():
             # TODO: change from point evaluation to general 
@@ -204,14 +202,14 @@ class FiatElement(FiniteElementBase):
                 expr, point_set = expr_cache[pts]
             except KeyError:
                 point_set = PointSet(pts)
-                expr, get_ufl_shape, get_argument_multiindices = fn(point_set)
-                
-                # Hack to define broadcast_shape, shape_indices (once)
+                expr = fn(point_set)
+
+                # Hack to get shape_indices from shape of GEM expression
                 try:
-                    broadcast_shape, shape_indices
+                    shape_indices
                 except NameError:
-                    broadcast_shape = len(get_ufl_shape()) - len(self.value_shape)
-                    shape_indices = tuple(gem.Index() for _ in get_ufl_shape()[:broadcast_shape])
+                    broadcast_shape = len(expr.shape) - len(self.value_shape)
+                    shape_indices = tuple(gem.Index() for _ in self.value_shape[:broadcast_shape])
 
                 expr = gem.partial_indexed(expr, shape_indices)
                 expr_cache[pts] = expr, point_set
@@ -227,11 +225,10 @@ class FiatElement(FiniteElementBase):
                 qexpr = gem.index_sum(gem.Indexed(qweights, point_set.indices)*qexpr,
                                       point_set.indices)
                 qexprs = gem.Sum(qexprs, qexpr)
-            assert qexprs.shape == ()
-            assert set(qexprs.free_indices) == set(chain(shape_indices, *get_argument_multiindices()))
+            # assert qexprs.shape == ()
+            # assert set(qexprs.free_indices) == set(chain(shape_indices, *get_argument_multiindices()))
             dual_expressions.append(qexprs)
-        basis_indices = (gem.Index(), )
-        ir = gem.Indexed(gem.ListTensor(dual_expressions), basis_indices)
+        ir_shape = gem.ListTensor(dual_expressions)
 
         # Derivative
         max_deriv_order = max([ell.max_deriv_order for ell in self._element.dual_basis()])
@@ -240,8 +237,7 @@ class FiatElement(FiniteElementBase):
                 dpts = tuple(sorted(dual.deriv_dict.keys()))
             pass
 
-        # TODO: basis_indices and shape_indices are temporary before including kernel body in method
-        return (basis_indices, ir, shape_indices)
+        return ir_shape
 
     @property
     def mapping(self):
