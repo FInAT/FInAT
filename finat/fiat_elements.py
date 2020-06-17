@@ -194,8 +194,6 @@ class FiatElement(FiniteElementBase):
                 qexpr = gem.index_sum(gem.Indexed(qweights, point_set.indices)*qexpr,
                                       point_set.indices)
                 qexprs = gem.Sum(qexprs, qexpr)
-            # assert qexprs.shape == ()
-            # assert set(qexprs.free_indices) == set(chain(shape_indices, *get_argument_multiindices()))
             dual_expressions.append(qexprs)
         ir_shape = gem.ListTensor(dual_expressions)
 
