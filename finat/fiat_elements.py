@@ -174,6 +174,7 @@ class FiatElement(FiniteElementBase):
                 expr = fn(point_set)
 
                 # Hack to get shape_indices from shape of GEM expression
+                # Unsure whether expressions with arguments work
                 try:
                     shape_indices
                 except NameError:
