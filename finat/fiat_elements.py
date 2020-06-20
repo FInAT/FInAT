@@ -145,13 +145,12 @@ class FiatElement(FiniteElementBase):
     def dual_evaluation(self, fn, entity=None):
         '''Return code for performing the dual evaluation at the nodes of the
         reference element. Currently only works for point evaluation and quadrature.
-        
+
         :param fn: Function that takes in PointSet and returns GEM expression.
         :param entity: the cell entity on which to tabulate for comparing
                        results with FIAT.
         '''
         import collections
-        from itertools import chain
         from finat.point_set import PointSet
 
         if any(len(dual.deriv_dict) != 0 for dual in self._element.dual_basis()):
@@ -165,7 +164,7 @@ class FiatElement(FiniteElementBase):
         dual_expressions = []   # one for each functional
         expr_cache = {}         # Sharing of evaluation of the expression at points
         for dual in self._element.dual_basis():
-            # TODO: change from point evaluation to general 
+            # TODO: change from point evaluation to general
             pts = tuple(sorted(dual.get_point_dict().keys()))
             try:
                 expr, point_set = expr_cache[pts]
