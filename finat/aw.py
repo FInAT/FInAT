@@ -120,7 +120,7 @@ class ArnoldWinther(PhysicallyMappedElement, FiatElement):
         W[2, 2] = J[0, 0]*J[0, 0]
         W_check = W 
         # Put into the right rows and columns.
-        V[0:3, 0:3] = V[3:6, 3:6] = V[6:9, 6:9] = W_check
+        V[0:3, 0:3] = V[3:6, 3:6] = V[6:9, 6:9] = W_check / detJ / detJ
         
         """
         for i in range(9):
