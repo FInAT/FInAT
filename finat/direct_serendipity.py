@@ -1,8 +1,7 @@
 import numpy
 
-import finat
 from finat.finiteelementbase import FiniteElementBase
-from finat.physically_mapped import DirectlyDefinedElement, Citations
+from finat.physically_mapped import DirectlyDefinedElement
 from FIAT.reference_element import UFCQuadrilateral
 from FIAT.polynomial_set import mis
 
@@ -97,6 +96,10 @@ class DirectSerendipity(DirectlyDefinedElement, FiniteElementBase):
         return "physical"
 
 
+def xysub(x, y):
+    return {x[0]: y[0], x[1]: y[1]}
+
+
 def ds1_sympy(ct):
     vs = numpy.asarray(list(zip(sympy.symbols('x:4'), sympy.symbols('y:4'))))
     xx = numpy.asarray(sympy.symbols("x,y"))
@@ -115,9 +118,6 @@ def ds1_sympy(ct):
     for e in (1, 2):
         ns[e, 0] = ts[e, 1]
         ns[e, 1] = -ts[e, 0]
-
-    def xysub(x, y):
-        return {x[0]: y[0], x[1]: y[1]}
 
     xstars = numpy.zeros((4, 2), dtype=object)
     for e in range(4):
@@ -185,9 +185,6 @@ def ds2_sympy(ct):
         ns[e, 0] = ts[e, 1]
         ns[e, 1] = -ts[e, 0]
 
-    def xysub(x, y):
-        return {x[0]: y[0], x[1]: y[1]}
-
     xstars = numpy.zeros((4, 2), dtype=object)
     for e in range(4):
         v0id, v1id = ct[1][e][:]
@@ -238,3 +235,47 @@ def ds2_sympy(ct):
     phis_e = [ephi / ephi.subs(xx2xstars[i]) for i, ephi in enumerate(e_phitildes)]
 
     return vs, xx, numpy.asarray(phis_v + phis_e)
+
+
+def dsr_sympy(ct, r):
+    vs = numpy.asarray(list(zip(sympy.symbols('x:4'), sympy.symbols('y:4'))))
+    xx = numpy.asarray(sympy.symbols("x,y"))
+
+    ts = numpy.zeros((4, 2), dtype=object)
+    for e in range(4):
+        v0id, v1id = ct[1][e][:]
+        for j in range(2):
+            ts[e, :] = vs[v1id, :] - vs[v0id, :]
+
+    ns = numpy.zeros((4, 2), dtype=object)
+    for e in (0, 3):
+        ns[e, 0] = -ts[e, 1]
+        ns[e, 1] = ts[e, 0]
+
+    for e in (1, 2):
+        ns[e, 0] = ts[e, 1]
+        ns[e, 1] = -ts[e, 0]
+
+    xstars = numpy.zeros((4, 2), dtype=object)
+    for e in range(4):
+        v0id, v1id = ct[1][e][:]
+        xstars[e, :] = (vs[v0id, :] + vs[v1id])/2
+
+    lams = [(xx-xstars[i, :]) @ ns[i, :] for i in range(4)]
+
+    RV = (lams[0] - lams[1]) / (lams[0] + lams[1])
+    RH = (lams[2] - lams[3]) / (lams[2] + lams[3])
+
+    xx2xstars = [xysub(xx, xstars[i]) for i in range(4)]
+
+    # interior bfs: monomials for now
+    bubble = np.prod(lams)
+    rm4 = r - 4
+
+    interior_bfs = []
+    for deg in range(rm4 + 1):
+        for i in range(deg + 1):
+            interior_bfs.append.append(xx[0]**(deg-i) * xx[1]**i * bubble)
+
+    
+    
