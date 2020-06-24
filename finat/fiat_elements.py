@@ -153,7 +153,8 @@ class FiatElement(FiniteElementBase):
         import collections
         from finat.point_set import PointSet
 
-        if any(len(dual.deriv_dict) != 0 for dual in self._element.dual_basis()):
+        max_deriv_order = max([ell.max_deriv_order for ell in self._element.dual_basis()])
+        if max_deriv_order > 0:
             raise NotImplementedError("Can only interpolate onto dual basis functionals without derivative evaluation, sorry!")
 
         if entity is None:
@@ -161,48 +162,76 @@ class FiatElement(FiniteElementBase):
             pass
 
         # This is general code but is more unrolled than necessary.
+        # Creates expressions in order of derivative order and alpha, then combine
+        # together into one expression, then combine with weights and component
         dual_expressions = []   # one for each functional
         expr_cache = {}         # Sharing of evaluation of the expression at points
         for dual in self._element.dual_basis():
-            # TODO: change from point evaluation to general
-            pts = tuple(sorted(dual.get_point_dict().keys()))
-            try:
-                expr, point_set = expr_cache[pts]
-            except KeyError:
-                point_set = PointSet(pts)
-                expr = fn(point_set)
+            # Put each pt in corresponding derivative order
+            pt_dict = collections.OrderedDict()
+            pt_dict[0] = tuple(sorted((pt, ()) for pt in dual.get_point_dict().keys()))
+            # TODO: Can probably be optimized
+            for i in range(1, max_deriv_order+1):
+                pt_dict[i] = tuple(sorted((pt, alpha) for pt, ((_, alpha, _),) in dual.deriv_dict.items()
+                                          if sum(alpha) == i))
 
-                # Hack to get shape_indices from shape of GEM expression
-                # Unsure whether expressions with arguments work
+            # pts = tuple(sorted(dual.get_point_dict().keys()))
+            expr = gem.Zero()
+            for i in range(max_deriv_order+1):
+                pts = tuple(sorted([pt for pt, alpha in pt_dict[i]]))
+                if len(pts) == 0:
+                    continue
+                alphas = tuple(alpha for pt, alpha in pt_dict[i])
                 try:
-                    shape_indices
-                except NameError:
-                    broadcast_shape = len(expr.shape) - len(self.value_shape)
-                    shape_indices = tuple(gem.Index() for _ in self.value_shape[:broadcast_shape])
+                    expr, point_set = expr_cache[(pts, alphas)]
+                except KeyError:
+                    point_set = PointSet(pts)
+                    expr_temp = fn(point_set, derivative=i)
+                    
+                    # Each point with derivative may have different alpha
+                    if i > 0:
+                        # How to separate alpha for each point?
+                        expr_alpha = tuple(gem.partial_indexed(expr_temp, alpha) for alpha in alphas)
+                        # How to sum over first index
+                        expr = gem.Sum(expr, gem.index_sum(expr_alpha))
 
-                expr = gem.partial_indexed(expr, shape_indices)
-                expr_cache[pts] = expr, point_set
-            weights = collections.defaultdict(list)
-            # TODO: replace by putting in all points and duals at once
-            for p in pts:
-                for (w, cmp) in dual.get_point_dict()[p]:
-                    weights[cmp].append(w)
+                    # Hack to get shape_indices from shape of GEM expression
+                    # Unsure whether expressions with arguments work
+                    # Assuming general for all expressions including derivatives
+                    try:
+                        shape_indices
+                    except NameError:
+                        broadcast_shape = len(expr.shape) - len(self.value_shape)
+                        shape_indices = tuple(gem.Index() for _ in self.value_shape[:broadcast_shape])
+
+                    expr = gem.partial_indexed(expr, shape_indices)
+                    expr_cache[(pts, alphas)] = expr, point_set
+
             qexprs = gem.Zero()
-            for cmp in sorted(weights):
-                qweights = gem.Literal(weights[cmp])
-                qexpr = gem.Indexed(expr, cmp)
-                qexpr = gem.index_sum(gem.Indexed(qweights, point_set.indices)*qexpr,
-                                      point_set.indices)
-                qexprs = gem.Sum(qexprs, qexpr)
+            for i in range(max_deriv_order+1):
+                pts = tuple(pt for pt, alpha in pt_dict[i])
+                if len(pts) == 0:
+                    continue
+                point_set = PointSet(pts)
+                weights = collections.defaultdict(list)
+                # TODO: replace by putting in all points and duals at once
+                if i == 0:
+                    for pt in pts:
+                        for (w, cmp) in dual.get_point_dict()[pt]:
+                            weights[cmp].append(w)
+                else:
+                    for pt in pts:
+                        for (w, alpha, cmp) in dual.deriv_dict[pt]:
+                            weights[cmp].append(w)
+
+                for cmp in sorted(weights):
+                    qweights = gem.Literal(weights[cmp])
+                    qexpr = gem.Indexed(expr, cmp)
+                    qexpr = gem.index_sum(gem.Indexed(qweights, point_set.indices)*qexpr,
+                                        point_set.indices)
+                    qexprs = gem.Sum(qexprs, qexpr)
             dual_expressions.append(qexprs)
         ir_shape = gem.ListTensor(dual_expressions)
-
-        # Derivative
-        max_deriv_order = max([ell.max_deriv_order for ell in self._element.dual_basis()])
-        if max_deriv_order > 0:
-            for dual in self._element.dual_basis():
-                dpts = tuple(sorted(dual.deriv_dict.keys()))
-            pass
 
         return ir_shape
 
