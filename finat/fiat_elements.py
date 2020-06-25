@@ -151,11 +151,12 @@ class FiatElement(FiniteElementBase):
                        results with FIAT.
         '''
         import collections
+        from itertools import chain
         from finat.point_set import PointSet
 
         max_deriv_order = max([ell.max_deriv_order for ell in self._element.dual_basis()])
-        if max_deriv_order > 0:
-            raise NotImplementedError("Can only interpolate onto dual basis functionals without derivative evaluation, sorry!")
+        # if max_deriv_order > 0:
+        #     raise NotImplementedError("Can only interpolate onto dual basis functionals without derivative evaluation, sorry!")
 
         if entity is None:
             # TODO: Add comparison to FIAT
@@ -186,14 +187,23 @@ class FiatElement(FiniteElementBase):
                     expr, point_set = expr_cache[(pts, alphas)]
                 except KeyError:
                     point_set = PointSet(pts)
-                    expr_temp = fn(point_set, derivative=i)
-                    
+                    expr = fn(point_set, derivative=i)
+                    print(expr, expr.shape)
+
                     # Each point with derivative may have different alpha
                     if i > 0:
+                        multi_indices = tuple(tuple(chain(*[(i,)*x for i, x in enumerate(alpha)])) for alpha in alphas)
+                        print(multi_indices)
                         # How to separate alpha for each point?
-                        expr_alpha = tuple(gem.partial_indexed(expr_temp, alpha) for alpha in alphas)
-                        # How to sum over first index
-                        expr = gem.Sum(expr, gem.index_sum(expr_alpha))
+                        exprs_alpha = gem.ListTensor([gem.partial_indexed(expr, idx) for idx in multi_indices])
+                        print(exprs_alpha.shape)
+                        print([gem.partial_indexed(expr, idx) for idx in multi_indices])
+
+                        # Combine for each point
+                        expr_alpha = gem.index_sum(exprs_alpha, (gem.Index(),))
+                        print(expr_alpha.shape)
+                        # What indices to sum over?
+                        expr = gem.index_sum(expr, )
 
                     # Hack to get shape_indices from shape of GEM expression
                     # Unsure whether expressions with arguments work
@@ -228,7 +238,7 @@ class FiatElement(FiniteElementBase):
                     qweights = gem.Literal(weights[cmp])
                     qexpr = gem.Indexed(expr, cmp)
                     qexpr = gem.index_sum(gem.Indexed(qweights, point_set.indices)*qexpr,
-                                        point_set.indices)
+                                          point_set.indices)
                     qexprs = gem.Sum(qexprs, qexpr)
             dual_expressions.append(qexprs)
         ir_shape = gem.ListTensor(dual_expressions)
