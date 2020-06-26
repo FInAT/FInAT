@@ -206,6 +206,8 @@ class FiatElement(FiniteElementBase):
                         print('expr, expr_alpha', expr.shape, expr_alpha.shape)
                         # What indices to sum over?
                         expr = gem.Sum(expr, expr_alpha)
+                    else:
+                        expr = expr_grad
 
                     # Hack to get shape_indices from shape of GEM expression
                     # Unsure whether expressions with arguments work
@@ -218,7 +220,17 @@ class FiatElement(FiniteElementBase):
 
                     expr = gem.partial_indexed(expr, shape_indices)
                     expr_cache[(pts, alphas)] = expr, point_set
+                    dual_expressions.append(expr)
 
+        for j, dual in enumerate(self._element.dual_basis()):
+            # Put each pt in corresponding derivative order
+            pt_dict = collections.OrderedDict()
+            pt_dict[0] = tuple(sorted((pt, ()) for pt in dual.get_point_dict().keys()))
+            # TODO: Can probably be optimized
+            for i in range(1, max_deriv_order+1):
+                pt_dict[i] = tuple(sorted((pt, alpha) for pt, ((_, alpha, _),) in dual.deriv_dict.items()
+                                          if sum(alpha) == i))
+            expr = dual_expressions[j]
             qexprs = gem.Zero()
             for i in range(max_deriv_order+1):
                 pts = tuple(pt for pt, alpha in pt_dict[i])
@@ -243,7 +255,8 @@ class FiatElement(FiniteElementBase):
                                           point_set.indices)
                     qexprs = gem.Sum(qexprs, qexpr)
             print('final', qexpr.shape)
-            dual_expressions.append(qexprs)
+            # Replace unweighted expression with weighted expression
+            dual_expressions[j] = qexprs
         ir_shape = gem.ListTensor(dual_expressions)
 
         return ir_shape
