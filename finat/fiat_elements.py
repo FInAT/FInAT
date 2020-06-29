@@ -178,12 +178,11 @@ class FiatElement(FiniteElementBase):
             for i in range(1, max_deriv_order+1):
                 pt_dict[i] = tuple(sorted((pt, alpha) for pt, tup in dual.deriv_dict.items()
                                           for (wt, alpha, cmp) in tup if sum(alpha) == i))
-                # print(tuple(sorted((pt, alpha) for pt, ((_, alpha, _),) in dual.deriv_dict.items() if sum(alpha) == i)))
 
             # TODO: Remove repeated points
+            expr = gem.Zero()
             for i in range(max_deriv_order+1):
                 print(i)
-                print(pt_dict[i])
                 pts, alphas = zip(*pt_dict[i]) if len(pt_dict[i]) > 0 else (tuple(), tuple())
                 if len(pts) == 0:
                     continue
@@ -199,27 +198,22 @@ class FiatElement(FiniteElementBase):
                     # Each point with derivative may have different alpha
                     if i > 0:
                         multi_indices = tuple(tuple(chain(*[(i,)*x for i, x in enumerate(alpha)])) for alpha in alphas)
-                        print('multi_indices', multi_indices)
                         # How to separate alpha for each point?
-                        # TODO: need to have same indices as weights
-                        # TODO: what if more than one point?
-                        # TODO: flatten
+                        # Need to have same indices as weights
+                        # What if more than one point?
+                        # Flatten, is just sum of 'same' terms as i=0
                         exprs_alpha = gem.ListTensor([gem.partial_indexed(expr_grad, idx) for idx in multi_indices])
-                        print('exprs_alpha', exprs_alpha, exprs_alpha.shape)
                         # exprs_alpha = gem.Indexed(exprs_alpha, (gem.Index() for _ in range(len(multi_indices))))
-                        # expr = exprs_alpha
-                        print('expr_grad', expr_grad)
-                        print('exprs_alpha', exprs_alpha)
-                        # print([gem.partial_indexed(expr_grad, idx) for idx in multi_indices])
 
-                        # # Combine for each point
-                        expr_alpha = gem.index_sum(gem.Indexed(exprs_alpha, (gem.Index(), )), (gem.Index(),))
-                        # print('expr, expr_alpha', expr.shape, expr_alpha.shape)
+                        # Combine for each point
+                        x = gem.Index()
+                        expr_alpha = gem.index_sum(gem.Indexed(exprs_alpha, (x, )), (x, ))
+                        print('exprs_alpha', exprs_alpha, exprs_alpha.shape)
+                        print('expr_alpha', expr_alpha, expr_alpha.shape)
                         # What indices to sum over?
                         expr = gem.Sum(expr, expr_alpha)
                     else:
                         expr = expr_grad
-                        print('no deriv', expr.shape)
 
                     # Hack to get shape_indices from shape of GEM expression
                     # Unsure whether expressions with arguments work
@@ -231,7 +225,8 @@ class FiatElement(FiniteElementBase):
                         broadcast_shape = len(expr.shape) - len(self.value_shape)
                         shape_indices = tuple(gem.Index() for _ in self.value_shape[:broadcast_shape])
 
-                    # TODO: Reshape for derivatives
+                    # TODO: Reshape for derivatives, must combine before reshape, but must match alpha indices with cmp
+                    print('expr', expr, expr.shape)
                     print('broadcast_shape', broadcast_shape)
                     print('shape_indices', shape_indices)
                     expr = gem.partial_indexed(expr, shape_indices)
@@ -251,6 +246,7 @@ class FiatElement(FiniteElementBase):
                 if len(pts) == 0:
                     continue
                 expr, point_set = expr_cache[(pts, alphas)]
+
                 weights = collections.defaultdict(list)
                 # TODO: replace by putting in all points and duals at once
                 if i == 0:
@@ -261,29 +257,21 @@ class FiatElement(FiniteElementBase):
                     for pt in pts:
                         for (w, alpha, cmp) in dual.deriv_dict[pt]:
                             weights[(cmp, alpha)].append(w)
-                print('pts', pts)
-                print('alphas', alphas)
-                print('weights', weights)
-                print('expr', expr)
 
-                # TODO: fix order of alpha to order of points
+                # TODO: Fix order of alpha to order of cmp and pts???
                 for (cmp, alpha) in sorted(weights):
                     print(cmp, alpha)
                     print(weights[(cmp, alpha)])
                     print(expr.shape)
                     # TODO: case with more than one point/alpha
-                    # expr = gem.Indexed(expr, (gem.Index(), ))
                     qweights = gem.Literal(weights[(cmp, alpha)])
                     qexpr = gem.Indexed(expr, cmp)
                     qexpr = gem.index_sum(gem.Indexed(qweights, point_set.indices)*qexpr,
                                           point_set.indices)
                     qexprs = gem.Sum(qexprs, qexpr)
-                print(pt_dict[i])
-            print('final', qexpr.shape)
             assert qexprs.shape == ()
             dual_expressions.append(qexprs)
         ir_shape = gem.ListTensor(dual_expressions)
-        print(ir_shape.shape)
 
         return ir_shape
 
