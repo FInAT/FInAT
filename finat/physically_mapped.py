@@ -84,6 +84,14 @@ try:
   doi =          {10.1243/03093247V061020}
 }
 """)
+    Citations().add("Arbogast2017", """
+@techreport{Arbogast2017,
+  title={Direct serendipity finite elements on convex quadrilaterals},
+  author={Arbogast, T and Tao, Z},
+  year={2017},
+  institution={Tech. Rep. ICES REPORT 17-28, Institute for Computational Engineering and Sciences}
+}
+""")
 except ImportError:
     Citations = None
 
@@ -199,9 +207,9 @@ class PhysicalGeometry(metaclass=ABCMeta):
 
         :arg point_set: A point_set on the reference cell to push forward to physical space.
         :arg entity: Reference cell entity on which the point set is
-             defined (for example if it is a point set on a facet).
+                     defined (for example if it is a point set on a facet).
         :returns: a GEM expression for the physical locations of the
-        points, shape (gdim, ) with free indices of the point_set.
+                  points, shape (gdim, ) with free indices of the point_set.
         """
 
     @abstractmethod

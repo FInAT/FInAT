@@ -49,4 +49,4 @@ def sympy2gem_symbol(node, self):
 
 @sympy2gem.register(sympy.Rational)
 def sympy2gem_rational(node, self):
-    return gem.Literal(node.numerator()) / gem.Literal(node.denominator())
+    return gem.Division(self(node.numerator()), self(node.denominator()))

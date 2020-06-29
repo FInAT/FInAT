@@ -1,7 +1,7 @@
 import numpy
 
 from finat.finiteelementbase import FiniteElementBase
-from finat.physically_mapped import DirectlyDefinedElement
+from finat.physically_mapped import DirectlyDefinedElement, Citations
 from FIAT.reference_element import UFCQuadrilateral
 from FIAT.polynomial_set import mis
 
@@ -12,11 +12,14 @@ from finat.sympy2gem import sympy2gem
 
 class DirectSerendipity(DirectlyDefinedElement, FiniteElementBase):
     def __init__(self, cell, degree):
+        if Citations is not None:
+            Citations().register("Arbogast2017")
+
+        # These elements only known currently on quads
         assert isinstance(cell, UFCQuadrilateral)
-        # assert degree == 1 or degree == 2
+
         self._cell = cell
         self._degree = degree
-        self.space_dim = 4 if degree == 1 else (self.degree+1)*(self.degree+2)//2 + 2
 
     @property
     def cell(self):
@@ -45,10 +48,10 @@ class DirectSerendipity(DirectlyDefinedElement, FiniteElementBase):
                                       4 + (i + 1) * (self.degree-1)))
                         for i in range(4)},
                     2: {0: list(range(4 + 4 * (self.degree - 1),
-                                      self.space_dim))}}
+                                      self.space_dimension()))}}
 
     def space_dimension(self):
-        return self.space_dim
+        return 4 if self.degree == 1 else (self.degree+1)*(self.degree+2)//2 + 2
 
     @property
     def index_shape(self):
@@ -109,6 +112,13 @@ def xysub(x, y):
 
 
 def ds1_sympy(ct):
+    """Constructs lowest-order case of Arbogast's directly defined C^0 serendipity
+    elements, which are a special case.
+    :param ct: The cell topology of the reference quadrilateral.
+    :returns: a 3-tuple containing symbols for the physical cell coordinates and the
+              physical cell independent variables (e.g. "x" and "y") and a list
+              of the four basis functions.
+    """
     vs = numpy.asarray(list(zip(sympy.symbols('x:4'), sympy.symbols('y:4'))))
     xx = numpy.asarray(sympy.symbols("x,y"))
 
@@ -175,6 +185,8 @@ def ds1_sympy(ct):
 
 
 def newton_dd(nds, fs):
+    """Constructs Newt's divided differences for the input arrays, which may include
+    symoblic values."""
     n = len(nds)
     mat = numpy.zeros((n, n), dtype=object)
     mat[:, 0] = fs[:]
@@ -184,8 +196,10 @@ def newton_dd(nds, fs):
     return mat[0, :]
 
 
-# Horner evaluation of polynomial in symbolic form
 def newton_poly(nds, fs, xsym):
+    """Constructs  Lagrange interpolating polynomial passing through
+    x values nds and y values fs.  Returns a a symbolic object in terms
+    of independent variable xsym."""
     coeffs = newton_dd(nds, fs)
     result = coeffs[-1]
     n = len(coeffs)
@@ -195,6 +209,14 @@ def newton_poly(nds, fs, xsym):
 
 
 def dsr_sympy(ct, r, vs=None):
+    """Constructs higher-order (>= 2) case of Arbogast's directly defined C^0 serendipity
+    elements, which include all polynomials of degree r plus a couple of rational
+    functions.
+    :param ct: The cell topology of the reference quadrilateral.
+    :returns: a 3-tuple containing symbols for the physical cell coordinates and the
+              physical cell independent variables (e.g. "x" and "y") and a list
+              of the four basis functions.
+    """
     if vs is None:
         vs = numpy.asarray(list(zip(sympy.symbols('x:4'),
                                     sympy.symbols('y:4'))))
@@ -269,10 +291,19 @@ def dsr_sympy(ct, r, vs=None):
     # I need its adjacent two edges
     # and its opposite edge
     # and its "tunnel R" RH or RV
-    opposite_edges = {0: 1, 1: 0, 2: 3, 3: 2}
-    adjacent_edges = {0: (2, 3), 1: (2, 3), 2: (0, 1), 3: (0, 1)}
-    tunnel_R_edges = {0: RH, 1: RH, 2: RV, 3: RV}
+    # This is very 2d specific.
+    opposite_edges = {e: [eother for eother in ct[1]
+                          if set(ct[1][e]).intersection(ct[1][eother]) == set()][0]
+                      for e in ct[1]}
+    adjacent_edges = {e: tuple(sorted([eother for eother in ct[1]
+                                       if eother != e
+                                       and set(ct[1][e]).intersection(ct[1][eother])
+                                       != set()]))
+                      for e in ct[1]}
+    # adjacent_edges = {0: (2, 3), 1: (2, 3), 2: (0, 1), 3: (0, 1)}
 
+    ae = adjacent_edges
+    tunnel_R_edges = {e: ((ae[e][0] - ae[e][1]) / (ae[e][0] + ae[e][1]))}
     edge_nodes = []
     for ed in range(4):
         ((v0x, v0y), (v1x, v1y)) = vs[ct[1][ed], :]
@@ -337,8 +368,11 @@ def dsr_sympy(ct, r, vs=None):
             edge_bfs.append(edge_bfs_cur)
 
     # vertex basis functions
-    vertex_to_adj_edges = {0: (0, 2), 1: (0, 3), 2: (1, 2), 3: (1, 3)}
-    vertex_to_off_edges = {0: (1, 3), 1: (1, 2), 2: (0, 3), 3: (0, 2)}
+    vertex_to_adj_edges = {i: tuple([e for e in ct[1] if i in ct[1][e]])
+                           for i in ct[0]}
+    vertex_to_off_edges = {i: tuple([e for e in ct[1] if i not in ct[1][e]])
+                           for i in ct[0]}
+
     vertex_bfs = []
     for v in range(4):
         ed0, ed1 = vertex_to_off_edges[v]
