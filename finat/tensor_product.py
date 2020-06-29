@@ -11,7 +11,7 @@ import gem
 from gem.utils import cached_property
 
 from finat.finiteelementbase import FiniteElementBase
-from finat.point_set import PointSingleton, PointSet, TensorPointSet, FacetMappedPointSet
+from finat.point_set import PointSingleton, PointSet, TensorPointSet
 
 
 class TensorProductElement(FiniteElementBase):
@@ -226,5 +226,4 @@ def factor_point_set(product_cell, product_dim, point_set):
             result.append(ps)
         return result
 
-    
     raise NotImplementedError("How to tabulate TensorProductElement on %s?" % (type(point_set).__name__,))
