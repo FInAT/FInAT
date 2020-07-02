@@ -303,7 +303,9 @@ def dsr_sympy(ct, r, vs=None):
     # adjacent_edges = {0: (2, 3), 1: (2, 3), 2: (0, 1), 3: (0, 1)}
 
     ae = adjacent_edges
-    tunnel_R_edges = {e: ((ae[e][0] - ae[e][1]) / (ae[e][0] + ae[e][1]))}
+    tunnel_R_edges = {e: ((lams[ae[e][0]] - lams[ae[e][1]])
+                          / (lams[ae[e][0]] + lams[ae[e][1]]))
+                      for e in range(4)}
     edge_nodes = []
     for ed in range(4):
         ((v0x, v0y), (v1x, v1y)) = vs[ct[1][ed], :]
@@ -403,3 +405,10 @@ def dsr_sympy(ct, r, vs=None):
     nds.extend(internal_nodes)
 
     return vs, xx, numpy.asarray(bfs)
+
+
+def ds_sympy(ct, r, vs=None):
+    if r == 1:
+        return ds1_sympy(ct, r, vs)
+    else:
+        return dsr_sympy(ct, r, vs)
