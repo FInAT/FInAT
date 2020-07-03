@@ -72,6 +72,7 @@ class DirectSerendipity(DirectlyDefinedElement, FiniteElementBase):
         ct = self.cell.topology
 
         # Build everything in sympy
+        vs, xx, phis = ds_sympy(ct, self.degree)
         if self.degree == 1:
             vs, xx, phis = ds1_sympy(ct)
         else:
@@ -185,8 +186,8 @@ def ds1_sympy(ct):
 
 
 def newton_dd(nds, fs):
-    """Constructs Newt's divided differences for the input arrays, which may include
-    symoblic values."""
+    """Constructs Newton's divided differences for the input arrays,
+    which may include symbolic values."""
     n = len(nds)
     mat = numpy.zeros((n, n), dtype=object)
     mat[:, 0] = fs[:]
@@ -220,6 +221,8 @@ def dsr_sympy(ct, r, vs=None):
     if vs is None:
         vs = numpy.asarray(list(zip(sympy.symbols('x:4'),
                                     sympy.symbols('y:4'))))
+    else:
+        vs = numpy.asarray(vs)
     xx = numpy.asarray(sympy.symbols("x,y"))
 
     ts = numpy.zeros((4, 2), dtype=object)
