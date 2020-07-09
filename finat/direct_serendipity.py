@@ -112,7 +112,7 @@ def xysub(x, y):
     return {x[0]: y[0], x[1]: y[1]}
 
 
-def ds1_sympy(ct):
+def ds1_sympy(ct, vs=None):
     """Constructs lowest-order case of Arbogast's directly defined C^0 serendipity
     elements, which are a special case.
     :param ct: The cell topology of the reference quadrilateral.
@@ -120,7 +120,12 @@ def ds1_sympy(ct):
               physical cell independent variables (e.g. "x" and "y") and a list
               of the four basis functions.
     """
-    vs = numpy.asarray(list(zip(sympy.symbols('x:4'), sympy.symbols('y:4'))))
+    if vs is None:
+        vs = numpy.asarray(list(zip(sympy.symbols('x:4'),
+                                    sympy.symbols('y:4'))))
+    else:
+        vs = numpy.asarray(vs)
+
     xx = numpy.asarray(sympy.symbols("x,y"))
 
     ts = numpy.zeros((4, 2), dtype=object)
@@ -412,6 +417,6 @@ def dsr_sympy(ct, r, vs=None):
 
 def ds_sympy(ct, r, vs=None):
     if r == 1:
-        return ds1_sympy(ct, r, vs)
+        return ds1_sympy(ct, vs)
     else:
         return dsr_sympy(ct, r, vs)
