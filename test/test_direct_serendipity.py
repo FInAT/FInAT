@@ -13,7 +13,7 @@ class MyMapping(PhysicalGeometry):
         self.cell = cell
 
     def cell_size(self):
-        return gem.Literal(np.full(self.cell.num_vertices(), 1, dtype=np.int32))
+        raise NotImplementedError
 
     def jacobian_at(self, point):
         raise NotImplementedError
@@ -40,16 +40,10 @@ class MyMapping(PhysicalGeometry):
                          + pvs[1, :] * (1-prefs[i, 0]) * prefs[i, 1]
                          + pvs[2, :] * prefs[i, 0] * (1-prefs[i, 1])
                          + pvs[3, :] * prefs[i, 0] * prefs[i, 1])
-        pps_gem = np.zeros(pps.shape, dtype=object)
-        for alpha in np.ndindex(pps.shape):
-            pps_gem[alpha] = gem.Literal(pps[alpha])
-        return gem.ListTensor(pps_gem)
+        return gem.Literal(pps)
 
     def physical_vertices(self):
-        pvs = np.zeros(self.verts.shape, dtype=object)
-        for alpha in np.ndindex(pvs.shape):
-            pvs[alpha] = gem.Literal(self.verts[alpha])
-        return gem.ListTensor(pvs)
+        return gem.Literal(self.verts)
 
 
 def get_pts(cell, deg):
