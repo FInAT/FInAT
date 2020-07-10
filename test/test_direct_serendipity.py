@@ -79,8 +79,3 @@ def test_kronecker(degree):
     from gem.interpreter import evaluate
     numvals = evaluate([vals])[0].arr
     assert np.allclose(numvals, np.eye(*numvals.shape))
-
-
-if __name__ == "__main__":
-    import os
-    pytest.main(os.path.abspath(__file__))
