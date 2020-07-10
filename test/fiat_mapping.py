@@ -25,10 +25,10 @@ class MyMapping(PhysicalGeometry):
         return np.ones((3,))
 
     def detJ_at(self, point):
-        return self.A
+        return gem.Literal(np.linalg.det(self.A))
 
     def jacobian_at(self, point):
-        return self.A
+        return gem.Literal(self.A)
 
     def reference_normals(self):
         return gem.Literal(
