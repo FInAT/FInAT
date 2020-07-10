@@ -12,7 +12,6 @@ def test_awc():
     ref_el_finat = finat.ArnoldWinther(ref_cell, 3)
     ref_pts = ref_cell.make_points(2, 0, 3)
     ref_vals = ref_element.tabulate(0, ref_pts)[0, 0]
-    print(ref_vals.shape)
 
     phys_cell = FIAT.ufc_simplex(2)
     phys_cell.vertices = ((0.0, 0.1), (1.17, -0.09), (0.15, 1.84))
@@ -35,12 +34,14 @@ def test_awc():
     mppng = MyMapping(ref_cell, phys_cell)
     Mgem = ref_el_finat.basis_transformation(mppng)
     M = evaluate([Mgem])[0].arr
-    ref_vals_zany = np.zeros(ref_vals_piola.shape)
+    print(M.shape)
+    print(ref_vals_piola.shape)
+    ref_vals_zany = np.zeros((24, 2, 2, len(phys_pts)))
     for k in range(ref_vals_zany.shape[3]):
         for ell1 in range(2):
             for ell2 in range(2):
                 ref_vals_zany[:, ell1, ell2, k] = \
                     M @ ref_vals_piola[:, ell1, ell2, k]
 
-    assert np.allclose(ref_vals_zany, phys_vals)
+    assert np.allclose(ref_vals_zany, phys_vals[:24])
 
