@@ -148,7 +148,7 @@ def ds1_sympy(ct, vs=None):
         v0id, v1id = ct[1][e][:]
         xstars[e, :] = (vs[v0id, :] + vs[v1id])/2
 
-    lams = [numpy.dot(xx-xstars[i, :], ns[i, :]) for i in range(4)]
+    lams = [(xx-xstars[i, :]) @ ns[i, :] for i in range(4)]
 
     RV = (lams[0] - lams[1]) / (lams[0] + lams[1])
     RH = (lams[2] - lams[3]) / (lams[2] + lams[3])
