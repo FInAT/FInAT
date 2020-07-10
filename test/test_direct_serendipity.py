@@ -10,6 +10,7 @@ class MyMapping(PhysicalGeometry):
     def __init__(self, cell, verts):
         # cell is reference cell, verts is physical vertices
         self.verts = np.asarray(verts)
+        self.cell = cell
 
     def cell_size(self):
         return gem.Literal(np.full(self.cell.num_vertices(), 1, dtype=np.int32))
@@ -52,7 +53,7 @@ class MyMapping(PhysicalGeometry):
 
 
 def get_pts(cell, deg):
-    assert cell.shape == 11  # quadrilateral
+    assert cell.shape == FIAT.reference_element.QUADRILATERAL
     L = cell.construct_subelement(1)
     vs = np.asarray(cell.vertices)
     pts = [pt for pt in cell.vertices]
