@@ -44,10 +44,6 @@ def test_awnc():
                 ref_vals_zany[:, ell1, ell2, k] = \
                     M @ ref_vals_piola[:, ell1, ell2, k]
 
-    # print(np.linalg.norm(ref_vals_zany[:2, :, :, 0]
-    #                      - phys_vals[:2, :, :, 0]))
-    # print(np.linalg.norm(ref_vals_zany[2:4, :, :, 0]
-    #                      - phys_vals[2:4, :, :, 0]))
     assert np.allclose(ref_vals_zany[:12], phys_vals[:12])
 
 
@@ -59,7 +55,8 @@ def test_awc():
     ref_vals = ref_element.tabulate(0, ref_pts)[0, 0]
 
     phys_cell = FIAT.ufc_simplex(2)
-    phys_cell.vertices = ((0.0, 0.0), (1.0, 0.1), (0.0, 2.0))
+    pvs = np.array(((0.0, 0.0), (1.0, 0.1), (0.0, 2.0)))
+    phys_cell.vertices = pvs * 0.5
     phys_element = FIAT.ArnoldWinther(phys_cell, 3)
     phys_pts = phys_cell.make_points(2, 0, 3)
     phys_vals = phys_element.tabulate(0, phys_pts)[0, 0]
@@ -88,11 +85,13 @@ def test_awc():
                 ref_vals_zany[:, ell1, ell2, k] = \
                     M @ ref_vals_piola[:, ell1, ell2, k]
 
-    print()
-    print(np.linalg.norm(ref_vals_zany[:9, :, :, 0]
-                         - phys_vals[:9, :, :, 0]))
-    print(np.linalg.norm(ref_vals_zany[9:21, :, :, 0]
-                         - phys_vals[9:21, :, :, 0]))
-    # print(np.linalg.norm(ref_vals_zany[21:24, :, :, 0]
-    #                      - phys_vals[21:24, :, :, 0]))    
+    # Q = FIAT.make_quadrature(phys_cell, 6)
+    # vals = phys_element.tabulate(0, Q.pts)[(0, 0)]
+    # print()
+    # for i in (0, 9, 21):
+    #     result = 0.0
+    #     for k in range(len(Q.wts)):
+    #         result += Q.wts[k] * (vals[i, :, :, k] ** 2).sum()
+    #     print(np.sqrt(result))
+
     assert np.allclose(ref_vals_zany[:21], phys_vals[:21])
