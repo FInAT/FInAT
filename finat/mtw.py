@@ -49,7 +49,6 @@ class MardalTaiWinther(PhysicallyMappedElement, FiatElement):
 
         return ListTensor(V.T)
 
-
     def entity_dofs(self):
         return {0: {0: [],
                     1: [],
@@ -57,6 +56,13 @@ class MardalTaiWinther(PhysicallyMappedElement, FiatElement):
                 1: {0: [0, 1, 2], 1: [3, 4, 5], 2: [6, 7, 8]},
                 2: {0: []}}
 
+    def entity_closure_dofs(self):
+        return {0: {0: [],
+                    1: [],
+                    2: []},
+                1: {0: [0, 1, 2], 1: [3, 4, 5], 2: [6, 7, 8]},
+                2: {0: [0, 1, 2, 3, 4, 5, 6, 7, 8]}}        
+    
 
     @property
     def index_shape(self):
