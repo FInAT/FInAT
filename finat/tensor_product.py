@@ -162,6 +162,48 @@ class TensorProductElement(FiniteElementBase):
 
         return self._merge_evaluations(factor_results)
 
+    def dual_basis(self):
+        from finat.point_set import PointSet
+
+        if len(self.factors) == 1:
+            return self.factors[0].dual_basis
+
+        # Tensorises _base_element.dual_basis by tensorising point_set
+        factor_dual_basis = [fe.dual_basis() for fe in self.factors]
+        # Get geometric dimension from point_set
+        # dimension = base_dual_basis[0][0][0][0].dimension
+
+        tensor_dual_basis = []
+        for base_dual in base_dual_basis:
+            tensor_derivs = []
+            for base_deriv in base_dual:
+                tensor_pts_in_derivs = []
+                for base_tups in base_deriv:
+                    try:
+                        base_point_set, weight_tensor, alpha_tensor = base_tups
+                    except ValueError:  # Empty
+                        tensor_pts_in_derivs.append(tuple())
+
+                    base_pts = base_point_set.points
+                    tensor_pts = []
+                    # TODO: Delta cancellations?
+                    for pt in base_pts:
+                        # print(pt)
+                        if self._shape == 1:
+                            tensor_pts.append(base_pts)
+                        elif self._shape == 2:
+                            tensor_pts.append([[x, y] for x in pt for y in pt])
+                        elif self._shape == 3:
+                            tensor_pts.append([[x, y, z] for x in pt for y in pt for z in pt])
+                        else:
+                            raise ValueError('Cannot create dual_basis for 4D TensorFiniteElement!')
+                    tensor_point_set = PointSet(tensor_pts)
+
+                    tensor_pts_in_derivs.append((tensor_point_set, weight_tensor, alpha_tensor))
+                tensor_derivs.append(tuple(tensor_pts_in_derivs))
+            tensor_dual_basis.append(tuple(tensor_derivs))
+        return tuple(tensor_dual_basis)
+
     @cached_property
     def mapping(self):
         mappings = [fe.mapping for fe in self.factors if fe.mapping != "affine"]

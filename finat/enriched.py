@@ -127,6 +127,30 @@ class EnrichedElement(FiniteElementBase):
                    for element in self.elements]
         return self._compose_evaluations(results)
 
+    def dual_basis(self):
+        from itertools import chain, zip_longest
+
+        elements_dual_basis = [element.dual_basis() for element in self.elements]
+
+        enriched_dual_basis = []
+        for elements_dual in zip_longest(*elements_dual_basis, fill_value=[]):
+            enriched_derivs = []
+            for elements_deriv in zip_longest(*elements_dual, fill_value=[]):
+                enriched_pts_in_derivs = []
+                for elements_tups in zip_longest(*elements_deriv, fill_value=[]):
+                    # TODO: Combine repeated points?
+                    # TODO: Remove empty tuples?
+                    for tups in elements_tups:
+                        try:
+                            elements_point_set, weight_tensor, alpha_tensor = elements_tups
+                        except ValueError:  # Empty
+                            continue
+
+                    enriched_pts_in_derivs.append(chain(*elements_tups))
+                enriched_derivs.append(tuple(enriched_pts_in_derivs))
+            enriched_dual_basis.append(tuple(enriched_derivs))
+        return tuple(enriched_dual_basis)
+
     @property
     def mapping(self):
         mappings = set(elem.mapping for elem in self.elements)

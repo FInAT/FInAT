@@ -36,7 +36,7 @@ class TensorFiniteElement(FiniteElementBase):
         we subscript the vector-value with :math:`\gamma\epsilon` then we can write:
 
         .. math::
-           \boldsymbol\phi_{\gamma\epsilon(i\alpha\beta)} = \delta_{\gamma\alpha}\delta{\epsilon\beta}\phi_i
+           \boldsymbol\phi_{\gamma\epsilon(i\alpha\beta)} = \delta_{\gamma\alpha}\delta_{\epsilon\beta}\phi_i
 
         This form enables the simplification of the loop nests which
         will eventually be created, so it is the form we employ here."""
@@ -83,9 +83,9 @@ class TensorFiniteElement(FiniteElementBase):
         r"""Produce the recipe for basis function evaluation at a set of points :math:`q`:
 
         .. math::
-            \boldsymbol\phi_{(\gamma \epsilon) (i \alpha \beta) q} = \delta_{\alpha \gamma}\delta{\beta \epsilon}\phi_{i q}
+            \boldsymbol\phi_{(\gamma \epsilon) (i \alpha \beta) q} = \delta_{\alpha \gamma} \delta_{\beta \epsilon}\phi_{i q}
 
-            \nabla\boldsymbol\phi_{(\epsilon \gamma \zeta) (i \alpha \beta) q} = \delta_{\alpha \epsilon} \deta{\beta \gamma}\nabla\phi_{\zeta i q}
+            \nabla\boldsymbol\phi_{(\epsilon \gamma \zeta) (i \alpha \beta) q} = \delta_{\alpha \epsilon} \delta_{\beta \gamma}\nabla\phi_{\zeta i q}
         """
         scalar_evaluation = self._base_element.basis_evaluation
         return self._tensorise(scalar_evaluation(order, ps, entity, coordinate_mapping=coordinate_mapping))
@@ -119,6 +119,78 @@ class TensorFiniteElement(FiniteElementBase):
                 index_ordering
             )
         return result
+
+    def dual_basis(self):
+        from finat.point_set import PointSet
+
+        # Tensorises _base_element.dual_basis by tensorising point_set
+        base_dual_basis = self._base_element.dual_basis()
+
+        scalar_i = self._base_element.get_indices()
+        scalar_vi = self._base_element.get_value_indices()
+        tensor_i = tuple(gem.Index(extent=d) for d in self._shape)
+        tensor_vi = tuple(gem.Index(extent=d) for d in self._shape)
+
+        deltas = reduce(gem.Product, (gem.Delta(j, k)
+                                      for j, k in zip(tensor_i, tensor_vi)))
+
+        import pdb; pdb.set_trace()
+        tensor_dual_basis = []
+        for i, base_dual in enumerate(base_dual_basis):
+            tensor_derivs = []
+            for base_deriv in base_dual:
+                tensor_pts_in_derivs = []
+                for base_tups in base_deriv:
+                    try:
+                        base_point_set, weight_tensor, alpha_tensor, delta = base_tups
+                    except ValueError:  # Empty
+                        tensor_pts_in_derivs.append(tuple())
+
+                    tensor_weight_tensor = weight_tensor
+                    import numpy as np
+                    tensor_weight_tensor = gem.Literal(np.full(self._shape, weight_tensor.value))
+                    delta = deltas
+
+                    tensor_pts_in_derivs.append((base_point_set, tensor_weight_tensor, alpha_tensor, delta))
+                tensor_derivs.append(tuple(tensor_pts_in_derivs))
+            tensor_dual_basis.append(tuple(tensor_derivs))
+        return tuple(tensor_dual_basis)
+
+        """base_dual_basis = self._base_element.dual_basis()
+
+        # Old basis function and value indices
+        # len(dual_basis)
+        scalar_i = self._base_element.get_indices()
+        # shape of functional input
+        scalar_vi = self._base_element.get_value_indices()
+        # Output of dual_evaluation has shape (scalar_i, ), but scalar_vi
+        # required for tensor multiplication
+
+        # New basis function and value indices
+        # _shape is dimension of tensor element
+        tensor_i = tuple(gem.Index(extent=d) for d in self._shape)
+        tensor_vi = tuple(gem.Index(extent=d) for d in self._shape)
+
+        # TODO: delta function
+        deltas = reduce(gem.Product, (gem.Delta(j, k)
+                                      for j, k in zip(tensor_i, tensor_vi)))
+
+        if self._transpose:
+            index_ordering = tensor_i + scalar_i + tensor_vi
+        else:
+            index_ordering = scalar_i + tensor_i + tensor_vi
+
+        scalar_dual_expressions = [base_dual_basis[i] for i in range(base_dual_basis.shape[0])]
+        dual_expressions = []
+        for scalar_expr in scalar_dual_expressions:
+            tensor_expr = gem.ComponentTensor(
+                gem.Product(deltas, gem.Indexed(scalar_expr, scalar_i)),
+                index_ordering
+            )
+            dual_expressions.append(tensor_expr)
+
+        result = gem.ListTensor(dual_expressions)
+        return result"""
 
     @property
     def mapping(self):
