@@ -223,7 +223,7 @@ def dsr_sympy(ct, r, vs=None):
               physical cell independent variables (e.g. "x" and "y") and a list
               of the four basis functions.
     """
-    if vs is None:
+    if vs is None:  # do vertices symbolically
         vs = numpy.asarray(list(zip(sympy.symbols('x:4'),
                                     sympy.symbols('y:4'))))
     else:
@@ -324,10 +324,9 @@ def dsr_sympy(ct, r, vs=None):
     # subtracts off the value of function at internal nodes times those
     # internal basis functions
     def nodalize(f):
-        foo = f
-        for (bf, nd) in zip(internal_bfs, internal_nodes):
-            foo = foo - f.subs(xx, nd) * bf
-        return foo
+        #return f
+        return f - sum(f.subs(xysub(xx, nd)) * bf
+                       for bf, nd in zip(internal_bfs, internal_nodes))
 
     edge_bfs = []
     if r == 2:
@@ -371,8 +370,10 @@ def dsr_sympy(ct, r, vs=None):
                          * (lams[opposite_edges[ed]] * p
                             + Rcur**(r-2) * Rs[ed]))
 
-                bfcur = (nodalize(prebf)
-                         / prebf.subs(xysub(xx, edge_nodes[ed][i])))
+                prebf = nodalize(prebf)
+                bfcur = prebf / prebf.subs(xysub(xx, edge_nodes[ed][i]))
+                # bfcur = (nodalize(prebf)
+                #          / prebf.subs(xysub(xx, edge_nodes[ed][i])))
                 edge_bfs_cur.append(bfcur)
 
             edge_bfs.append(edge_bfs_cur)
