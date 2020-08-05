@@ -324,7 +324,6 @@ def dsr_sympy(ct, r, vs=None):
     # subtracts off the value of function at internal nodes times those
     # internal basis functions
     def nodalize(f):
-        #return f
         return f - sum(f.subs(xysub(xx, nd)) * bf
                        for bf, nd in zip(internal_bfs, internal_nodes))
 
@@ -372,8 +371,6 @@ def dsr_sympy(ct, r, vs=None):
 
                 prebf = nodalize(prebf)
                 bfcur = prebf / prebf.subs(xysub(xx, edge_nodes[ed][i]))
-                # bfcur = (nodalize(prebf)
-                #          / prebf.subs(xysub(xx, edge_nodes[ed][i])))
                 edge_bfs_cur.append(bfcur)
 
             edge_bfs.append(edge_bfs_cur)
