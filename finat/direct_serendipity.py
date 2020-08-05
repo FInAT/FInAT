@@ -116,6 +116,8 @@ def ds1_sympy(ct, vs=None):
     """Constructs lowest-order case of Arbogast's directly defined C^0 serendipity
     elements, which are a special case.
     :param ct: The cell topology of the reference quadrilateral.
+    :param vs: (Optional) coordinates of cell on which to construct the basis.
+               If it is None, this function constructs symbols for the vertices.
     :returns: a 3-tuple containing symbols for the physical cell coordinates and the
               physical cell independent variables (e.g. "x" and "y") and a list
               of the four basis functions.
@@ -219,6 +221,8 @@ def dsr_sympy(ct, r, vs=None):
     elements, which include all polynomials of degree r plus a couple of rational
     functions.
     :param ct: The cell topology of the reference quadrilateral.
+    :param vs: (Optional) coordinates of cell on which to construct the basis.
+               If it is None, this function constructs symbols for the vertices.
     :returns: a 3-tuple containing symbols for the physical cell coordinates and the
               physical cell independent variables (e.g. "x" and "y") and a list
               of the four basis functions.
@@ -308,7 +312,6 @@ def dsr_sympy(ct, r, vs=None):
                                        and set(ct[1][e]).intersection(ct[1][eother])
                                        != set()]))
                       for e in ct[1]}
-    # adjacent_edges = {0: (2, 3), 1: (2, 3), 2: (0, 1), 3: (0, 1)}
 
     ae = adjacent_edges
     tunnel_R_edges = {e: ((lams[ae[e][0]] - lams[ae[e][1]])
@@ -414,6 +417,15 @@ def dsr_sympy(ct, r, vs=None):
 
 
 def ds_sympy(ct, r, vs=None):
+    """Symbolically Constructs Arbogast's directly defined C^0 serendipity elements, 
+    which include all polynomials of degree r plus a couple of rational functions.
+    :param ct: The cell topology of the reference quadrilateral.
+    :param vs: (Optional) coordinates of cell on which to construct the basis.
+               If it is None, this function constructs symbols for the vertices.
+    :returns: a 3-tuple containing symbols for the physical cell coordinates and the
+              physical cell independent variables (e.g. "x" and "y") and a list
+              of the four basis functions.
+    """
     if r == 1:
         return ds1_sympy(ct, vs)
     else:
