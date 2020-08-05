@@ -164,16 +164,87 @@ class FiniteElementBase(metaclass=ABCMeta):
         at that order.
         '''
 
-    # Will be required when all elements are updated
-    # @abstractmethod
     def dual_evaluation(self, fn, entity=None):
         '''Return code for performing the dual evaluation at the nodes of the
         reference element. Currently only works for point evaluation and quadrature.
 
-        :param fn: Function that takes in PointSet and returns GEM expression.
+        :param fn: Callable that takes in PointSet and returns GEM expression.
         :param entity: the cell entity on which to tabulate for comparing
                        results with FIAT.
         '''
+        if entity is None:
+            # TODO: Add comparison to FIAT
+            pass
+
+        dual_expressions = []   # One for each functional
+        expr_cache = {}         # Sharing of evaluation of the expression at points
+        # Creates expressions in order of derivative order, extracts and sums alphas
+        # and components, then combine with weights
+        for dual in self.dual_basis():
+            qexprs = gem.Zero()
+            for i, deriv in enumerate(dual):
+                for tups in deriv:
+                    try:
+                        point_set, weight_tensor, alpha_tensor, delta = tups
+                    except ValueError:  # Empty
+                        continue
+
+                    try:
+                        expr = expr_cache[(point_set, alpha_tensor)]
+                    except KeyError:
+                        """ # Hack to get shape_indices from shape of GEM expression
+                        # Unsure whether expressions with arguments work
+                        # Assuming general for all expressions including derivatives
+                        try:
+                            shape_indices
+                        except NameError:
+                            broadcast_shape = len(expr.shape) - len(self.value_shape)
+                            shape_indices = tuple(gem.Index() for _ in self.value_shape[:broadcast_shape])
+                        # Ignore arguments, move to between derivative and component?
+                        expr = gem.partial_indexed(expr, shape_indices)
+                        expr_cache[(point_set, multi_indices)] = expr"""
+                        expr_grad = fn(point_set, derivative=i)
+                        # TODO: multiple alpha at once
+                        # TODO: Is partial_indexed indexing at end or bottom?
+                        if i == 0:
+                            expr = expr_grad
+                        else:
+                            alpha_idx = tuple(gem.Index(extent=fn.dimension) for _ in range(i))
+
+                            # TODO: add to gem.partial_indexed (from back version)
+                            rank = len(expr_grad.shape) - len(alpha_idx)
+                            shape_indices = tuple(gem.Index() for i in range(rank))
+                            expr_partial = gem.ComponentTensor(
+                                gem.Indexed(expr_grad, shape_indices + alpha_idx),
+                                shape_indices)
+
+                            expr = gem.index_sum(expr_partial * alpha_tensor[alpha_idx], alpha_idx)
+                            # expr = gem.index_sum(gem.partial_indexed(expr_grad, (...,)+alpha_idx) * alpha_tensor[alpha_idx], alpha_idx)
+                        expr_cache[(point_set, alpha_tensor)] = expr
+
+                    # TODO: partial_indexed of arguments (might not be needed)
+
+                    # Apply weights
+                    # TODO: What indices to sum over?
+                    # print(point_set.points)
+                    # print(weight_tensor)
+                    # print(self.value_shape, self._base_element.value_shape)
+                    # print(self.get_value_indices())
+                    # For point_set with multiple points
+                    zeta = tuple(idx for _ in range(len(point_set.points)) for idx in self.get_value_indices())
+                    # print(expr.shape)
+                    # print(zeta, point_set.indices)
+                    # import pdb; pdb.set_trace()
+                    qexpr = gem.index_sum(gem.partial_indexed(expr, zeta) * weight_tensor[zeta], point_set.indices+zeta)*delta
+                    # Sum for all derivatives
+                    # TODO: Are arguments summed properly?
+                    qexprs = gem.Sum(qexprs, qexpr)
+
+            assert qexprs.shape == ()
+            dual_expressions.append(qexprs)
+        ir_shape = gem.ListTensor(dual_expressions)
+
+        return ir_shape
 
     @abstractproperty
     def mapping(self):
