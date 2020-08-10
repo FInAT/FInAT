@@ -14,11 +14,12 @@ class EnrichedElement(FiniteElementBase):
     basis functions of several other finite elements."""
 
     def __new__(cls, elements):
+        elements = tuple(elements)
         if len(elements) == 1:
             return elements[0]
         else:
             self = super().__new__(cls)
-            self.elements = tuple(elements)
+            self.elements = elements
             return self
 
     @cached_property
