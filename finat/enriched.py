@@ -128,24 +128,26 @@ class EnrichedElement(FiniteElementBase):
         return self._compose_evaluations(results)
 
     def dual_basis(self):
-        from itertools import chain, zip_longest
+        from itertools import chain
 
+        # Note: NOT TESTED!!!
         elements_dual_basis = [element.dual_basis() for element in self.elements]
+        return tuple(chain(*elements_dual_basis))
 
-        enriched_dual_basis = []
-        for elements_dual in zip_longest(*elements_dual_basis, fill_value=tuple()):
-            enriched_derivs = []
-            for elements_derivs in zip_longest(*elements_dual, fill_value=tuple()):
-                enriched_pts_in_derivs = []
-                for elements_tups in zip_longest(*elements_derivs, fill_value=tuple()):
-                    # TODO: Combine repeated points?
-                    enriched_pts_in_derivs.extend(elements_tups)
-                # Leave one empty tup for safety?
-                for _ in range(enriched_pts_in_derivs.count(tuple())-2):
-                    enriched_pts_in_derivs.remove(tuple())
-                enriched_derivs.append(tuple(enriched_pts_in_derivs))
-            enriched_dual_basis.append(tuple(enriched_derivs))
-        return tuple(enriched_dual_basis)
+        # enriched_dual_basis = []
+        # for elements_dual in zip_longest(*elements_dual_basis, fill_value=tuple()):
+        #     enriched_derivs = []
+        #     for elements_derivs in zip_longest(*elements_dual, fill_value=tuple()):
+        #         enriched_pts_in_derivs = []
+        #         for elements_tups in zip_longest(*elements_derivs, fill_value=tuple()):
+        #             # TODO: Combine repeated points?
+        #             enriched_pts_in_derivs.extend(elements_tups)
+        #         # Leave one empty tup for safety?
+        #         for _ in range(enriched_pts_in_derivs.count(tuple())-2):
+        #             enriched_pts_in_derivs.remove(tuple())
+        #         enriched_derivs.append(tuple(enriched_pts_in_derivs))
+        #     enriched_dual_basis.append(tuple(enriched_derivs))
+        # return tuple(enriched_dual_basis)
 
     @property
     def mapping(self):
