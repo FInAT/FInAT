@@ -163,6 +163,7 @@ class FiniteElementBase(metaclass=ABCMeta):
         where one of the innermost tuples is empty because there are no evaluations
         at that order.
         '''
+        # TODO: Add label for type of evaluation?
 
     def dual_evaluation(self, fn, entity=None):
         '''Return code for performing the dual evaluation at the nodes of the
@@ -175,7 +176,6 @@ class FiniteElementBase(metaclass=ABCMeta):
         if entity is None:
             # TODO: Add comparison to FIAT
             pass
-
         dual_expressions = []   # One for each functional
         expr_cache = {}         # Sharing of evaluation of the expression at points
         # Creates expressions in order of derivative order, extracts and sums alphas
@@ -231,11 +231,14 @@ class FiniteElementBase(metaclass=ABCMeta):
                     # print(self.value_shape, self._base_element.value_shape)
                     # print(self.get_value_indices())
                     # For point_set with multiple points
-                    zeta = tuple(idx for _ in range(len(point_set.points)) for idx in self.get_value_indices())
+                    zeta = [idx for _ in range(len(point_set.points)) for idx in self.get_value_indices()]
+                    zeta = tuple(zeta)
+                    print(self.value_shape)
+                    # TODO: make some indices first index of delta if exists?
                     # print(expr.shape)
                     # print(zeta, point_set.indices)
                     # import pdb; pdb.set_trace()
-                    qexpr = gem.index_sum(gem.partial_indexed(expr, zeta) * weight_tensor[zeta], point_set.indices+zeta)*delta
+                    qexpr = gem.index_sum(gem.partial_indexed(expr, zeta) * weight_tensor[zeta] * delta, point_set.indices+zeta)
                     # Sum for all derivatives
                     # TODO: Are arguments summed properly?
                     qexprs = gem.Sum(qexprs, qexpr)
