@@ -163,46 +163,17 @@ class TensorProductElement(FiniteElementBase):
         return self._merge_evaluations(factor_results)
 
     def dual_basis(self):
-        from finat.point_set import PointSet
-
         if len(self.factors) == 1:
             return self.factors[0].dual_basis
+        # elif len(self.factors) == 3:
+        #     raise NotImplementedError('Cannot create dual basis for more than 2 factors!')
 
-        # Tensorises _base_element.dual_basis by tensorising point_set
         factor_dual_basis = [fe.dual_basis() for fe in self.factors]
         # Get geometric dimension from point_set
         # dimension = base_dual_basis[0][0][0][0].dimension
 
-        tensor_dual_basis = []
-        for base_dual in base_dual_basis:
-            tensor_derivs = []
-            for base_deriv in base_dual:
-                tensor_pts_in_derivs = []
-                for base_tups in base_deriv:
-                    try:
-                        base_point_set, weight_tensor, alpha_tensor = base_tups
-                    except ValueError:  # Empty
-                        tensor_pts_in_derivs.append(tuple())
-
-                    base_pts = base_point_set.points
-                    tensor_pts = []
-                    # TODO: Delta cancellations?
-                    for pt in base_pts:
-                        # print(pt)
-                        if self._shape == 1:
-                            tensor_pts.append(base_pts)
-                        elif self._shape == 2:
-                            tensor_pts.append([[x, y] for x in pt for y in pt])
-                        elif self._shape == 3:
-                            tensor_pts.append([[x, y, z] for x in pt for y in pt for z in pt])
-                        else:
-                            raise ValueError('Cannot create dual_basis for 4D TensorFiniteElement!')
-                    tensor_point_set = PointSet(tensor_pts)
-
-                    tensor_pts_in_derivs.append((tensor_point_set, weight_tensor, alpha_tensor))
-                tensor_derivs.append(tuple(tensor_pts_in_derivs))
-            tensor_dual_basis.append(tuple(tensor_derivs))
-        return tuple(tensor_dual_basis)
+        # TODO: Is this right?
+        return reduce(product_dual_basis, factor_dual_basis)
 
     @cached_property
     def mapping(self):
@@ -276,3 +247,48 @@ def factor_point_set(product_cell, product_dim, point_set):
         return result
 
     raise NotImplementedError("How to tabulate TensorProductElement on %s?" % (type(point_set).__name__,))
+
+
+def product_dual_basis(a_dual_basis, b_dual_basis):
+    """Dual basis of 2 factors. Only a_dual_basis can be non-scalar.
+    """
+
+    product_dual_basis = []
+    # Multiply every term in a_dual by b_dual
+    for a_dual in a_dual_basis:
+        product_derivs = []
+        for a_deriv in a_dual:
+            product_pts_in_derivs = []
+            # TODO: Sum all a_tups first before product by b_dual_basis
+            for a_tups in a_deriv:
+                a_point_set, a_weight_tensor, a_alpha_tensor, a_delta = a_tups
+
+                if any(a_alpha_tensor.shape):
+                    raise NotImplementedError('Cannot create dual basis for factors with derivatives!')
+
+                for b_dual in b_dual_basis:
+                    for b_deriv in b_dual:
+                        for b_tups in b_deriv:
+                            b_point_set, b_weight_tensor, b_alpha_tensor, b_delta = b_tups
+
+                            # TODO: Not sure if works
+                            product_point_set = TensorPointSet((a_point_set, b_point_set))
+                            # Tensor product of alpha_tensors and weight_tensors
+                            # zetas_weight = [fe.get_value_indices() for fe in self.factors]
+                            # for j, idx in enumerate(zetas_weight):
+                            #     if idx == ():
+                            #         zetas_weight[j] = (gem.Index(),)
+
+                            product_weight_tensor = a_weight_tensor * b_weight_tensor
+
+                            # TODO: Probably does not work
+                            # zetas_alpha = [fe.get_value_indices() for fe in self.factors]
+                            # product_alpha_tensor = gem.ComponentTensor(
+                            #     factor_alpha_tensors[0][zetas_alpha[0]] * factor_alpha_tensors[1][zetas_alpha[1]], zetas_alpha[0:2])
+
+                            product_alpha_tensor = a_alpha_tensor
+
+                            product_pts_in_derivs.append((product_point_set, product_weight_tensor, product_alpha_tensor, 1))
+            product_derivs.append(tuple(product_pts_in_derivs))
+        product_dual_basis.append(tuple(product_derivs))
+    return tuple(product_dual_basis)
