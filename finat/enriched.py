@@ -133,20 +133,16 @@ class EnrichedElement(FiniteElementBase):
         elements_dual_basis = [element.dual_basis() for element in self.elements]
 
         enriched_dual_basis = []
-        for elements_dual in zip_longest(*elements_dual_basis, fill_value=[]):
+        for elements_dual in zip_longest(*elements_dual_basis, fill_value=tuple()):
             enriched_derivs = []
-            for elements_deriv in zip_longest(*elements_dual, fill_value=[]):
+            for elements_derivs in zip_longest(*elements_dual, fill_value=tuple()):
                 enriched_pts_in_derivs = []
-                for elements_tups in zip_longest(*elements_deriv, fill_value=[]):
+                for elements_tups in zip_longest(*elements_derivs, fill_value=tuple()):
                     # TODO: Combine repeated points?
-                    # TODO: Remove empty tuples?
-                    for tups in elements_tups:
-                        try:
-                            elements_point_set, weight_tensor, alpha_tensor = elements_tups
-                        except ValueError:  # Empty
-                            continue
-
-                    enriched_pts_in_derivs.append(chain(*elements_tups))
+                    enriched_pts_in_derivs.extend(elements_tups)
+                # Leave one empty tup for safety?
+                for _ in range(enriched_pts_in_derivs.count(tuple())-2):
+                    enriched_pts_in_derivs.remove(tuple())
                 enriched_derivs.append(tuple(enriched_pts_in_derivs))
             enriched_dual_basis.append(tuple(enriched_derivs))
         return tuple(enriched_dual_basis)
