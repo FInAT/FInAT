@@ -302,6 +302,11 @@ class Lagrange(ScalarFiatElement):
         super(Lagrange, self).__init__(FIAT.Lagrange(cell, degree))
 
 
+class KongMulderVeldhuizen(ScalarFiatElement):
+    def __init__(self, cell, degree):
+        super(KongMulderVeldhuizen, self).__init__(FIAT.KongMulderVeldhuizen(cell, degree))
+
+
 class DiscontinuousLagrange(ScalarFiatElement):
     def __init__(self, cell, degree):
         super(DiscontinuousLagrange, self).__init__(FIAT.DiscontinuousLagrange(cell, degree))
