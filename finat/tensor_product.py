@@ -256,9 +256,7 @@ def product_dual_basis(a_dual_basis, b_dual_basis):
     product_dual_basis = []
     # Multiply every term in a_dual by b_dual
     for a_dual in a_dual_basis:
-        product_derivs = []
         for a_deriv in a_dual:
-            product_pts_in_derivs = []
             # TODO: Sum all a_tups first before product by b_dual_basis
             for a_tups in a_deriv:
                 a_point_set, a_weight_tensor, a_alpha_tensor, a_delta = a_tups
@@ -267,28 +265,29 @@ def product_dual_basis(a_dual_basis, b_dual_basis):
                     raise NotImplementedError('Cannot create dual basis for factors with derivatives!')
 
                 for b_dual in b_dual_basis:
+                    product_derivs = []
                     for b_deriv in b_dual:
+                        product_pts_in_derivs = []
                         for b_tups in b_deriv:
                             b_point_set, b_weight_tensor, b_alpha_tensor, b_delta = b_tups
 
                             # TODO: Not sure if works
                             product_point_set = TensorPointSet((a_point_set, b_point_set))
-                            # Tensor product of alpha_tensors and weight_tensors
-                            # zetas_weight = [fe.get_value_indices() for fe in self.factors]
-                            # for j, idx in enumerate(zetas_weight):
-                            #     if idx == ():
-                            #         zetas_weight[j] = (gem.Index(),)
 
-                            product_weight_tensor = a_weight_tensor * b_weight_tensor
+                            product_weight_tensor = a_weight_tensor
 
-                            # TODO: Probably does not work
+                            # import pdb; pdb.set_trace()
+
+                            # TODO: factors with derivatives at points
                             # zetas_alpha = [fe.get_value_indices() for fe in self.factors]
                             # product_alpha_tensor = gem.ComponentTensor(
                             #     factor_alpha_tensors[0][zetas_alpha[0]] * factor_alpha_tensors[1][zetas_alpha[1]], zetas_alpha[0:2])
 
                             product_alpha_tensor = a_alpha_tensor
 
-                            product_pts_in_derivs.append((product_point_set, product_weight_tensor, product_alpha_tensor, 1))
-            product_derivs.append(tuple(product_pts_in_derivs))
-        product_dual_basis.append(tuple(product_derivs))
+                            product_delta = a_delta * b_delta
+
+                            product_pts_in_derivs.append((product_point_set, product_weight_tensor, product_alpha_tensor, product_delta))
+                        product_derivs.append(tuple(product_pts_in_derivs))
+                    product_dual_basis.append(tuple(product_derivs))
     return tuple(product_dual_basis)
