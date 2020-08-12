@@ -169,10 +169,8 @@ class TensorProductElement(FiniteElementBase):
         #     raise NotImplementedError('Cannot create dual basis for more than 2 factors!')
 
         factor_dual_basis = [fe.dual_basis() for fe in self.factors]
-        # Get geometric dimension from point_set
-        # dimension = base_dual_basis[0][0][0][0].dimension
 
-        # TODO: Is this right?
+        # TODO: Is this right for more than 2 factors?
         return reduce(product_dual_basis, factor_dual_basis)
 
     @cached_property
@@ -271,20 +269,16 @@ def product_dual_basis(a_dual_basis, b_dual_basis):
                         for b_tups in b_deriv:
                             b_point_set, b_weight_tensor, b_alpha_tensor, b_delta = b_tups
 
-                            # TODO: Not sure if works
+                            if any(b_alpha_tensor.shape):
+                                raise NotImplementedError('Cannot create dual basis for factors with derivatives!')
+
                             product_point_set = TensorPointSet((a_point_set, b_point_set))
 
                             product_weight_tensor = a_weight_tensor
 
-                            # import pdb; pdb.set_trace()
-
-                            # TODO: factors with derivatives at points
-                            # zetas_alpha = [fe.get_value_indices() for fe in self.factors]
-                            # product_alpha_tensor = gem.ComponentTensor(
-                            #     factor_alpha_tensors[0][zetas_alpha[0]] * factor_alpha_tensors[1][zetas_alpha[1]], zetas_alpha[0:2])
-
                             product_alpha_tensor = a_alpha_tensor
 
+                            # Deltas will not work if indexing depends on point_set!!!
                             product_delta = a_delta * b_delta
 
                             product_pts_in_derivs.append((product_point_set, product_weight_tensor, product_alpha_tensor, product_delta))
