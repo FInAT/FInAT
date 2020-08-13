@@ -58,7 +58,7 @@ class DiscontinuousElement(FiniteElementBase):
         return self.element.point_evaluation(order, refcoords, entity)
 
     def dual_basis(self):
-        raise NotImplementedError(f"{self.__class__.__name__} does not have a dual_basis yet!")
+        return self.element.dual_basis()
 
     @property
     def mapping(self):
