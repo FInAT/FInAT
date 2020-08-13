@@ -162,13 +162,12 @@ class TensorProductElement(FiniteElementBase):
 
         return self._merge_evaluations(factor_results)
 
+    @property
     def dual_basis(self):
         if len(self.factors) == 1:
             return self.factors[0].dual_basis
-        # elif len(self.factors) == 3:
-        #     raise NotImplementedError('Cannot create dual basis for more than 2 factors!')
 
-        factor_dual_basis = [fe.dual_basis() for fe in self.factors]
+        factor_dual_basis = [fe.dual_basis for fe in self.factors]
 
         # TODO: Is this right for more than 2 factors?
         return reduce(product_dual_basis, factor_dual_basis)

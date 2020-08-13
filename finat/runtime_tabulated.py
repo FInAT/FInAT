@@ -98,6 +98,10 @@ class RuntimeTabulated(FiniteElementBase):
         raise NotImplementedError("Point evaluation not supported for runtime tabulated elements")
 
     @property
+    def dual_basis(self):
+        raise ValueError(f"{self.__class__.__name__} does not have a dual_basis!")
+
+    @property
     def index_shape(self):
         return (self.space_dimension(),)
 

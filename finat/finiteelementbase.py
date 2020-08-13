@@ -145,7 +145,7 @@ class FiniteElementBase(metaclass=ABCMeta):
         '''
 
     # Will be required when all elements are updated
-    # @abstractproperty
+    @abstractproperty
     def dual_basis(self):
         '''Returns a tuple where each element of the tuple represents one
         functional in the dual space. Each functional is represented by
@@ -180,7 +180,7 @@ class FiniteElementBase(metaclass=ABCMeta):
         expr_cache = {}         # Sharing of evaluation of the expression at points
         # Creates expressions in order of derivative order, extracts and sums alphas
         # and components, then combine with weights
-        for dual in self.dual_basis():
+        for dual in self.dual_basis:
             qexprs = gem.Zero()
             for derivative_order, deriv in enumerate(dual):
                 for tups in deriv:
