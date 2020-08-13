@@ -9,16 +9,21 @@ from gem.interpreter import evaluate
 from gem.utils import cached_property
 
 from finat.finiteelementbase import FiniteElementBase
-from finat.quadrature import make_quadrature
+from finat.quadrature import make_quadrature, AbstractQuadratureRule
 from finat.point_set import PointSingleton
 
 
 class QuadratureElement(FiniteElementBase):
     """A set of quadrature points pretending to be a finite element."""
 
-    def __init__(self, cell, degree, scheme="default"):
+    def __init__(self, cell, degree, scheme="default", rule=None):
         self.cell = cell
-        self._rule = make_quadrature(cell, degree, scheme)
+        if rule is not None:
+            if not isinstance(rule, AbstractQuadratureRule):
+                raise TypeError("rule is not an AbstractQuadratureRule")
+            self._rule = rule
+        else:
+            self._rule = make_quadrature(cell, degree, scheme)
 
     @cached_property
     def cell(self):
