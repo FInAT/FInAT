@@ -127,6 +127,11 @@ class QuadratureElement(FiniteElementBase):
     def point_evaluation(self, order, refcoords, entity=None):
         raise NotImplementedError("QuadratureElement cannot do point evaluation!")
 
+    # TODO: Does quadrature element have dual basis?
+    @property
+    def dual_basis(self):
+        raise NotImplementedError(f"{self.__class__.__name__} does not have a dual_basis yet!")
+
     @property
     def mapping(self):
         return "affine"

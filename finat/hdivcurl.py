@@ -70,6 +70,7 @@ class WrapperElementBase(FiniteElementBase):
         core_eval = self.wrappee.point_evaluation(order, refcoords, entity)
         return self._transform_evaluation(core_eval)
 
+    @property
     def dual_basis(self):
         raise NotImplementedError(f"{self.__class__.__name__} does not have a dual_basis yet!")
 

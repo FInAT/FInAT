@@ -173,6 +173,7 @@ class FiatElement(FiniteElementBase):
         # Dispatch on FIAT element class
         return point_evaluation(self._element, order, refcoords, (entity_dim, entity_i))
 
+    @property
     def dual_basis(self):
         '''Returns a tuple where each element of the tuple represents one
         functional in the dual space. Each functional is represented by
