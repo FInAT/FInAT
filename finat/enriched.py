@@ -127,11 +127,12 @@ class EnrichedElement(FiniteElementBase):
                    for element in self.elements]
         return self._compose_evaluations(results)
 
+    @property
     def dual_basis(self):
         from itertools import chain
 
         # Note: NOT TESTED!!!
-        elements_dual_basis = [element.dual_basis() for element in self.elements]
+        elements_dual_basis = [element.dual_basis for element in self.elements]
         return tuple(chain(*elements_dual_basis))
 
     @property

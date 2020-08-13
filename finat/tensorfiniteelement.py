@@ -120,11 +120,12 @@ class TensorFiniteElement(FiniteElementBase):
             )
         return result
 
+    @property
     def dual_basis(self):
         from finat.point_set import PointSet
 
         # Tensorises _base_element.dual_basis by tensorising point_set
-        base_dual_basis = self._base_element.dual_basis()
+        base_dual_basis = self._base_element.dual_basis
 
         scalar_i = self._base_element.get_indices()
         scalar_vi = self._base_element.get_value_indices()

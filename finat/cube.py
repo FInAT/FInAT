@@ -75,8 +75,9 @@ class FlattenedDimensions(FiniteElementBase):
 
         return self.product.point_evaluation(order, point, self._unflatten[entity])
 
+    @property
     def dual_basis(self):
-        return self.product.dual_basis()
+        return self.product.dual_basis
 
     @property
     def index_shape(self):
