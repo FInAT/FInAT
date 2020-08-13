@@ -182,7 +182,7 @@ class FiniteElementBase(metaclass=ABCMeta):
         # and components, then combine with weights
         for dual in self.dual_basis():
             qexprs = gem.Zero()
-            for i, deriv in enumerate(dual):
+            for derivative_order, deriv in enumerate(dual):
                 for tups in deriv:
                     try:
                         point_set, weight_tensor, alpha_tensor, delta = tups
@@ -203,23 +203,22 @@ class FiniteElementBase(metaclass=ABCMeta):
                         # Ignore arguments, move to between derivative and component?
                         expr = gem.partial_indexed(expr, shape_indices)
                         expr_cache[(point_set, multi_indices)] = expr"""
-                        expr_grad = fn(point_set, derivative=i)
+                        expr_grad = fn(point_set, derivative=derivative_order)
                         # TODO: multiple alpha at once
                         # TODO: Is partial_indexed indexing at end or bottom?
-                        if i == 0:
+                        if derivative_order == 0:
                             expr = expr_grad
                         else:
-                            alpha_idx = tuple(gem.Index(extent=fn.dimension) for _ in range(i))
+                            alpha_idx = tuple(gem.Index(extent=fn.dimension) for _ in range(derivative_order))
 
                             # TODO: add to gem.partial_indexed (from back version)
                             rank = len(expr_grad.shape) - len(alpha_idx)
-                            shape_indices = tuple(gem.Index() for i in range(rank))
+                            shape_indices = tuple(gem.Index() for _ in range(rank))
                             expr_partial = gem.ComponentTensor(
                                 gem.Indexed(expr_grad, shape_indices + alpha_idx),
                                 shape_indices)
 
                             expr = gem.index_sum(expr_partial * alpha_tensor[alpha_idx], alpha_idx)
-                            # expr = gem.index_sum(gem.partial_indexed(expr_grad, (...,)+alpha_idx) * alpha_tensor[alpha_idx], alpha_idx)
                         expr_cache[(point_set, alpha_tensor)] = expr
 
                     # TODO: partial_indexed of arguments (might not be needed)
@@ -233,7 +232,7 @@ class FiniteElementBase(metaclass=ABCMeta):
                     # For point_set with multiple points
                     zeta = [idx for _ in range(len(point_set.points)) for idx in self.get_value_indices()]
                     zeta = tuple(zeta)
-                    print(self.value_shape)
+                    # print(self.value_shape)
                     # TODO: make some indices first index of delta if exists?
                     # print(expr.shape)
                     # print(zeta, point_set.indices)
