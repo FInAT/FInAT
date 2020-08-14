@@ -1,0 +1,249 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>finat.physically_mapped &#8212; FInAT 0.1 documentation</title>
+    <link rel="stylesheet" href="../../_static/fenics.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<!--[if lte IE 6]>
+<link rel="stylesheet" href="../../_static/ie6.css" type="text/css" media="screen" charset="utf-8" />
+<![endif]-->
+
+<link rel="stylesheet" href="../../_static/featured.css">
+
+
+<link rel="shortcut icon" href="../../_static/icon.ico" />
+
+
+  </head><body>
+<div class="wrapper">
+  <a href="../../index.html"><img src="../../_static/banner.png" width="900px" alt="FInAT Project Banner" /></a>
+  <div id="access">
+    <div class="menu">
+      <ul>
+          <li class="page_item"><a href="https://github.com/FInAT/finat" title="GitHub">GitHub</a></li>
+<!--          <li class="page_item"><a href="../../documentation.html" title="Documentation for FInAT">Documentation</a></li>
+          <li class="page_item"><a href="../../download.html" title="Obtain the FInAT code">Download</a></li>
+          <li class="page_item"><a href="../../team.html" title="The guilty parties">Team</a></li>
+          <li class="page_item"><a href="../../publications.html" title="Publications">Publications</a></li>
+          <li class="page_item"><a href="../../funding.html" title="Our financial supporters">Funding</a></li>
+          <li class="page_item"><a href="../../contact.html" title="Getting in touch">Contact</a></li>
+          <li class="page_item"><a href="http://buildbot-ocean.ese.ic.ac.uk:8080/builders/FInAT-trunk" title="Buildbot">Buildbot</a></li>-->
+      </ul>
+    </div><!-- .menu -->
+  </div><!-- #access -->
+</div><!-- #wrapper -->
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for finat.physically_mapped</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">gem</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABCMeta</span><span class="p">,</span> <span class="n">abstractmethod</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">firedrake_citations</span> <span class="kn">import</span> <span class="n">Citations</span>
+    <span class="n">Citations</span><span class="p">()</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;Kirby2018zany&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">@Article{Kirby2018zany,</span>
+<span class="s2">  author =       {Robert C. Kirby},</span>
+<span class="s2">  title =        {A general approach to transforming finite elements},</span>
+<span class="s2">  journal =      {SMAI Journal of Computational Mathematics},</span>
+<span class="s2">  year =         2018,</span>
+<span class="s2">  volume =       4,</span>
+<span class="s2">  pages =        {197-224},</span>
+<span class="s2">  doi =          {10.5802/smai-jcm.33},</span>
+<span class="s2">  archiveprefix =</span><span class="si">{arXiv}</span><span class="s2">,</span>
+<span class="s2">  eprint =       </span><span class="si">{1706.09017}</span><span class="s2">,</span>
+<span class="s2">  primaryclass = </span><span class="si">{math.NA}</span><span class="s2"></span>
+<span class="s2">}</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+    <span class="n">Citations</span><span class="p">()</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;Kirby2019zany&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">@Article{Kirby:2019,</span>
+<span class="s2">  author =       {Robert C. Kirby and Lawrence Mitchell},</span>
+<span class="s2">  title =        {Code generation for generally mapped finite</span>
+<span class="s2">                  elements},</span>
+<span class="s2">  journal =      {ACM Transactions on Mathematical Software},</span>
+<span class="s2">  year =         2019,</span>
+<span class="s2">  volume =       45,</span>
+<span class="s2">  number =       41,</span>
+<span class="s2">  pages =        {41:1--41:23},</span>
+<span class="s2">  doi =          {10.1145/3361745},</span>
+<span class="s2">  archiveprefix =</span><span class="si">{arXiv}</span><span class="s2">,</span>
+<span class="s2">  eprint =       </span><span class="si">{1808.05513}</span><span class="s2">,</span>
+<span class="s2">  primaryclass = </span><span class="si">{cs.MS}</span><span class="s2"></span>
+<span class="s2">}&quot;&quot;&quot;</span><span class="p">)</span>
+    <span class="n">Citations</span><span class="p">()</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;Argyris1968&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">@Article{Argyris1968,</span>
+<span class="s2">  author =       {J. H. Argyris and I. Fried and D. W. Scharpf},</span>
+<span class="s2">  title =        {{The TUBA family of plate elements for the matrix</span>
+<span class="s2">                  displacement method}},</span>
+<span class="s2">  journal =      {The Aeronautical Journal},</span>
+<span class="s2">  year =         1968,</span>
+<span class="s2">  volume =       72,</span>
+<span class="s2">  pages =        {701-709},</span>
+<span class="s2">  doi =          {10.1017/S000192400008489X}</span>
+<span class="s2">}</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+    <span class="n">Citations</span><span class="p">()</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;Bell1969&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">@Article{Bell1969,</span>
+<span class="s2">  author =       {Kolbein Bell},</span>
+<span class="s2">  title =        {A refined triangular plate bending finite element},</span>
+<span class="s2">  journal =      {International Journal for Numerical Methods in</span>
+<span class="s2">                  Engineering},</span>
+<span class="s2">  year =         1969,</span>
+<span class="s2">  volume =       1,</span>
+<span class="s2">  number =       1,</span>
+<span class="s2">  pages =        {101-122},</span>
+<span class="s2">  doi =          {10.1002/nme.1620010108}</span>
+<span class="s2">}</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+    <span class="n">Citations</span><span class="p">()</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;Ciarlet1972&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">@Article{Ciarlet1972,</span>
+<span class="s2">  author =       {P. G. Ciarlet and P. A. Raviart},</span>
+<span class="s2">  title =        {{General Lagrange and Hermite interpolation in</span>
+<span class="s2">                  $\mathbb</span><span class="si">{R}</span><span class="s2">^n$ with applications to finite element</span>
+<span class="s2">                  methods}},</span>
+<span class="s2">  journal =      {Archive for Rational Mechanics and Analysis},</span>
+<span class="s2">  year =         1972,</span>
+<span class="s2">  volume =       46,</span>
+<span class="s2">  number =       3,</span>
+<span class="s2">  pages =        {177-199},</span>
+<span class="s2">  doi =          {10.1007/BF0025245}</span>
+<span class="s2">}</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+    <span class="n">Citations</span><span class="p">()</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;Morley1971&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">@Article{Morley1971,</span>
+<span class="s2">  author =       {L. S. D. Morley},</span>
+<span class="s2">  title =        {The constant-moment plate-bending element},</span>
+<span class="s2">  journal =      {The Journal of Strain Analysis for Engineering</span>
+<span class="s2">                  Design},</span>
+<span class="s2">  year =         1971,</span>
+<span class="s2">  volume =       6,</span>
+<span class="s2">  number =       1,</span>
+<span class="s2">  pages =        {20-24},</span>
+<span class="s2">  doi =          {10.1243/03093247V061020}</span>
+<span class="s2">}</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">Citations</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="PhysicallyMappedElement"><a class="viewcode-back" href="../../finat.html#finat.physically_mapped.PhysicallyMappedElement">[docs]</a><span class="k">class</span> <span class="nc">PhysicallyMappedElement</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">ABCMeta</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A mixin that applies a &quot;physical&quot; transformation to tabulated</span>
+<span class="sd">    basis functions.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">Citations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">Citations</span><span class="p">()</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;Kirby2018zany&quot;</span><span class="p">)</span>
+            <span class="n">Citations</span><span class="p">()</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;Kirby2019zany&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="PhysicallyMappedElement.basis_transformation"><a class="viewcode-back" href="../../finat.html#finat.physically_mapped.PhysicallyMappedElement.basis_transformation">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">basis_transformation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinate_mapping</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Transformation matrix for the basis functions.</span>
+
+<span class="sd">        :arg coordinate_mapping: Object providing physical geometry.&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="PhysicallyMappedElement.basis_evaluation"><a class="viewcode-back" href="../../finat.html#finat.physically_mapped.PhysicallyMappedElement.basis_evaluation">[docs]</a>    <span class="k">def</span> <span class="nf">basis_evaluation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">ps</span><span class="p">,</span> <span class="n">entity</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">coordinate_mapping</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">coordinate_mapping</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+        <span class="n">M</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">basis_transformation</span><span class="p">(</span><span class="n">coordinate_mapping</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">matvec</span><span class="p">(</span><span class="n">table</span><span class="p">):</span>
+            <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="n">gem</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">gem</span><span class="o">.</span><span class="n">ComponentTensor</span><span class="p">(</span><span class="n">gem</span><span class="o">.</span><span class="n">IndexSum</span><span class="p">(</span><span class="n">M</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span><span class="o">*</span><span class="n">table</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="p">(</span><span class="n">j</span><span class="p">,)),</span> <span class="p">(</span><span class="n">i</span><span class="p">,))</span>
+            <span class="c1"># Eliminate zeros</span>
+            <span class="k">return</span> <span class="n">gem</span><span class="o">.</span><span class="n">optimise</span><span class="o">.</span><span class="n">aggressive_unroll</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">basis_evaluation</span><span class="p">(</span><span class="n">order</span><span class="p">,</span> <span class="n">ps</span><span class="p">,</span> <span class="n">entity</span><span class="o">=</span><span class="n">entity</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{</span><span class="n">alpha</span><span class="p">:</span> <span class="n">matvec</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span></div>
+
+<div class="viewcode-block" id="PhysicallyMappedElement.point_evaluation"><a class="viewcode-back" href="../../finat.html#finat.physically_mapped.PhysicallyMappedElement.point_evaluation">[docs]</a>    <span class="k">def</span> <span class="nf">point_evaluation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">refcoords</span><span class="p">,</span> <span class="n">entity</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;TODO: not yet thought about it&quot;</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="PhysicalGeometry"><a class="viewcode-back" href="../../finat.html#finat.physically_mapped.PhysicalGeometry">[docs]</a><span class="k">class</span> <span class="nc">PhysicalGeometry</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">ABCMeta</span><span class="p">):</span>
+
+<div class="viewcode-block" id="PhysicalGeometry.cell_size"><a class="viewcode-back" href="../../finat.html#finat.physically_mapped.PhysicalGeometry.cell_size">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">cell_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The cell size at each vertex.</span>
+
+<span class="sd">        :returns: A GEM expression for the cell size, shape (nvertex, ).</span>
+<span class="sd">        &quot;&quot;&quot;</span></div>
+
+<div class="viewcode-block" id="PhysicalGeometry.jacobian_at"><a class="viewcode-back" href="../../finat.html#finat.physically_mapped.PhysicalGeometry.jacobian_at">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">jacobian_at</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The jacobian of the physical coordinates at a point.</span>
+
+<span class="sd">        :arg point: The point in reference space to evaluate the Jacobian.</span>
+<span class="sd">        :returns: A GEM expression for the Jacobian, shape (gdim, tdim).</span>
+<span class="sd">        &quot;&quot;&quot;</span></div>
+
+<div class="viewcode-block" id="PhysicalGeometry.reference_normals"><a class="viewcode-back" href="../../finat.html#finat.physically_mapped.PhysicalGeometry.reference_normals">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">reference_normals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The (unit) reference cell normals for each facet.</span>
+
+<span class="sd">        :returns: A GEM expression for the normal to each</span>
+<span class="sd">           facet (numbered according to FIAT conventions), shape</span>
+<span class="sd">           (nfacet, tdim).</span>
+<span class="sd">        &quot;&quot;&quot;</span></div>
+
+<div class="viewcode-block" id="PhysicalGeometry.physical_normals"><a class="viewcode-back" href="../../finat.html#finat.physically_mapped.PhysicalGeometry.physical_normals">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">physical_normals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The (unit) physical cell normals for each facet.</span>
+
+<span class="sd">        :returns: A GEM expression for the normal to each</span>
+<span class="sd">           facet (numbered according to FIAT conventions).  These are</span>
+<span class="sd">           all computed by a clockwise rotation of the physical</span>
+<span class="sd">           tangents, shape (nfacet, gdim).</span>
+<span class="sd">        &quot;&quot;&quot;</span></div>
+
+<div class="viewcode-block" id="PhysicalGeometry.physical_tangents"><a class="viewcode-back" href="../../finat.html#finat.physically_mapped.PhysicalGeometry.physical_tangents">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">physical_tangents</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The (unit) physical cell tangents on each facet.</span>
+
+<span class="sd">        :returns: A GEM expression for the tangent to each</span>
+<span class="sd">           facet (numbered according to FIAT conventions).  These</span>
+<span class="sd">           always point from low to high numbered local vertex, shape</span>
+<span class="sd">           (nfacet, gdim).</span>
+<span class="sd">        &quot;&quot;&quot;</span></div>
+
+<div class="viewcode-block" id="PhysicalGeometry.physical_edge_lengths"><a class="viewcode-back" href="../../finat.html#finat.physically_mapped.PhysicalGeometry.physical_edge_lengths">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">physical_edge_lengths</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The length of each edge of the physical cell.</span>
+
+<span class="sd">        :returns: A GEM expression for the length of each</span>
+<span class="sd">           edge (numbered according to FIAT conventions), shape</span>
+<span class="sd">           (nfacet, ).</span>
+<span class="sd">        &quot;&quot;&quot;</span></div></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2014--2020, David A. Ham, Robert C. Kirby and others.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.0.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,174 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>finat.quadrature &#8212; FInAT 0.1 documentation</title>
+    <link rel="stylesheet" href="../../_static/fenics.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<!--[if lte IE 6]>
+<link rel="stylesheet" href="../../_static/ie6.css" type="text/css" media="screen" charset="utf-8" />
+<![endif]-->
+
+<link rel="stylesheet" href="../../_static/featured.css">
+
+
+<link rel="shortcut icon" href="../../_static/icon.ico" />
+
+
+  </head><body>
+<div class="wrapper">
+  <a href="../../index.html"><img src="../../_static/banner.png" width="900px" alt="FInAT Project Banner" /></a>
+  <div id="access">
+    <div class="menu">
+      <ul>
+          <li class="page_item"><a href="https://github.com/FInAT/finat" title="GitHub">GitHub</a></li>
+<!--          <li class="page_item"><a href="../../documentation.html" title="Documentation for FInAT">Documentation</a></li>
+          <li class="page_item"><a href="../../download.html" title="Obtain the FInAT code">Download</a></li>
+          <li class="page_item"><a href="../../team.html" title="The guilty parties">Team</a></li>
+          <li class="page_item"><a href="../../publications.html" title="Publications">Publications</a></li>
+          <li class="page_item"><a href="../../funding.html" title="Our financial supporters">Funding</a></li>
+          <li class="page_item"><a href="../../contact.html" title="Getting in touch">Contact</a></li>
+          <li class="page_item"><a href="http://buildbot-ocean.ese.ic.ac.uk:8080/builders/FInAT-trunk" title="Buildbot">Buildbot</a></li>-->
+      </ul>
+    </div><!-- .menu -->
+  </div><!-- #access -->
+</div><!-- #wrapper -->
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for finat.quadrature</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABCMeta</span><span class="p">,</span> <span class="n">abstractproperty</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">reduce</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="kn">import</span> <span class="nn">gem</span>
+<span class="kn">from</span> <span class="nn">gem.utils</span> <span class="kn">import</span> <span class="n">cached_property</span>
+
+<span class="kn">from</span> <span class="nn">FIAT.reference_element</span> <span class="kn">import</span> <span class="n">LINE</span><span class="p">,</span> <span class="n">QUADRILATERAL</span><span class="p">,</span> <span class="n">TENSORPRODUCT</span>
+<span class="kn">from</span> <span class="nn">FIAT.quadrature</span> <span class="kn">import</span> <span class="n">GaussLegendreQuadratureLineRule</span>
+<span class="kn">from</span> <span class="nn">FIAT.quadrature_schemes</span> <span class="kn">import</span> <span class="n">create_quadrature</span> <span class="k">as</span> <span class="n">fiat_scheme</span>
+
+<span class="kn">from</span> <span class="nn">finat.point_set</span> <span class="kn">import</span> <span class="n">PointSet</span><span class="p">,</span> <span class="n">GaussLegendrePointSet</span><span class="p">,</span> <span class="n">TensorPointSet</span>
+
+
+<div class="viewcode-block" id="make_quadrature"><a class="viewcode-back" href="../../finat.html#finat.quadrature.make_quadrature">[docs]</a><span class="k">def</span> <span class="nf">make_quadrature</span><span class="p">(</span><span class="n">ref_el</span><span class="p">,</span> <span class="n">degree</span><span class="p">,</span> <span class="n">scheme</span><span class="o">=</span><span class="s2">&quot;default&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate quadrature rule for given reference element</span>
+<span class="sd">    that will integrate an polynomial of order &#39;degree&#39; exactly.</span>
+
+<span class="sd">    For low-degree (&lt;=6) polynomials on triangles and tetrahedra, this</span>
+<span class="sd">    uses hard-coded rules, otherwise it falls back to a collapsed</span>
+<span class="sd">    Gauss scheme on simplices.  On tensor-product cells, it is a</span>
+<span class="sd">    tensor-product quadrature rule of the subcells.</span>
+
+<span class="sd">    :arg cell: The FIAT cell to create the quadrature for.</span>
+<span class="sd">    :arg degree: The degree of polynomial that the rule should</span>
+<span class="sd">        integrate exactly.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">ref_el</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span> <span class="o">==</span> <span class="n">TENSORPRODUCT</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">degree</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">degree</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="n">degree</span> <span class="o">=</span> <span class="p">(</span><span class="n">degree</span><span class="p">,)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">ref_el</span><span class="o">.</span><span class="n">cells</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">ref_el</span><span class="o">.</span><span class="n">cells</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">degree</span><span class="p">)</span>
+        <span class="n">quad_rules</span> <span class="o">=</span> <span class="p">[</span><span class="n">make_quadrature</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">scheme</span><span class="p">)</span>
+                      <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ref_el</span><span class="o">.</span><span class="n">cells</span><span class="p">,</span> <span class="n">degree</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="n">TensorProductQuadratureRule</span><span class="p">(</span><span class="n">quad_rules</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">ref_el</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span> <span class="o">==</span> <span class="n">QUADRILATERAL</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">make_quadrature</span><span class="p">(</span><span class="n">ref_el</span><span class="o">.</span><span class="n">product</span><span class="p">,</span> <span class="n">degree</span><span class="p">,</span> <span class="n">scheme</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">degree</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Need positive degree, not </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">degree</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">ref_el</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span> <span class="o">==</span> <span class="n">LINE</span><span class="p">:</span>
+        <span class="c1"># FIAT uses Gauss-Legendre line quadature, however, since we</span>
+        <span class="c1"># symbolically label it as such, we wish not to risk attaching</span>
+        <span class="c1"># the wrong label in case FIAT changes.  So we explicitly ask</span>
+        <span class="c1"># for Gauss-Legendre line quadature.</span>
+        <span class="n">num_points</span> <span class="o">=</span> <span class="p">(</span><span class="n">degree</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>  <span class="c1"># exact integration</span>
+        <span class="n">fiat_rule</span> <span class="o">=</span> <span class="n">GaussLegendreQuadratureLineRule</span><span class="p">(</span><span class="n">ref_el</span><span class="p">,</span> <span class="n">num_points</span><span class="p">)</span>
+        <span class="n">point_set</span> <span class="o">=</span> <span class="n">GaussLegendrePointSet</span><span class="p">(</span><span class="n">fiat_rule</span><span class="o">.</span><span class="n">get_points</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">QuadratureRule</span><span class="p">(</span><span class="n">point_set</span><span class="p">,</span> <span class="n">fiat_rule</span><span class="o">.</span><span class="n">get_weights</span><span class="p">())</span>
+
+    <span class="n">fiat_rule</span> <span class="o">=</span> <span class="n">fiat_scheme</span><span class="p">(</span><span class="n">ref_el</span><span class="p">,</span> <span class="n">degree</span><span class="p">,</span> <span class="n">scheme</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">QuadratureRule</span><span class="p">(</span><span class="n">PointSet</span><span class="p">(</span><span class="n">fiat_rule</span><span class="o">.</span><span class="n">get_points</span><span class="p">()),</span> <span class="n">fiat_rule</span><span class="o">.</span><span class="n">get_weights</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="AbstractQuadratureRule"><a class="viewcode-back" href="../../finat.html#finat.quadrature.AbstractQuadratureRule">[docs]</a><span class="k">class</span> <span class="nc">AbstractQuadratureRule</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">ABCMeta</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract class representing a quadrature rule as point set and a</span>
+<span class="sd">    corresponding set of weights.&quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractproperty</span>
+    <span class="k">def</span> <span class="nf">point_set</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Point set object representing the quadrature points.&quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractproperty</span>
+    <span class="k">def</span> <span class="nf">weight_expression</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;GEM expression describing the weights, with the same free indices</span>
+<span class="sd">        as the point set.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="QuadratureRule"><a class="viewcode-back" href="../../finat.html#finat.quadrature.QuadratureRule">[docs]</a><span class="k">class</span> <span class="nc">QuadratureRule</span><span class="p">(</span><span class="n">AbstractQuadratureRule</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generic quadrature rule with no internal structure.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point_set</span><span class="p">,</span> <span class="n">weights</span><span class="p">):</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">point_set</span><span class="o">.</span><span class="n">points</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">point_set</span> <span class="o">=</span> <span class="n">point_set</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
+
+<div class="viewcode-block" id="QuadratureRule.point_set"><a class="viewcode-back" href="../../finat.html#finat.quadrature.QuadratureRule.point_set">[docs]</a>    <span class="nd">@cached_property</span>
+    <span class="k">def</span> <span class="nf">point_set</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>  <span class="c1"># set at initialisation</span></div>
+
+<div class="viewcode-block" id="QuadratureRule.weight_expression"><a class="viewcode-back" href="../../finat.html#finat.quadrature.QuadratureRule.weight_expression">[docs]</a>    <span class="nd">@cached_property</span>
+    <span class="k">def</span> <span class="nf">weight_expression</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">gem</span><span class="o">.</span><span class="n">Indexed</span><span class="p">(</span><span class="n">gem</span><span class="o">.</span><span class="n">Literal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">point_set</span><span class="o">.</span><span class="n">indices</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="TensorProductQuadratureRule"><a class="viewcode-back" href="../../finat.html#finat.quadrature.TensorProductQuadratureRule">[docs]</a><span class="k">class</span> <span class="nc">TensorProductQuadratureRule</span><span class="p">(</span><span class="n">AbstractQuadratureRule</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Quadrature rule which is a tensor product of other rules.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">factors</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">factors</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">factors</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TensorProductQuadratureRule.point_set"><a class="viewcode-back" href="../../finat.html#finat.quadrature.TensorProductQuadratureRule.point_set">[docs]</a>    <span class="nd">@cached_property</span>
+    <span class="k">def</span> <span class="nf">point_set</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">TensorPointSet</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">point_set</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">factors</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TensorProductQuadratureRule.weight_expression"><a class="viewcode-back" href="../../finat.html#finat.quadrature.TensorProductQuadratureRule.weight_expression">[docs]</a>    <span class="nd">@cached_property</span>
+    <span class="k">def</span> <span class="nf">weight_expression</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">reduce</span><span class="p">(</span><span class="n">gem</span><span class="o">.</span><span class="n">Product</span><span class="p">,</span> <span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">weight_expression</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">factors</span><span class="p">))</span></div></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2014--2020, David A. Ham, Robert C. Kirby and others.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.0.
+    </div>
+  </body>
+</html>
