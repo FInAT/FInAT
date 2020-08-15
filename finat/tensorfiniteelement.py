@@ -122,76 +122,51 @@ class TensorFiniteElement(FiniteElementBase):
 
     @property
     def dual_basis(self):
-        from finat.point_set import PointSet
-
-        # Tensorises _base_element.dual_basis by tensorising point_set
         base_dual_basis = self._base_element.dual_basis
 
-        scalar_i = self._base_element.get_indices()
-        scalar_vi = self._base_element.get_value_indices()
-        tensor_i = tuple(gem.Index(extent=d) for d in self._shape)
-        tensor_vi = tuple(gem.Index(extent=d) for d in self._shape)
-
-        deltas = reduce(gem.Product, (gem.Delta(j, k)
-                                      for j, k in zip(tensor_i, tensor_vi)))
-
-        import pdb; pdb.set_trace()
         tensor_dual_basis = []
-        for i, base_dual in enumerate(base_dual_basis):
-            tensor_derivs = []
-            for base_deriv in base_dual:
-                tensor_pts_in_derivs = []
-                for base_tups in base_deriv:
-                    try:
-                        base_point_set, weight_tensor, alpha_tensor, delta = base_tups
-                    except ValueError:  # Empty
-                        tensor_pts_in_derivs.append(tuple())
+        if len(self.value_shape) == 1:
+            for base_dual in base_dual_basis:
+                for alpha in range(self.value_shape[0]):
+                    tensor_dual_basis.append(self._tensorise_dual(base_dual, (alpha,)))
+        elif len(self.value_shape) == 2:
+            for base_dual in base_dual_basis:
+                for alpha in range(self.value_shape[0]):
+                    for beta in range(self.value_shape[1]):
+                        tensor_dual_basis.append(self._tensorise_dual(base_dual, (alpha, beta)))
+        elif len(self.value_shape) == 3:
+            for base_dual in base_dual_basis:
+                for alpha in range(self.value_shape[0]):
+                    for beta in range(self.value_shape[1]):
+                        for gamma in range(self.value_shape[2]):
+                            tensor_dual_basis.append(self._tensorise_dual(base_dual, (alpha, beta, gamma)))
+        else:
+            raise NotImplementedError("Cannot create dual basis for rank-4 tensor-valued basis functions!")
 
-                    tensor_weight_tensor = weight_tensor
-                    import numpy as np
-                    tensor_weight_tensor = gem.Literal(np.full(self._shape, weight_tensor.value))
-                    delta = deltas
-
-                    tensor_pts_in_derivs.append((base_point_set, tensor_weight_tensor, alpha_tensor, delta))
-                tensor_derivs.append(tuple(tensor_pts_in_derivs))
-            tensor_dual_basis.append(tuple(tensor_derivs))
         return tuple(tensor_dual_basis)
 
-        """base_dual_basis = self._base_element.dual_basis()
+    def _tensorise_dual(self, base_dual, idx):
+        """Tensorises given base_dual by extracting idx of expression with weight_tensor.
+        """
+        tensor_derivs = []
+        for base_deriv in base_dual:
+            tensor_pts_in_derivs = []
+            for base_tups in base_deriv:
+                try:
+                    base_point_set, weight_tensor, alpha_tensor, delta = base_tups
+                except ValueError:  # Empty
+                    tensor_pts_in_derivs.append(tuple())
 
-        # Old basis function and value indices
-        # len(dual_basis)
-        scalar_i = self._base_element.get_indices()
-        # shape of functional input
-        scalar_vi = self._base_element.get_value_indices()
-        # Output of dual_evaluation has shape (scalar_i, ), but scalar_vi
-        # required for tensor multiplication
+                import numpy as np
+                weight = np.zeros(self.value_shape)
+                weight[idx] = 1
+                tensor_weight_tensor = gem.Literal(weight)
+                gem.Delta(1, gem.Index())
 
-        # New basis function and value indices
-        # _shape is dimension of tensor element
-        tensor_i = tuple(gem.Index(extent=d) for d in self._shape)
-        tensor_vi = tuple(gem.Index(extent=d) for d in self._shape)
+                tensor_pts_in_derivs.append((base_point_set, tensor_weight_tensor, alpha_tensor, delta))
+            tensor_derivs.append(tuple(tensor_pts_in_derivs))
 
-        # TODO: delta function
-        deltas = reduce(gem.Product, (gem.Delta(j, k)
-                                      for j, k in zip(tensor_i, tensor_vi)))
-
-        if self._transpose:
-            index_ordering = tensor_i + scalar_i + tensor_vi
-        else:
-            index_ordering = scalar_i + tensor_i + tensor_vi
-
-        scalar_dual_expressions = [base_dual_basis[i] for i in range(base_dual_basis.shape[0])]
-        dual_expressions = []
-        for scalar_expr in scalar_dual_expressions:
-            tensor_expr = gem.ComponentTensor(
-                gem.Product(deltas, gem.Indexed(scalar_expr, scalar_i)),
-                index_ordering
-            )
-            dual_expressions.append(tensor_expr)
-
-        result = gem.ListTensor(dual_expressions)
-        return result"""
+        return tuple(tensor_derivs)
 
     @property
     def mapping(self):
