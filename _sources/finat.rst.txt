@@ -124,6 +124,14 @@ finat.quadrature\_element module
    :undoc-members:
    :show-inheritance:
 
+finat.restricted module
+-----------------------
+
+.. automodule:: finat.restricted
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 finat.runtime\_tabulated module
 -------------------------------
 

@@ -1,0 +1,328 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>finat.restricted &#8212; FInAT 0.1 documentation</title>
+    <link rel="stylesheet" href="../../_static/fenics.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<!--[if lte IE 6]>
+<link rel="stylesheet" href="../../_static/ie6.css" type="text/css" media="screen" charset="utf-8" />
+<![endif]-->
+
+<link rel="stylesheet" href="../../_static/featured.css">
+
+
+<link rel="shortcut icon" href="../../_static/icon.ico" />
+
+
+  </head><body>
+<div class="wrapper">
+  <a href="../../index.html"><img src="../../_static/banner.png" width="900px" alt="FInAT Project Banner" /></a>
+  <div id="access">
+    <div class="menu">
+      <ul>
+          <li class="page_item"><a href="https://github.com/FInAT/finat" title="GitHub">GitHub</a></li>
+<!--          <li class="page_item"><a href="../../documentation.html" title="Documentation for FInAT">Documentation</a></li>
+          <li class="page_item"><a href="../../download.html" title="Obtain the FInAT code">Download</a></li>
+          <li class="page_item"><a href="../../team.html" title="The guilty parties">Team</a></li>
+          <li class="page_item"><a href="../../publications.html" title="Publications">Publications</a></li>
+          <li class="page_item"><a href="../../funding.html" title="Our financial supporters">Funding</a></li>
+          <li class="page_item"><a href="../../contact.html" title="Getting in touch">Contact</a></li>
+          <li class="page_item"><a href="http://buildbot-ocean.ese.ic.ac.uk:8080/builders/FInAT-trunk" title="Buildbot">Buildbot</a></li>-->
+      </ul>
+    </div><!-- .menu -->
+  </div><!-- #access -->
+</div><!-- #wrapper -->
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for finat.restricted</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">singledispatch</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">chain</span>
+
+<span class="kn">import</span> <span class="nn">FIAT</span>
+<span class="kn">from</span> <span class="nn">FIAT.polynomial_set</span> <span class="kn">import</span> <span class="n">mis</span>
+
+<span class="kn">import</span> <span class="nn">finat</span>
+<span class="kn">from</span> <span class="nn">finat.fiat_elements</span> <span class="kn">import</span> <span class="n">FiatElement</span>
+<span class="kn">from</span> <span class="nn">finat.physically_mapped</span> <span class="kn">import</span> <span class="n">PhysicallyMappedElement</span>
+
+
+<span class="c1"># Sentinel for when restricted element is empty</span>
+<span class="n">null_element</span> <span class="o">=</span> <span class="nb">object</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="restrict"><a class="viewcode-back" href="../../finat.html#finat.restricted.restrict">[docs]</a><span class="nd">@singledispatch</span>
+<span class="k">def</span> <span class="nf">restrict</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">domain</span><span class="p">,</span> <span class="n">take_closure</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Restrict an element to a given subentity.</span>
+
+<span class="sd">    :arg element: The element to restrict.</span>
+<span class="sd">    :arg domain: The subentity to restrict to.</span>
+<span class="sd">    :arg take_closure: Gather dofs in closure of the subentities?</span>
+<span class="sd">        Ignored for &quot;interior&quot; domain.</span>
+
+<span class="sd">    :raises NotImplementedError: If we don&#39;t know how to restrict this</span>
+<span class="sd">        element.</span>
+<span class="sd">    :raises ValueError: If the restricted element is empty.</span>
+<span class="sd">    :returns: A new finat element.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Don&#39;t know how to restrict element of type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">element</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="restrict_fiat"><a class="viewcode-back" href="../../finat.html#finat.restricted.restrict_fiat">[docs]</a><span class="nd">@restrict</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">FiatElement</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">restrict_fiat</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">domain</span><span class="p">,</span> <span class="n">take_closure</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">FiatElement</span><span class="p">(</span><span class="n">FIAT</span><span class="o">.</span><span class="n">RestrictedElement</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">_element</span><span class="p">,</span> <span class="n">restriction_domain</span><span class="o">=</span><span class="n">domain</span><span class="p">))</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">null_element</span></div>
+
+
+<div class="viewcode-block" id="restrict_physically_mapped"><a class="viewcode-back" href="../../finat.html#finat.restricted.restrict_physically_mapped">[docs]</a><span class="nd">@restrict</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">PhysicallyMappedElement</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">restrict_physically_mapped</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">domain</span><span class="p">,</span> <span class="n">take_closure</span><span class="p">):</span>
+    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Can&#39;t restrict Physically Mapped things&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="restrict_flattened_dimensions"><a class="viewcode-back" href="../../finat.html#finat.restricted.restrict_flattened_dimensions">[docs]</a><span class="nd">@restrict</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">finat</span><span class="o">.</span><span class="n">FlattenedDimensions</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">restrict_flattened_dimensions</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">domain</span><span class="p">,</span> <span class="n">take_closure</span><span class="p">):</span>
+    <span class="n">restricted</span> <span class="o">=</span> <span class="n">restrict</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">product</span><span class="p">,</span> <span class="n">domain</span><span class="p">,</span> <span class="n">take_closure</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">restricted</span> <span class="ow">is</span> <span class="n">null_element</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">null_element</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">finat</span><span class="o">.</span><span class="n">FlattenedDimensions</span><span class="p">(</span><span class="n">restricted</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="restrict_discontinuous"><a class="viewcode-back" href="../../finat.html#finat.restricted.restrict_discontinuous">[docs]</a><span class="nd">@restrict</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">finat</span><span class="o">.</span><span class="n">DiscontinuousElement</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">restrict_discontinuous</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">domain</span><span class="p">,</span> <span class="n">take_closure</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">domain</span> <span class="o">==</span> <span class="s2">&quot;interior&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">element</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">null_element</span></div>
+
+
+<div class="viewcode-block" id="restrict_enriched"><a class="viewcode-back" href="../../finat.html#finat.restricted.restrict_enriched">[docs]</a><span class="nd">@restrict</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">finat</span><span class="o">.</span><span class="n">EnrichedElement</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">restrict_enriched</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">domain</span><span class="p">,</span> <span class="n">take_closure</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">finat</span><span class="o">.</span><span class="n">mixed</span><span class="o">.</span><span class="n">MixedSubElement</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">element</span><span class="o">.</span><span class="n">elements</span><span class="p">):</span>
+        <span class="c1"># Mixed is handled by Enriched + MixedSubElement, we must</span>
+        <span class="c1"># restrict the subelements here because the transformation is</span>
+        <span class="c1"># nonlocal.</span>
+        <span class="n">elements</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">restrict</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">element</span><span class="p">,</span> <span class="n">domain</span><span class="p">,</span> <span class="n">take_closure</span><span class="p">)</span> <span class="k">for</span>
+                         <span class="n">e</span> <span class="ow">in</span> <span class="n">element</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span>
+        <span class="n">reconstruct</span> <span class="o">=</span> <span class="n">finat</span><span class="o">.</span><span class="n">mixed</span><span class="o">.</span><span class="n">MixedElement</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">finat</span><span class="o">.</span><span class="n">mixed</span><span class="o">.</span><span class="n">MixedSubElement</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">element</span><span class="o">.</span><span class="n">elements</span><span class="p">):</span>
+        <span class="n">elements</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">restrict</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">domain</span><span class="p">,</span> <span class="n">take_closure</span><span class="p">)</span>
+                         <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">element</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span>
+        <span class="n">reconstruct</span> <span class="o">=</span> <span class="n">finat</span><span class="o">.</span><span class="n">EnrichedElement</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Not expecting enriched with mixture of MixedSubElement and others&quot;</span><span class="p">)</span>
+
+    <span class="n">elements</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">elements</span> <span class="k">if</span> <span class="n">e</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">null_element</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">elements</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">reconstruct</span><span class="p">(</span><span class="n">elements</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">null_element</span></div>
+
+
+<div class="viewcode-block" id="restrict_hcurl"><a class="viewcode-back" href="../../finat.html#finat.restricted.restrict_hcurl">[docs]</a><span class="nd">@restrict</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">finat</span><span class="o">.</span><span class="n">HCurlElement</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">restrict_hcurl</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">domain</span><span class="p">,</span> <span class="n">take_closure</span><span class="p">):</span>
+    <span class="n">restricted</span> <span class="o">=</span> <span class="n">restrict</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">wrappee</span><span class="p">,</span> <span class="n">domain</span><span class="p">,</span> <span class="n">take_closure</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">restricted</span> <span class="ow">is</span> <span class="n">null_element</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">null_element</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">restricted</span><span class="p">,</span> <span class="n">finat</span><span class="o">.</span><span class="n">EnrichedElement</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">finat</span><span class="o">.</span><span class="n">EnrichedElement</span><span class="p">(</span><span class="n">finat</span><span class="o">.</span><span class="n">HCurlElement</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                                         <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">restricted</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">finat</span><span class="o">.</span><span class="n">HCurlElement</span><span class="p">(</span><span class="n">restricted</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="restrict_hdiv"><a class="viewcode-back" href="../../finat.html#finat.restricted.restrict_hdiv">[docs]</a><span class="nd">@restrict</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">finat</span><span class="o">.</span><span class="n">HDivElement</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">restrict_hdiv</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">domain</span><span class="p">,</span> <span class="n">take_closure</span><span class="p">):</span>
+    <span class="n">restricted</span> <span class="o">=</span> <span class="n">restrict</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">wrappee</span><span class="p">,</span> <span class="n">domain</span><span class="p">,</span> <span class="n">take_closure</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">restricted</span> <span class="ow">is</span> <span class="n">null_element</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">null_element</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">restricted</span><span class="p">,</span> <span class="n">finat</span><span class="o">.</span><span class="n">EnrichedElement</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">finat</span><span class="o">.</span><span class="n">EnrichedElement</span><span class="p">(</span><span class="n">finat</span><span class="o">.</span><span class="n">HDivElement</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                                         <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">restricted</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">finat</span><span class="o">.</span><span class="n">HDivElement</span><span class="p">(</span><span class="n">restricted</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="restrict_mixed"><a class="viewcode-back" href="../../finat.html#finat.restricted.restrict_mixed">[docs]</a><span class="nd">@restrict</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">finat</span><span class="o">.</span><span class="n">mixed</span><span class="o">.</span><span class="n">MixedSubElement</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">restrict_mixed</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">domain</span><span class="p">,</span> <span class="n">take_closure</span><span class="p">):</span>
+    <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;Was expecting this to be handled inside EnrichedElement restriction&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="restrict_gll"><a class="viewcode-back" href="../../finat.html#finat.restricted.restrict_gll">[docs]</a><span class="nd">@restrict</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">finat</span><span class="o">.</span><span class="n">GaussLobattoLegendre</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">restrict_gll</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">domain</span><span class="p">,</span> <span class="n">take_closure</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">FiatElement</span><span class="p">(</span><span class="n">FIAT</span><span class="o">.</span><span class="n">RestrictedElement</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">_element</span><span class="p">,</span> <span class="n">restriction_domain</span><span class="o">=</span><span class="n">domain</span><span class="p">))</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">null_element</span></div>
+
+
+<div class="viewcode-block" id="restrict_gl"><a class="viewcode-back" href="../../finat.html#finat.restricted.restrict_gl">[docs]</a><span class="nd">@restrict</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">finat</span><span class="o">.</span><span class="n">GaussLegendre</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">restrict_gl</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">domain</span><span class="p">,</span> <span class="n">take_closure</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">domain</span> <span class="o">==</span> <span class="s2">&quot;interior&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">element</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">null_element</span></div>
+
+
+<div class="viewcode-block" id="r_to_codim"><a class="viewcode-back" href="../../finat.html#finat.restricted.r_to_codim">[docs]</a><span class="k">def</span> <span class="nf">r_to_codim</span><span class="p">(</span><span class="n">restriction</span><span class="p">,</span> <span class="n">dim</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">restriction</span> <span class="o">==</span> <span class="s2">&quot;interior&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span>
+    <span class="k">elif</span> <span class="n">restriction</span> <span class="o">==</span> <span class="s2">&quot;facet&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+    <span class="k">elif</span> <span class="n">restriction</span> <span class="o">==</span> <span class="s2">&quot;face&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">dim</span> <span class="o">-</span> <span class="mi">2</span>
+    <span class="k">elif</span> <span class="n">restriction</span> <span class="o">==</span> <span class="s2">&quot;edge&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">dim</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="k">elif</span> <span class="n">restriction</span> <span class="o">==</span> <span class="s2">&quot;vertex&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">dim</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span></div>
+
+
+<div class="viewcode-block" id="codim_to_r"><a class="viewcode-back" href="../../finat.html#finat.restricted.codim_to_r">[docs]</a><span class="k">def</span> <span class="nf">codim_to_r</span><span class="p">(</span><span class="n">codim</span><span class="p">,</span> <span class="n">dim</span><span class="p">):</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">dim</span> <span class="o">-</span> <span class="n">codim</span>
+    <span class="k">if</span> <span class="n">codim</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;interior&quot;</span>
+    <span class="k">elif</span> <span class="n">codim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;facet&quot;</span>
+    <span class="k">elif</span> <span class="n">d</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;vertex&quot;</span>
+    <span class="k">elif</span> <span class="n">d</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;edge&quot;</span>
+    <span class="k">elif</span> <span class="n">d</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;face&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span></div>
+
+
+<div class="viewcode-block" id="restrict_tpe"><a class="viewcode-back" href="../../finat.html#finat.restricted.restrict_tpe">[docs]</a><span class="nd">@restrict</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">finat</span><span class="o">.</span><span class="n">TensorProductElement</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">restrict_tpe</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">domain</span><span class="p">,</span> <span class="n">take_closure</span><span class="p">):</span>
+    <span class="c1"># The restriction of a TPE to a codim subentity is the direct sum</span>
+    <span class="c1"># of TPEs where the factors have been restricted in such a way</span>
+    <span class="c1"># that the sum of those restrictions is codim.</span>
+    <span class="c1">#</span>
+    <span class="c1"># For example, to restrict an interval x interval to edges (codim 1)</span>
+    <span class="c1"># we construct</span>
+    <span class="c1">#</span>
+    <span class="c1"># R(I, 0)⊗R(I, 1) ⊕ R(I, 1)⊗R(I, 0)</span>
+    <span class="c1">#</span>
+    <span class="c1"># If take_closure is true, the restriction wants to select dofs on</span>
+    <span class="c1"># entities with dim &gt;= codim &gt;= 1 (for the edge example)</span>
+    <span class="c1"># so we get</span>
+    <span class="c1">#</span>
+    <span class="c1"># R(I, 0)⊗R(I, 1) ⊕ R(I, 1)⊗R(I, 0) ⊕ R(I, 0)⊗R(I, 0)</span>
+    <span class="n">factors</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">factors</span>
+    <span class="n">dimension</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">get_spatial_dimension</span><span class="p">()</span>
+
+    <span class="c1"># Figure out which codim entity we&#39;re selecting</span>
+    <span class="n">codim</span> <span class="o">=</span> <span class="n">r_to_codim</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">dimension</span><span class="p">)</span>
+    <span class="c1"># And the range of codims.</span>
+    <span class="n">upper</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="n">dimension</span>
+                 <span class="k">if</span> <span class="p">(</span><span class="n">take_closure</span> <span class="ow">and</span> <span class="n">domain</span> <span class="o">!=</span> <span class="s2">&quot;interior&quot;</span><span class="p">)</span>
+                 <span class="k">else</span> <span class="n">codim</span><span class="p">)</span>
+    <span class="c1"># restrictions on each factor taken from n-tuple that sums to the</span>
+    <span class="c1"># target codim (as long as the codim &lt;= dim_factor)</span>
+    <span class="n">restrictions</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">candidate</span>
+                         <span class="k">for</span> <span class="n">candidate</span> <span class="ow">in</span> <span class="n">chain</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">mis</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">factors</span><span class="p">),</span> <span class="n">c</span><span class="p">)</span>
+                                                  <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">codim</span><span class="p">,</span> <span class="n">upper</span><span class="p">)))</span>
+                         <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">d</span> <span class="o">&lt;=</span> <span class="n">factor</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">get_dimension</span><span class="p">()</span>
+                                <span class="k">for</span> <span class="n">d</span><span class="p">,</span> <span class="n">factor</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">candidate</span><span class="p">,</span> <span class="n">factors</span><span class="p">)))</span>
+    <span class="n">elements</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">decomposition</span> <span class="ow">in</span> <span class="n">restrictions</span><span class="p">:</span>
+        <span class="c1"># Recurse, but don&#39;t take closure in recursion (since we</span>
+        <span class="c1"># handled it already).</span>
+        <span class="n">new_factors</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
+            <span class="n">restrict</span><span class="p">(</span><span class="n">factor</span><span class="p">,</span> <span class="n">codim_to_r</span><span class="p">(</span><span class="n">codim</span><span class="p">,</span> <span class="n">factor</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">get_dimension</span><span class="p">()),</span>
+                     <span class="n">take_closure</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">factor</span><span class="p">,</span> <span class="n">codim</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">factors</span><span class="p">,</span> <span class="n">decomposition</span><span class="p">))</span>
+        <span class="c1"># If one of the factors was empty then the whole TPE is empty,</span>
+        <span class="c1"># so skip.</span>
+        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">f</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">null_element</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">new_factors</span><span class="p">):</span>
+            <span class="n">elements</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">finat</span><span class="o">.</span><span class="n">TensorProductElement</span><span class="p">(</span><span class="n">new_factors</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">elements</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">finat</span><span class="o">.</span><span class="n">EnrichedElement</span><span class="p">(</span><span class="n">elements</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">null_element</span></div>
+
+
+<div class="viewcode-block" id="restrict_tfe"><a class="viewcode-back" href="../../finat.html#finat.restricted.restrict_tfe">[docs]</a><span class="nd">@restrict</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">finat</span><span class="o">.</span><span class="n">TensorFiniteElement</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">restrict_tfe</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">domain</span><span class="p">,</span> <span class="n">take_closure</span><span class="p">):</span>
+    <span class="n">restricted</span> <span class="o">=</span> <span class="n">restrict</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">_base_element</span><span class="p">,</span> <span class="n">domain</span><span class="p">,</span> <span class="n">take_closure</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">restricted</span> <span class="ow">is</span> <span class="n">null_element</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">null_element</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">finat</span><span class="o">.</span><span class="n">TensorFiniteElement</span><span class="p">(</span><span class="n">restricted</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">_shape</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">_transpose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="restrict_hdivtrace"><a class="viewcode-back" href="../../finat.html#finat.restricted.restrict_hdivtrace">[docs]</a><span class="nd">@restrict</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">finat</span><span class="o">.</span><span class="n">HDivTrace</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">restrict_hdivtrace</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">domain</span><span class="p">,</span> <span class="n">take_closure</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">FiatElement</span><span class="p">(</span><span class="n">FIAT</span><span class="o">.</span><span class="n">RestrictedElement</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">_element</span><span class="p">,</span> <span class="n">restriction_domain</span><span class="o">=</span><span class="n">domain</span><span class="p">))</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">null_element</span></div>
+
+
+<div class="viewcode-block" id="RestrictedElement"><a class="viewcode-back" href="../../finat.html#finat.restricted.RestrictedElement">[docs]</a><span class="k">def</span> <span class="nf">RestrictedElement</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">restriction_domain</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">indices</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Construct a restricted element.</span>
+
+<span class="sd">    :arg element: The element to restrict.</span>
+<span class="sd">    :arg restriction_domain: Which entities to restrict to.</span>
+<span class="sd">    :arg indices: Indices of basis functions to select (not supported)</span>
+<span class="sd">    :returns: A new element.</span>
+
+<span class="sd">    .. note::</span>
+
+<span class="sd">       A restriction domain of &quot;interior&quot; means to select the dofs on</span>
+<span class="sd">       the cell, all other domains (e.g. &quot;face&quot;, &quot;edge&quot;) select dofs</span>
+<span class="sd">       in the closure of the entity.</span>
+
+<span class="sd">    .. warning::</span>
+
+<span class="sd">       The returned element *may not* be interpolatory. That is, the</span>
+<span class="sd">       dual basis (if implemented) might not be nodal to the primal</span>
+<span class="sd">       basis. Assembly still works (``basis_evaluation`` is fine), but</span>
+<span class="sd">       interpolation may produce bad results.</span>
+
+<span class="sd">       Restrictions of FIAT-implemented CiarletElements are always</span>
+<span class="sd">       nodal.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">indices</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Only done for topological restrictions&quot;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">restriction_domain</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="n">restricted</span> <span class="o">=</span> <span class="n">restrict</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">restriction_domain</span><span class="p">,</span> <span class="n">take_closure</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">restricted</span> <span class="ow">is</span> <span class="n">null_element</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Restricted element is empty&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">restricted</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2014--2020, David A. Ham, Robert C. Kirby and others.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+  </body>
+</html>

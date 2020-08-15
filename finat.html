@@ -1591,6 +1591,169 @@ free indices are arbitrary.</p></li>
 </dd></dl>
 
 </div>
+<div class="section" id="module-finat.restricted">
+<span id="finat-restricted-module"></span><h2>finat.restricted module<a class="headerlink" href="#module-finat.restricted" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="finat.restricted.RestrictedElement">
+<code class="sig-prename descclassname">finat.restricted.</code><code class="sig-name descname">RestrictedElement</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">element</span></em>, <em class="sig-param"><span class="n">restriction_domain</span></em>, <em class="sig-param"><span class="o">*</span></em>, <em class="sig-param"><span class="n">indices</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/restricted.html#RestrictedElement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.restricted.RestrictedElement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a restricted element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>element</strong> – The element to restrict.</p></li>
+<li><p><strong>restriction_domain</strong> – Which entities to restrict to.</p></li>
+<li><p><strong>indices</strong> – Indices of basis functions to select (not supported)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A new element.</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>A restriction domain of “interior” means to select the dofs on
+the cell, all other domains (e.g. “face”, “edge”) select dofs
+in the closure of the entity.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The returned element <em>may not</em> be interpolatory. That is, the
+dual basis (if implemented) might not be nodal to the primal
+basis. Assembly still works (<code class="docutils literal notranslate"><span class="pre">basis_evaluation</span></code> is fine), but
+interpolation may produce bad results.</p>
+<p>Restrictions of FIAT-implemented CiarletElements are always
+nodal.</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt id="finat.restricted.codim_to_r">
+<code class="sig-prename descclassname">finat.restricted.</code><code class="sig-name descname">codim_to_r</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">codim</span></em>, <em class="sig-param"><span class="n">dim</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/restricted.html#codim_to_r"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.restricted.codim_to_r" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="finat.restricted.r_to_codim">
+<code class="sig-prename descclassname">finat.restricted.</code><code class="sig-name descname">r_to_codim</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">restriction</span></em>, <em class="sig-param"><span class="n">dim</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/restricted.html#r_to_codim"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.restricted.r_to_codim" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="finat.restricted.restrict">
+<code class="sig-prename descclassname">finat.restricted.</code><code class="sig-name descname">restrict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">element</span></em>, <em class="sig-param"><span class="n">domain</span></em>, <em class="sig-param"><span class="n">take_closure</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/restricted.html#restrict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.restricted.restrict" title="Permalink to this definition">¶</a></dt>
+<dt>
+<code class="sig-prename descclassname">finat.restricted.</code><code class="sig-name descname">restrict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">element</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#finat.fiat_elements.FiatElement" title="finat.fiat_elements.FiatElement">finat.fiat_elements.FiatElement</a></span></em>, <em class="sig-param"><span class="n">domain</span></em>, <em class="sig-param"><span class="n">take_closure</span></em><span class="sig-paren">)</span></dt>
+<dt>
+<code class="sig-prename descclassname">finat.restricted.</code><code class="sig-name descname">restrict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">element</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#finat.physically_mapped.PhysicallyMappedElement" title="finat.physically_mapped.PhysicallyMappedElement">finat.physically_mapped.PhysicallyMappedElement</a></span></em>, <em class="sig-param"><span class="n">domain</span></em>, <em class="sig-param"><span class="n">take_closure</span></em><span class="sig-paren">)</span></dt>
+<dt>
+<code class="sig-prename descclassname">finat.restricted.</code><code class="sig-name descname">restrict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">element</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#finat.cube.FlattenedDimensions" title="finat.cube.FlattenedDimensions">finat.cube.FlattenedDimensions</a></span></em>, <em class="sig-param"><span class="n">domain</span></em>, <em class="sig-param"><span class="n">take_closure</span></em><span class="sig-paren">)</span></dt>
+<dt>
+<code class="sig-prename descclassname">finat.restricted.</code><code class="sig-name descname">restrict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">element</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#finat.discontinuous.DiscontinuousElement" title="finat.discontinuous.DiscontinuousElement">finat.discontinuous.DiscontinuousElement</a></span></em>, <em class="sig-param"><span class="n">domain</span></em>, <em class="sig-param"><span class="n">take_closure</span></em><span class="sig-paren">)</span></dt>
+<dt>
+<code class="sig-prename descclassname">finat.restricted.</code><code class="sig-name descname">restrict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">element</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#finat.enriched.EnrichedElement" title="finat.enriched.EnrichedElement">finat.enriched.EnrichedElement</a></span></em>, <em class="sig-param"><span class="n">domain</span></em>, <em class="sig-param"><span class="n">take_closure</span></em><span class="sig-paren">)</span></dt>
+<dt>
+<code class="sig-prename descclassname">finat.restricted.</code><code class="sig-name descname">restrict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">element</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#finat.hdivcurl.HCurlElement" title="finat.hdivcurl.HCurlElement">finat.hdivcurl.HCurlElement</a></span></em>, <em class="sig-param"><span class="n">domain</span></em>, <em class="sig-param"><span class="n">take_closure</span></em><span class="sig-paren">)</span></dt>
+<dt>
+<code class="sig-prename descclassname">finat.restricted.</code><code class="sig-name descname">restrict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">element</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#finat.hdivcurl.HDivElement" title="finat.hdivcurl.HDivElement">finat.hdivcurl.HDivElement</a></span></em>, <em class="sig-param"><span class="n">domain</span></em>, <em class="sig-param"><span class="n">take_closure</span></em><span class="sig-paren">)</span></dt>
+<dt>
+<code class="sig-prename descclassname">finat.restricted.</code><code class="sig-name descname">restrict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">element</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#finat.mixed.MixedSubElement" title="finat.mixed.MixedSubElement">finat.mixed.MixedSubElement</a></span></em>, <em class="sig-param"><span class="n">domain</span></em>, <em class="sig-param"><span class="n">take_closure</span></em><span class="sig-paren">)</span></dt>
+<dt>
+<code class="sig-prename descclassname">finat.restricted.</code><code class="sig-name descname">restrict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">element</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#finat.spectral.GaussLobattoLegendre" title="finat.spectral.GaussLobattoLegendre">finat.spectral.GaussLobattoLegendre</a></span></em>, <em class="sig-param"><span class="n">domain</span></em>, <em class="sig-param"><span class="n">take_closure</span></em><span class="sig-paren">)</span></dt>
+<dt>
+<code class="sig-prename descclassname">finat.restricted.</code><code class="sig-name descname">restrict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">element</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#finat.spectral.GaussLegendre" title="finat.spectral.GaussLegendre">finat.spectral.GaussLegendre</a></span></em>, <em class="sig-param"><span class="n">domain</span></em>, <em class="sig-param"><span class="n">take_closure</span></em><span class="sig-paren">)</span></dt>
+<dt>
+<code class="sig-prename descclassname">finat.restricted.</code><code class="sig-name descname">restrict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">element</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#finat.tensor_product.TensorProductElement" title="finat.tensor_product.TensorProductElement">finat.tensor_product.TensorProductElement</a></span></em>, <em class="sig-param"><span class="n">domain</span></em>, <em class="sig-param"><span class="n">take_closure</span></em><span class="sig-paren">)</span></dt>
+<dt>
+<code class="sig-prename descclassname">finat.restricted.</code><code class="sig-name descname">restrict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">element</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#finat.tensorfiniteelement.TensorFiniteElement" title="finat.tensorfiniteelement.TensorFiniteElement">finat.tensorfiniteelement.TensorFiniteElement</a></span></em>, <em class="sig-param"><span class="n">domain</span></em>, <em class="sig-param"><span class="n">take_closure</span></em><span class="sig-paren">)</span></dt>
+<dt>
+<code class="sig-prename descclassname">finat.restricted.</code><code class="sig-name descname">restrict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">element</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#finat.trace.HDivTrace" title="finat.trace.HDivTrace">finat.trace.HDivTrace</a></span></em>, <em class="sig-param"><span class="n">domain</span></em>, <em class="sig-param"><span class="n">take_closure</span></em><span class="sig-paren">)</span></dt>
+<dd><p>Restrict an element to a given subentity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>element</strong> – The element to restrict.</p></li>
+<li><p><strong>domain</strong> – The subentity to restrict to.</p></li>
+<li><p><strong>take_closure</strong> – Gather dofs in closure of the subentities?
+Ignored for “interior” domain.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#NotImplementedError" title="(in Python v3.8)"><strong>NotImplementedError</strong></a> – If we don’t know how to restrict this
+element.</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.8)"><strong>ValueError</strong></a> – If the restricted element is empty.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A new finat element.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="finat.restricted.restrict_discontinuous">
+<code class="sig-prename descclassname">finat.restricted.</code><code class="sig-name descname">restrict_discontinuous</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">element</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#finat.discontinuous.DiscontinuousElement" title="finat.discontinuous.DiscontinuousElement">finat.discontinuous.DiscontinuousElement</a></span></em>, <em class="sig-param"><span class="n">domain</span></em>, <em class="sig-param"><span class="n">take_closure</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/restricted.html#restrict_discontinuous"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.restricted.restrict_discontinuous" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="finat.restricted.restrict_enriched">
+<code class="sig-prename descclassname">finat.restricted.</code><code class="sig-name descname">restrict_enriched</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">element</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#finat.enriched.EnrichedElement" title="finat.enriched.EnrichedElement">finat.enriched.EnrichedElement</a></span></em>, <em class="sig-param"><span class="n">domain</span></em>, <em class="sig-param"><span class="n">take_closure</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/restricted.html#restrict_enriched"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.restricted.restrict_enriched" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="finat.restricted.restrict_fiat">
+<code class="sig-prename descclassname">finat.restricted.</code><code class="sig-name descname">restrict_fiat</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">element</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#finat.fiat_elements.FiatElement" title="finat.fiat_elements.FiatElement">finat.fiat_elements.FiatElement</a></span></em>, <em class="sig-param"><span class="n">domain</span></em>, <em class="sig-param"><span class="n">take_closure</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/restricted.html#restrict_fiat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.restricted.restrict_fiat" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="finat.restricted.restrict_flattened_dimensions">
+<code class="sig-prename descclassname">finat.restricted.</code><code class="sig-name descname">restrict_flattened_dimensions</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">element</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#finat.cube.FlattenedDimensions" title="finat.cube.FlattenedDimensions">finat.cube.FlattenedDimensions</a></span></em>, <em class="sig-param"><span class="n">domain</span></em>, <em class="sig-param"><span class="n">take_closure</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/restricted.html#restrict_flattened_dimensions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.restricted.restrict_flattened_dimensions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="finat.restricted.restrict_gl">
+<code class="sig-prename descclassname">finat.restricted.</code><code class="sig-name descname">restrict_gl</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">element</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#finat.spectral.GaussLegendre" title="finat.spectral.GaussLegendre">finat.spectral.GaussLegendre</a></span></em>, <em class="sig-param"><span class="n">domain</span></em>, <em class="sig-param"><span class="n">take_closure</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/restricted.html#restrict_gl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.restricted.restrict_gl" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="finat.restricted.restrict_gll">
+<code class="sig-prename descclassname">finat.restricted.</code><code class="sig-name descname">restrict_gll</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">element</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#finat.spectral.GaussLobattoLegendre" title="finat.spectral.GaussLobattoLegendre">finat.spectral.GaussLobattoLegendre</a></span></em>, <em class="sig-param"><span class="n">domain</span></em>, <em class="sig-param"><span class="n">take_closure</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/restricted.html#restrict_gll"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.restricted.restrict_gll" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="finat.restricted.restrict_hcurl">
+<code class="sig-prename descclassname">finat.restricted.</code><code class="sig-name descname">restrict_hcurl</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">element</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#finat.hdivcurl.HCurlElement" title="finat.hdivcurl.HCurlElement">finat.hdivcurl.HCurlElement</a></span></em>, <em class="sig-param"><span class="n">domain</span></em>, <em class="sig-param"><span class="n">take_closure</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/restricted.html#restrict_hcurl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.restricted.restrict_hcurl" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="finat.restricted.restrict_hdiv">
+<code class="sig-prename descclassname">finat.restricted.</code><code class="sig-name descname">restrict_hdiv</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">element</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#finat.hdivcurl.HDivElement" title="finat.hdivcurl.HDivElement">finat.hdivcurl.HDivElement</a></span></em>, <em class="sig-param"><span class="n">domain</span></em>, <em class="sig-param"><span class="n">take_closure</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/restricted.html#restrict_hdiv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.restricted.restrict_hdiv" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="finat.restricted.restrict_hdivtrace">
+<code class="sig-prename descclassname">finat.restricted.</code><code class="sig-name descname">restrict_hdivtrace</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">element</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#finat.trace.HDivTrace" title="finat.trace.HDivTrace">finat.trace.HDivTrace</a></span></em>, <em class="sig-param"><span class="n">domain</span></em>, <em class="sig-param"><span class="n">take_closure</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/restricted.html#restrict_hdivtrace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.restricted.restrict_hdivtrace" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="finat.restricted.restrict_mixed">
+<code class="sig-prename descclassname">finat.restricted.</code><code class="sig-name descname">restrict_mixed</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">element</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#finat.mixed.MixedSubElement" title="finat.mixed.MixedSubElement">finat.mixed.MixedSubElement</a></span></em>, <em class="sig-param"><span class="n">domain</span></em>, <em class="sig-param"><span class="n">take_closure</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/restricted.html#restrict_mixed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.restricted.restrict_mixed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="finat.restricted.restrict_physically_mapped">
+<code class="sig-prename descclassname">finat.restricted.</code><code class="sig-name descname">restrict_physically_mapped</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">element</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#finat.physically_mapped.PhysicallyMappedElement" title="finat.physically_mapped.PhysicallyMappedElement">finat.physically_mapped.PhysicallyMappedElement</a></span></em>, <em class="sig-param"><span class="n">domain</span></em>, <em class="sig-param"><span class="n">take_closure</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/restricted.html#restrict_physically_mapped"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.restricted.restrict_physically_mapped" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="finat.restricted.restrict_tfe">
+<code class="sig-prename descclassname">finat.restricted.</code><code class="sig-name descname">restrict_tfe</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">element</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#finat.tensorfiniteelement.TensorFiniteElement" title="finat.tensorfiniteelement.TensorFiniteElement">finat.tensorfiniteelement.TensorFiniteElement</a></span></em>, <em class="sig-param"><span class="n">domain</span></em>, <em class="sig-param"><span class="n">take_closure</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/restricted.html#restrict_tfe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.restricted.restrict_tfe" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="finat.restricted.restrict_tpe">
+<code class="sig-prename descclassname">finat.restricted.</code><code class="sig-name descname">restrict_tpe</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">element</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#finat.tensor_product.TensorProductElement" title="finat.tensor_product.TensorProductElement">finat.tensor_product.TensorProductElement</a></span></em>, <em class="sig-param"><span class="n">domain</span></em>, <em class="sig-param"><span class="n">take_closure</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/restricted.html#restrict_tpe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.restricted.restrict_tpe" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
 <div class="section" id="module-finat.runtime_tabulated">
 <span id="finat-runtime-tabulated-module"></span><h2>finat.runtime_tabulated module<a class="headerlink" href="#module-finat.runtime_tabulated" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
@@ -2087,7 +2250,7 @@ free indices are arbitrary.</p></li>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2014--2020, David A. Ham, Robert C. Kirby and others.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.0.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
     </div>
   </body>
 </html>
