@@ -168,20 +168,20 @@ class FiatElement(FiniteElementBase):
         duals = []
         point_set_cache = {}    # To avoid repeating points?
         for dual in self._element.dual_basis():
-            # print(dual.get_point_dict(), dual.deriv_dict)
+            # print(self._element, dual.get_point_dict(), dual.deriv_dict)
             derivs = []
             # No of points = no of evaluations x no of (points as keys)
             # tup = tuple(sorted((pt, wt, cmp) for pt, tup in dual.get_point_dict().items()
             #                    for (wt, cmp) in tup))
             pts_in_derivs = []
-            for pts, tups in sorted(dual.get_point_dict().items()):
+            # TODO: combine pairs for points with different pt, same value (probably rare)
+            for pt, tups in sorted(dual.get_point_dict().items()):
                 try:
-                    point_set = point_set_cache[(pts,)]
+                    point_set = point_set_cache[(pt,)]
                 except KeyError:
-                    point_set = PointSet((pts,))
-                    point_set_cache[(pts,)] = point_set
+                    point_set = PointSet((pt,))
+                    point_set_cache[(pt,)] = point_set
 
-                # alpha_tensor = gem.Literal(np.ones(self.value_shape))
                 alpha_tensor = gem.Literal(1)
 
                 # Perform Index of weight_tensor in dual_evaluation to be consistent with derivatives
@@ -201,7 +201,7 @@ class FiatElement(FiniteElementBase):
             for i in range(1, max_deriv_order+1):
                 pts_in_derivs = []
                 # TODO: Combine tensors for tups of same derivative order
-                for points, tups in deriv_dict_items:
+                for pt, tups in deriv_dict_items:
                     weights, alphas, cmps = zip(*tups)
 
                     # TODO: repeated points and repeated tups
@@ -232,10 +232,10 @@ class FiatElement(FiniteElementBase):
                     alpha_tensor = gem.Literal(alpha_arr)
 
                     # try:
-                    #     point_set = point_set_cache[(pts,)]
+                    #     point_set = point_set_cache[(pt,)]
                     # except KeyError:
-                    point_set = PointSet((pts,))
-                    #     point_set_cache[(pts,)] = point_set
+                    point_set = PointSet((pt,))
+                    #     point_set_cache[(pt,)] = point_set
 
                     # TODO: Change default for value_shape
                     weight_dict = {c: w for w, c in zip(weight, cmp)}
