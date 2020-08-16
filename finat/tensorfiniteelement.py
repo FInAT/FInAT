@@ -65,6 +65,9 @@ class TensorFiniteElement(FiniteElementBase):
     def entity_dofs(self):
         raise NotImplementedError("No one uses this!")
 
+    def entity_dofs_per_derivative_order(self):
+        raise NotImplementedError("No one uses this!")
+
     def space_dimension(self):
         return int(numpy.prod(self.index_shape))
 
