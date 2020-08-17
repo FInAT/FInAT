@@ -167,19 +167,19 @@ class FiniteElementBase(metaclass=ABCMeta):
 
     def dual_evaluation(self, fn, entity=None):
         '''Return code for performing the dual evaluation at the nodes of the
-        reference element. Currently only works for point evaluation and quadrature.
+        reference element. Currently only works for non-derivatives.
 
         :param fn: Callable that takes in PointSet and returns GEM expression.
         :param entity: the cell entity on which to tabulate for comparing
                        results with FIAT.
         '''
-        if entity is None:
+        if entity is not None:
             # TODO: Add comparison to FIAT
-            pass
+            raise NotImplementedError("Comparison with FIAT is not implemented!")
+
         dual_expressions = []   # One for each functional
         expr_cache = {}         # Sharing of evaluation of the expression at points
-        # Creates expressions in order of derivative order, extracts and sums alphas
-        # and components, then combine with weights
+
         for dual, tensorfe_idx in self.dual_basis:
             qexprs = gem.Zero()
             for derivative_order, deriv in enumerate(dual):
@@ -198,9 +198,10 @@ class FiniteElementBase(metaclass=ABCMeta):
                         if derivative_order == 0:
                             expr = expr_grad
                         else:
+                            # Extract derivative component
                             alpha_idx = tuple(gem.Index(extent=fn.dimension) for _ in range(derivative_order))
 
-                            # TODO: add to gem.partial_indexed (from back version)
+                            # gem.partial_indexed but from back
                             rank = len(expr_grad.shape) - len(alpha_idx)
                             shape_indices = tuple(gem.Index() for _ in range(rank))
                             expr_partial = gem.ComponentTensor(
@@ -211,14 +212,22 @@ class FiniteElementBase(metaclass=ABCMeta):
                         expr_cache[(point_set.points.data.tobytes(), alpha_tensor.array.tobytes())] = expr
 
                     # Apply weights
-                    # TODO: What indices to sum over?
                     # For point_set with multiple points
-                    zeta = [idx for _ in range(len(point_set.points)) for idx in self.get_value_indices()]
-                    zeta = tuple(zeta)
-                    # print(self.value_shape)
-                    # TODO: make some indices first index of delta if exists?
-                    # import pdb; pdb.set_trace()
-                    qexpr = gem.index_sum(gem.partial_indexed(expr, zeta) * weight_tensor[zeta], point_set.indices+zeta)
+                    zeta = tuple(idx for _ in range(len(point_set.points)) for idx in self.get_value_indices())
+                    if tensorfe_idx is None:
+                        qexpr = gem.index_sum(gem.partial_indexed(expr, zeta) * weight_tensor[zeta], point_set.indices+zeta)
+                    else:
+                        # TODO: Can simplify with reduce, but may be harder to understand
+                        if len(self.value_shape) == 1:
+                            deltas = gem.Delta(zeta[0], tensorfe_idx[0])
+                        elif len(self.value_shape) == 2:
+                            deltas = gem.Delta(zeta[0], tensorfe_idx[0]) * gem.Delta(zeta[1], tensorfe_idx[1])
+                        elif len(self.value_shape) == 3:
+                            deltas = (gem.Delta(zeta[0], tensorfe_idx[0]) * gem.Delta(zeta[1], tensorfe_idx[1])
+                                      * gem.Delta(zeta[2], tensorfe_idx[2]))
+                        else:
+                            raise NotImplementedError("There does not exist a valid dual basis for rank-4 tensor-valued basis functions!")
+                        qexpr = gem.index_sum(gem.partial_indexed(expr, zeta) * deltas * weight_tensor, point_set.indices+zeta)
                     # Sum for all derivatives
                     qexprs = gem.Sum(qexprs, qexpr)
 
