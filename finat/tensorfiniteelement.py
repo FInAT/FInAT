@@ -126,20 +126,20 @@ class TensorFiniteElement(FiniteElementBase):
 
         tensor_dual_basis = []
         if len(self.value_shape) == 1:
-            for base_dual in base_dual_basis:
+            for base_dual, tensorfe_idx in base_dual_basis:
                 for alpha in range(self.value_shape[0]):
-                    tensor_dual_basis.append(self._tensorise_dual(base_dual, (alpha,)))
+                    tensor_dual_basis.append(tuple([self._tensorise_dual(base_dual, (alpha,)), None]))
         elif len(self.value_shape) == 2:
-            for base_dual in base_dual_basis:
+            for base_dual, tensorfe_idx in base_dual_basis:
                 for alpha in range(self.value_shape[0]):
                     for beta in range(self.value_shape[1]):
-                        tensor_dual_basis.append(self._tensorise_dual(base_dual, (alpha, beta)))
+                        tensor_dual_basis.append(tuple([self._tensorise_dual(base_dual, (alpha, beta)), None]))
         elif len(self.value_shape) == 3:
-            for base_dual in base_dual_basis:
+            for base_dual, tensorfe_idx in base_dual_basis:
                 for alpha in range(self.value_shape[0]):
                     for beta in range(self.value_shape[1]):
                         for gamma in range(self.value_shape[2]):
-                            tensor_dual_basis.append(self._tensorise_dual(base_dual, (alpha, beta, gamma)))
+                            tensor_dual_basis.append(tuple([self._tensorise_dual(base_dual, (alpha, beta, gamma)), None]))
         else:
             raise NotImplementedError("Cannot create dual basis for rank-4 tensor-valued basis functions!")
 
@@ -153,9 +153,10 @@ class TensorFiniteElement(FiniteElementBase):
             tensor_pts_in_derivs = []
             for base_tups in base_deriv:
                 try:
-                    base_point_set, weight_tensor, alpha_tensor, delta = base_tups
+                    base_point_set, weight_tensor, alpha_tensor = base_tups
                 except ValueError:  # Empty
                     tensor_pts_in_derivs.append(tuple())
+                    continue
 
                 import numpy as np
                 weight = np.zeros(self.value_shape)
@@ -163,7 +164,7 @@ class TensorFiniteElement(FiniteElementBase):
                 tensor_weight_tensor = gem.Literal(weight)
                 gem.Delta(1, gem.Index())
 
-                tensor_pts_in_derivs.append((base_point_set, tensor_weight_tensor, alpha_tensor, delta))
+                tensor_pts_in_derivs.append((base_point_set, tensor_weight_tensor, alpha_tensor))
             tensor_derivs.append(tuple(tensor_pts_in_derivs))
 
         return tuple(tensor_derivs)

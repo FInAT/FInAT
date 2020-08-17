@@ -252,21 +252,21 @@ def product_dual_basis(a_dual_basis, b_dual_basis):
 
     product_dual_basis = []
     # Multiply every term in a_dual by b_dual
-    for a_dual in a_dual_basis:
+    for a_dual, a_tensorfe_idx in a_dual_basis:
         for a_deriv in a_dual:
             # TODO: Sum all a_tups first before product by b_dual_basis
             for a_tups in a_deriv:
-                a_point_set, a_weight_tensor, a_alpha_tensor, a_delta = a_tups
+                a_point_set, a_weight_tensor, a_alpha_tensor = a_tups
 
                 if any(a_alpha_tensor.shape):
                     raise NotImplementedError('Cannot create dual basis for factors with derivatives!')
 
-                for b_dual in b_dual_basis:
+                for b_dual, b_tensorfe_idx in b_dual_basis:
                     product_derivs = []
                     for b_deriv in b_dual:
                         product_pts_in_derivs = []
                         for b_tups in b_deriv:
-                            b_point_set, b_weight_tensor, b_alpha_tensor, b_delta = b_tups
+                            b_point_set, b_weight_tensor, b_alpha_tensor = b_tups
 
                             if any(b_alpha_tensor.shape):
                                 raise NotImplementedError('Cannot create dual basis for factors with derivatives!')
@@ -277,10 +277,7 @@ def product_dual_basis(a_dual_basis, b_dual_basis):
 
                             product_alpha_tensor = a_alpha_tensor
 
-                            # Deltas will not work if indexing depends on point_set!!!
-                            product_delta = a_delta * b_delta
-
-                            product_pts_in_derivs.append((product_point_set, product_weight_tensor, product_alpha_tensor, product_delta))
+                            product_pts_in_derivs.append((product_point_set, product_weight_tensor, product_alpha_tensor))
                         product_derivs.append(tuple(product_pts_in_derivs))
-                    product_dual_basis.append(tuple(product_derivs))
+                    product_dual_basis.append(tuple([tuple(product_derivs), None]))
     return tuple(product_dual_basis)
