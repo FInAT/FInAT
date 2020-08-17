@@ -256,7 +256,10 @@ def product_dual_basis(a_dual_basis, b_dual_basis):
         for a_deriv in a_dual:
             # TODO: Sum all a_tups first before product by b_dual_basis
             for a_tups in a_deriv:
-                a_point_set, a_weight_tensor, a_alpha_tensor = a_tups
+                try:
+                    a_point_set, a_weight_tensor, a_alpha_tensor = a_tups
+                except ValueError:  # Empty
+                    continue
 
                 if any(a_alpha_tensor.shape):
                     raise NotImplementedError('Cannot create dual basis for factors with derivatives!')
@@ -266,13 +269,17 @@ def product_dual_basis(a_dual_basis, b_dual_basis):
                     for b_deriv in b_dual:
                         product_pts_in_derivs = []
                         for b_tups in b_deriv:
-                            b_point_set, b_weight_tensor, b_alpha_tensor = b_tups
+                            try:
+                                b_point_set, b_weight_tensor, b_alpha_tensor = b_tups
+                            except ValueError:  # Empty
+                                continue
 
                             if any(b_alpha_tensor.shape):
                                 raise NotImplementedError('Cannot create dual basis for factors with derivatives!')
 
                             product_point_set = TensorPointSet((a_point_set, b_point_set))
 
+                            # Only first factor can be non-scalar
                             product_weight_tensor = a_weight_tensor
 
                             product_alpha_tensor = a_alpha_tensor
