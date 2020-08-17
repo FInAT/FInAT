@@ -225,7 +225,7 @@ class FiatElement(FiniteElementBase):
                         weight_array[key] = item
                     weight_tensor = gem.Literal(weight_array)
 
-                pts_in_derivs.append((point_set, weight_tensor, alpha_tensor, 1))
+                pts_in_derivs.append((point_set, weight_tensor, alpha_tensor))
             derivs.append(pts_in_derivs)
 
             deriv_dict_items = sorted(dual.deriv_dict.items())  # Ensure parallel safety
@@ -278,9 +278,9 @@ class FiatElement(FiniteElementBase):
                             weight_array[key] = item
                         weight_tensor = gem.Literal(weight_array)
 
-                    pts_in_derivs.append((point_set, weight_tensor, alpha_tensor, 1))
+                    pts_in_derivs.append((point_set, weight_tensor, alpha_tensor))
                 derivs.append(tuple(pts_in_derivs))
-            duals.append(tuple(derivs))
+            duals.append(tuple([tuple(derivs), None]))
         return tuple(duals)
 
     @property

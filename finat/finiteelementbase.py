@@ -180,32 +180,21 @@ class FiniteElementBase(metaclass=ABCMeta):
         expr_cache = {}         # Sharing of evaluation of the expression at points
         # Creates expressions in order of derivative order, extracts and sums alphas
         # and components, then combine with weights
-        for dual in self.dual_basis:
+        for dual, tensorfe_idx in self.dual_basis:
             qexprs = gem.Zero()
             for derivative_order, deriv in enumerate(dual):
                 for tups in deriv:
                     try:
-                        point_set, weight_tensor, alpha_tensor, delta = tups
+                        point_set, weight_tensor, alpha_tensor = tups
                     except ValueError:  # Empty
                         continue
 
                     try:
-                        expr = expr_cache[(point_set, alpha_tensor)]
+                        # TODO: Choose hash method
+                        expr = expr_cache[(point_set.points.data.tobytes(), alpha_tensor.array.tobytes())]
                     except KeyError:
-                        """ # Hack to get shape_indices from shape of GEM expression
-                        # Unsure whether expressions with arguments work
-                        # Assuming general for all expressions including derivatives
-                        try:
-                            shape_indices
-                        except NameError:
-                            broadcast_shape = len(expr.shape) - len(self.value_shape)
-                            shape_indices = tuple(gem.Index() for _ in self.value_shape[:broadcast_shape])
-                        # Ignore arguments, move to between derivative and component?
-                        expr = gem.partial_indexed(expr, shape_indices)
-                        expr_cache[(point_set, multi_indices)] = expr"""
                         expr_grad = fn(point_set, derivative=derivative_order)
-                        # TODO: multiple alpha at once
-                        # TODO: Is partial_indexed indexing at end or bottom?
+                        # TODO: Multiple alpha at once
                         if derivative_order == 0:
                             expr = expr_grad
                         else:
@@ -219,27 +208,18 @@ class FiniteElementBase(metaclass=ABCMeta):
                                 shape_indices)
 
                             expr = gem.index_sum(expr_partial * alpha_tensor[alpha_idx], alpha_idx)
-                        expr_cache[(point_set, alpha_tensor)] = expr
-
-                    # TODO: partial_indexed of arguments (might not be needed)
+                        expr_cache[(point_set.points.data.tobytes(), alpha_tensor.array.tobytes())] = expr
 
                     # Apply weights
                     # TODO: What indices to sum over?
-                    # print(point_set.points)
-                    # print(weight_tensor)
-                    # print(self.value_shape, self._base_element.value_shape)
-                    # print(self.get_value_indices())
                     # For point_set with multiple points
                     zeta = [idx for _ in range(len(point_set.points)) for idx in self.get_value_indices()]
                     zeta = tuple(zeta)
                     # print(self.value_shape)
                     # TODO: make some indices first index of delta if exists?
-                    # print(expr.shape)
-                    # print(zeta, point_set.indices)
                     # import pdb; pdb.set_trace()
-                    qexpr = gem.index_sum(gem.partial_indexed(expr, zeta) * weight_tensor[zeta] * delta, point_set.indices+zeta)
+                    qexpr = gem.index_sum(gem.partial_indexed(expr, zeta) * weight_tensor[zeta], point_set.indices+zeta)
                     # Sum for all derivatives
-                    # TODO: Are arguments summed properly?
                     qexprs = gem.Sum(qexprs, qexpr)
 
             assert qexprs.shape == ()
