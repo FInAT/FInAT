@@ -123,51 +123,14 @@ class TensorFiniteElement(FiniteElementBase):
     @property
     def dual_basis(self):
         base_dual_basis = self._base_element.dual_basis
+        base_rank = len(self._base_element.value_shape)
 
-        tensor_dual_basis = []
-        if len(self.value_shape) == 1:
-            for base_dual, tensorfe_idx in base_dual_basis:
-                assert tensorfe_idx is None
-                for alpha in range(self.value_shape[0]):
-                    tensorfe_idx = (alpha,)
-                    tensor_dual_basis.append(tuple([self._tensorise_dual(base_dual, tensorfe_idx), tensorfe_idx]))
-        elif len(self.value_shape) == 2:
-            for base_dual, tensorfe_idx in base_dual_basis:
-                assert tensorfe_idx is None
-                for alpha in range(self.value_shape[0]):
-                    for beta in range(self.value_shape[1]):
-                        tensorfe_idx = (alpha, beta)
-                        tensor_dual_basis.append(tuple([self._tensorise_dual(base_dual, tensorfe_idx), tensorfe_idx]))
-        elif len(self.value_shape) == 3:
-            for base_dual, tensorfe_idx in base_dual_basis:
-                assert tensorfe_idx is None
-                for alpha in range(self.value_shape[0]):
-                    for beta in range(self.value_shape[1]):
-                        for gamma in range(self.value_shape[2]):
-                            tensorfe_idx = (alpha, beta, gamma)
-                            tensor_dual_basis.append(tuple([self._tensorise_dual(base_dual, tensorfe_idx), tensorfe_idx]))
-        else:
-            raise NotImplementedError("Cannot create dual basis for rank-4 tensor-valued basis functions!")
+        # Note: Does not assert idx of base_dual_basis is None
+        tensor_dual_basis = tuple((base_dual, idx)
+                                  for base_dual, _ in base_dual_basis
+                                  for idx in numpy.ndindex(self.value_shape[base_rank:]))
 
-        return tuple(tensor_dual_basis)
-
-    def _tensorise_dual(self, base_dual, idx):
-        """Tensorises given base_dual by extracting idx of expression with weight_tensor.
-        """
-        tensor_derivs = []
-        for base_deriv in base_dual:
-            tensor_pts_in_derivs = []
-            for base_tups in base_deriv:
-                try:
-                    base_point_set, weight_tensor, alpha_tensor = base_tups
-                except ValueError:  # Empty
-                    tensor_pts_in_derivs.append(tuple())
-                    continue
-
-                tensor_pts_in_derivs.append((base_point_set, weight_tensor, alpha_tensor))
-            tensor_derivs.append(tuple(tensor_pts_in_derivs))
-
-        return tuple(tensor_derivs)
+        return tensor_dual_basis
 
     @property
     def mapping(self):
