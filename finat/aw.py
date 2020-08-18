@@ -11,6 +11,8 @@ from finat.physically_mapped import PhysicallyMappedElement, Citations
 
 class ArnoldWintherNC(PhysicallyMappedElement, FiatElement):
     def __init__(self, cell, degree):
+        if Citations is not None:
+            Citations().register("Arnold2003")
         super(ArnoldWintherNC, self).__init__(FIAT.ArnoldWintherNC(cell, degree))
 
     def basis_transformation(self, coordinate_mapping, as_numpy=False):
@@ -41,7 +43,7 @@ class ArnoldWintherNC(PhysicallyMappedElement, FiatElement):
             # Compute alpha and beta for the edge.
             Ghat_T = numpy.array([nhat[e, :], that[e, :]])
 
-            (alpha, beta) = Ghat_T @ JTJ @ that[e,:] / detJ
+            (alpha, beta) = Ghat_T @ JTJ @ that[e, :] / detJ
 
             # Stuff into the right rows and columns.
             (idx1, idx2) = (4*e + 1, 4*e + 3)
@@ -54,7 +56,7 @@ class ArnoldWintherNC(PhysicallyMappedElement, FiatElement):
         for i in range(12, 15):
             V[i, i] = Literal(1)
 
-        if as_numpy: 
+        if as_numpy:
             return V.T
         else:
             return ListTensor(V.T)
@@ -66,7 +68,6 @@ class ArnoldWintherNC(PhysicallyMappedElement, FiatElement):
                 1: {0: [0, 1, 2, 3], 1: [4, 5, 6, 7], 2: [8, 9, 10, 11]},
                 2: {0: [12, 13, 14]}}
 
-
     @property
     def index_shape(self):
         return (15,)
@@ -77,6 +78,8 @@ class ArnoldWintherNC(PhysicallyMappedElement, FiatElement):
 
 class ArnoldWinther(PhysicallyMappedElement, FiatElement):
     def __init__(self, cell, degree):
+        if Citations is not None:
+            Citations().register("Arnold2002")
         super(ArnoldWinther, self).__init__(FIAT.ArnoldWinther(cell, degree))
 
     def basis_transformation(self, coordinate_mapping):
@@ -87,29 +90,12 @@ class ArnoldWinther(PhysicallyMappedElement, FiatElement):
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
 
-        #for i in range(24):
-        #    V[i, i] = Literal(1)
-        #return ListTensor(V.T)
-            
         # TODO: find a succinct expression for W in terms of J.
         J = coordinate_mapping.jacobian_at([1/3, 1/3])
-        #J = numpy.linalg.inv(J)
         detJ = coordinate_mapping.detJ_at([1/3, 1/3])
-        
-        W = numpy.zeros((3,3), dtype=object)
-        """
-        W[0, 0] = J[0, 0]*J[0, 0]
-        W[0, 1] = 2*J[0, 0]*J[0, 1]
-        W[0, 2] = J[0, 1]*J[0, 1]
-        W[1, 0] = J[0, 0]*J[1, 0]
-        W[1, 1] = J[0, 0]*J[1, 1] + J[0, 1]*J[1, 0]
-        W[1, 2] = J[0, 1]*J[1, 1]
-        W[2, 0] = J[1, 0]*J[1, 0]
-        W[2, 1] = 2*J[1, 0]*J[1, 1]
-        W[2, 2] = J[1, 1]*J[1, 1]
-        W_check = W / (detJ * detJ)
-        """
-        W[0, 0] = J[1,1]*J[1,1]
+
+        W = numpy.zeros((3, 3), dtype=object)
+        W[0, 0] = J[1, 1]*J[1, 1]
         W[0, 1] = -2*J[1, 1]*J[0, 1]
         W[0, 2] = J[0, 1]*J[0, 1]
         W[1, 0] = -1*J[1, 1]*J[1, 0]
@@ -118,16 +104,10 @@ class ArnoldWinther(PhysicallyMappedElement, FiatElement):
         W[2, 0] = J[1, 0]*J[1, 0]
         W[2, 1] = -2*J[1, 0]*J[0, 0]
         W[2, 2] = J[0, 0]*J[0, 0]
-        W_check = W 
+        W_check = W
         # Put into the right rows and columns.
-        V[0:3, 0:3] = V[3:6, 3:6] = V[6:9, 6:9] = W_check 
-        
-        """
-        for i in range(9):
-            V[i, i] = Literal(1)
-        """
-        #J = numpy.linalg.inv(J)
-        # edge dofs, 4 per edge
+        V[0:3, 0:3] = V[3:6, 3:6] = V[6:9, 6:9] = W_check
+
         for i in range(9, 21, 2):
             V[i, i] = Literal(1)
 
@@ -142,13 +122,13 @@ class ArnoldWinther(PhysicallyMappedElement, FiatElement):
         J_np = numpy.array([[J[0, 0], J[0, 1]],
                             [J[1, 0], J[1, 1]]])
         JTJ = J_np.T @ J_np
-        
+
         for e in range(3):
 
             # Compute alpha and beta for the edge.
             Ghat_T = numpy.array([nhat[e, :], that[e, :]])
 
-            (alpha, beta) = Ghat_T @ JTJ @ that[e,:] / detJ
+            (alpha, beta) = Ghat_T @ JTJ @ that[e, :] / detJ
 
             # Stuff into the right rows and columns.
             (idx1, idx2) = (9 + 4*e + 1, 9 + 4*e + 3)
@@ -160,24 +140,8 @@ class ArnoldWinther(PhysicallyMappedElement, FiatElement):
         # internal dofs (AWnc has good conditioning, so leave this alone)
         for i in range(21, 24):
             V[i, i] = Literal(1)
-        #V[21:24, 21:24] = W_check
 
-        # h = coordinate_mapping.cell_size()
-        # for v in range(3):
-        #     for c in range(3):
-        #         for i in range(30):
-        #             V[i, 3*v+c] = V[i, 3*v+c] / h[v] / h[v]
-
-        # for e in range(3):
-        #     v0id, v1id = [i for i in range(3) if i != e]
-        #     he = (h[v0id] + h[v1id]) / 2
-        #     for j in range(4):
-        #         for i in range(30):
-        #             V[i, 9+4*e+j] = V[i, 9+4*e+j] * h[e] * h[e]
-
-        
         return ListTensor(V.T)
-
 
     def entity_dofs(self):
         return {0: {0: [0, 1, 2],
@@ -186,11 +150,9 @@ class ArnoldWinther(PhysicallyMappedElement, FiatElement):
                 1: {0: [9, 10, 11, 12], 1: [13, 14, 15, 16], 2: [17, 18, 19, 20]},
                 2: {0: [21, 22, 23]}}
 
-
     @property
     def index_shape(self):
         return (24,)
-
 
     def space_dimension(self):
         return 24

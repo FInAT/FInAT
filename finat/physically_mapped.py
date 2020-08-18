@@ -84,6 +84,43 @@ try:
   doi =          {10.1243/03093247V061020}
 }
 """)
+    Citations().add("Mardal2002", """
+@article{Mardal2002,
+        doi = {10.1137/s0036142901383910},
+        year = 2002,
+        volume = {40},
+        number = {5},
+        pages = {1605--1631},
+        author = {Mardal, K.-A.~ and Tai, X.-C.~ and Winther, R.~},
+        title = {A robust finite element method for {Darcy--Stokes} flow},
+        journal = {{SIAM} Journal on Numerical Analysis}
+}
+""")
+    Citations.add("Arnold2002", """
+@article{arnold2002,
+        doi = {10.1007/s002110100348},
+        year = 2002,
+        volume = {92},
+        number = {3},
+        pages = {401--419},
+        author = {Arnold, R.~N.~ and Winther, R.~},
+        title = {Mixed finite elements for elasticity},
+        journal = {Numerische Mathematik}
+}
+""")
+    Citations.add("Arnold2003", """
+@article{arnold2003,
+        doi = {10.1142/s0218202503002507},
+        year = 2003,
+        volume = {13},
+        number = {03},
+        pages = {295--307},
+        author = {Arnold, D.~N.~ and Winther, R.~},
+        title = {Nonconforming mixed elements for elasticity},
+        journal = {Mathematical Models and Methods in Applied Sciences}
+}
+""")
+
 except ImportError:
     Citations = None
 

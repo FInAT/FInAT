@@ -10,8 +10,9 @@ from finat.physically_mapped import PhysicallyMappedElement, Citations
 
 class MardalTaiWinther(PhysicallyMappedElement, FiatElement):
     def __init__(self, cell, degree):
+        if Citations is not None:
+            Citations().register("Mardal2002")
         super(MardalTaiWinther, self).__init__(FIAT.MardalTaiWinther(cell, degree))
-
 
     def basis_transformation(self, coordinate_mapping):
         V = numpy.zeros((20, 9), dtype=object)
@@ -36,11 +37,10 @@ class MardalTaiWinther(PhysicallyMappedElement, FiatElement):
         JTJ = J_np.T @ J_np
 
         for e in range(3):
-            
             # Compute alpha and beta for the edge.
             Ghat_T = numpy.array([nhat[e, :], that[e, :]])
 
-            (alpha, beta) = Ghat_T @ JTJ @ that[e,:] / detJ
+            (alpha, beta) = Ghat_T @ JTJ @ that[e, :] / detJ
 
             # Stuff into the right rows and columns.
             idx = 3*e + 1
@@ -61,13 +61,11 @@ class MardalTaiWinther(PhysicallyMappedElement, FiatElement):
                     1: [],
                     2: []},
                 1: {0: [0, 1, 2], 1: [3, 4, 5], 2: [6, 7, 8]},
-                2: {0: [0, 1, 2, 3, 4, 5, 6, 7, 8]}}        
-    
+                2: {0: [0, 1, 2, 3, 4, 5, 6, 7, 8]}}
 
     @property
     def index_shape(self):
         return (9,)
-
 
     def space_dimension(self):
         return 9
