@@ -96,8 +96,8 @@ try:
         journal = {{SIAM} Journal on Numerical Analysis}
 }
 """)
-    Citations.add("Arnold2002", """
-@article{arnold2002,
+    Citations().add("Arnold2002", """
+@article{Arnold2002,
         doi = {10.1007/s002110100348},
         year = 2002,
         volume = {92},
@@ -108,7 +108,7 @@ try:
         journal = {Numerische Mathematik}
 }
 """)
-    Citations.add("Arnold2003", """
+    Citations().add("Arnold2003", """
 @article{arnold2003,
         doi = {10.1142/s0218202503002507},
         year = 2003,
