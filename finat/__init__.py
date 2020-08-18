@@ -10,6 +10,7 @@ from .bell import Bell                  # noqa: F401
 from .hermite import Hermite            # noqa: F401
 from .morley import Morley              # noqa: F401
 from .trace import HDivTrace  # noqa: F401
+from .modified_br import ModifiedBR                       # noqa: F401
 from .direct_serendipity import DirectSerendipity  # noqa: F401
 from .spectral import GaussLobattoLegendre, GaussLegendre  # noqa: F401
 from .tensorfiniteelement import TensorFiniteElement  # noqa: F401
