@@ -316,13 +316,13 @@ class VectorFiatElement(FiatElement):
 
 
 class RaviartThomas(VectorFiatElement):
-    def __init__(self, cell, degree):
-        super(RaviartThomas, self).__init__(FIAT.RaviartThomas(cell, degree))
+    def __init__(self, cell, degree, variant=None):
+        super(RaviartThomas, self).__init__(FIAT.RaviartThomas(cell, degree, variant=variant))
 
 
 class BrezziDouglasMarini(VectorFiatElement):
-    def __init__(self, cell, degree):
-        super(BrezziDouglasMarini, self).__init__(FIAT.BrezziDouglasMarini(cell, degree))
+    def __init__(self, cell, degree, variant=None):
+        super(BrezziDouglasMarini, self).__init__(FIAT.BrezziDouglasMarini(cell, degree, variant=variant))
 
 
 class BrezziDouglasFortinMarini(VectorFiatElement):
@@ -331,10 +331,10 @@ class BrezziDouglasFortinMarini(VectorFiatElement):
 
 
 class Nedelec(VectorFiatElement):
-    def __init__(self, cell, degree):
-        super(Nedelec, self).__init__(FIAT.Nedelec(cell, degree))
+    def __init__(self, cell, degree, variant=None):
+        super(Nedelec, self).__init__(FIAT.Nedelec(cell, degree, variant=variant))
 
 
 class NedelecSecondKind(VectorFiatElement):
-    def __init__(self, cell, degree):
-        super(NedelecSecondKind, self).__init__(FIAT.NedelecSecondKind(cell, degree))
+    def __init__(self, cell, degree, variant=None):
+        super(NedelecSecondKind, self).__init__(FIAT.NedelecSecondKind(cell, degree, variant=variant))

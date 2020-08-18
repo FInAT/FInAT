@@ -17,6 +17,21 @@ try:
   primaryclass = {math.NA}
 }
 """)
+    Citations().add("Kirby2019zany", """
+@Article{Kirby:2019,
+  author =       {Robert C. Kirby and Lawrence Mitchell},
+  title =        {Code generation for generally mapped finite
+                  elements},
+  journal =      {ACM Transactions on Mathematical Software},
+  year =         2019,
+  volume =       45,
+  number =       41,
+  pages =        {41:1--41:23},
+  doi =          {10.1145/3361745},
+  archiveprefix ={arXiv},
+  eprint =       {1808.05513},
+  primaryclass = {cs.MS}
+}""")
     Citations().add("Argyris1968", """
 @Article{Argyris1968,
   author =       {J. H. Argyris and I. Fried and D. W. Scharpf},
@@ -81,6 +96,7 @@ class PhysicallyMappedElement(metaclass=ABCMeta):
         super().__init__(*args, **kwargs)
         if Citations is not None:
             Citations().register("Kirby2018zany")
+            Citations().register("Kirby2019zany")
 
     @abstractmethod
     def basis_transformation(self, coordinate_mapping):
