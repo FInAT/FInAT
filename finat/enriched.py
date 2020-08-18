@@ -13,9 +13,14 @@ class EnrichedElement(FiniteElementBase):
     """A finite element whose basis functions are the union of the
     basis functions of several other finite elements."""
 
-    def __init__(self, elements):
-        super(EnrichedElement, self).__init__()
-        self.elements = tuple(elements)
+    def __new__(cls, elements):
+        elements = tuple(elements)
+        if len(elements) == 1:
+            return elements[0]
+        else:
+            self = super().__new__(cls)
+            self.elements = elements
+            return self
 
     @cached_property
     def cell(self):

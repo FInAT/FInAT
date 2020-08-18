@@ -120,7 +120,7 @@ class FiniteElementBase(metaclass=ABCMeta):
         :param ps: the point set object.
         :param entity: the cell entity on which to tabulate.
         :param coordinate_mapping: a
-        :class:`~.physically_mapped.PhysicalGeometry` object that
+           :class:`~.physically_mapped.PhysicalGeometry` object that
            provides physical geometry callbacks (may be None).
         '''
 
