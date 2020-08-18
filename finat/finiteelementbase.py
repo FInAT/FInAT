@@ -220,15 +220,26 @@ class FiniteElementBase(metaclass=ABCMeta):
 
                     # Apply weights
                     # For point_set with multiple points
-                    zeta = tuple(idx for _ in range(len(point_set.points)) for idx in self.get_value_indices())
                     if tensorfe_idx is None:
-                        qexpr = gem.index_sum(gem.partial_indexed(expr, zeta) * weight_tensor[zeta], point_set.indices+zeta)
+                        zeta = tuple(idx for _ in range(len(point_set.points)) for idx in self.get_value_indices())
+                        qexpr = gem.index_sum(gem.partial_indexed(expr, zeta) * weight_tensor[zeta], point_set.indices + zeta)
                     else:
-                        deltas = reduce(gem.Product, (gem.Delta(z, t) for z, t in zip(zeta, tensorfe_idx)))
-                        base_rank = len(self.value_shape) - len(tensorfe_idx)
-                        # TODO: Fix non-scalar _base_element
-                        qexpr = gem.index_sum(gem.partial_indexed(expr, zeta) * deltas * weight_tensor[tensorfe_idx[:base_rank]],
-                                              point_set.indices+zeta)
+                        # import pdb; pdb.set_trace()
+                        try:
+                            base_rank
+                        except NameError:
+                            base_rank = len(self.value_shape) - len(tensorfe_idx)
+
+                        zeta_base = tuple(idx for _ in range(len(point_set.points)) for idx in
+                                          [gem.Index(extent=d)for d in self.value_shape[:base_rank]])
+                        zeta_tensor = tuple(idx for _ in range(len(point_set.points)) for idx in
+                                            [gem.Index(extent=d)for d in self.value_shape[base_rank:]])
+                        deltas = reduce(gem.Product, (gem.Delta(z, t) for z, t in zip(zeta_tensor, tensorfe_idx)))
+                        # TODO: Add way to use self._transpose without explicitly using
+                        zeta = zeta_tensor + zeta_base
+
+                        qexpr = gem.index_sum(gem.partial_indexed(expr, zeta) * deltas * weight_tensor[zeta_base],
+                                              point_set.indices + zeta)
                     # Sum for all derivatives
                     qexprs = gem.Sum(qexprs, qexpr)
 
