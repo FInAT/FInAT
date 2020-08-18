@@ -1,4 +1,5 @@
 from abc import ABCMeta, abstractproperty, abstractmethod
+from functools import reduce
 from itertools import chain
 
 import numpy
@@ -144,7 +145,6 @@ class FiniteElementBase(metaclass=ABCMeta):
         :param entity: the cell entity on which to tabulate.
         '''
 
-    # Will be required when all elements are updated
     @abstractproperty
     def dual_basis(self):
         '''Returns a tuple where each element of the tuple represents one
@@ -156,12 +156,19 @@ class FiniteElementBase(metaclass=ABCMeta):
 
         For example, a dual basis containing 2 functionals with maximum derivative
         order of 1 would be represented by:
-        (((point_set_10, weight_tensor_10, alpha_tensor_10),
-          (point_set_11, weight_tensor_11, alpha_tensor_11))
-         ((point_set_20, weight_tensor_20, alpha_tensor_20),
-          ()))
+
+        .. highlight:: python
+        .. code-block:: python
+
+            ((((point_set_10, weight_tensor_10, alpha_tensor_10),
+               (point_set_11, weight_tensor_11, alpha_tensor_11)), None)
+             (((point_set_20, weight_tensor_20, alpha_tensor_20),
+              ()), None)
+
         where one of the innermost tuples is empty because there are no evaluations
-        at that order.
+        at that order. The `None` is either a placeholder for \'normal\' elements,
+        or a tuple containing the index of expression to extract using gem.Delta
+        (currently just used by TensorFiniteElement).
         '''
         # TODO: Add label for type of evaluation?
 
@@ -217,17 +224,11 @@ class FiniteElementBase(metaclass=ABCMeta):
                     if tensorfe_idx is None:
                         qexpr = gem.index_sum(gem.partial_indexed(expr, zeta) * weight_tensor[zeta], point_set.indices+zeta)
                     else:
-                        # TODO: Can simplify with reduce, but may be harder to understand
-                        if len(self.value_shape) == 1:
-                            deltas = gem.Delta(zeta[0], tensorfe_idx[0])
-                        elif len(self.value_shape) == 2:
-                            deltas = gem.Delta(zeta[0], tensorfe_idx[0]) * gem.Delta(zeta[1], tensorfe_idx[1])
-                        elif len(self.value_shape) == 3:
-                            deltas = (gem.Delta(zeta[0], tensorfe_idx[0]) * gem.Delta(zeta[1], tensorfe_idx[1])
-                                      * gem.Delta(zeta[2], tensorfe_idx[2]))
-                        else:
-                            raise NotImplementedError("There does not exist a valid dual basis for rank-4 tensor-valued basis functions!")
-                        qexpr = gem.index_sum(gem.partial_indexed(expr, zeta) * deltas * weight_tensor, point_set.indices+zeta)
+                        deltas = reduce(gem.Product, (gem.Delta(z, t) for z, t in zip(zeta, tensorfe_idx)))
+                        base_rank = len(self.value_shape) - len(tensorfe_idx)
+                        # TODO: Fix non-scalar _base_element
+                        qexpr = gem.index_sum(gem.partial_indexed(expr, zeta) * deltas * weight_tensor[tensorfe_idx[:base_rank]],
+                                              point_set.indices+zeta)
                     # Sum for all derivatives
                     qexprs = gem.Sum(qexprs, qexpr)
 
