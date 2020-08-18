@@ -1,4 +1,3 @@
-import pytest
 import FIAT
 import finat
 import numpy as np
