@@ -1,5 +1,6 @@
 from functools import singledispatch, reduce
 
+import numpy
 import sympy
 
 import gem
@@ -50,3 +51,10 @@ def sympy2gem_symbol(node, self):
 @sympy2gem.register(sympy.Rational)
 def sympy2gem_rational(node, self):
     return gem.Division(self(node.numerator()), self(node.denominator()))
+
+
+@sympy2gem.register(sympy.ImmutableDenseNDimArray)
+def sympy2gem_tuple(node, self):
+    vals, shape = node.args
+    vals = numpy.asarray(tuple(map(self, vals)), dtype=object).reshape(shape)
+    return gem.ListTensor(vals)
