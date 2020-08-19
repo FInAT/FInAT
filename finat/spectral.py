@@ -3,7 +3,7 @@ import FIAT
 import gem
 
 from finat.fiat_elements import ScalarFiatElement
-from finat.point_set import GaussLobattoLegendrePointSet, GaussLegendrePointSet
+from finat.point_set import GaussLobattoLegendrePointSet, GaussLegendrePointSet, ExtendedGaussLegendrePointSet
 
 
 class GaussLobattoLegendre(ScalarFiatElement):
@@ -27,6 +27,35 @@ class GaussLobattoLegendre(ScalarFiatElement):
         if entity is None or entity == (cell_dimension, 0):  # on cell interior
             space_dim = self.space_dimension()
             if isinstance(ps, GaussLobattoLegendrePointSet) and len(ps.points) == space_dim:
+                # Bingo: evaluation points match node locations!
+                spatial_dim = self.cell.get_spatial_dimension()
+                q, = ps.indices
+                r, = self.get_indices()
+                result[(0,) * spatial_dim] = gem.ComponentTensor(gem.Delta(q, r), (r,))
+        return result
+
+
+class ExtendedGaussLegendre(ScalarFiatElement):
+    """1D continuous element with nodes at the Extended-Gauss-Legendre points."""
+
+    def __init__(self, cell, degree):
+        fiat_element = FIAT.ExtendedGaussLegendre(cell, degree)
+        super(ExtendedGaussLegendre, self).__init__(fiat_element)
+
+    def basis_evaluation(self, order, ps, entity=None, coordinate_mapping=None):
+        '''Return code for evaluating the element at known points on the
+        reference element.
+
+        :param order: return derivatives up to this order.
+        :param ps: the point set.
+        :param entity: the cell entity on which to tabulate.
+        '''
+
+        result = super(ExtendedGaussLegendre, self).basis_evaluation(order, ps, entity)
+        cell_dimension = self.cell.get_dimension()
+        if entity is None or entity == (cell_dimension, 0):  # on cell interior
+            space_dim = self.space_dimension()
+            if isinstance(ps, ExtendedGaussLegendrePointSet) and len(ps.points) == space_dim:
                 # Bingo: evaluation points match node locations!
                 spatial_dim = self.cell.get_spatial_dimension()
                 q, = ps.indices

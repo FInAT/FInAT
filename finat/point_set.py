@@ -91,6 +91,16 @@ class GaussLegendrePointSet(PointSet):
         assert self.points.shape[1] == 1
 
 
+class ExtendedGaussLegendrePointSet(PointSet):
+    """Extended-Gauss-Legendre quadrature points on the interval.
+
+    This facilitates implementing dual mimetic continuous spectral elements.
+    """
+    def __init__(self, points):
+        super(ExtendedGaussLegendrePointSet, self).__init__(points)
+        assert self.points.shape[1] == 1
+
+
 class GaussLobattoLegendrePointSet(PointSet):
     """Gauss-Lobatto-Legendre quadrature points on the interval.
 

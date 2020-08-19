@@ -328,6 +328,16 @@ class BrezziDouglasFortinMarini(VectorFiatElement):
         super(BrezziDouglasFortinMarini, self).__init__(FIAT.BrezziDouglasFortinMarini(cell, degree))
 
 
+class EdgeGaussLobattoLegendre(ScalarFiatElement):
+    def __init__(self, cell, degree):
+        super(EdgeGaussLobattoLegendre, self).__init__(FIAT.EdgeGaussLobattoLegendre(cell, degree))
+
+
+class EdgeExtendedGaussLegendre(ScalarFiatElement):
+    def __init__(self, cell, degree):
+        super(EdgeExtendedGaussLegendre, self).__init__(FIAT.EdgeExtendedGaussLegendre(cell, degree))
+
+
 class Nedelec(VectorFiatElement):
     def __init__(self, cell, degree, variant=None):
         super(Nedelec, self).__init__(FIAT.Nedelec(cell, degree, variant=variant))
