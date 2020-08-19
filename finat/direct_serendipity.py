@@ -3,6 +3,7 @@ from itertools import chain, repeat
 import gem
 import numpy
 import symengine
+import sympy
 from FIAT.polynomial_set import mis
 from FIAT.reference_element import UFCQuadrilateral
 
@@ -114,7 +115,7 @@ def xysub(x, y):
     return {x[0]: y[0], x[1]: y[1]}
 
 
-def ds1_sympy(ct, vs=None):
+def ds1_sympy(ct, vs=None, sp=sympy):
     """Constructs lowest-order case of Arbogast's directly defined C^0 serendipity
     elements, which are a special case.
     :param ct: The cell topology of the reference quadrilateral.
@@ -221,15 +222,18 @@ def newton_poly(nds, fs, xsym):
 def diff(expr, xx, alpha):
     """Differentiate expr with respect to xx.
 
-    :arg expr: symengine Expression to differentiate.
+    :arg expr: symengine/symengine Expression to differentiate.
     :arg xx: iterable of coordinates to differentiate with respect to.
     :arg alpha: derivative multiindex, one entry for each entry of xx
         indicating how many derivatives in that direction.
-    :returns: New symengine expression."""
-    return symengine.diff(expr, *(chain(*(repeat(x, a) for x, a in zip(xx, alpha)))))
+    :returns: New symengine/symengine expression."""
+    if isinstance(expr, sympy.Expr):
+        return expr.diff(*(zip(xx, alpha)))
+    else:
+        return symengine.diff(expr, *(chain(*(repeat(x, a) for x, a in zip(xx, alpha)))))
 
 
-def dsr_sympy(ct, r, vs=None):
+def dsr_sympy(ct, r, vs=None, sp=sympy):
     """Constructs higher-order (>= 2) case of Arbogast's directly defined C^0 serendipity
     elements, which include all polynomials of degree r plus a couple of rational
     functions.
@@ -241,11 +245,11 @@ def dsr_sympy(ct, r, vs=None):
               of the four basis functions.
     """
     if vs is None:  # do vertices symbolically
-        vs = numpy.asarray(list(zip(symengine.symbols('x:4'),
-                                    symengine.symbols('y:4'))))
+        vs = numpy.asarray(list(zip(sp.symbols('x:4'),
+                                    sp.symbols('y:4'))))
     else:
         vs = numpy.asarray(vs)
-    xx = numpy.asarray(symengine.symbols("x,y"))
+    xx = numpy.asarray(sp.symbols("x,y"))
 
     ts = numpy.zeros((4, 2), dtype=object)
     for e in range(4):
@@ -291,8 +295,8 @@ def dsr_sympy(ct, r, vs=None):
         mons = [xx[0] ** i * xx[1] ** j
                 for i in range(r-3) for j in range(r-3-i)]
 
-        V = symengine.Matrix([[mon.subs(xysub(xx, nd)) for mon in mons]
-                              for nd in internal_nodes])
+        V = sp.Matrix([[mon.subs(xysub(xx, nd)) for mon in mons]
+                       for nd in internal_nodes])
         Vinv = V.inv()
         nmon = len(mons)
 
@@ -308,9 +312,9 @@ def dsr_sympy(ct, r, vs=None):
     # R for each edge (1 on edge, zero on opposite
     Rs = [(1 - RV) / 2, (1 + RV) / 2, (1 - RH) / 2, (1 + RH) / 2]
 
-    nodes1d = [symengine.Rational(i, r) for i in range(1, r)]
+    nodes1d = [sp.Rational(i, r) for i in range(1, r)]
 
-    s = symengine.Symbol('s')
+    s = sp.Symbol('s')
 
     # for each edge:
     # I need its adjacent two edges
@@ -429,7 +433,7 @@ def dsr_sympy(ct, r, vs=None):
     return vs, xx, numpy.asarray(bfs)
 
 
-def ds_sympy(ct, r, vs=None):
+def ds_sympy(ct, r, vs=None, sp=sympy):
     """Symbolically Constructs Arbogast's directly defined C^0 serendipity elements,
     which include all polynomials of degree r plus a couple of rational functions.
     :param ct: The cell topology of the reference quadrilateral.
@@ -440,6 +444,6 @@ def ds_sympy(ct, r, vs=None):
               of the four basis functions.
     """
     if r == 1:
-        return ds1_sympy(ct, vs)
+        return ds1_sympy(ct, vs, sp=sp)
     else:
-        return dsr_sympy(ct, r, vs)
+        return dsr_sympy(ct, r, vs, sp=sp)
