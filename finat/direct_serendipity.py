@@ -417,7 +417,7 @@ def dsr_sympy(ct, r, vs=None):
 
 
 def ds_sympy(ct, r, vs=None):
-    """Symbolically Constructs Arbogast's directly defined C^0 serendipity elements, 
+    """Symbolically Constructs Arbogast's directly defined C^0 serendipity elements,
     which include all polynomials of degree r plus a couple of rational functions.
     :param ct: The cell topology of the reference quadrilateral.
     :param vs: (Optional) coordinates of cell on which to construct the basis.
