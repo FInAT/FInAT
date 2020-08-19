@@ -224,7 +224,6 @@ class FiniteElementBase(metaclass=ABCMeta):
                         zeta = tuple(idx for _ in range(len(point_set.points)) for idx in self.get_value_indices())
                         qexpr = gem.index_sum(gem.partial_indexed(expr, zeta) * weight_tensor[zeta], point_set.indices + zeta)
                     else:
-                        # import pdb; pdb.set_trace()
                         try:
                             base_rank
                         except NameError:
@@ -235,7 +234,6 @@ class FiniteElementBase(metaclass=ABCMeta):
                         zeta_tensor = tuple(idx for _ in range(len(point_set.points)) for idx in
                                             [gem.Index(extent=d)for d in self.value_shape[base_rank:]])
                         deltas = reduce(gem.Product, (gem.Delta(z, t) for z, t in zip(zeta_tensor, tensorfe_idx)))
-                        # TODO: Add way to use self._transpose without explicitly using
                         zeta = zeta_tensor + zeta_base
 
                         qexpr = gem.index_sum(gem.partial_indexed(expr, zeta) * deltas * weight_tensor[zeta_base],
