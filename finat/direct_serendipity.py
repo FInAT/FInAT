@@ -1,12 +1,13 @@
-import numpy
-
-from finat.finiteelementbase import FiniteElementBase
-from finat.physically_mapped import DirectlyDefinedElement, Citations
-from FIAT.reference_element import UFCQuadrilateral
-from FIAT.polynomial_set import mis
+from itertools import chain, repeat
 
 import gem
-import sympy
+import numpy
+import symengine
+from FIAT.polynomial_set import mis
+from FIAT.reference_element import UFCQuadrilateral
+
+from finat.finiteelementbase import FiniteElementBase
+from finat.physically_mapped import Citations, DirectlyDefinedElement
 from finat.sympy2gem import sympy2gem
 
 
@@ -93,10 +94,11 @@ class DirectSerendipity(DirectlyDefinedElement, FiniteElementBase):
         mapper.bindings = repl
 
         result = {}
+
         for i in range(order+1):
             alphas = mis(2, i)
             for alpha in alphas:
-                dphis = [phi.diff(*tuple(zip(xx, alpha))) for phi in phis]
+                dphis = [diff(phi, xx, alpha) for phi in phis]
                 result[alpha] = gem.ListTensor(list(map(mapper, dphis)))
 
         return result
@@ -123,12 +125,12 @@ def ds1_sympy(ct, vs=None):
               of the four basis functions.
     """
     if vs is None:
-        vs = numpy.asarray(list(zip(sympy.symbols('x:4'),
-                                    sympy.symbols('y:4'))))
+        vs = numpy.asarray(list(zip(symengine.symbols('x:4'),
+                                    symengine.symbols('y:4'))))
     else:
         vs = numpy.asarray(vs)
 
-    xx = numpy.asarray(sympy.symbols("x,y"))
+    xx = numpy.asarray(symengine.symbols("x,y"))
 
     ts = numpy.zeros((4, 2), dtype=object)
     for e in range(4):
@@ -216,6 +218,17 @@ def newton_poly(nds, fs, xsym):
     return result
 
 
+def diff(expr, xx, alpha):
+    """Differentiate expr with respect to xx.
+
+    :arg expr: symengine Expression to differentiate.
+    :arg xx: iterable of coordinates to differentiate with respect to.
+    :arg alpha: derivative multiindex, one entry for each entry of xx
+        indicating how many derivatives in that direction.
+    :returns: New symengine expression."""
+    return symengine.diff(expr, *(chain(*(repeat(x, a) for x, a in zip(xx, alpha)))))
+
+
 def dsr_sympy(ct, r, vs=None):
     """Constructs higher-order (>= 2) case of Arbogast's directly defined C^0 serendipity
     elements, which include all polynomials of degree r plus a couple of rational
@@ -228,11 +241,11 @@ def dsr_sympy(ct, r, vs=None):
               of the four basis functions.
     """
     if vs is None:  # do vertices symbolically
-        vs = numpy.asarray(list(zip(sympy.symbols('x:4'),
-                                    sympy.symbols('y:4'))))
+        vs = numpy.asarray(list(zip(symengine.symbols('x:4'),
+                                    symengine.symbols('y:4'))))
     else:
         vs = numpy.asarray(vs)
-    xx = numpy.asarray(sympy.symbols("x,y"))
+    xx = numpy.asarray(symengine.symbols("x,y"))
 
     ts = numpy.zeros((4, 2), dtype=object)
     for e in range(4):
@@ -278,8 +291,8 @@ def dsr_sympy(ct, r, vs=None):
         mons = [xx[0] ** i * xx[1] ** j
                 for i in range(r-3) for j in range(r-3-i)]
 
-        V = sympy.Matrix([[mon.subs(xysub(xx, nd)) for mon in mons]
-                          for nd in internal_nodes])
+        V = symengine.Matrix([[mon.subs(xysub(xx, nd)) for mon in mons]
+                              for nd in internal_nodes])
         Vinv = V.inv()
         nmon = len(mons)
 
@@ -295,9 +308,9 @@ def dsr_sympy(ct, r, vs=None):
     # R for each edge (1 on edge, zero on opposite
     Rs = [(1 - RV) / 2, (1 + RV) / 2, (1 - RH) / 2, (1 + RH) / 2]
 
-    nodes1d = [sympy.Rational(i, r) for i in range(1, r)]
+    nodes1d = [symengine.Rational(i, r) for i in range(1, r)]
 
-    s = sympy.Symbol('s')
+    s = symengine.Symbol('s')
 
     # for each edge:
     # I need its adjacent two edges
