@@ -9,6 +9,7 @@ from gem.utils import cached_property
 
 from finat.finiteelementbase import FiniteElementBase
 from finat.quadrature import make_quadrature
+from finat.point_set import PointSingleton
 
 
 class QuadratureElement(FiniteElementBase):
@@ -87,10 +88,23 @@ class QuadratureElement(FiniteElementBase):
     def point_evaluation(self, order, refcoords, entity=None):
         raise NotImplementedError("QuadratureElement cannot do point evaluation!")
 
-    # TODO: Does quadrature element have dual basis?
     @property
     def dual_basis(self):
-        raise NotImplementedError(f"{self.__class__.__name__} does not have a dual_basis yet!")
+        # Point evaluations at each quadrature point with no derivatives
+        duals = []
+        for pt in self._rule.point_set.points:
+            point_set = PointSingleton(pt)
+            weight_tensor = gem.Literal(1)
+            alpha_tensor = gem.Literal(1)
+            # shorthand
+            duals.append(tuple([tuple([[(point_set, weight_tensor, alpha_tensor), ], ]), None]))
+            # below is equivalent to shorthand - see fiat_elements.FiatElement.dual_basis
+            # pts_in_derivs = []
+            # pts_in_derivs.append((point_set, weight_tensor, alpha_tensor))
+            # derivs = []
+            # derivs.append(pts_in_derivs)
+            # duals.append(tuple([tuple(derivs), None]))
+        return tuple(duals)
 
     @property
     def mapping(self):
