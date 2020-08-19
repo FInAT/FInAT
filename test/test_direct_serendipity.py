@@ -76,6 +76,5 @@ def test_kronecker(degree):
     mapping = MyMapping(cell, vertices)
     z = tuple([0] * cell.get_spatial_dimension())
     vals = element.basis_evaluation(0, pts, coordinate_mapping=mapping)[z]
-    from gem.interpreter import evaluate
-    numvals = evaluate([vals])[0].arr
+    numvals = gem.interpreter.evaluate([vals])[0].arr
     assert np.allclose(numvals, np.eye(*numvals.shape))
