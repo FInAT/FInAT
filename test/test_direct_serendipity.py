@@ -72,10 +72,10 @@ def test_kronecker(degree):
     cell = FIAT.ufc_cell("quadrilateral")
     element = finat.DirectSerendipity(cell, degree)
     pts = finat.point_set.PointSet(get_pts(cell, degree))
-    vrts = np.asarray(((0.0, 0.0), (1.0, 0.0), (0.1, 1.1), (0.95, 1.01)))
-    mppng = MyMapping(cell, vrts)
+    vertices = np.asarray(((0.0, 0.0), (1.0, 0.0), (0.1, 1.1), (0.95, 1.01)))
+    mapping = MyMapping(cell, vertices)
     z = tuple([0] * cell.get_spatial_dimension())
-    vals = element.basis_evaluation(0, pts, coordinate_mapping=mppng)[z]
+    vals = element.basis_evaluation(0, pts, coordinate_mapping=mapping)[z]
     from gem.interpreter import evaluate
     numvals = evaluate([vals])[0].arr
     assert np.allclose(numvals, np.eye(*numvals.shape))
