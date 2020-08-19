@@ -126,9 +126,14 @@ class TensorFiniteElement(FiniteElementBase):
         base_rank = len(self._base_element.value_shape)
 
         # Note: Does not assert idx of base_dual_basis is None
-        tensor_dual_basis = tuple((base_dual, idx)
-                                  for base_dual, _ in base_dual_basis
-                                  for idx in numpy.ndindex(self.value_shape[base_rank:]))
+        if not self._transpose:
+            tensor_dual_basis = tuple((base_dual, idx)
+                                      for base_dual, _ in base_dual_basis
+                                      for idx in numpy.ndindex(self.value_shape[base_rank:]))
+        else:
+            tensor_dual_basis = tuple((base_dual, idx)
+                                      for idx in numpy.ndindex(self.value_shape[base_rank:])
+                                      for base_dual, _ in base_dual_basis)
 
         return tensor_dual_basis
 
