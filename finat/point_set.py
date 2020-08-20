@@ -18,8 +18,8 @@ class AbstractPointSet(metaclass=ABCMeta):
 
     @abstractproperty
     def points(self):
-        """A flattened numpy array of points with shape
-        (# of points, point dimension)."""
+        """A flattened numpy array of points or ``UnknownPointsArray``
+        object with shape (# of points, point dimension)."""
 
     @property
     def dimension(self):
@@ -41,7 +41,7 @@ class AbstractPointSet(metaclass=ABCMeta):
 class PointSingleton(AbstractPointSet):
     """A point set representing a single point.
 
-    These have a `gem.Literal` expression and no indices."""
+    These have a ``gem.Literal`` expression and no indices."""
 
     def __init__(self, point):
         """Build a PointSingleton from a single point.
@@ -64,6 +64,60 @@ class PointSingleton(AbstractPointSet):
     @cached_property
     def expression(self):
         return gem.Literal(self.point)
+
+
+class UnknownPointsArray():
+    """A placeholder for a set of unknown points with appropriate length
+    and size but without indexable values. For use with
+    :class:`AbstractPointSet`s whose points are not known at compile
+    time."""
+    def __init__(self, shape):
+        """
+        :arg shape: The shape of the unknown set of N points of shape
+            (N, D) where D is the dimension of each point.
+        """
+        assert len(shape) == 2
+        self.shape = shape
+
+    def __len__(self):
+        return self.shape[0]
+
+
+class UnknownPointSet(AbstractPointSet):
+    """A point set representing a vector of points with unknown
+    locations but known ``gem.Variable`` expression.
+
+    The ``.points`` property is an `UnknownPointsArray` object with
+    shape (N, D) where N is the number of points and D is their
+    dimension.
+
+    The ``.expression`` property is a derived `gem.partial_indexed` with
+    shape (D,) and free indices for the points N."""
+
+    def __init__(self, points_expr):
+        """Build a PointSingleton from a gem expression for a single point.
+
+        :arg points_expr: A ``gem.Variable`` expression representing a
+            vector of N points in D dimensions. Should have shape (N, D)
+            and no free indices. For runtime tabulation the variable
+            name should begin with \'rt_:\'."""
+        assert isinstance(points_expr, gem.Variable)
+        assert points_expr.free_indices == ()
+        assert len(points_expr.shape) == 2
+        self._points_expr = points_expr
+
+    @cached_property
+    def points(self):
+        return UnknownPointsArray(self._points_expr.shape)
+
+    @cached_property
+    def indices(self):
+        N, _ = self._points_expr.shape
+        return (gem.Index(extent=N),)
+
+    @cached_property
+    def expression(self):
+        return gem.partial_indexed(self._points_expr, self.indices)
 
 
 class PointSet(AbstractPointSet):
