@@ -10,7 +10,7 @@ from gem.utils import cached_property
 
 from finat.finiteelementbase import FiniteElementBase
 from finat.quadrature import make_quadrature, AbstractQuadratureRule
-from finat.point_set import PointSingleton
+from finat.point_set import PointSingleton, UnknownPointSingleton
 
 
 class QuadratureElement(FiniteElementBase):
@@ -104,18 +104,24 @@ class QuadratureElement(FiniteElementBase):
     def dual_basis(self):
         # Point evaluations at each quadrature point with no derivatives
         duals = []
-        for pt in self._rule.point_set.points:
-            point_set = PointSingleton(pt)
+        if isinstance(self._rule.point_set, UnknownPointSingleton):
+            point_set = self._rule.point_set
             weight_tensor = gem.Literal(1)
             alpha_tensor = gem.Literal(1)
-            # shorthand
             duals.append(tuple([tuple([[(point_set, weight_tensor, alpha_tensor), ], ]), None]))
-            # below is equivalent to shorthand - see fiat_elements.FiatElement.dual_basis
-            # pts_in_derivs = []
-            # pts_in_derivs.append((point_set, weight_tensor, alpha_tensor))
-            # derivs = []
-            # derivs.append(pts_in_derivs)
-            # duals.append(tuple([tuple(derivs), None]))
+        else:
+            for pt in self._rule.point_set.points:
+                point_set = PointSingleton(pt)
+                weight_tensor = gem.Literal(1)
+                alpha_tensor = gem.Literal(1)
+                # shorthand
+                duals.append(tuple([tuple([[(point_set, weight_tensor, alpha_tensor), ], ]), None]))
+                # below is equivalent to shorthand - see fiat_elements.FiatElement.dual_basis
+                # pts_in_derivs = []
+                # pts_in_derivs.append((point_set, weight_tensor, alpha_tensor))
+                # derivs = []
+                # derivs.append(pts_in_derivs)
+                # duals.append(tuple([tuple(derivs), None]))
         return tuple(duals)
 
     @property
