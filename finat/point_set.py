@@ -53,13 +53,13 @@ class PointSingleton(AbstractPointSet):
         assert len(point.shape) == 1
         self.point = point
 
-    @property
+    @cached_property
     def points(self):
         # Make sure we conform to the expected (# of points, point dimension)
         # shape
         return self.point.reshape(1, -1)
 
-    @property
+    @cached_property
     def indices(self):
         return ()
 
