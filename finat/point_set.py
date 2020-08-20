@@ -68,6 +68,27 @@ class PointSingleton(AbstractPointSet):
         return gem.Literal(self.point)
 
 
+class UnknownPointSingleton(AbstractPointSet):
+    """A single unknown point."""
+
+    def __init__(self, point_expr):
+        assert isinstance(point_expr, gem.Variable)
+        self.expression = point_expr
+        self.points = numpy.full((1, 1), numpy.nan)
+
+    @cached_property
+    def points(self):
+        pass  # set at initialisation
+
+    @cached_property
+    def indices(self):
+        return self.expression.free_indices
+
+    @cached_property
+    def expression(self):
+        pass  # set at initialisation
+
+
 class PointSet(AbstractPointSet):
     """A basic point set with no internal structure representing a vector of
     points."""
