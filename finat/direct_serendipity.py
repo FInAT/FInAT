@@ -6,6 +6,7 @@ import symengine
 import sympy
 from FIAT.polynomial_set import mis
 from FIAT.reference_element import UFCQuadrilateral
+from gem.utils import cached_property
 
 from finat.finiteelementbase import FiniteElementBase
 from finat.physically_mapped import Citations, DirectlyDefinedElement
@@ -22,6 +23,7 @@ class DirectSerendipity(DirectlyDefinedElement, FiniteElementBase):
 
         self._cell = cell
         self._degree = degree
+        self._deriv_cache = {}
 
     @property
     def cell(self):
@@ -63,6 +65,19 @@ class DirectSerendipity(DirectlyDefinedElement, FiniteElementBase):
     def value_shape(self):
         return ()
 
+    @cached_property
+    def _basis(self):
+        return ds_sym(self.cell.topology, self.degree, sp=symengine)
+
+    def _basis_deriv(self, xx, alpha):
+        key = (tuple(xx), alpha)
+        _, _, phis = self._basis
+        try:
+            return self._deriv_cache[key]
+        except KeyError:
+            dphi = tuple(diff(phi, xx, alpha) for phi in phis)
+            return self._deriv_cache.setdefault(key, dphi)
+
     def basis_evaluation(self, order, ps, entity=None, coordinate_mapping=None):
         '''Return code for evaluating the element at known points on the
         reference element.
@@ -71,10 +86,8 @@ class DirectSerendipity(DirectlyDefinedElement, FiniteElementBase):
         :param ps: the point set.
         :param entity: the cell entity on which to tabulate.
         '''
-        ct = self.cell.topology
-
-        # Build everything in sympy/symengine
-        vs, xx, phis = ds_sym(ct, self.degree, None, symengine)
+        # Build everything in sympy
+        vs, xx, _ = self._basis
 
         # and convert -- all this can be used for each derivative!
         phys_verts = coordinate_mapping.physical_vertices()
@@ -83,9 +96,10 @@ class DirectSerendipity(DirectlyDefinedElement, FiniteElementBase):
             coordinate_mapping.physical_points(ps, entity=entity),
             ps.indices)
 
-        repl = {vs[i, j]: phys_verts[i, j] for i in range(4) for j in range(2)}
+        repl = dict((vs[idx], phys_verts[idx])
+                    for idx in numpy.ndindex(vs.shape))
 
-        repl.update({s: phys_points[i] for i, s in enumerate(xx)})
+        repl.update(zip(xx, phys_points))
 
         mapper = gem.node.Memoizer(sympy2gem)
         mapper.bindings = repl
@@ -95,7 +109,7 @@ class DirectSerendipity(DirectlyDefinedElement, FiniteElementBase):
         for i in range(order+1):
             alphas = mis(2, i)
             for alpha in alphas:
-                dphis = [diff(phi, xx, alpha) for phi in phis]
+                dphis = self._basis_deriv(xx, alpha)
                 result[alpha] = gem.ListTensor(list(map(mapper, dphis)))
 
         return result
@@ -111,7 +125,7 @@ def xysub(x, y):
     return {x[0]: y[0], x[1]: y[1]}
 
 
-def ds1_sym(ct, vs=None, sp=symengine):
+def ds1_sym(ct, *, vs=None, sp=symengine):
     """Constructs lowest-order case of Arbogast's directly defined C^0 serendipity
     elements, which are a special case.
     :param ct: The cell topology of the reference quadrilateral.
@@ -122,12 +136,12 @@ def ds1_sym(ct, vs=None, sp=symengine):
               of the four basis functions.
     """
     if vs is None:
-        vs = numpy.asarray(list(zip(symengine.symbols('x:4'),
-                                    symengine.symbols('y:4'))))
+        vs = numpy.asarray(list(zip(sp.symbols('x:4'),
+                                    sp.symbols('y:4'))))
     else:
         vs = numpy.asarray(vs)
 
-    xx = numpy.asarray(symengine.symbols("x,y"))
+    xx = numpy.asarray(sp.symbols("x,y"))
 
     ts = numpy.zeros((4, 2), dtype=object)
     for e in range(4):
@@ -229,7 +243,7 @@ def diff(expr, xx, alpha):
         return symengine.diff(expr, *(chain(*(repeat(x, a) for x, a in zip(xx, alpha)))))
 
 
-def dsr_sym(ct, r, vs=None, sp=symengine):
+def dsr_sym(ct, r, *, vs=None, sp=symengine):
     """Constructs higher-order (>= 2) case of Arbogast's directly defined C^0 serendipity
     elements, which include all polynomials of degree r plus a couple of rational
     functions.
@@ -452,7 +466,7 @@ def dsr_sym(ct, r, vs=None, sp=symengine):
     return vs, xx, numpy.asarray(bfs)
 
 
-def ds_sym(ct, r, vs=None, sp=symengine):
+def ds_sym(ct, r, *, vs=None, sp=symengine):
     """Symbolically Constructs Arbogast's directly defined C^0 serendipity elements,
     which include all polynomials of degree r plus a couple of rational functions.
     :param ct: The cell topology of the reference quadrilateral.
@@ -463,6 +477,6 @@ def ds_sym(ct, r, vs=None, sp=symengine):
               of the four basis functions.
     """
     if r == 1:
-        return ds1_sym(ct, vs, sp=sp)
+        return ds1_sym(ct, vs=vs, sp=sp)
     else:
-        return dsr_sym(ct, r, vs, sp=sp)
+        return dsr_sym(ct, r, vs=vs, sp=sp)
