@@ -3,6 +3,8 @@ from operator import add, methodcaller
 
 import numpy
 
+import FIAT
+
 import gem
 from gem.utils import cached_property
 
@@ -71,12 +73,11 @@ class EnrichedElement(FiniteElementBase):
 
         if all(isinstance(e, MixedSubElement) for e in self.elements):
             # EnrichedElement is actually a MixedElement
-            from FIAT.mixed import MixedElement  # on-demand loading
-            return MixedElement([e.element.fiat_equivalent
-                                 for e in self.elements], ref_el=self.cell)
+            return FIAT.MixedElement([e.element.fiat_equivalent
+                                      for e in self.elements], ref_el=self.cell)
         else:
-            from FIAT.enriched import EnrichedElement  # on-demand loading
-            return EnrichedElement(*[e.fiat_equivalent for e in self.elements])
+            return FIAT.EnrichedElement(*[e.fiat_equivalent
+                                          for e in self.elements])
 
     def _compose_evaluations(self, results):
         keys, = set(map(frozenset, results))

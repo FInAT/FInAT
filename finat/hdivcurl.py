@@ -1,3 +1,4 @@
+from FIAT.hdivcurl import Hdiv, Hcurl
 from FIAT.reference_element import LINE
 
 import gem
@@ -91,7 +92,6 @@ class HDivElement(WrapperElementBase):
 
     @cached_property
     def fiat_equivalent(self):
-        from FIAT.hdivcurl import Hdiv  # on-demand loading
         return Hdiv(self.wrappee.fiat_equivalent)
 
     @property
@@ -120,7 +120,6 @@ class HCurlElement(WrapperElementBase):
 
     @cached_property
     def fiat_equivalent(self):
-        from FIAT.hdivcurl import Hcurl  # on-demand loading
         return Hcurl(self.wrappee.fiat_equivalent)
 
     @property
