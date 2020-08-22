@@ -1,3 +1,4 @@
+from .fiat_elements import Bernstein  # noqa: F401
 from .fiat_elements import Bubble, CrouzeixRaviart, DiscontinuousTaylor  # noqa: F401
 from .fiat_elements import Lagrange, DiscontinuousLagrange  # noqa: F401
 from .fiat_elements import DPC, Serendipity  # noqa: F401
