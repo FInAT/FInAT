@@ -51,6 +51,13 @@ class FlattenedDimensions(FiniteElementBase):
     def space_dimension(self):
         return self.product.space_dimension()
 
+    @cached_property
+    def fiat_equivalent(self):
+        # On-demand loading of FIAT module
+        from FIAT.tensor_product import FlattenedDimensions
+
+        return FlattenedDimensions(self.product.fiat_equivalent)
+
     def basis_evaluation(self, order, ps, entity=None, coordinate_mapping=None):
         """Return code for evaluating the element at known points on the
         reference element.

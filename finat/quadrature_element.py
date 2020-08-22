@@ -51,6 +51,15 @@ class QuadratureElement(FiniteElementBase):
     def value_shape(self):
         return ()
 
+    @cached_property
+    def fiat_equivalent(self):
+        # On-demand loading of FIAT module
+        from FIAT.quadrature_element import QuadratureElement
+
+        ps = self._rule.point_set
+        weights = getattr(self._rule, 'weights', None)
+        return QuadratureElement(self.cell, ps.points, weights)
+
     def basis_evaluation(self, order, ps, entity=None, coordinate_mapping=None):
         '''Return code for evaluating the element at known points on the
         reference element.

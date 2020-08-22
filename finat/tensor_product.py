@@ -65,6 +65,15 @@ class TensorProductElement(FiniteElementBase):
     def value_shape(self):
         return self._value_shape
 
+    @cached_property
+    def fiat_equivalent(self):
+        # On-demand loading of FIAT module
+        from FIAT.tensor_product import TensorProductElement
+
+        # FIAT TensorProductElement support only 2 factors
+        A, B = self.factors
+        return TensorProductElement(A.fiat_equivalent, B.fiat_equivalent)
+
     def _factor_entity(self, entity):
         # Default entity
         if entity is None:
