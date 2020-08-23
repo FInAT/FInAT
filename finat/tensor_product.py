@@ -279,8 +279,8 @@ def product_dual_basis(a_dual_basis, b_dual_basis):
 
                             product_point_set = TensorPointSet((a_point_set, b_point_set))
 
-                            # Only first factor can be non-scalar
-                            product_weight_tensor = a_weight_tensor
+                            # Only first factor can be non-scalar, but b may have quadrature
+                            product_weight_tensor = a_weight_tensor * b_weight_tensor
 
                             product_alpha_tensor = a_alpha_tensor
 
