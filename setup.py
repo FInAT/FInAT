@@ -13,4 +13,9 @@ setup(name="FInAT",
       author_email="david.ham@imperial.ac.uk",
       url="https://github.com/FInAT/FInAT",
       license="MIT",
-      packages=["finat"])
+      packages=["finat"],
+      install_requires=[
+          'numpy>=1.16',
+          'symengine',
+          'sympy',
+      ])
