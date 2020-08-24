@@ -102,10 +102,9 @@ class FiniteElementBase(metaclass=ABCMeta):
     @property
     def fiat_equivalent(self):
         '''The FIAT element equivalent to this FInAT element.'''
-        raise NotImplementedError(str.format(
-            "Cannot make equivalent FIAT element for {classname}",
-            classname=type(self).__name__
-        ))
+        raise NotImplementedError(
+            f"Cannot make equivalent FIAT element for {type(self).__name__}"
+        )
 
     def get_indices(self):
         '''A tuple of GEM :class:`Index` of the correct extents to loop over

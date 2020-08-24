@@ -275,7 +275,7 @@ class ScalarFiatElement(FiatElement):
 class Bernstein(ScalarFiatElement):
     # TODO: Replace this with a smarter implementation
     def __init__(self, cell, degree):
-        super(Bernstein, self).__init__(FIAT.Bernstein(cell, degree))
+        super().__init__(FIAT.Bernstein(cell, degree))
 
 
 class Bubble(ScalarFiatElement):

@@ -76,8 +76,8 @@ class EnrichedElement(FiniteElementBase):
             return FIAT.MixedElement([e.element.fiat_equivalent
                                       for e in self.elements], ref_el=self.cell)
         else:
-            return FIAT.EnrichedElement(*[e.fiat_equivalent
-                                          for e in self.elements])
+            return FIAT.EnrichedElement(*(e.fiat_equivalent
+                                          for e in self.elements))
 
     def _compose_evaluations(self, results):
         keys, = set(map(frozenset, results))
