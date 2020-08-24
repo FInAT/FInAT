@@ -241,40 +241,27 @@ def select_inverse_hdiv_transformer(element):
     # positive direction for normal vectors.
     ks = tuple(fe.formdegree for fe in element.factors)
     if ks == (0, 1):
-        # Make the scalar value the leftward-pointing normal on the
-        # y-aligned edges.
-        # return lambda v: [gem.Product(gem.Literal(-1), v), gem.Zero()]
-        # return lambda v: gem.Product(gem.Literal(-1) * gem.Indexed(v, (0,)))
-        return lambda v: gem.Literal([-v.value, 0])
+        # Apply scalar weight to scalar "base" expression, which is
+        # the leftward-pointing normal on the y-aligned edges.
+        return lambda w: gem.Literal([-w.value, 0])
     elif ks == (1, 0):
-        # Make the scalar value the upward-pointing normal on the
+        # Apply scalar weight to scalar "base" expression, which is
+        # the scalar value the upward-pointing normal on the
         # x-aligned edges.
-        # return lambda v: [gem.Zero(), v]
-        # return lambda v: gem.Indexed(v, (1,))
-        return lambda v: gem.Literal([0, v.value])
+        return lambda w: gem.Literal([0, w.value])
     elif ks == (2, 0):
-        # Same for 3D, so z-plane.
-        # return lambda v: [gem.Zero(), gem.Zero(), v]
-        # return lambda v: gem.Indexed(v, (2,))
-        return lambda v: gem.Literal([0, 0, v.value])
+        # Same for 3D, so scalar weight is applied to scalar "base"
+        # expression on z-plane.
+        return lambda w: gem.Literal([0, 0, w.value])
     elif ks == (1, 1):
         if element.mapping == "contravariant piola":
-            # Pad the 2-vector normal on the "base" cell into a
-            # 3-vector, maintaining direction.
-            # return lambda v: [gem.Indexed(v, (0,)),
-            #                   gem.Indexed(v, (1,)),
-            #                   gem.Zero()]
-            # return lambda v: gem.Indexed(v, (0, 1))
-            return lambda v: gem.Literal([v.array[0], v.array[1], 0])
+            # Apply vector weights to "base" vector expression
+            return lambda w: gem.Literal([w.array[0], w.array[1], 0])
         elif element.mapping == "covariant piola":
-            # Rotate the 2-vector tangential component on the "base"
-            # cell 90 degrees anticlockwise into a 3-vector and pad.
-            # return lambda v: [gem.Indexed(v, (1,)),
-            #                   gem.Product(gem.Literal(-1), gem.Indexed(v, (0,))),
-            #                   gem.Zero()]
-            # return lambda v: gem.ListTensor([gem.Literal(-1) * gem.Indexed(v, (1,)),
-            #                                  gem.Indexed(v, (0,))])
-            return lambda v: gem.Literal([-v.array[1], -v.array[0], 0])
+            # Apply vector weight to "base" vector expression, which has its
+            # 2-vector tangential component rotated 90 degrees anticlockwise
+            # onto the "base" cell into a 3-vector.
+            return lambda w: gem.Literal([w.array[1], -w.array[0], 0])
         else:
             assert False, "Unexpected original mapping!"
     else:
@@ -293,30 +280,26 @@ def select_inverse_hcurl_transformer(element):
     ks = tuple(fe.formdegree for fe in element.factors)
     if element.mapping == "affine":
         if ks == (1, 0):
-            # Can only be 2D.  Make the scalar value the
-            # rightward-pointing tangential on the x-aligned edges.
-            # return lambda v: [v, gem.Zero()]
-            return lambda v: gem.Literal([v.value, 0])
+            # Can only be 2D.
+            # Apply scalar weight to "base" scalar expression, which is
+            # the rightward-pointing tangential on the x-aligned edges.
+            return lambda w: gem.Literal([w.value, 0])
         elif ks == (0, 1):
-            # Can be any spatial dimension.  Make the scalar value the
-            # upward-pointing tangential.
-            # return lambda v: [gem.Zero()] * (dim - 1) + [v]
-            return lambda v: gem.Literal([0] * (dim - 1) + [v.value])
+            # Can be any spatial dimension.
+            # Apply scalar weight to "base" scalar expression, which is
+            # the upward-pointing tangential.
+            return lambda w: gem.Literal([0] * (dim - 1) + [w.value])
         else:
             assert False
     elif element.mapping == "covariant piola":
-        # Second factor must be continuous interval.  Just padding.
-        # return lambda v: [gem.Indexed(v, (0,)),
-        #                   gem.Indexed(v, (1,)),
-        #                   gem.Zero()]
-        return lambda v: gem.Literal([v.array[0], v.array[1], 0])
+        # Second factor must be continuous interval.
+        # # Apply vector weights to "base" vector expression
+        return lambda w: gem.Literal([w.array[0], w.array[1], 0])
     elif element.mapping == "contravariant piola":
-        # Second factor must be continuous interval.  Rotate the
-        # 2-vector tangential component on the "base" cell 90 degrees
-        # clockwise into a 3-vector and pad.
-        # return lambda v: [gem.Product(gem.Literal(-1), gem.Indexed(v, (1,))),
-        #                   gem.Indexed(v, (0,)),
-        #                   gem.Zero()]
-        return lambda v: gem.Literal([-v.array[1], v.array[0], 0])
+        # Second factor must be continuous interval.
+        # Apply vector weight to "base" vector expression, which has its
+        # 2-vector tangential component rotated 90 degrees clockwise
+        # onto the "base" cell into a 3-vector.
+        return lambda w: gem.Literal([-w.array[1], w.array[0], 0])
     else:
         assert False, "Unexpected original mapping!"
