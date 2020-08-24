@@ -84,11 +84,25 @@ try:
   doi =          {10.1243/03093247V061020}
 }
 """)
+    Citations().add("Arbogast2017", """
+@techreport{Arbogast2017,
+  title={Direct serendipity finite elements on convex quadrilaterals},
+  author={Arbogast, T and Tao, Z},
+  year={2017},
+  institution={Tech. Rep. ICES REPORT 17-28, Institute for Computational Engineering and Sciences}
+}
+""")
 except ImportError:
     Citations = None
 
 
-class PhysicallyMappedElement(metaclass=ABCMeta):
+class NeedsCoordinateMappingElement(metaclass=ABCMeta):
+    """Abstract class for elements that require physical information
+    either to map or construct their basis functions."""
+    pass
+
+
+class PhysicallyMappedElement(NeedsCoordinateMappingElement):
     """A mixin that applies a "physical" transformation to tabulated
     basis functions."""
 
@@ -125,6 +139,12 @@ class PhysicallyMappedElement(metaclass=ABCMeta):
         raise NotImplementedError("TODO: not yet thought about it")
 
 
+class DirectlyDefinedElement(NeedsCoordinateMappingElement):
+    """Base class for directly defined elements such as direct
+    serendipity that bypass a coordinate mapping."""
+    pass
+
+
 class PhysicalGeometry(metaclass=ABCMeta):
 
     @abstractmethod
@@ -138,7 +158,8 @@ class PhysicalGeometry(metaclass=ABCMeta):
     def jacobian_at(self, point):
         """The jacobian of the physical coordinates at a point.
 
-        :arg point: The point in reference space to evaluate the Jacobian.
+        :arg point: The point in reference space (on the cell) to
+             evaluate the Jacobian.
         :returns: A GEM expression for the Jacobian, shape (gdim, tdim).
         """
 
@@ -179,3 +200,21 @@ class PhysicalGeometry(metaclass=ABCMeta):
            edge (numbered according to FIAT conventions), shape
            (nfacet, ).
         """
+
+    @abstractmethod
+    def physical_points(self, point_set, entity=None):
+        """Maps reference element points to GEM for the physical coordinates
+
+        :arg point_set: A point_set on the reference cell to push forward to physical space.
+        :arg entity: Reference cell entity on which the point set is
+                     defined (for example if it is a point set on a facet).
+        :returns: a GEM expression for the physical locations of the
+                  points, shape (gdim, ) with free indices of the point_set.
+        """
+
+    @abstractmethod
+    def physical_vertices(self):
+        """Physical locations of the cell vertices.
+
+        :returns: a GEM expression for the physical vertices, shape
+                (gdim, )."""
