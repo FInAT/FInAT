@@ -10,7 +10,7 @@ from finat.tensor_product import TensorProductElement
 class WrapperElementBase(FiniteElementBase):
     """Common base class for H(div) and H(curl) element wrappers."""
 
-    def __init__(self, wrappee, transform):
+    def __init__(self, wrappee, transform, inverse_transform):
         super(WrapperElementBase, self).__init__()
         self.wrappee = wrappee
         """An appropriate tensor product FInAT element whose basis
@@ -20,6 +20,11 @@ class WrapperElementBase(FiniteElementBase):
         self.transform = transform
         """A transformation applied on the scalar/vector values of the
         wrapped element to produce an H(div) or H(curl) conforming
+        element."""
+
+        self.inverse_transform = inverse_transform
+        """A transformation applied to the weight_tensors of the
+        wrapped element to revert the H(div) or H(curl) conforming
         element."""
 
     @property
@@ -72,7 +77,22 @@ class WrapperElementBase(FiniteElementBase):
 
     @property
     def dual_basis(self):
-        raise NotImplementedError(f"{self.__class__.__name__} does not have a dual_basis yet!")
+        # raise NotImplementedError(f"{self.__class__.__name__} does not have a dual_basis yet!")
+
+        dual_basis = []
+        for wrappee_dual, tensorfe_idx in self.wrappee.dual_basis:
+            assert tensorfe_idx is None
+            derivs = []
+            for wrappee_deriv in wrappee_dual:
+                pts_in_derivs = []
+                for wrappee_point_set, wrappee_weight_tensor, wrappee_alpha_tensor in wrappee_deriv:
+                    weight_tensor = self.inverse_transform(wrappee_weight_tensor)
+                    pts_in_derivs.append((wrappee_point_set, weight_tensor, wrappee_alpha_tensor))
+
+                derivs.append(tuple(pts_in_derivs))
+            dual_basis.append((tuple(derivs), None))
+
+        return tuple(dual_basis)
 
 
 class HDivElement(WrapperElementBase):
@@ -88,7 +108,8 @@ class HDivElement(WrapperElementBase):
             raise ValueError("H(div) requires (n-1)-form element!")
 
         transform = select_hdiv_transformer(wrappee)
-        super(HDivElement, self).__init__(wrappee, transform)
+        inverse_transform = select_inverse_hdiv_transformer(wrappee)
+        super(HDivElement, self).__init__(wrappee, transform, inverse_transform)
 
     @property
     def formdegree(self):
@@ -116,7 +137,8 @@ class HCurlElement(WrapperElementBase):
             raise ValueError("H(curl) requires 1-form element!")
 
         transform = select_hcurl_transformer(wrappee)
-        super(HCurlElement, self).__init__(wrappee, transform)
+        inverse_transform = select_inverse_hcurl_transformer(wrappee)
+        super(HCurlElement, self).__init__(wrappee, transform, inverse_transform)
 
     @property
     def formdegree(self):
@@ -204,5 +226,97 @@ def select_hcurl_transformer(element):
         return lambda v: [gem.Product(gem.Literal(-1), gem.Indexed(v, (1,))),
                           gem.Indexed(v, (0,)),
                           gem.Zero()]
+    else:
+        assert False, "Unexpected original mapping!"
+
+
+def select_inverse_hdiv_transformer(element):
+    # Assume: something x interval
+    assert len(element.factors) == 2
+    assert element.factors[1].cell.get_shape() == LINE
+
+    # Globally consistent edge orientations of the reference
+    # quadrilateral: rightward horizontally, upward vertically.
+    # Their rotation by 90 degrees anticlockwise is interpreted as the
+    # positive direction for normal vectors.
+    ks = tuple(fe.formdegree for fe in element.factors)
+    if ks == (0, 1):
+        # Make the scalar value the leftward-pointing normal on the
+        # y-aligned edges.
+        # return lambda v: [gem.Product(gem.Literal(-1), v), gem.Zero()]
+        # return lambda v: gem.Product(gem.Literal(-1) * gem.Indexed(v, (0,)))
+        return lambda v: gem.Literal([-v.value, 0])
+    elif ks == (1, 0):
+        # Make the scalar value the upward-pointing normal on the
+        # x-aligned edges.
+        # return lambda v: [gem.Zero(), v]
+        # return lambda v: gem.Indexed(v, (1,))
+        return lambda v: gem.Literal([0, v.value])
+    elif ks == (2, 0):
+        # Same for 3D, so z-plane.
+        # return lambda v: [gem.Zero(), gem.Zero(), v]
+        # return lambda v: gem.Indexed(v, (2,))
+        return lambda v: gem.Literal([0, 0, v.value])
+    elif ks == (1, 1):
+        if element.mapping == "contravariant piola":
+            # Pad the 2-vector normal on the "base" cell into a
+            # 3-vector, maintaining direction.
+            # return lambda v: [gem.Indexed(v, (0,)),
+            #                   gem.Indexed(v, (1,)),
+            #                   gem.Zero()]
+            # return lambda v: gem.Indexed(v, (0, 1))
+            return lambda v: gem.Literal([v.array[0], v.array[1], 0])
+        elif element.mapping == "covariant piola":
+            # Rotate the 2-vector tangential component on the "base"
+            # cell 90 degrees anticlockwise into a 3-vector and pad.
+            # return lambda v: [gem.Indexed(v, (1,)),
+            #                   gem.Product(gem.Literal(-1), gem.Indexed(v, (0,))),
+            #                   gem.Zero()]
+            # return lambda v: gem.ListTensor([gem.Literal(-1) * gem.Indexed(v, (1,)),
+            #                                  gem.Indexed(v, (0,))])
+            return lambda v: gem.Literal([-v.array[1], -v.array[0], 0])
+        else:
+            assert False, "Unexpected original mapping!"
+    else:
+        assert False, "Unexpected form degree combination!"
+
+
+def select_inverse_hcurl_transformer(element):
+    # Assume: something x interval
+    assert len(element.factors) == 2
+    assert element.factors[1].cell.get_shape() == LINE
+
+    # Globally consistent edge orientations of the reference
+    # quadrilateral: rightward horizontally, upward vertically.
+    # Tangential vectors interpret these as the positive direction.
+    dim = element.cell.get_spatial_dimension()
+    ks = tuple(fe.formdegree for fe in element.factors)
+    if element.mapping == "affine":
+        if ks == (1, 0):
+            # Can only be 2D.  Make the scalar value the
+            # rightward-pointing tangential on the x-aligned edges.
+            # return lambda v: [v, gem.Zero()]
+            return lambda v: gem.Literal([v.value, 0])
+        elif ks == (0, 1):
+            # Can be any spatial dimension.  Make the scalar value the
+            # upward-pointing tangential.
+            # return lambda v: [gem.Zero()] * (dim - 1) + [v]
+            return lambda v: gem.Literal([0] * (dim - 1) + [v.value])
+        else:
+            assert False
+    elif element.mapping == "covariant piola":
+        # Second factor must be continuous interval.  Just padding.
+        # return lambda v: [gem.Indexed(v, (0,)),
+        #                   gem.Indexed(v, (1,)),
+        #                   gem.Zero()]
+        return lambda v: gem.Literal([v.array[0], v.array[1], 0])
+    elif element.mapping == "contravariant piola":
+        # Second factor must be continuous interval.  Rotate the
+        # 2-vector tangential component on the "base" cell 90 degrees
+        # clockwise into a 3-vector and pad.
+        # return lambda v: [gem.Product(gem.Literal(-1), gem.Indexed(v, (1,))),
+        #                   gem.Indexed(v, (0,)),
+        #                   gem.Zero()]
+        return lambda v: gem.Literal([-v.array[1], v.array[0], 0])
     else:
         assert False, "Unexpected original mapping!"
