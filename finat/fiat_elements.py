@@ -1,6 +1,7 @@
 import numpy as np
 import sympy as sp
 from functools import singledispatch
+from itertools import chain
 
 import FIAT
 from FIAT.polynomial_set import mis, form_matrix_product
@@ -8,6 +9,7 @@ from FIAT.polynomial_set import mis, form_matrix_product
 import gem
 
 from finat.finiteelementbase import FiniteElementBase
+from finat.point_set import PointSet
 from finat.sympy2gem import sympy2gem
 
 try:
@@ -191,9 +193,6 @@ class FiatElement(FiniteElementBase):
         where one of the innermost tuples is empty because there are no evaluations
         at that order.
         '''
-        from itertools import chain
-        from finat.point_set import PointSet
-
         max_deriv_order = max([ell.max_deriv_order for ell in self._element.dual_basis()])
 
         duals = []
