@@ -1,4 +1,5 @@
 from functools import partial
+from itertools import chain
 from operator import add, methodcaller
 
 import numpy
@@ -129,8 +130,6 @@ class EnrichedElement(FiniteElementBase):
 
     @property
     def dual_basis(self):
-        from itertools import chain
-
         # Note: NOT TESTED!!!
         elements_dual_basis = [element.dual_basis for element in self.elements]
         return tuple(chain(*elements_dual_basis))
