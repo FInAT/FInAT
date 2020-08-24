@@ -138,11 +138,25 @@
 <span class="s2">  doi =          {10.1243/03093247V061020}</span>
 <span class="s2">}</span>
 <span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+    <span class="n">Citations</span><span class="p">()</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;Arbogast2017&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">@techreport{Arbogast2017,</span>
+<span class="s2">  title={Direct serendipity finite elements on convex quadrilaterals},</span>
+<span class="s2">  author={Arbogast, T and Tao, Z},</span>
+<span class="s2">  year=</span><span class="si">{2017}</span><span class="s2">,</span>
+<span class="s2">  institution={Tech. Rep. ICES REPORT 17-28, Institute for Computational Engineering and Sciences}</span>
+<span class="s2">}</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="n">Citations</span> <span class="o">=</span> <span class="kc">None</span>
 
 
-<div class="viewcode-block" id="PhysicallyMappedElement"><a class="viewcode-back" href="../../finat.html#finat.physically_mapped.PhysicallyMappedElement">[docs]</a><span class="k">class</span> <span class="nc">PhysicallyMappedElement</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">ABCMeta</span><span class="p">):</span>
+<div class="viewcode-block" id="NeedsCoordinateMappingElement"><a class="viewcode-back" href="../../finat.html#finat.physically_mapped.NeedsCoordinateMappingElement">[docs]</a><span class="k">class</span> <span class="nc">NeedsCoordinateMappingElement</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">ABCMeta</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract class for elements that require physical information</span>
+<span class="sd">    either to map or construct their basis functions.&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="PhysicallyMappedElement"><a class="viewcode-back" href="../../finat.html#finat.physically_mapped.PhysicallyMappedElement">[docs]</a><span class="k">class</span> <span class="nc">PhysicallyMappedElement</span><span class="p">(</span><span class="n">NeedsCoordinateMappingElement</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;A mixin that applies a &quot;physical&quot; transformation to tabulated</span>
 <span class="sd">    basis functions.&quot;&quot;&quot;</span>
 
@@ -179,6 +193,12 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;TODO: not yet thought about it&quot;</span><span class="p">)</span></div></div>
 
 
+<div class="viewcode-block" id="DirectlyDefinedElement"><a class="viewcode-back" href="../../finat.html#finat.physically_mapped.DirectlyDefinedElement">[docs]</a><span class="k">class</span> <span class="nc">DirectlyDefinedElement</span><span class="p">(</span><span class="n">NeedsCoordinateMappingElement</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Base class for directly defined elements such as direct</span>
+<span class="sd">    serendipity that bypass a coordinate mapping.&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
 <div class="viewcode-block" id="PhysicalGeometry"><a class="viewcode-back" href="../../finat.html#finat.physically_mapped.PhysicalGeometry">[docs]</a><span class="k">class</span> <span class="nc">PhysicalGeometry</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">ABCMeta</span><span class="p">):</span>
 
 <div class="viewcode-block" id="PhysicalGeometry.cell_size"><a class="viewcode-back" href="../../finat.html#finat.physically_mapped.PhysicalGeometry.cell_size">[docs]</a>    <span class="nd">@abstractmethod</span>
@@ -192,7 +212,8 @@
     <span class="k">def</span> <span class="nf">jacobian_at</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;The jacobian of the physical coordinates at a point.</span>
 
-<span class="sd">        :arg point: The point in reference space to evaluate the Jacobian.</span>
+<span class="sd">        :arg point: The point in reference space (on the cell) to</span>
+<span class="sd">             evaluate the Jacobian.</span>
 <span class="sd">        :returns: A GEM expression for the Jacobian, shape (gdim, tdim).</span>
 <span class="sd">        &quot;&quot;&quot;</span></div>
 
@@ -232,7 +253,25 @@
 <span class="sd">        :returns: A GEM expression for the length of each</span>
 <span class="sd">           edge (numbered according to FIAT conventions), shape</span>
 <span class="sd">           (nfacet, ).</span>
-<span class="sd">        &quot;&quot;&quot;</span></div></div>
+<span class="sd">        &quot;&quot;&quot;</span></div>
+
+<div class="viewcode-block" id="PhysicalGeometry.physical_points"><a class="viewcode-back" href="../../finat.html#finat.physically_mapped.PhysicalGeometry.physical_points">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">physical_points</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point_set</span><span class="p">,</span> <span class="n">entity</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Maps reference element points to GEM for the physical coordinates</span>
+
+<span class="sd">        :arg point_set: A point_set on the reference cell to push forward to physical space.</span>
+<span class="sd">        :arg entity: Reference cell entity on which the point set is</span>
+<span class="sd">                     defined (for example if it is a point set on a facet).</span>
+<span class="sd">        :returns: a GEM expression for the physical locations of the</span>
+<span class="sd">                  points, shape (gdim, ) with free indices of the point_set.</span>
+<span class="sd">        &quot;&quot;&quot;</span></div>
+
+<div class="viewcode-block" id="PhysicalGeometry.physical_vertices"><a class="viewcode-back" href="../../finat.html#finat.physically_mapped.PhysicalGeometry.physical_vertices">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">physical_vertices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Physical locations of the cell vertices.</span>
+
+<span class="sd">        :returns: a GEM expression for the physical vertices, shape</span>
+<span class="sd">                (gdim, ).&quot;&quot;&quot;</span></div></div>
 </pre></div>
 
             <div class="clearer"></div>

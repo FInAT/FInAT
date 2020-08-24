@@ -1,0 +1,550 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>finat.direct_serendipity &#8212; FInAT 0.1 documentation</title>
+    <link rel="stylesheet" href="../../_static/fenics.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<!--[if lte IE 6]>
+<link rel="stylesheet" href="../../_static/ie6.css" type="text/css" media="screen" charset="utf-8" />
+<![endif]-->
+
+<link rel="stylesheet" href="../../_static/featured.css">
+
+
+<link rel="shortcut icon" href="../../_static/icon.ico" />
+
+
+  </head><body>
+<div class="wrapper">
+  <a href="../../index.html"><img src="../../_static/banner.png" width="900px" alt="FInAT Project Banner" /></a>
+  <div id="access">
+    <div class="menu">
+      <ul>
+          <li class="page_item"><a href="https://github.com/FInAT/finat" title="GitHub">GitHub</a></li>
+<!--          <li class="page_item"><a href="../../documentation.html" title="Documentation for FInAT">Documentation</a></li>
+          <li class="page_item"><a href="../../download.html" title="Obtain the FInAT code">Download</a></li>
+          <li class="page_item"><a href="../../team.html" title="The guilty parties">Team</a></li>
+          <li class="page_item"><a href="../../publications.html" title="Publications">Publications</a></li>
+          <li class="page_item"><a href="../../funding.html" title="Our financial supporters">Funding</a></li>
+          <li class="page_item"><a href="../../contact.html" title="Getting in touch">Contact</a></li>
+          <li class="page_item"><a href="http://buildbot-ocean.ese.ic.ac.uk:8080/builders/FInAT-trunk" title="Buildbot">Buildbot</a></li>-->
+      </ul>
+    </div><!-- .menu -->
+  </div><!-- #access -->
+</div><!-- #wrapper -->
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for finat.direct_serendipity</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">chain</span><span class="p">,</span> <span class="n">repeat</span>
+
+<span class="kn">import</span> <span class="nn">gem</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">symengine</span>
+<span class="kn">import</span> <span class="nn">sympy</span>
+<span class="kn">from</span> <span class="nn">FIAT.polynomial_set</span> <span class="kn">import</span> <span class="n">mis</span>
+<span class="kn">from</span> <span class="nn">FIAT.reference_element</span> <span class="kn">import</span> <span class="n">UFCQuadrilateral</span>
+<span class="kn">from</span> <span class="nn">gem.utils</span> <span class="kn">import</span> <span class="n">cached_property</span>
+
+<span class="kn">from</span> <span class="nn">finat.finiteelementbase</span> <span class="kn">import</span> <span class="n">FiniteElementBase</span>
+<span class="kn">from</span> <span class="nn">finat.physically_mapped</span> <span class="kn">import</span> <span class="n">Citations</span><span class="p">,</span> <span class="n">DirectlyDefinedElement</span>
+<span class="kn">from</span> <span class="nn">finat.sympy2gem</span> <span class="kn">import</span> <span class="n">sympy2gem</span>
+
+
+<div class="viewcode-block" id="DirectSerendipity"><a class="viewcode-back" href="../../finat.html#finat.direct_serendipity.DirectSerendipity">[docs]</a><span class="k">class</span> <span class="nc">DirectSerendipity</span><span class="p">(</span><span class="n">DirectlyDefinedElement</span><span class="p">,</span> <span class="n">FiniteElementBase</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cell</span><span class="p">,</span> <span class="n">degree</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">Citations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">Citations</span><span class="p">()</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;Arbogast2017&quot;</span><span class="p">)</span>
+
+        <span class="c1"># These elements only known currently on quads</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span> <span class="n">UFCQuadrilateral</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cell</span> <span class="o">=</span> <span class="n">cell</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_degree</span> <span class="o">=</span> <span class="n">degree</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_deriv_cache</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">cell</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cell</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">degree</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_degree</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">formdegree</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mi">0</span>
+
+<div class="viewcode-block" id="DirectSerendipity.entity_dofs"><a class="viewcode-back" href="../../finat.html#finat.direct_serendipity.DirectSerendipity.entity_dofs">[docs]</a>    <span class="k">def</span> <span class="nf">entity_dofs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">degree</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)},</span>
+                    <span class="mi">1</span><span class="p">:</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)},</span>
+                    <span class="mi">2</span><span class="p">:</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="p">[]}}</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">degree</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)},</span>
+                    <span class="mi">1</span><span class="p">:</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">4</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)},</span>
+                    <span class="mi">2</span><span class="p">:</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="p">[]}}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)},</span>
+                    <span class="mi">1</span><span class="p">:</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">4</span> <span class="o">+</span> <span class="n">i</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">degree</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span>
+                                      <span class="mi">4</span> <span class="o">+</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">degree</span><span class="o">-</span><span class="mi">1</span><span class="p">)))</span>
+                        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)},</span>
+                    <span class="mi">2</span><span class="p">:</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">4</span> <span class="o">+</span> <span class="mi">4</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">degree</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span>
+                                      <span class="bp">self</span><span class="o">.</span><span class="n">space_dimension</span><span class="p">()))}}</span></div>
+
+<div class="viewcode-block" id="DirectSerendipity.space_dimension"><a class="viewcode-back" href="../../finat.html#finat.direct_serendipity.DirectSerendipity.space_dimension">[docs]</a>    <span class="k">def</span> <span class="nf">space_dimension</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mi">4</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">degree</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">degree</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">degree</span><span class="o">+</span><span class="mi">2</span><span class="p">)</span><span class="o">//</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">index_shape</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">space_dimension</span><span class="p">(),)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">value_shape</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">()</span>
+
+    <span class="nd">@cached_property</span>
+    <span class="k">def</span> <span class="nf">_basis</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ds_sym</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">topology</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">degree</span><span class="p">,</span> <span class="n">sp</span><span class="o">=</span><span class="n">symengine</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_basis_deriv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xx</span><span class="p">,</span> <span class="n">alpha</span><span class="p">):</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">xx</span><span class="p">),</span> <span class="n">alpha</span><span class="p">)</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">phis</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_basis</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_deriv_cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">dphi</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">diff</span><span class="p">(</span><span class="n">phi</span><span class="p">,</span> <span class="n">xx</span><span class="p">,</span> <span class="n">alpha</span><span class="p">)</span> <span class="k">for</span> <span class="n">phi</span> <span class="ow">in</span> <span class="n">phis</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_deriv_cache</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">dphi</span><span class="p">)</span>
+
+<div class="viewcode-block" id="DirectSerendipity.basis_evaluation"><a class="viewcode-back" href="../../finat.html#finat.direct_serendipity.DirectSerendipity.basis_evaluation">[docs]</a>    <span class="k">def</span> <span class="nf">basis_evaluation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">ps</span><span class="p">,</span> <span class="n">entity</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">coordinate_mapping</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Return code for evaluating the element at known points on the</span>
+<span class="sd">        reference element.</span>
+
+<span class="sd">        :param order: return derivatives up to this order.</span>
+<span class="sd">        :param ps: the point set.</span>
+<span class="sd">        :param entity: the cell entity on which to tabulate.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1"># Build everything in sympy</span>
+        <span class="n">vs</span><span class="p">,</span> <span class="n">xx</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_basis</span>
+
+        <span class="c1"># and convert -- all this can be used for each derivative!</span>
+        <span class="n">phys_verts</span> <span class="o">=</span> <span class="n">coordinate_mapping</span><span class="o">.</span><span class="n">physical_vertices</span><span class="p">()</span>
+
+        <span class="n">phys_points</span> <span class="o">=</span> <span class="n">gem</span><span class="o">.</span><span class="n">partial_indexed</span><span class="p">(</span>
+            <span class="n">coordinate_mapping</span><span class="o">.</span><span class="n">physical_points</span><span class="p">(</span><span class="n">ps</span><span class="p">,</span> <span class="n">entity</span><span class="o">=</span><span class="n">entity</span><span class="p">),</span>
+            <span class="n">ps</span><span class="o">.</span><span class="n">indices</span><span class="p">)</span>
+
+        <span class="n">repl</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="n">vs</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="n">phys_verts</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
+                    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndindex</span><span class="p">(</span><span class="n">vs</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+
+        <span class="n">repl</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="n">phys_points</span><span class="p">))</span>
+
+        <span class="n">mapper</span> <span class="o">=</span> <span class="n">gem</span><span class="o">.</span><span class="n">node</span><span class="o">.</span><span class="n">Memoizer</span><span class="p">(</span><span class="n">sympy2gem</span><span class="p">)</span>
+        <span class="n">mapper</span><span class="o">.</span><span class="n">bindings</span> <span class="o">=</span> <span class="n">repl</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">order</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">alphas</span> <span class="o">=</span> <span class="n">mis</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">alpha</span> <span class="ow">in</span> <span class="n">alphas</span><span class="p">:</span>
+                <span class="n">dphis</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_basis_deriv</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="n">alpha</span><span class="p">)</span>
+                <span class="n">result</span><span class="p">[</span><span class="n">alpha</span><span class="p">]</span> <span class="o">=</span> <span class="n">gem</span><span class="o">.</span><span class="n">ListTensor</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">mapper</span><span class="p">,</span> <span class="n">dphis</span><span class="p">)))</span>
+
+        <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="DirectSerendipity.point_evaluation"><a class="viewcode-back" href="../../finat.html#finat.direct_serendipity.DirectSerendipity.point_evaluation">[docs]</a>    <span class="k">def</span> <span class="nf">point_evaluation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">refcoords</span><span class="p">,</span> <span class="n">entity</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Not done yet, sorry!&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DirectSerendipity.mapping"><a class="viewcode-back" href="../../finat.html#finat.direct_serendipity.DirectSerendipity.mapping">[docs]</a>    <span class="k">def</span> <span class="nf">mapping</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;physical&quot;</span></div></div>
+
+
+<div class="viewcode-block" id="xysub"><a class="viewcode-back" href="../../finat.html#finat.direct_serendipity.xysub">[docs]</a><span class="k">def</span> <span class="nf">xysub</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">]}</span></div>
+
+
+<div class="viewcode-block" id="ds1_sym"><a class="viewcode-back" href="../../finat.html#finat.direct_serendipity.ds1_sym">[docs]</a><span class="k">def</span> <span class="nf">ds1_sym</span><span class="p">(</span><span class="n">ct</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">vs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sp</span><span class="o">=</span><span class="n">symengine</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Constructs lowest-order case of Arbogast&#39;s directly defined C^0 serendipity</span>
+<span class="sd">    elements, which are a special case.</span>
+<span class="sd">    :param ct: The cell topology of the reference quadrilateral.</span>
+<span class="sd">    :param vs: (Optional) coordinates of cell on which to construct the basis.</span>
+<span class="sd">               If it is None, this function constructs symbols for the vertices.</span>
+<span class="sd">    :returns: a 3-tuple containing symbols for the physical cell coordinates and the</span>
+<span class="sd">              physical cell independent variables (e.g. &quot;x&quot; and &quot;y&quot;) and a list</span>
+<span class="sd">              of the four basis functions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">vs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">vs</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">sp</span><span class="o">.</span><span class="n">symbols</span><span class="p">(</span><span class="s1">&#39;x:4&#39;</span><span class="p">),</span>
+                                    <span class="n">sp</span><span class="o">.</span><span class="n">symbols</span><span class="p">(</span><span class="s1">&#39;y:4&#39;</span><span class="p">))))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">vs</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">vs</span><span class="p">)</span>
+
+    <span class="n">xx</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">sp</span><span class="o">.</span><span class="n">symbols</span><span class="p">(</span><span class="s2">&quot;x,y&quot;</span><span class="p">))</span>
+
+    <span class="n">ts</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+        <span class="n">v0id</span><span class="p">,</span> <span class="n">v1id</span> <span class="o">=</span> <span class="n">ct</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">e</span><span class="p">][:]</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+            <span class="n">ts</span><span class="p">[</span><span class="n">e</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">vs</span><span class="p">[</span><span class="n">v1id</span><span class="p">,</span> <span class="p">:]</span> <span class="o">-</span> <span class="n">vs</span><span class="p">[</span><span class="n">v0id</span><span class="p">,</span> <span class="p">:]</span>
+
+    <span class="n">ns</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span>
+        <span class="n">ns</span><span class="p">[</span><span class="n">e</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">ts</span><span class="p">[</span><span class="n">e</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">ns</span><span class="p">[</span><span class="n">e</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">ts</span><span class="p">[</span><span class="n">e</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+        <span class="n">ns</span><span class="p">[</span><span class="n">e</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">ts</span><span class="p">[</span><span class="n">e</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">ns</span><span class="p">[</span><span class="n">e</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">ts</span><span class="p">[</span><span class="n">e</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">xstars</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+        <span class="n">v0id</span><span class="p">,</span> <span class="n">v1id</span> <span class="o">=</span> <span class="n">ct</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">e</span><span class="p">][:]</span>
+        <span class="n">xstars</span><span class="p">[</span><span class="n">e</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="p">(</span><span class="n">vs</span><span class="p">[</span><span class="n">v0id</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+</span> <span class="n">vs</span><span class="p">[</span><span class="n">v1id</span><span class="p">])</span><span class="o">/</span><span class="mi">2</span>
+
+    <span class="n">lams</span> <span class="o">=</span> <span class="p">[(</span><span class="n">xx</span><span class="o">-</span><span class="n">xstars</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:])</span> <span class="o">@</span> <span class="n">ns</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)]</span>
+
+    <span class="n">RV</span> <span class="o">=</span> <span class="p">(</span><span class="n">lams</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">lams</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">lams</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">lams</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">RH</span> <span class="o">=</span> <span class="p">(</span><span class="n">lams</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">lams</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">lams</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">lams</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+    <span class="n">Rs</span> <span class="o">=</span> <span class="p">[</span><span class="n">RV</span><span class="p">,</span> <span class="n">RH</span><span class="p">]</span>
+
+    <span class="n">xis</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+        <span class="n">dct</span> <span class="o">=</span> <span class="n">xysub</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="n">xstars</span><span class="p">[</span><span class="n">e</span><span class="p">,</span> <span class="p">:])</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="p">((</span><span class="mi">3</span><span class="o">-</span><span class="n">e</span><span class="p">)</span><span class="o">//</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">j</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">xi</span> <span class="o">=</span> <span class="n">lams</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">lams</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="n">e</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">Rs</span><span class="p">[</span><span class="n">e</span><span class="o">//</span><span class="mi">2</span><span class="p">])</span> <span class="o">/</span> <span class="n">lams</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="n">dct</span><span class="p">)</span> <span class="o">/</span> <span class="n">lams</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="n">dct</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="n">xis</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">xi</span><span class="p">)</span>
+
+    <span class="n">d</span> <span class="o">=</span> <span class="n">xysub</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="n">vs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:])</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">lams</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">lams</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">/</span> <span class="n">lams</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="o">/</span> <span class="n">lams</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">xysub</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="n">vs</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="p">:])</span>
+    <span class="n">r</span> <span class="o">-=</span> <span class="n">lams</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">lams</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">/</span> <span class="n">lams</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="o">/</span> <span class="n">lams</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">xysub</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="n">vs</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="p">:])</span>
+    <span class="n">r</span> <span class="o">+=</span> <span class="n">lams</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">lams</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="n">lams</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="o">/</span> <span class="n">lams</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">xysub</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="n">vs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:])</span>
+    <span class="n">r</span> <span class="o">-=</span> <span class="n">lams</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">lams</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="n">lams</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="o">/</span> <span class="n">lams</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+    <span class="n">R</span> <span class="o">=</span> <span class="n">r</span> <span class="o">-</span> <span class="nb">sum</span><span class="p">([</span><span class="n">r</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="n">xysub</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="n">xstars</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]))</span> <span class="o">*</span> <span class="n">xis</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)])</span>
+
+    <span class="n">n03</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span> <span class="o">@</span> <span class="p">(</span><span class="n">vs</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="p">:]</span> <span class="o">-</span> <span class="n">vs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:])</span>
+    <span class="n">lam03</span> <span class="o">=</span> <span class="p">(</span><span class="n">xx</span> <span class="o">-</span> <span class="n">vs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:])</span> <span class="o">@</span> <span class="n">n03</span>
+    <span class="n">n12</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span> <span class="o">@</span> <span class="p">(</span><span class="n">vs</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span> <span class="o">-</span> <span class="n">vs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:])</span>
+    <span class="n">lam12</span> <span class="o">=</span> <span class="p">(</span><span class="n">xx</span> <span class="o">-</span> <span class="n">vs</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="p">:])</span> <span class="o">@</span> <span class="n">n12</span>
+
+    <span class="n">phi0tilde</span> <span class="o">=</span> <span class="n">lam12</span> <span class="o">-</span> <span class="n">lam12</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">xx</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="n">vs</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">xx</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="n">vs</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">]})</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">R</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="n">phi1tilde</span> <span class="o">=</span> <span class="n">lam03</span> <span class="o">-</span> <span class="n">lam03</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">xx</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="n">vs</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">xx</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="n">vs</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]})</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">R</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="n">phi2tilde</span> <span class="o">=</span> <span class="n">lam03</span> <span class="o">-</span> <span class="n">lam03</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">xx</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="n">vs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">xx</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="n">vs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]})</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">R</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="n">phi3tilde</span> <span class="o">=</span> <span class="n">lam12</span> <span class="o">-</span> <span class="n">lam12</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">xx</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="n">vs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">xx</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="n">vs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]})</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">R</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+
+    <span class="n">phis</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">phitilde</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="n">phi0tilde</span><span class="p">,</span> <span class="n">phi1tilde</span><span class="p">,</span> <span class="n">phi2tilde</span><span class="p">,</span> <span class="n">phi3tilde</span><span class="p">]):</span>
+        <span class="n">phi</span> <span class="o">=</span> <span class="n">phitilde</span> <span class="o">/</span> <span class="n">phitilde</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">xx</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="n">vs</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">xx</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="n">vs</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">]})</span>
+        <span class="n">phis</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">vs</span><span class="p">,</span> <span class="n">xx</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">phis</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="newton_dd"><a class="viewcode-back" href="../../finat.html#finat.direct_serendipity.newton_dd">[docs]</a><span class="k">def</span> <span class="nf">newton_dd</span><span class="p">(</span><span class="n">nds</span><span class="p">,</span> <span class="n">fs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Constructs Newton&#39;s divided differences for the input arrays,</span>
+<span class="sd">    which may include symbolic values.&quot;&quot;&quot;</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nds</span><span class="p">)</span>
+    <span class="n">mat</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
+    <span class="n">mat</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">fs</span><span class="p">[:]</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="n">j</span><span class="p">):</span>
+            <span class="n">mat</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">mat</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">mat</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">nds</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="n">j</span><span class="p">]</span> <span class="o">-</span> <span class="n">nds</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">mat</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span></div>
+
+
+<div class="viewcode-block" id="newton_poly"><a class="viewcode-back" href="../../finat.html#finat.direct_serendipity.newton_poly">[docs]</a><span class="k">def</span> <span class="nf">newton_poly</span><span class="p">(</span><span class="n">nds</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">xsym</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Constructs  Lagrange interpolating polynomial passing through</span>
+<span class="sd">    x values nds and y values fs.  Returns a a symbolic object in terms</span>
+<span class="sd">    of independent variable xsym.&quot;&quot;&quot;</span>
+    <span class="n">coeffs</span> <span class="o">=</span> <span class="n">newton_dd</span><span class="p">(</span><span class="n">nds</span><span class="p">,</span> <span class="n">fs</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">coeffs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">coeffs</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">result</span> <span class="o">*</span> <span class="p">(</span><span class="n">xsym</span> <span class="o">-</span> <span class="n">nds</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">+</span> <span class="n">coeffs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="diff"><a class="viewcode-back" href="../../finat.html#finat.direct_serendipity.diff">[docs]</a><span class="k">def</span> <span class="nf">diff</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">xx</span><span class="p">,</span> <span class="n">alpha</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Differentiate expr with respect to xx.</span>
+
+<span class="sd">    :arg expr: symengine/symengine Expression to differentiate.</span>
+<span class="sd">    :arg xx: iterable of coordinates to differentiate with respect to.</span>
+<span class="sd">    :arg alpha: derivative multiindex, one entry for each entry of xx</span>
+<span class="sd">        indicating how many derivatives in that direction.</span>
+<span class="sd">    :returns: New symengine/symengine expression.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Expr</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">expr</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="n">alpha</span><span class="p">)))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">symengine</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="o">*</span><span class="p">(</span><span class="n">chain</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">repeat</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="n">alpha</span><span class="p">)))))</span></div>
+
+
+<div class="viewcode-block" id="dsr_sym"><a class="viewcode-back" href="../../finat.html#finat.direct_serendipity.dsr_sym">[docs]</a><span class="k">def</span> <span class="nf">dsr_sym</span><span class="p">(</span><span class="n">ct</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">vs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sp</span><span class="o">=</span><span class="n">symengine</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Constructs higher-order (&gt;= 2) case of Arbogast&#39;s directly defined C^0 serendipity</span>
+<span class="sd">    elements, which include all polynomials of degree r plus a couple of rational</span>
+<span class="sd">    functions.</span>
+<span class="sd">    :param ct: The cell topology of the reference quadrilateral.</span>
+<span class="sd">    :param vs: (Optional) coordinates of cell on which to construct the basis.</span>
+<span class="sd">               If it is None, this function constructs symbols for the vertices.</span>
+<span class="sd">    :returns: a 3-tuple containing symbols for the physical cell coordinates and the</span>
+<span class="sd">              physical cell independent variables (e.g. &quot;x&quot; and &quot;y&quot;) and a list</span>
+<span class="sd">              of the four basis functions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">vs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># do vertices symbolically</span>
+        <span class="n">vs</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">sp</span><span class="o">.</span><span class="n">symbols</span><span class="p">(</span><span class="s1">&#39;x:4&#39;</span><span class="p">),</span>
+                                    <span class="n">sp</span><span class="o">.</span><span class="n">symbols</span><span class="p">(</span><span class="s1">&#39;y:4&#39;</span><span class="p">))))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">vs</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">vs</span><span class="p">)</span>
+    <span class="n">xx</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">sp</span><span class="o">.</span><span class="n">symbols</span><span class="p">(</span><span class="s2">&quot;x,y&quot;</span><span class="p">))</span>
+
+    <span class="n">ts</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+        <span class="n">v0id</span><span class="p">,</span> <span class="n">v1id</span> <span class="o">=</span> <span class="n">ct</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">e</span><span class="p">][:]</span>
+        <span class="n">ts</span><span class="p">[</span><span class="n">e</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">vs</span><span class="p">[</span><span class="n">v1id</span><span class="p">,</span> <span class="p">:]</span> <span class="o">-</span> <span class="n">vs</span><span class="p">[</span><span class="n">v0id</span><span class="p">,</span> <span class="p">:]</span>
+
+    <span class="n">ns</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span>
+        <span class="n">ns</span><span class="p">[</span><span class="n">e</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">ts</span><span class="p">[</span><span class="n">e</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">ns</span><span class="p">[</span><span class="n">e</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">ts</span><span class="p">[</span><span class="n">e</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+        <span class="n">ns</span><span class="p">[</span><span class="n">e</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">ts</span><span class="p">[</span><span class="n">e</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">ns</span><span class="p">[</span><span class="n">e</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">ts</span><span class="p">[</span><span class="n">e</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># midpoints of each edge</span>
+    <span class="n">xstars</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+        <span class="n">v0id</span><span class="p">,</span> <span class="n">v1id</span> <span class="o">=</span> <span class="n">ct</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">e</span><span class="p">][:]</span>
+        <span class="n">xstars</span><span class="p">[</span><span class="n">e</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="p">(</span><span class="n">vs</span><span class="p">[</span><span class="n">v0id</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+</span> <span class="n">vs</span><span class="p">[</span><span class="n">v1id</span><span class="p">])</span><span class="o">/</span><span class="mi">2</span>
+
+    <span class="n">lams</span> <span class="o">=</span> <span class="p">[(</span><span class="n">xx</span><span class="o">-</span><span class="n">xstars</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:])</span> <span class="o">@</span> <span class="n">ns</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)]</span>
+
+    <span class="c1"># # internal functions</span>
+    <span class="n">bubble</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">lams</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">r</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="n">internal_bfs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">internal_nodes</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">elif</span> <span class="n">r</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>  <span class="c1"># Just one point</span>
+        <span class="n">xbar</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">vs</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span> <span class="o">/</span> <span class="mi">4</span>
+        <span class="n">ybar</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">vs</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span> <span class="o">/</span> <span class="mi">4</span>
+        <span class="n">internal_bfs</span> <span class="o">=</span> <span class="p">[</span><span class="n">bubble</span> <span class="o">/</span> <span class="n">bubble</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="n">xysub</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="p">(</span><span class="n">xbar</span><span class="p">,</span> <span class="n">ybar</span><span class="p">)))]</span>
+        <span class="n">internal_nodes</span> <span class="o">=</span> <span class="p">[(</span><span class="n">xbar</span><span class="p">,</span> <span class="n">ybar</span><span class="p">)]</span>
+    <span class="k">else</span><span class="p">:</span>  <span class="c1"># build a triangular lattice inside the quad</span>
+        <span class="n">dx0</span> <span class="o">=</span> <span class="p">(</span><span class="n">vs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">-</span> <span class="n">vs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:])</span> <span class="o">/</span> <span class="p">(</span><span class="n">r</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">dx1</span> <span class="o">=</span> <span class="p">(</span><span class="n">vs</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span> <span class="o">-</span> <span class="n">vs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:])</span> <span class="o">/</span> <span class="p">(</span><span class="n">r</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="c1"># Vertices of the triangle</span>
+        <span class="n">v0</span> <span class="o">=</span> <span class="n">vs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+</span> <span class="n">dx0</span> <span class="o">+</span> <span class="n">dx1</span>
+        <span class="n">v1</span> <span class="o">=</span> <span class="n">vs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+</span> <span class="p">(</span><span class="n">r</span><span class="o">-</span><span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">dx0</span> <span class="o">+</span> <span class="n">dx1</span>
+        <span class="n">v2</span> <span class="o">=</span> <span class="n">vs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+</span> <span class="n">dx0</span> <span class="o">+</span> <span class="p">(</span><span class="n">r</span><span class="o">-</span><span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">dx1</span>
+
+        <span class="c1"># Pardon the fortran, but these are barycentric coordinates...</span>
+        <span class="n">bary</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;object&quot;</span><span class="p">)</span>
+        <span class="n">y12</span> <span class="o">=</span> <span class="n">v1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">v2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">x21</span> <span class="o">=</span> <span class="n">v2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">v1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">x02</span> <span class="o">=</span> <span class="n">v0</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">v2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">y02</span> <span class="o">=</span> <span class="n">v0</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">v2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">det</span> <span class="o">=</span> <span class="n">y12</span> <span class="o">*</span> <span class="n">x02</span> <span class="o">+</span> <span class="n">x21</span> <span class="o">*</span> <span class="n">y02</span>
+        <span class="n">delx</span> <span class="o">=</span> <span class="n">xx</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">v2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">dely</span> <span class="o">=</span> <span class="n">xx</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">v2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">bary</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">y12</span> <span class="o">*</span> <span class="n">delx</span> <span class="o">+</span> <span class="n">x21</span> <span class="o">*</span> <span class="n">dely</span><span class="p">)</span> <span class="o">/</span> <span class="n">det</span>
+        <span class="n">bary</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">y02</span> <span class="o">*</span> <span class="n">delx</span> <span class="o">+</span> <span class="n">x02</span> <span class="o">*</span> <span class="n">dely</span><span class="p">)</span> <span class="o">/</span> <span class="n">det</span>
+        <span class="n">bary</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">bary</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">bary</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># And this bit directly constructs the Lagrange polynomials</span>
+        <span class="c1"># of degree r-4 on the triangular lattice inside the triangle.</span>
+        <span class="c1"># This trick is restricted to equispaced points, but we&#39;re on a much</span>
+        <span class="c1"># lower degree than r.  This bypasses symbolic inversion/etc otherwise</span>
+        <span class="c1"># required to build the Lagrange polynomials.</span>
+        <span class="n">rm4</span> <span class="o">=</span> <span class="n">r</span> <span class="o">-</span> <span class="mi">4</span>
+        <span class="n">lags</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">internal_nodes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rm4</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rm4</span><span class="o">-</span><span class="n">i</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+                <span class="n">k</span> <span class="o">=</span> <span class="n">rm4</span> <span class="o">-</span> <span class="n">i</span> <span class="o">-</span> <span class="n">j</span>
+                <span class="n">internal_nodes</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">v0</span> <span class="o">*</span> <span class="n">i</span> <span class="o">+</span> <span class="n">v1</span> <span class="o">*</span> <span class="n">j</span> <span class="o">+</span> <span class="n">v2</span> <span class="o">*</span> <span class="n">k</span><span class="p">)</span><span class="o">/</span><span class="n">rm4</span><span class="p">)</span>
+                <span class="n">ii</span> <span class="o">=</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+                <span class="n">lag_cur</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">Integer</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ii</span><span class="p">[</span><span class="n">q</span><span class="p">]):</span>
+                        <span class="n">lag_cur</span> <span class="o">*=</span> <span class="p">(</span><span class="n">rm4</span> <span class="o">*</span> <span class="n">bary</span><span class="p">[</span><span class="n">q</span><span class="p">]</span> <span class="o">-</span> <span class="n">p</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">ii</span><span class="p">[</span><span class="n">q</span><span class="p">]</span> <span class="o">-</span> <span class="n">p</span><span class="p">)</span>
+                <span class="n">lags</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lag_cur</span><span class="o">.</span><span class="n">simplify</span><span class="p">())</span>
+
+        <span class="n">internal_bfs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">lag</span><span class="p">,</span> <span class="n">nd</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lags</span><span class="p">,</span> <span class="n">internal_nodes</span><span class="p">):</span>
+            <span class="n">foo</span> <span class="o">=</span> <span class="n">lag</span> <span class="o">*</span> <span class="n">bubble</span>
+            <span class="n">internal_bfs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">foo</span> <span class="o">/</span> <span class="n">foo</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="n">xysub</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="n">nd</span><span class="p">)))</span>
+
+    <span class="n">RV</span> <span class="o">=</span> <span class="p">(</span><span class="n">lams</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">lams</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">lams</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">lams</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">RH</span> <span class="o">=</span> <span class="p">(</span><span class="n">lams</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">lams</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">lams</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">lams</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+
+    <span class="c1"># R for each edge (1 on edge, zero on opposite</span>
+    <span class="n">Rs</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">RV</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">RV</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">RH</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">RH</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">]</span>
+
+    <span class="n">nodes1d</span> <span class="o">=</span> <span class="p">[</span><span class="n">sp</span><span class="o">.</span><span class="n">Rational</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">r</span><span class="p">)]</span>
+
+    <span class="n">s</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s1">&#39;s&#39;</span><span class="p">)</span>
+
+    <span class="c1"># for each edge:</span>
+    <span class="c1"># I need its adjacent two edges and its opposite edge</span>
+    <span class="c1"># and its &quot;tunnel R&quot; RH or RV</span>
+    <span class="c1"># This is very 2d specific.</span>
+    <span class="n">opposite_edges</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="p">:</span> <span class="p">[</span><span class="n">eother</span> <span class="k">for</span> <span class="n">eother</span> <span class="ow">in</span> <span class="n">ct</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                          <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">ct</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">e</span><span class="p">])</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">ct</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">eother</span><span class="p">])</span> <span class="o">==</span> <span class="nb">set</span><span class="p">()][</span><span class="mi">0</span><span class="p">]</span>
+                      <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">ct</span><span class="p">[</span><span class="mi">1</span><span class="p">]}</span>
+    <span class="n">adjacent_edges</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">([</span><span class="n">eother</span> <span class="k">for</span> <span class="n">eother</span> <span class="ow">in</span> <span class="n">ct</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                                       <span class="k">if</span> <span class="n">eother</span> <span class="o">!=</span> <span class="n">e</span>
+                                       <span class="ow">and</span> <span class="nb">set</span><span class="p">(</span><span class="n">ct</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">e</span><span class="p">])</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">ct</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">eother</span><span class="p">])</span>
+                                       <span class="o">!=</span> <span class="nb">set</span><span class="p">()]))</span>
+                      <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">ct</span><span class="p">[</span><span class="mi">1</span><span class="p">]}</span>
+
+    <span class="n">ae</span> <span class="o">=</span> <span class="n">adjacent_edges</span>
+    <span class="n">tunnel_R_edges</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="p">:</span> <span class="p">((</span><span class="n">lams</span><span class="p">[</span><span class="n">ae</span><span class="p">[</span><span class="n">e</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span> <span class="o">-</span> <span class="n">lams</span><span class="p">[</span><span class="n">ae</span><span class="p">[</span><span class="n">e</span><span class="p">][</span><span class="mi">1</span><span class="p">]])</span>
+                          <span class="o">/</span> <span class="p">(</span><span class="n">lams</span><span class="p">[</span><span class="n">ae</span><span class="p">[</span><span class="n">e</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span> <span class="o">+</span> <span class="n">lams</span><span class="p">[</span><span class="n">ae</span><span class="p">[</span><span class="n">e</span><span class="p">][</span><span class="mi">1</span><span class="p">]]))</span>
+                      <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)}</span>
+    <span class="n">edge_nodes</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">ed</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+        <span class="p">((</span><span class="n">v0x</span><span class="p">,</span> <span class="n">v0y</span><span class="p">),</span> <span class="p">(</span><span class="n">v1x</span><span class="p">,</span> <span class="n">v1y</span><span class="p">))</span> <span class="o">=</span> <span class="n">vs</span><span class="p">[</span><span class="n">ct</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">ed</span><span class="p">],</span> <span class="p">:]</span>
+        <span class="n">delx</span> <span class="o">=</span> <span class="n">v1x</span> <span class="o">-</span> <span class="n">v0x</span>
+        <span class="n">dely</span> <span class="o">=</span> <span class="n">v1y</span> <span class="o">-</span> <span class="n">v0y</span>
+        <span class="n">edge_nodes</span><span class="o">.</span><span class="n">append</span><span class="p">([(</span><span class="n">v0x</span><span class="o">+</span><span class="n">nd</span><span class="o">*</span><span class="n">delx</span><span class="p">,</span> <span class="n">v0y</span><span class="o">+</span><span class="n">nd</span><span class="o">*</span><span class="n">dely</span><span class="p">)</span> <span class="k">for</span> <span class="n">nd</span> <span class="ow">in</span> <span class="n">nodes1d</span><span class="p">])</span>
+
+    <span class="c1"># subtracts off the value of function at internal nodes times those</span>
+    <span class="c1"># internal basis functions</span>
+    <span class="k">def</span> <span class="nf">nodalize</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">f</span> <span class="o">-</span> <span class="nb">sum</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="n">xysub</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="n">nd</span><span class="p">))</span> <span class="o">*</span> <span class="n">bf</span>
+                       <span class="k">for</span> <span class="n">bf</span><span class="p">,</span> <span class="n">nd</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">internal_bfs</span><span class="p">,</span> <span class="n">internal_nodes</span><span class="p">))</span>
+
+    <span class="n">edge_bfs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">r</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">ed</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+            <span class="n">lamadj0</span> <span class="o">=</span> <span class="n">lams</span><span class="p">[</span><span class="n">adjacent_edges</span><span class="p">[</span><span class="n">ed</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="n">lamadj1</span> <span class="o">=</span> <span class="n">lams</span><span class="p">[</span><span class="n">adjacent_edges</span><span class="p">[</span><span class="n">ed</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span>
+            <span class="n">ephi</span> <span class="o">=</span> <span class="n">lamadj0</span> <span class="o">*</span> <span class="n">lamadj1</span> <span class="o">*</span> <span class="n">Rs</span><span class="p">[</span><span class="n">ed</span><span class="p">]</span>
+            <span class="n">phi</span> <span class="o">=</span> <span class="n">nodalize</span><span class="p">(</span><span class="n">ephi</span><span class="p">)</span> <span class="o">/</span> <span class="n">ephi</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="n">xysub</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="n">xstars</span><span class="p">[</span><span class="n">ed</span><span class="p">]))</span>
+            <span class="n">edge_bfs</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">phi</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">ed</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+            <span class="p">((</span><span class="n">v0x</span><span class="p">,</span> <span class="n">v0y</span><span class="p">),</span> <span class="p">(</span><span class="n">v1x</span><span class="p">,</span> <span class="n">v1y</span><span class="p">))</span> <span class="o">=</span> <span class="n">vs</span><span class="p">[</span><span class="n">ct</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">ed</span><span class="p">],</span> <span class="p">:]</span>
+            <span class="n">Rcur</span> <span class="o">=</span> <span class="n">tunnel_R_edges</span><span class="p">[</span><span class="n">ed</span><span class="p">]</span>
+            <span class="n">lam_op</span> <span class="o">=</span> <span class="n">lams</span><span class="p">[</span><span class="n">opposite_edges</span><span class="p">[</span><span class="n">ed</span><span class="p">]]</span>
+
+            <span class="n">edge_bfs_cur</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nodes1d</span><span class="p">)):</span>
+                <span class="c1"># strike out i:th node</span>
+                <span class="n">idcs</span> <span class="o">=</span> <span class="p">[</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nodes1d</span><span class="p">))</span> <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">j</span><span class="p">]</span>
+                <span class="n">nodes1d_cur</span> <span class="o">=</span> <span class="p">[</span><span class="n">nodes1d</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">idcs</span><span class="p">]</span>
+                <span class="n">edge_nodes_cur</span> <span class="o">=</span> <span class="p">[</span><span class="n">edge_nodes</span><span class="p">[</span><span class="n">ed</span><span class="p">][</span><span class="n">j</span><span class="p">]</span>
+                                  <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">idcs</span><span class="p">]</span>
+
+                <span class="c1"># construct the 1d interpolation with remaining nodes</span>
+                <span class="n">pvals</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">nd</span> <span class="ow">in</span> <span class="n">edge_nodes_cur</span><span class="p">:</span>
+                    <span class="n">sub</span> <span class="o">=</span> <span class="n">xysub</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="n">nd</span><span class="p">)</span>
+                    <span class="n">pval_cur</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">Rcur</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="n">sub</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="n">r</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span>
+                                <span class="o">/</span> <span class="n">lam_op</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="n">sub</span><span class="p">))</span>
+                    <span class="n">pvals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pval_cur</span><span class="p">)</span>
+
+                <span class="n">ptilde</span> <span class="o">=</span> <span class="n">newton_poly</span><span class="p">(</span><span class="n">nodes1d_cur</span><span class="p">,</span> <span class="n">pvals</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+                <span class="n">xt</span> <span class="o">=</span> <span class="n">xx</span> <span class="o">@</span> <span class="n">ts</span><span class="p">[</span><span class="n">ed</span><span class="p">]</span>
+                <span class="n">vt0</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">((</span><span class="n">v0x</span><span class="p">,</span> <span class="n">v0y</span><span class="p">))</span> <span class="o">@</span> <span class="n">ts</span><span class="p">[</span><span class="n">ed</span><span class="p">]</span>
+                <span class="n">vt1</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">((</span><span class="n">v1x</span><span class="p">,</span> <span class="n">v1y</span><span class="p">))</span> <span class="o">@</span> <span class="n">ts</span><span class="p">[</span><span class="n">ed</span><span class="p">]</span>
+                <span class="n">p</span> <span class="o">=</span> <span class="n">ptilde</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">s</span><span class="p">:</span> <span class="p">(</span><span class="n">xt</span><span class="o">-</span><span class="n">vt0</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">vt1</span><span class="o">-</span><span class="n">vt0</span><span class="p">)})</span>
+
+                <span class="n">prebf</span> <span class="o">=</span> <span class="p">(</span><span class="n">lams</span><span class="p">[</span><span class="n">adjacent_edges</span><span class="p">[</span><span class="n">ed</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span>
+                         <span class="o">*</span> <span class="n">lams</span><span class="p">[</span><span class="n">adjacent_edges</span><span class="p">[</span><span class="n">ed</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span>
+                         <span class="o">*</span> <span class="p">(</span><span class="n">lams</span><span class="p">[</span><span class="n">opposite_edges</span><span class="p">[</span><span class="n">ed</span><span class="p">]]</span> <span class="o">*</span> <span class="n">p</span>
+                            <span class="o">+</span> <span class="n">Rcur</span><span class="o">**</span><span class="p">(</span><span class="n">r</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">Rs</span><span class="p">[</span><span class="n">ed</span><span class="p">]))</span>
+
+                <span class="n">prebf</span> <span class="o">=</span> <span class="n">nodalize</span><span class="p">(</span><span class="n">prebf</span><span class="p">)</span>
+                <span class="n">bfcur</span> <span class="o">=</span> <span class="n">prebf</span> <span class="o">/</span> <span class="n">prebf</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="n">xysub</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="n">edge_nodes</span><span class="p">[</span><span class="n">ed</span><span class="p">][</span><span class="n">i</span><span class="p">]))</span>
+                <span class="n">edge_bfs_cur</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bfcur</span><span class="p">)</span>
+
+            <span class="n">edge_bfs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">edge_bfs_cur</span><span class="p">)</span>
+
+    <span class="c1"># vertex basis functions</span>
+    <span class="n">vertex_to_adj_edges</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">ct</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ct</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">e</span><span class="p">]])</span>
+                           <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ct</span><span class="p">[</span><span class="mi">0</span><span class="p">]}</span>
+    <span class="n">vertex_to_off_edges</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">ct</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ct</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">e</span><span class="p">]])</span>
+                           <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ct</span><span class="p">[</span><span class="mi">0</span><span class="p">]}</span>
+
+    <span class="n">vertex_bfs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+        <span class="n">ed0</span><span class="p">,</span> <span class="n">ed1</span> <span class="o">=</span> <span class="n">vertex_to_off_edges</span><span class="p">[</span><span class="n">v</span><span class="p">]</span>
+        <span class="n">lam0</span> <span class="o">=</span> <span class="n">lams</span><span class="p">[</span><span class="n">ed0</span><span class="p">]</span>
+        <span class="n">lam1</span> <span class="o">=</span> <span class="n">lams</span><span class="p">[</span><span class="n">ed1</span><span class="p">]</span>
+
+        <span class="n">prebf</span> <span class="o">=</span> <span class="n">lam0</span> <span class="o">*</span> <span class="n">lam1</span>
+
+        <span class="c1"># subtract off edge values</span>
+        <span class="k">for</span> <span class="n">adj_ed</span> <span class="ow">in</span> <span class="n">vertex_to_adj_edges</span><span class="p">[</span><span class="n">v</span><span class="p">]:</span>
+            <span class="n">edge_nodes_cur</span> <span class="o">=</span> <span class="n">edge_nodes</span><span class="p">[</span><span class="n">adj_ed</span><span class="p">]</span>
+            <span class="n">edge_bfs_cur</span> <span class="o">=</span> <span class="n">edge_bfs</span><span class="p">[</span><span class="n">adj_ed</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="p">(</span><span class="n">nd</span><span class="p">,</span> <span class="n">edbf</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">edge_nodes_cur</span><span class="p">,</span> <span class="n">edge_bfs_cur</span><span class="p">)):</span>
+                <span class="n">sb</span> <span class="o">=</span> <span class="n">xysub</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="n">nd</span><span class="p">)</span>
+                <span class="n">prebf</span> <span class="o">-=</span> <span class="n">lam0</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="n">sb</span><span class="p">)</span> <span class="o">*</span> <span class="n">lam1</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="n">sb</span><span class="p">)</span> <span class="o">*</span> <span class="n">edbf</span>
+
+        <span class="n">bf</span> <span class="o">=</span> <span class="n">nodalize</span><span class="p">(</span><span class="n">prebf</span><span class="p">)</span> <span class="o">/</span> <span class="n">prebf</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="n">xysub</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="n">vs</span><span class="p">[</span><span class="n">v</span><span class="p">,</span> <span class="p">:]))</span>
+        <span class="n">vertex_bfs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bf</span><span class="p">)</span>
+
+    <span class="n">bfs</span> <span class="o">=</span> <span class="n">vertex_bfs</span>
+    <span class="k">for</span> <span class="n">edbfs</span> <span class="ow">in</span> <span class="n">edge_bfs</span><span class="p">:</span>
+        <span class="n">bfs</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">edbfs</span><span class="p">)</span>
+    <span class="n">bfs</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">internal_bfs</span><span class="p">)</span>
+
+    <span class="n">nds</span> <span class="o">=</span> <span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">vs</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)]</span>
+    <span class="k">for</span> <span class="n">ends</span> <span class="ow">in</span> <span class="n">edge_nodes</span><span class="p">:</span>
+        <span class="n">nds</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">ends</span><span class="p">)</span>
+    <span class="n">nds</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">internal_nodes</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">vs</span><span class="p">,</span> <span class="n">xx</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">bfs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ds_sym"><a class="viewcode-back" href="../../finat.html#finat.direct_serendipity.ds_sym">[docs]</a><span class="k">def</span> <span class="nf">ds_sym</span><span class="p">(</span><span class="n">ct</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">vs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sp</span><span class="o">=</span><span class="n">symengine</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Symbolically Constructs Arbogast&#39;s directly defined C^0 serendipity elements,</span>
+<span class="sd">    which include all polynomials of degree r plus a couple of rational functions.</span>
+<span class="sd">    :param ct: The cell topology of the reference quadrilateral.</span>
+<span class="sd">    :param vs: (Optional) coordinates of cell on which to construct the basis.</span>
+<span class="sd">               If it is None, this function constructs symbols for the vertices.</span>
+<span class="sd">    :returns: a 3-tuple containing symbols for the physical cell coordinates and the</span>
+<span class="sd">              physical cell independent variables (e.g. &quot;x&quot; and &quot;y&quot;) and a list</span>
+<span class="sd">              of the four basis functions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">r</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ds1_sym</span><span class="p">(</span><span class="n">ct</span><span class="p">,</span> <span class="n">vs</span><span class="o">=</span><span class="n">vs</span><span class="p">,</span> <span class="n">sp</span><span class="o">=</span><span class="n">sp</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">dsr_sym</span><span class="p">(</span><span class="n">ct</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">vs</span><span class="o">=</span><span class="n">vs</span><span class="p">,</span> <span class="n">sp</span><span class="o">=</span><span class="n">sp</span><span class="p">)</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2014--2020, David A. Ham, Robert C. Kirby and others.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+  </body>
+</html>

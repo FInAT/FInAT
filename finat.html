@@ -219,6 +219,201 @@ free indices are arbitrary.</p></li>
 </dd></dl>
 
 </div>
+<div class="section" id="module-finat.direct_serendipity">
+<span id="finat-direct-serendipity-module"></span><h2>finat.direct_serendipity module<a class="headerlink" href="#module-finat.direct_serendipity" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="finat.direct_serendipity.DirectSerendipity">
+<em class="property">class </em><code class="sig-prename descclassname">finat.direct_serendipity.</code><code class="sig-name descname">DirectSerendipity</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cell</span></em>, <em class="sig-param"><span class="n">degree</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/direct_serendipity.html#DirectSerendipity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.direct_serendipity.DirectSerendipity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#finat.physically_mapped.DirectlyDefinedElement" title="finat.physically_mapped.DirectlyDefinedElement"><code class="xref py py-class docutils literal notranslate"><span class="pre">finat.physically_mapped.DirectlyDefinedElement</span></code></a>, <a class="reference internal" href="#finat.finiteelementbase.FiniteElementBase" title="finat.finiteelementbase.FiniteElementBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">finat.finiteelementbase.FiniteElementBase</span></code></a></p>
+<dl class="py method">
+<dt id="finat.direct_serendipity.DirectSerendipity.basis_evaluation">
+<code class="sig-name descname">basis_evaluation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">order</span></em>, <em class="sig-param"><span class="n">ps</span></em>, <em class="sig-param"><span class="n">entity</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">coordinate_mapping</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/direct_serendipity.html#DirectSerendipity.basis_evaluation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.direct_serendipity.DirectSerendipity.basis_evaluation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return code for evaluating the element at known points on the
+reference element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>order</strong> – return derivatives up to this order.</p></li>
+<li><p><strong>ps</strong> – the point set.</p></li>
+<li><p><strong>entity</strong> – the cell entity on which to tabulate.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="finat.direct_serendipity.DirectSerendipity.cell">
+<em class="property">property </em><code class="sig-name descname">cell</code><a class="headerlink" href="#finat.direct_serendipity.DirectSerendipity.cell" title="Permalink to this definition">¶</a></dt>
+<dd><p>The reference cell on which the element is defined.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="finat.direct_serendipity.DirectSerendipity.degree">
+<em class="property">property </em><code class="sig-name descname">degree</code><a class="headerlink" href="#finat.direct_serendipity.DirectSerendipity.degree" title="Permalink to this definition">¶</a></dt>
+<dd><p>The degree of the embedding polynomial space.</p>
+<p>In the tensor case this is a tuple.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="finat.direct_serendipity.DirectSerendipity.entity_dofs">
+<code class="sig-name descname">entity_dofs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/direct_serendipity.html#DirectSerendipity.entity_dofs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.direct_serendipity.DirectSerendipity.entity_dofs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the map of topological entities to degrees of
+freedom for the finite element.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="finat.direct_serendipity.DirectSerendipity.formdegree">
+<em class="property">property </em><code class="sig-name descname">formdegree</code><a class="headerlink" href="#finat.direct_serendipity.DirectSerendipity.formdegree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Degree of the associated form (FEEC)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="finat.direct_serendipity.DirectSerendipity.index_shape">
+<em class="property">property </em><code class="sig-name descname">index_shape</code><a class="headerlink" href="#finat.direct_serendipity.DirectSerendipity.index_shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>A tuple indicating the number of degrees of freedom in the
+element. For example a scalar quadratic Lagrange element on a triangle
+would return (6,) while a vector valued version of the same element
+would return (6, 2)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="finat.direct_serendipity.DirectSerendipity.mapping">
+<code class="sig-name descname">mapping</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/direct_serendipity.html#DirectSerendipity.mapping"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.direct_serendipity.DirectSerendipity.mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Appropriate mapping from the reference cell to a physical cell for
+all basis functions of the finite element.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="finat.direct_serendipity.DirectSerendipity.point_evaluation">
+<code class="sig-name descname">point_evaluation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">order</span></em>, <em class="sig-param"><span class="n">refcoords</span></em>, <em class="sig-param"><span class="n">entity</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/direct_serendipity.html#DirectSerendipity.point_evaluation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.direct_serendipity.DirectSerendipity.point_evaluation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return code for evaluating the element at an arbitrary points on
+the reference element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>order</strong> – return derivatives up to this order.</p></li>
+<li><p><strong>refcoords</strong> – GEM expression representing the coordinates
+on the reference entity.  Its shape must be
+a vector with the correct dimension, its
+free indices are arbitrary.</p></li>
+<li><p><strong>entity</strong> – the cell entity on which to tabulate.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="finat.direct_serendipity.DirectSerendipity.space_dimension">
+<code class="sig-name descname">space_dimension</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/direct_serendipity.html#DirectSerendipity.space_dimension"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.direct_serendipity.DirectSerendipity.space_dimension" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the dimension of the finite element space.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="finat.direct_serendipity.DirectSerendipity.value_shape">
+<em class="property">property </em><code class="sig-name descname">value_shape</code><a class="headerlink" href="#finat.direct_serendipity.DirectSerendipity.value_shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>A tuple indicating the shape of the element.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="finat.direct_serendipity.diff">
+<code class="sig-prename descclassname">finat.direct_serendipity.</code><code class="sig-name descname">diff</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">expr</span></em>, <em class="sig-param"><span class="n">xx</span></em>, <em class="sig-param"><span class="n">alpha</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/direct_serendipity.html#diff"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.direct_serendipity.diff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Differentiate expr with respect to xx.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>expr</strong> – symengine/symengine Expression to differentiate.</p></li>
+<li><p><strong>xx</strong> – iterable of coordinates to differentiate with respect to.</p></li>
+<li><p><strong>alpha</strong> – derivative multiindex, one entry for each entry of xx
+indicating how many derivatives in that direction.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>New symengine/symengine expression.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="finat.direct_serendipity.ds1_sym">
+<code class="sig-prename descclassname">finat.direct_serendipity.</code><code class="sig-name descname">ds1_sym</code><span class="sig-paren">(</span><em class="sig-param">ct</em>, <em class="sig-param">*</em>, <em class="sig-param">vs=None</em>, <em class="sig-param">sp=&lt;module 'symengine' from '/opt/hostedtoolcache/Python/3.6.11/x64/lib/python3.6/site-packages/symengine/__init__.py'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/direct_serendipity.html#ds1_sym"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.direct_serendipity.ds1_sym" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constructs lowest-order case of Arbogast’s directly defined C^0 serendipity
+elements, which are a special case.
+:param ct: The cell topology of the reference quadrilateral.
+:param vs: (Optional) coordinates of cell on which to construct the basis.</p>
+<blockquote>
+<div><p>If it is None, this function constructs symbols for the vertices.</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a 3-tuple containing symbols for the physical cell coordinates and the
+physical cell independent variables (e.g. “x” and “y”) and a list
+of the four basis functions.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="finat.direct_serendipity.ds_sym">
+<code class="sig-prename descclassname">finat.direct_serendipity.</code><code class="sig-name descname">ds_sym</code><span class="sig-paren">(</span><em class="sig-param">ct</em>, <em class="sig-param">r</em>, <em class="sig-param">*</em>, <em class="sig-param">vs=None</em>, <em class="sig-param">sp=&lt;module 'symengine' from '/opt/hostedtoolcache/Python/3.6.11/x64/lib/python3.6/site-packages/symengine/__init__.py'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/direct_serendipity.html#ds_sym"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.direct_serendipity.ds_sym" title="Permalink to this definition">¶</a></dt>
+<dd><p>Symbolically Constructs Arbogast’s directly defined C^0 serendipity elements,
+which include all polynomials of degree r plus a couple of rational functions.
+:param ct: The cell topology of the reference quadrilateral.
+:param vs: (Optional) coordinates of cell on which to construct the basis.</p>
+<blockquote>
+<div><p>If it is None, this function constructs symbols for the vertices.</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a 3-tuple containing symbols for the physical cell coordinates and the
+physical cell independent variables (e.g. “x” and “y”) and a list
+of the four basis functions.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="finat.direct_serendipity.dsr_sym">
+<code class="sig-prename descclassname">finat.direct_serendipity.</code><code class="sig-name descname">dsr_sym</code><span class="sig-paren">(</span><em class="sig-param">ct</em>, <em class="sig-param">r</em>, <em class="sig-param">*</em>, <em class="sig-param">vs=None</em>, <em class="sig-param">sp=&lt;module 'symengine' from '/opt/hostedtoolcache/Python/3.6.11/x64/lib/python3.6/site-packages/symengine/__init__.py'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/direct_serendipity.html#dsr_sym"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.direct_serendipity.dsr_sym" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constructs higher-order (&gt;= 2) case of Arbogast’s directly defined C^0 serendipity
+elements, which include all polynomials of degree r plus a couple of rational
+functions.
+:param ct: The cell topology of the reference quadrilateral.
+:param vs: (Optional) coordinates of cell on which to construct the basis.</p>
+<blockquote>
+<div><p>If it is None, this function constructs symbols for the vertices.</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a 3-tuple containing symbols for the physical cell coordinates and the
+physical cell independent variables (e.g. “x” and “y”) and a list
+of the four basis functions.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="finat.direct_serendipity.newton_dd">
+<code class="sig-prename descclassname">finat.direct_serendipity.</code><code class="sig-name descname">newton_dd</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">nds</span></em>, <em class="sig-param"><span class="n">fs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/direct_serendipity.html#newton_dd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.direct_serendipity.newton_dd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constructs Newton’s divided differences for the input arrays,
+which may include symbolic values.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="finat.direct_serendipity.newton_poly">
+<code class="sig-prename descclassname">finat.direct_serendipity.</code><code class="sig-name descname">newton_poly</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">nds</span></em>, <em class="sig-param"><span class="n">fs</span></em>, <em class="sig-param"><span class="n">xsym</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/direct_serendipity.html#newton_poly"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.direct_serendipity.newton_poly" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constructs  Lagrange interpolating polynomial passing through
+x values nds and y values fs.  Returns a a symbolic object in terms
+of independent variable xsym.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="finat.direct_serendipity.xysub">
+<code class="sig-prename descclassname">finat.direct_serendipity.</code><code class="sig-name descname">xysub</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/direct_serendipity.html#xysub"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.direct_serendipity.xysub" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
 <div class="section" id="module-finat.discontinuous">
 <span id="finat-discontinuous-module"></span><h2>finat.discontinuous module<a class="headerlink" href="#module-finat.discontinuous" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
@@ -1166,6 +1361,22 @@ free indices are arbitrary.</p></li>
 <div class="section" id="module-finat.physically_mapped">
 <span id="finat-physically-mapped-module"></span><h2>finat.physically_mapped module<a class="headerlink" href="#module-finat.physically_mapped" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
+<dt id="finat.physically_mapped.DirectlyDefinedElement">
+<em class="property">class </em><code class="sig-prename descclassname">finat.physically_mapped.</code><code class="sig-name descname">DirectlyDefinedElement</code><a class="reference internal" href="_modules/finat/physically_mapped.html#DirectlyDefinedElement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.physically_mapped.DirectlyDefinedElement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#finat.physically_mapped.NeedsCoordinateMappingElement" title="finat.physically_mapped.NeedsCoordinateMappingElement"><code class="xref py py-class docutils literal notranslate"><span class="pre">finat.physically_mapped.NeedsCoordinateMappingElement</span></code></a></p>
+<p>Base class for directly defined elements such as direct
+serendipity that bypass a coordinate mapping.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="finat.physically_mapped.NeedsCoordinateMappingElement">
+<em class="property">class </em><code class="sig-prename descclassname">finat.physically_mapped.</code><code class="sig-name descname">NeedsCoordinateMappingElement</code><a class="reference internal" href="_modules/finat/physically_mapped.html#NeedsCoordinateMappingElement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.physically_mapped.NeedsCoordinateMappingElement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Abstract class for elements that require physical information
+either to map or construct their basis functions.</p>
+</dd></dl>
+
+<dl class="py class">
 <dt id="finat.physically_mapped.PhysicalGeometry">
 <em class="property">class </em><code class="sig-prename descclassname">finat.physically_mapped.</code><code class="sig-name descname">PhysicalGeometry</code><a class="reference internal" href="_modules/finat/physically_mapped.html#PhysicalGeometry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.physically_mapped.PhysicalGeometry" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
@@ -1186,7 +1397,8 @@ free indices are arbitrary.</p></li>
 <dd><p>The jacobian of the physical coordinates at a point.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>point</strong> – The point in reference space to evaluate the Jacobian.</p>
+<dd class="field-odd"><p><strong>point</strong> – The point in reference space (on the cell) to
+evaluate the Jacobian.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>A GEM expression for the Jacobian, shape (gdim, tdim).</p>
@@ -1222,6 +1434,25 @@ tangents, shape (nfacet, gdim).</p>
 </dd></dl>
 
 <dl class="py method">
+<dt id="finat.physically_mapped.PhysicalGeometry.physical_points">
+<em class="property">abstract </em><code class="sig-name descname">physical_points</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">point_set</span></em>, <em class="sig-param"><span class="n">entity</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/physically_mapped.html#PhysicalGeometry.physical_points"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.physically_mapped.PhysicalGeometry.physical_points" title="Permalink to this definition">¶</a></dt>
+<dd><p>Maps reference element points to GEM for the physical coordinates</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>point_set</strong> – A point_set on the reference cell to push forward to physical space.</p></li>
+<li><p><strong>entity</strong> – Reference cell entity on which the point set is
+defined (for example if it is a point set on a facet).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a GEM expression for the physical locations of the
+points, shape (gdim, ) with free indices of the point_set.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt id="finat.physically_mapped.PhysicalGeometry.physical_tangents">
 <em class="property">abstract </em><code class="sig-name descname">physical_tangents</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/physically_mapped.html#PhysicalGeometry.physical_tangents"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.physically_mapped.PhysicalGeometry.physical_tangents" title="Permalink to this definition">¶</a></dt>
 <dd><p>The (unit) physical cell tangents on each facet.</p>
@@ -1231,6 +1462,18 @@ tangents, shape (nfacet, gdim).</p>
 facet (numbered according to FIAT conventions).  These
 always point from low to high numbered local vertex, shape
 (nfacet, gdim).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="finat.physically_mapped.PhysicalGeometry.physical_vertices">
+<em class="property">abstract </em><code class="sig-name descname">physical_vertices</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/physically_mapped.html#PhysicalGeometry.physical_vertices"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.physically_mapped.PhysicalGeometry.physical_vertices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Physical locations of the cell vertices.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a GEM expression for the physical vertices, shape
+(gdim, ).</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1253,7 +1496,7 @@ facet (numbered according to FIAT conventions), shape
 <dl class="py class">
 <dt id="finat.physically_mapped.PhysicallyMappedElement">
 <em class="property">class </em><code class="sig-prename descclassname">finat.physically_mapped.</code><code class="sig-name descname">PhysicallyMappedElement</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/physically_mapped.html#PhysicallyMappedElement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.physically_mapped.PhysicallyMappedElement" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#finat.physically_mapped.NeedsCoordinateMappingElement" title="finat.physically_mapped.NeedsCoordinateMappingElement"><code class="xref py py-class docutils literal notranslate"><span class="pre">finat.physically_mapped.NeedsCoordinateMappingElement</span></code></a></p>
 <p>A mixin that applies a “physical” transformation to tabulated
 basis functions.</p>
 <dl class="py method">
@@ -1921,13 +2164,23 @@ reference element.</p>
 <dt id="finat.sympy2gem.sympy2gem">
 <code class="sig-prename descclassname">finat.sympy2gem.</code><code class="sig-name descname">sympy2gem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/sympy2gem.html#sympy2gem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.sympy2gem.sympy2gem" title="Permalink to this definition">¶</a></dt>
 <dt>
-<code class="sig-prename descclassname">finat.sympy2gem.</code><code class="sig-name descname">sympy2gem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node</span><span class="p">:</span> <span class="n">sympy.core.expr.Expr</span></em>, <em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span></dt>
+<code class="sig-prename descclassname">finat.sympy2gem.</code><code class="sig-name descname">sympy2gem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node</span><span class="p">:</span> <span class="n">symengine.lib.symengine_wrapper.Expr</span></em>, <em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span></dt>
 <dt>
-<code class="sig-prename descclassname">finat.sympy2gem.</code><code class="sig-name descname">sympy2gem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node</span><span class="p">:</span> <span class="n">sympy.core.add.Add</span></em>, <em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span></dt>
+<code class="sig-prename descclassname">finat.sympy2gem.</code><code class="sig-name descname">sympy2gem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node</span><span class="p">:</span> <span class="n">symengine.lib.symengine_wrapper.Expr</span></em>, <em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span></dt>
 <dt>
-<code class="sig-prename descclassname">finat.sympy2gem.</code><code class="sig-name descname">sympy2gem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node</span><span class="p">:</span> <span class="n">sympy.core.mul.Mul</span></em>, <em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span></dt>
+<code class="sig-prename descclassname">finat.sympy2gem.</code><code class="sig-name descname">sympy2gem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node</span><span class="p">:</span> <span class="n">symengine.lib.symengine_wrapper.Add</span></em>, <em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span></dt>
 <dt>
-<code class="sig-prename descclassname">finat.sympy2gem.</code><code class="sig-name descname">sympy2gem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node</span><span class="p">:</span> <span class="n">sympy.core.power.Pow</span></em>, <em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span></dt>
+<code class="sig-prename descclassname">finat.sympy2gem.</code><code class="sig-name descname">sympy2gem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node</span><span class="p">:</span> <span class="n">symengine.lib.symengine_wrapper.Add</span></em>, <em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span></dt>
+<dt>
+<code class="sig-prename descclassname">finat.sympy2gem.</code><code class="sig-name descname">sympy2gem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node</span><span class="p">:</span> <span class="n">symengine.lib.symengine_wrapper.Mul</span></em>, <em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span></dt>
+<dt>
+<code class="sig-prename descclassname">finat.sympy2gem.</code><code class="sig-name descname">sympy2gem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node</span><span class="p">:</span> <span class="n">symengine.lib.symengine_wrapper.Mul</span></em>, <em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span></dt>
+<dt>
+<code class="sig-prename descclassname">finat.sympy2gem.</code><code class="sig-name descname">sympy2gem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node</span><span class="p">:</span> <span class="n">symengine.lib.symengine_wrapper.Pow</span></em>, <em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span></dt>
+<dt>
+<code class="sig-prename descclassname">finat.sympy2gem.</code><code class="sig-name descname">sympy2gem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node</span><span class="p">:</span> <span class="n">symengine.lib.symengine_wrapper.Pow</span></em>, <em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span></dt>
+<dt>
+<code class="sig-prename descclassname">finat.sympy2gem.</code><code class="sig-name descname">sympy2gem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)">int</a></span></em>, <em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span></dt>
 <dt>
 <code class="sig-prename descclassname">finat.sympy2gem.</code><code class="sig-name descname">sympy2gem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)">int</a></span></em>, <em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span></dt>
 <dt>
@@ -1937,17 +2190,25 @@ reference element.</p>
 <dt>
 <code class="sig-prename descclassname">finat.sympy2gem.</code><code class="sig-name descname">sympy2gem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)">float</a></span></em>, <em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span></dt>
 <dt>
-<code class="sig-prename descclassname">finat.sympy2gem.</code><code class="sig-name descname">sympy2gem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node</span><span class="p">:</span> <span class="n">sympy.core.symbol.Symbol</span></em>, <em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span></dt>
+<code class="sig-prename descclassname">finat.sympy2gem.</code><code class="sig-name descname">sympy2gem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)">float</a></span></em>, <em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span></dt>
+<dt>
+<code class="sig-prename descclassname">finat.sympy2gem.</code><code class="sig-name descname">sympy2gem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node</span><span class="p">:</span> <span class="n">symengine.lib.symengine_wrapper.Symbol</span></em>, <em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span></dt>
+<dt>
+<code class="sig-prename descclassname">finat.sympy2gem.</code><code class="sig-name descname">sympy2gem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node</span><span class="p">:</span> <span class="n">symengine.lib.symengine_wrapper.Symbol</span></em>, <em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span></dt>
+<dt>
+<code class="sig-prename descclassname">finat.sympy2gem.</code><code class="sig-name descname">sympy2gem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node</span><span class="p">:</span> <span class="n">symengine.lib.symengine_wrapper.Rational</span></em>, <em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span></dt>
+<dt>
+<code class="sig-prename descclassname">finat.sympy2gem.</code><code class="sig-name descname">sympy2gem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node</span><span class="p">:</span> <span class="n">symengine.lib.symengine_wrapper.Rational</span></em>, <em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt id="finat.sympy2gem.sympy2gem_add">
-<code class="sig-prename descclassname">finat.sympy2gem.</code><code class="sig-name descname">sympy2gem_add</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node</span><span class="p">:</span> <span class="n">sympy.core.add.Add</span></em>, <em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/sympy2gem.html#sympy2gem_add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.sympy2gem.sympy2gem_add" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">finat.sympy2gem.</code><code class="sig-name descname">sympy2gem_add</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node</span><span class="p">:</span> <span class="n">symengine.lib.symengine_wrapper.Add</span></em>, <em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/sympy2gem.html#sympy2gem_add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.sympy2gem.sympy2gem_add" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt id="finat.sympy2gem.sympy2gem_expr">
-<code class="sig-prename descclassname">finat.sympy2gem.</code><code class="sig-name descname">sympy2gem_expr</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node</span><span class="p">:</span> <span class="n">sympy.core.expr.Expr</span></em>, <em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/sympy2gem.html#sympy2gem_expr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.sympy2gem.sympy2gem_expr" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">finat.sympy2gem.</code><code class="sig-name descname">sympy2gem_expr</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node</span><span class="p">:</span> <span class="n">symengine.lib.symengine_wrapper.Expr</span></em>, <em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/sympy2gem.html#sympy2gem_expr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.sympy2gem.sympy2gem_expr" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
@@ -1962,17 +2223,22 @@ reference element.</p>
 
 <dl class="py function">
 <dt id="finat.sympy2gem.sympy2gem_mul">
-<code class="sig-prename descclassname">finat.sympy2gem.</code><code class="sig-name descname">sympy2gem_mul</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node</span><span class="p">:</span> <span class="n">sympy.core.mul.Mul</span></em>, <em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/sympy2gem.html#sympy2gem_mul"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.sympy2gem.sympy2gem_mul" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">finat.sympy2gem.</code><code class="sig-name descname">sympy2gem_mul</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node</span><span class="p">:</span> <span class="n">symengine.lib.symengine_wrapper.Mul</span></em>, <em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/sympy2gem.html#sympy2gem_mul"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.sympy2gem.sympy2gem_mul" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt id="finat.sympy2gem.sympy2gem_pow">
-<code class="sig-prename descclassname">finat.sympy2gem.</code><code class="sig-name descname">sympy2gem_pow</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node</span><span class="p">:</span> <span class="n">sympy.core.power.Pow</span></em>, <em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/sympy2gem.html#sympy2gem_pow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.sympy2gem.sympy2gem_pow" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">finat.sympy2gem.</code><code class="sig-name descname">sympy2gem_pow</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node</span><span class="p">:</span> <span class="n">symengine.lib.symengine_wrapper.Pow</span></em>, <em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/sympy2gem.html#sympy2gem_pow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.sympy2gem.sympy2gem_pow" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="finat.sympy2gem.sympy2gem_rational">
+<code class="sig-prename descclassname">finat.sympy2gem.</code><code class="sig-name descname">sympy2gem_rational</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node</span><span class="p">:</span> <span class="n">symengine.lib.symengine_wrapper.Rational</span></em>, <em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/sympy2gem.html#sympy2gem_rational"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.sympy2gem.sympy2gem_rational" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt id="finat.sympy2gem.sympy2gem_symbol">
-<code class="sig-prename descclassname">finat.sympy2gem.</code><code class="sig-name descname">sympy2gem_symbol</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node</span><span class="p">:</span> <span class="n">sympy.core.symbol.Symbol</span></em>, <em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/sympy2gem.html#sympy2gem_symbol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.sympy2gem.sympy2gem_symbol" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">finat.sympy2gem.</code><code class="sig-name descname">sympy2gem_symbol</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node</span><span class="p">:</span> <span class="n">symengine.lib.symengine_wrapper.Symbol</span></em>, <em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/sympy2gem.html#sympy2gem_symbol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.sympy2gem.sympy2gem_symbol" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>

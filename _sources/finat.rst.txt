@@ -28,6 +28,14 @@ finat.cube module
    :undoc-members:
    :show-inheritance:
 
+finat.direct\_serendipity module
+--------------------------------
+
+.. automodule:: finat.direct_serendipity
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 finat.discontinuous module
 --------------------------
 
