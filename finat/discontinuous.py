@@ -1,3 +1,5 @@
+import FIAT
+
 from gem.utils import cached_property
 
 from finat.finiteelementbase import FiniteElementBase
@@ -47,17 +49,7 @@ class DiscontinuousElement(FiniteElementBase):
 
     @cached_property
     def fiat_equivalent(self):
-        from FIAT.discontinuous import DiscontinuousElement
-        from FIAT.discontinuous_raviart_thomas import DiscontinuousRaviartThomas
-        from FIAT.raviart_thomas import RaviartThomas
-
-        fiat_element = self.element.fiat_equivalent
-        if isinstance(fiat_element, RaviartThomas):
-            ref_el = fiat_element.get_reference_element()
-            deg = fiat_element.degree()
-            return DiscontinuousRaviartThomas(ref_el, deg)
-        else:
-            return DiscontinuousElement(fiat_element)
+        return FIAT.DiscontinuousElement(self.element.fiat_equivalent)
 
     def basis_evaluation(self, order, ps, entity=None, coordinate_mapping=None):
         return self.element.basis_evaluation(order, ps, entity, coordinate_mapping=coordinate_mapping)
