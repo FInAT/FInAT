@@ -146,22 +146,6 @@ class FiatElement(FiniteElementBase):
 
     @property
     def dual_basis(self):
-        '''Returns a tuple where each element of the tuple represents one
-        functional in the dual space. Each functional is represented by
-        a tuple of tuples containing the points (PointSet), a weight tensor
-        which holds the weights for each component of value_shape of functions,
-        and a alpha tensor for extracting the alpha components from ReferenceGrad,
-        sorted by total derivative order.
-
-        For example, a dual basis containing 2 functionals with maximum derivative
-        order of 1 would be represented by:
-        (((point_set_10, weight_tensor_10, alpha_tensor_10),
-          (point_set_11, weight_tensor_11, alpha_tensor_11))
-         ((point_set_20, weight_tensor_20, alpha_tensor_20),
-          ()))
-        where one of the innermost tuples is empty because there are no evaluations
-        at that order.
-        '''
         max_deriv_order = max([ell.max_deriv_order for ell in self._element.dual_basis()])
 
         duals = []
