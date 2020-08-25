@@ -13,9 +13,9 @@ def test_morley():
     phys_cell = FIAT.ufc_simplex(2)
     phys_cell.vertices = ((0.0, 0.1), (1.17, -0.09), (0.15, 1.84))
 
-    mppng = MyMapping(ref_cell, phys_cell)
+    mapping = MyMapping(ref_cell, phys_cell)
     z = (0, 0)
-    finat_vals_gem = ref_element.basis_evaluation(0, ref_pts, coordinate_mapping=mppng)[z]
+    finat_vals_gem = ref_element.basis_evaluation(0, ref_pts, coordinate_mapping=mapping)[z]
     finat_vals = evaluate([finat_vals_gem])[0].arr
 
     phys_cell_FIAT = FIAT.Morley(phys_cell)
