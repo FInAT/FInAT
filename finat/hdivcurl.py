@@ -77,8 +77,6 @@ class WrapperElementBase(FiniteElementBase):
 
     @property
     def dual_basis(self):
-        # raise NotImplementedError(f"{self.__class__.__name__} does not have a dual_basis yet!")
-
         dual_basis = []
         for wrappee_dual, tensorfe_idx in self.wrappee.dual_basis:
             assert tensorfe_idx is None

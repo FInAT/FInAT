@@ -184,6 +184,10 @@ class FiniteElementBase(metaclass=ABCMeta):
             # TODO: Add comparison to FIAT
             raise NotImplementedError("Comparison with FIAT is not implemented!")
 
+        if any(len(dual) > 1 for dual, tensorfe_idx in self.dual_basis):
+            raise NotImplementedError("Can only interpolate onto dual basis functionals"
+                                      " without derivative evaluation, sorry!")
+
         dual_expressions = []   # One for each functional
         expr_cache = {}         # Sharing of evaluation of the expression at points
 
