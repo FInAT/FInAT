@@ -1,3 +1,4 @@
+from .fiat_elements import Bernstein  # noqa: F401
 from .fiat_elements import Bubble, CrouzeixRaviart, DiscontinuousTaylor  # noqa: F401
 from .fiat_elements import Lagrange, DiscontinuousLagrange  # noqa: F401
 from .fiat_elements import DPC, Serendipity  # noqa: F401
@@ -19,6 +20,7 @@ from .discontinuous import DiscontinuousElement  # noqa: F401
 from .enriched import EnrichedElement  # noqa: F401
 from .hdivcurl import HCurlElement, HDivElement  # noqa: F401
 from .mixed import MixedElement  # noqa: F401
+from .nodal_enriched import NodalEnrichedElement  # noqa: 401
 from .quadrature_element import QuadratureElement  # noqa: F401
 from .restricted import RestrictedElement          # noqa: F401
 from .runtime_tabulated import RuntimeTabulated  # noqa: F401

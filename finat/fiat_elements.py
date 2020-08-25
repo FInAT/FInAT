@@ -48,6 +48,11 @@ class FiatElement(FiniteElementBase):
     def value_shape(self):
         return self._element.value_shape()
 
+    @property
+    def fiat_equivalent(self):
+        # Just return the underlying FIAT element
+        return self._element
+
     def basis_evaluation(self, order, ps, entity=None, coordinate_mapping=None):
         '''Return code for evaluating the element at known points on the
         reference element.
@@ -265,6 +270,12 @@ class ScalarFiatElement(FiatElement):
     @property
     def value_shape(self):
         return ()
+
+
+class Bernstein(ScalarFiatElement):
+    # TODO: Replace this with a smarter implementation
+    def __init__(self, cell, degree):
+        super().__init__(FIAT.Bernstein(cell, degree))
 
 
 class Bubble(ScalarFiatElement):

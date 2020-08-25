@@ -4,6 +4,7 @@ from operator import methodcaller
 
 import numpy
 
+import FIAT
 from FIAT.polynomial_set import mis
 from FIAT.reference_element import TensorProductCell
 
@@ -64,6 +65,12 @@ class TensorProductElement(FiniteElementBase):
     @property
     def value_shape(self):
         return self._value_shape
+
+    @cached_property
+    def fiat_equivalent(self):
+        # FIAT TensorProductElement support only 2 factors
+        A, B = self.factors
+        return FIAT.TensorProductElement(A.fiat_equivalent, B.fiat_equivalent)
 
     def _factor_entity(self, entity):
         # Default entity
