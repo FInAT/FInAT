@@ -31,8 +31,8 @@ def test_awnc():
                 J @ ref_vals[i, :, :, k] @ J.T / detJ**2
 
     # Zany map the results
-    mppng = MyMapping(ref_cell, phys_cell)
-    Mgem = ref_el_finat.basis_transformation(mppng)
+    mappng = MyMapping(ref_cell, phys_cell)
+    Mgem = ref_el_finat.basis_transformation(mappng)
     M = evaluate([Mgem])[0].arr
     ref_vals_zany = np.zeros((15, 2, 2, len(phys_pts)))
     for k in range(ref_vals_zany.shape[3]):
