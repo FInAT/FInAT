@@ -4,7 +4,7 @@ from operator import methodcaller
 import gem
 import numpy
 import numpy as np
-import sympy as sp
+import sympy
 from FIAT.polynomial_set import mis
 from FIAT.reference_element import UFCTetrahedron, UFCTriangle, ufc_simplex
 
@@ -74,13 +74,13 @@ class ModifiedBR(DirectlyDefinedElement, FiniteElementBase):
         dim = self.cell.get_spatial_dimension()
 
         if dim == 2:
-            phys_cell_vertices = numpy.asarray(sp.symbols('x:3,y:3')).reshape(2, 3).T
+            phys_cell_vertices = numpy.asarray(sympy.symbols('x:3,y:3')).reshape(2, 3).T
         elif dim == 3:
-            phys_cell_vertices = numpy.asarray(sp.symbols('x:4,y:4,z:4')).reshape(3, 4).T
+            phys_cell_vertices = numpy.asarray(sympy.symbols('x:4,y:4,z:4')).reshape(3, 4).T
 
         gem_cell_vertices = coordinate_mapping.physical_vertices()
 
-        phys_quad_points = sp.symbols('x,y,z')[:dim]
+        phys_quad_points = sympy.symbols('x,y,z')[:dim]
         gem_quad_points = gem.partial_indexed(
             coordinate_mapping.physical_points(ps, entity=entity),
             ps.indices)
@@ -117,8 +117,8 @@ def basis_evaluation(cell_vertices, quad_points, cell, degree):
     # First the vertex dofs
     lagrange = lagrange_basis(cell_vertices, quad_points, cell, degree)
     # vector-expand
-    basis = ([sp.Array([b, 0]) for b in lagrange]
-             + [sp.Array([0, b]) for b in lagrange])
+    basis = ([sympy.Array([b, 0]) for b in lagrange]
+             + [sympy.Array([0, b]) for b in lagrange])
     return basis
 
 
@@ -140,9 +140,9 @@ def lagrange_basis(cell_vertices, quad_points, cell, degree):
          [dof2(basis[0]), dof2(basis[1]), dof2(basis[2])],
          [dof3(basis[0]), dof3(basis[1]), dof3(basis[2])]]
 
-    AT = sp.Matrix(A).T
+    AT = sympy.Matrix(A).T
     coefficients = AT.inv('LU')
-    return coefficients * sp.Matrix(basis)
+    return coefficients * sympy.Matrix(basis)
 
 
 def numbering(dimension):
@@ -169,15 +169,15 @@ def numbering(dimension):
 
 
 def integrate(subcell_vertices, expr, X):
-    from sp.geometry.point import Point
-    from sp.geometry.polygon import Polygon
-    from sp.integrals.intpoly import polytope_integrate, x, y, z
+    from sympy.geometry.point import Point
+    from sympy.geometry.polygon import Polygon
+    from sympy.integrals.intpoly import polytope_integrate, x, y, z
 
     expr = expr.subs(dict(zip(X, (x, y, z))))
     polygon = Polygon(*(Point(*vtx) for vtx in subcell_vertices))
-    flipsign = sp.simplify(polytope_integrate(polygon, expr=1)) < 0
+    flipsign = sympy.simplify(polytope_integrate(polygon, expr=1)) < 0
 
-    val = sp.simplify(polytope_integrate(polygon, expr))
+    val = sympy.simplify(polytope_integrate(polygon, expr))
     if flipsign:
         val = val * -1
     return val.subs(dict(zip((x, y, z), X)))
@@ -193,7 +193,7 @@ def beta(xy, f):
     dim = 2
     fiat_cell = ufc_simplex(dim)
     topology = fiat_cell.get_topology()
-    X = sp.symbols(f'x:{dim}')
+    X = sympy.symbols(f'x:{dim}')
     # FIXME: figure out monomial basis for P2 in arbitrary dimensions
     scalar_basis = [1 + 0*X[0], X[0], X[1], X[0]**2, X[0]*X[1], X[1]**2]
 
@@ -226,9 +226,9 @@ def beta(xy, f):
         A = [[dofi(basisj) for basisj in scalar_basis]
              for dofi in dofs]
 
-        AT = sp.Matrix(A).T
-        coefficients = sp.simplify(AT.inv('LU'))
-        CG2_basis.append(coefficients * sp.Matrix(scalar_basis))
+        AT = sympy.Matrix(A).T
+        coefficients = sympy.simplify(AT.inv('LU'))
+        CG2_basis.append(coefficients * sympy.Matrix(scalar_basis))
 
     m = np.zeros((20, 20), dtype=object)
     counter = count()
@@ -266,8 +266,115 @@ def beta(xy, f):
         # RHS is 0
     return CG2_basis, X
 
+def beta_GM(xy, f):
+    """
+        xy: array of [nvertices, dim] representing the coordinates
+        f : index of face to calculate beta for,
+            the face f is opposite vertex f
+    """
+
+    assert f in [1,2,3]
+    dim = 2
+    fiat_cell = ufc_simplex(dim)
+    topology = fiat_cell.get_topology()
+    X = sympy.symbols(f'x:{dim}')
+
+    n1 = 1/sympy.sqrt(2)*sympy.Matrix([1+0*X[0], 1+0*X[0]])   ########### Fix it
+    n2 = -1*sympy.Matrix([1+0*X[0], 0*X[0]])
+    n3 = -1*sympy.Matrix([0*X[0], 1+0*X[0]])
+    A = sympy.Matrix([[1+0*X[0], 0*X[0]],[0*X[0], 1+0*X[0]]])   ########### Fix it
+    s1 = A.inv()*n1
+    s2 = A.inv()*n2
+    s3 = A.inv()*n3
+
+    w_K1, w_K2, w_K3 = get_w_K(f, X, s1, s2, s3)
+
+    restrict_K1 = sympy.Piecewise(
+                (sympy.Piecewise((1, X[1] < -2*X[0] + 1)),  X[0] < X[1]),
+                (0, True)
+        )
+
+    restrict_K2 = sympy.Piecewise(
+                 (sympy.Piecewise((1, X[1] < -0.5*X[0]+0.5)),  X[0] > X[1]),
+                (0, True)
+        )
+
+    restrict_K3 = sympy.Piecewise(
+                (sympy.Piecewise((1,  X[1] > -2*X[0] + 1)),   X[1] > -0.5*X[0]+0.5),
+                (0, True)
+        )
+
+    w = restrict_K1 * w_K1 + restrict_K2 * w_K2 + restrict_K3 * w_K3
+
+    lambda1 = 1 - X[0] - X[1]
+    lambda2 = X[0]
+    lambda3 = X[1]
+
+    #This numbering is different to Guzma Neilan
+    if f == 1:
+        B = lambda2*lambda3
+        n = n1
+    elif f == 2:
+        B = lambda3*lambda1
+        n = n2
+    elif f == 3:
+        B = lambda1*lambda2
+        n = n3
+
+    beta = B*n - A*w
+    return beta
+
+
+def get_w_K(f, X, s1, s2, s3):
+    lambda0_K1 = lambda phi : 3*phi[0]
+    lambda0_K2 = lambda phi : 3*phi[1]
+    lambda0_K3 = lambda phi : 3 - 3*phi[0] - 3*phi[1]
+
+    #This numbering is different to Guzman Neilan
+    if f == 1:
+        w_K1 = -1/18 * sympy.Matrix(
+            [lambda0_K1(-s1*(3*X[0]+6*X[1]-2) + s2*2),
+             lambda0_K1(-s1*(6*X[0]-6*X[1]-2) - s2*(3*X[0]+6*X[1]-2))]
+            )
+        w_K2 = -1/18 * sympy.Matrix(
+             [lambda0_K2(-s1*(6*X[0]+3*X[1]-2) - s2*(-6*X[0]+6*X[1]-2)),
+              lambda0_K2(s1*2 - s2*(6*X[0]+3*X[1]-2))]
+            )
+        w_K3 = -1/18 * sympy.Matrix(
+             [lambda0_K3(-s1*(9*X[0]+9*X[1]-5) - s2*(-12*X[0]-6*X[1]+4)),
+              lambda0_K3(s1*(6*X[0]+12*X[1]-4) + s2*(-9*X[0]-9*X[1]+5))]
+            )
+    elif f == 2:
+        w_K1 = -1/18 * sympy.Matrix(
+            [lambda0_K1(s1*(3*X[0]+6*X[1]-2) + s2*(6*X[0]+12*X[1]-6)),
+             lambda0_K1(s1*(6*X[0]-6*X[1]-2) + s2*(15*X[0]-6*X[1]-6))]
+            )
+        w_K2 = -1/18 * sympy.Matrix(
+             [lambda0_K2(s1*(6*X[0]+3*X[1]-2) + s2*(6*X[0]+12*X[1]-6)),
+              lambda0_K2(-s1*2 + s2*(6*X[0]+3*X[1]-6))]
+            )
+        w_K3 = -1/18 * sympy.Matrix(
+            [lambda0_K3(s1*(9*X[0]+9*X[1]-5) + s2*(6*X[0]+12*X[1]-6)),
+             lambda0_K3(-s1*(6*X[0]+12*X[1]-4) - s2*(3*X[0]+15*X[1]-3))]
+            )
+    elif f == 3:
+        w_K1 = -1/18 * sympy.Matrix(
+            [lambda0_K1(s1*(3*X[0]+6*X[1]-6) - s2*2),
+             lambda0_K1(s1*(12*X[0]+6*X[1]-6) + s2*(3*X[0]+6*X[1]-2))]
+            )
+        w_K2 = -1/18 * sympy.Matrix(
+            [lambda0_K2(-s1*(6*X[0]-15*X[1]+6) - s2*(6*X[0]-6*X[1]+2)),
+             lambda0_K2(s1*(12*X[0]+6*X[1]-6) + s2*(6*X[0]+3*X[1]-2))]
+            )
+        w_K3 = -1/18 *  sympy.Matrix(
+            [lambda0_K3(-s1*(15*X[0]+3*X[1]-3) - s2*(12*X[0]+6*X[1]-4)),
+             lambda0_K3(s1*(12*X[0]+6*X[1]-6) + s2*(9*X[0]+9*X[1]-5))]
+            )
+
+    return w_K1, w_K2, w_K3
 
 xy = np.array([[0, 0],
                [1, 0],
                [0, 1]])
 # basis, X = beta(xy, 0)
+# beta = beta_GM(xy, 1)
