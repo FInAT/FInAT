@@ -163,6 +163,11 @@ reference element.</p>
 freedom for the finite element.</p>
 </dd></dl>
 
+<dl class="py attribute">
+<dt id="finat.cube.FlattenedDimensions.fiat_equivalent">
+<code class="sig-name descname">fiat_equivalent</code><a class="reference internal" href="_modules/finat/cube.html#FlattenedDimensions.fiat_equivalent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.cube.FlattenedDimensions.fiat_equivalent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="py method">
 <dt id="finat.cube.FlattenedDimensions.formdegree">
 <em class="property">property </em><code class="sig-name descname">formdegree</code><a class="headerlink" href="#finat.cube.FlattenedDimensions.formdegree" title="Permalink to this definition">¶</a></dt>
@@ -461,6 +466,11 @@ freedom for the finite element.</p>
 </dd></dl>
 
 <dl class="py attribute">
+<dt id="finat.discontinuous.DiscontinuousElement.fiat_equivalent">
+<code class="sig-name descname">fiat_equivalent</code><a class="reference internal" href="_modules/finat/discontinuous.html#DiscontinuousElement.fiat_equivalent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.discontinuous.DiscontinuousElement.fiat_equivalent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
 <dt id="finat.discontinuous.DiscontinuousElement.formdegree">
 <code class="sig-name descname">formdegree</code><a class="reference internal" href="_modules/finat/discontinuous.html#DiscontinuousElement.formdegree"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.discontinuous.DiscontinuousElement.formdegree" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -557,6 +567,11 @@ freedom for the finite element.</p>
 </dd></dl>
 
 <dl class="py attribute">
+<dt id="finat.enriched.EnrichedElement.fiat_equivalent">
+<code class="sig-name descname">fiat_equivalent</code><a class="reference internal" href="_modules/finat/enriched.html#EnrichedElement.fiat_equivalent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.enriched.EnrichedElement.fiat_equivalent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
 <dt id="finat.enriched.EnrichedElement.formdegree">
 <code class="sig-name descname">formdegree</code><a class="reference internal" href="_modules/finat/enriched.html#EnrichedElement.formdegree"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.enriched.EnrichedElement.formdegree" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -635,6 +650,12 @@ the elements.</p>
 </div>
 <div class="section" id="module-finat.fiat_elements">
 <span id="finat-fiat-elements-module"></span><h2>finat.fiat_elements module<a class="headerlink" href="#module-finat.fiat_elements" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="finat.fiat_elements.Bernstein">
+<em class="property">class </em><code class="sig-prename descclassname">finat.fiat_elements.</code><code class="sig-name descname">Bernstein</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cell</span></em>, <em class="sig-param"><span class="n">degree</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/fiat_elements.html#Bernstein"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.fiat_elements.Bernstein" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#finat.fiat_elements.ScalarFiatElement" title="finat.fiat_elements.ScalarFiatElement"><code class="xref py py-class docutils literal notranslate"><span class="pre">finat.fiat_elements.ScalarFiatElement</span></code></a></p>
+</dd></dl>
+
 <dl class="py class">
 <dt id="finat.fiat_elements.BrezziDouglasFortinMarini">
 <em class="property">class </em><code class="sig-prename descclassname">finat.fiat_elements.</code><code class="sig-name descname">BrezziDouglasFortinMarini</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cell</span></em>, <em class="sig-param"><span class="n">degree</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/fiat_elements.html#BrezziDouglasFortinMarini"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.fiat_elements.BrezziDouglasFortinMarini" title="Permalink to this definition">¶</a></dt>
@@ -731,6 +752,12 @@ element.</p>
 <code class="sig-name descname">entity_dofs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/fiat_elements.html#FiatElement.entity_dofs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.fiat_elements.FiatElement.entity_dofs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the map of topological entities to degrees of
 freedom for the finite element.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="finat.fiat_elements.FiatElement.fiat_equivalent">
+<em class="property">property </em><code class="sig-name descname">fiat_equivalent</code><a class="headerlink" href="#finat.fiat_elements.FiatElement.fiat_equivalent" title="Permalink to this definition">¶</a></dt>
+<dd><p>The FIAT element equivalent to this FInAT element.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -936,6 +963,12 @@ finite element.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt id="finat.finiteelementbase.FiniteElementBase.fiat_equivalent">
+<em class="property">property </em><code class="sig-name descname">fiat_equivalent</code><a class="headerlink" href="#finat.finiteelementbase.FiniteElementBase.fiat_equivalent" title="Permalink to this definition">¶</a></dt>
+<dd><p>The FIAT element equivalent to this FInAT element.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt id="finat.finiteelementbase.FiniteElementBase.formdegree">
 <em class="property">abstract property </em><code class="sig-name descname">formdegree</code><a class="headerlink" href="#finat.finiteelementbase.FiniteElementBase.formdegree" title="Permalink to this definition">¶</a></dt>
 <dd><p>Degree of the associated form (FEEC)</p>
@@ -1027,6 +1060,11 @@ the corresponding basis functions take non-zero values.</p>
 <em class="property">class </em><code class="sig-prename descclassname">finat.hdivcurl.</code><code class="sig-name descname">HCurlElement</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">wrappee</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/hdivcurl.html#HCurlElement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.hdivcurl.HCurlElement" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#finat.hdivcurl.WrapperElementBase" title="finat.hdivcurl.WrapperElementBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">finat.hdivcurl.WrapperElementBase</span></code></a></p>
 <p>H(curl) wrapper element for tensor product elements.</p>
+<dl class="py attribute">
+<dt id="finat.hdivcurl.HCurlElement.fiat_equivalent">
+<code class="sig-name descname">fiat_equivalent</code><a class="reference internal" href="_modules/finat/hdivcurl.html#HCurlElement.fiat_equivalent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.hdivcurl.HCurlElement.fiat_equivalent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="py method">
 <dt id="finat.hdivcurl.HCurlElement.formdegree">
 <em class="property">property </em><code class="sig-name descname">formdegree</code><a class="headerlink" href="#finat.hdivcurl.HCurlElement.formdegree" title="Permalink to this definition">¶</a></dt>
@@ -1047,6 +1085,11 @@ all basis functions of the finite element.</p>
 <em class="property">class </em><code class="sig-prename descclassname">finat.hdivcurl.</code><code class="sig-name descname">HDivElement</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">wrappee</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/hdivcurl.html#HDivElement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.hdivcurl.HDivElement" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#finat.hdivcurl.WrapperElementBase" title="finat.hdivcurl.WrapperElementBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">finat.hdivcurl.WrapperElementBase</span></code></a></p>
 <p>H(div) wrapper element for tensor product elements.</p>
+<dl class="py attribute">
+<dt id="finat.hdivcurl.HDivElement.fiat_equivalent">
+<code class="sig-name descname">fiat_equivalent</code><a class="reference internal" href="_modules/finat/hdivcurl.html#HDivElement.fiat_equivalent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.hdivcurl.HDivElement.fiat_equivalent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="py method">
 <dt id="finat.hdivcurl.HDivElement.formdegree">
 <em class="property">property </em><code class="sig-name descname">formdegree</code><a class="headerlink" href="#finat.hdivcurl.HDivElement.formdegree" title="Permalink to this definition">¶</a></dt>
@@ -1355,6 +1398,16 @@ free indices are arbitrary.</p></li>
 </dl>
 </dd></dl>
 
+</dd></dl>
+
+</div>
+<div class="section" id="module-finat.nodal_enriched">
+<span id="finat-nodal-enriched-module"></span><h2>finat.nodal_enriched module<a class="headerlink" href="#module-finat.nodal_enriched" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="finat.nodal_enriched.NodalEnrichedElement">
+<em class="property">class </em><code class="sig-prename descclassname">finat.nodal_enriched.</code><code class="sig-name descname">NodalEnrichedElement</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">elements</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/nodal_enriched.html#NodalEnrichedElement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.nodal_enriched.NodalEnrichedElement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#finat.fiat_elements.FiatElement" title="finat.fiat_elements.FiatElement"><code class="xref py py-class docutils literal notranslate"><span class="pre">finat.fiat_elements.FiatElement</span></code></a></p>
+<p>An enriched element with a nodal basis.</p>
 </dd></dl>
 
 </div>
@@ -1777,6 +1830,11 @@ reference element.</p>
 <dd><p>Return the map of topological entities to degrees of
 freedom for the finite element.</p>
 </dd></dl>
+
+<dl class="py attribute">
+<dt id="finat.quadrature_element.QuadratureElement.fiat_equivalent">
+<code class="sig-name descname">fiat_equivalent</code><a class="reference internal" href="_modules/finat/quadrature_element.html#QuadratureElement.fiat_equivalent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.quadrature_element.QuadratureElement.fiat_equivalent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt id="finat.quadrature_element.QuadratureElement.formdegree">
@@ -2285,6 +2343,11 @@ provides physical geometry callbacks (may be None).</p></li>
 <dd><p>Return the map of topological entities to degrees of
 freedom for the finite element.</p>
 </dd></dl>
+
+<dl class="py attribute">
+<dt id="finat.tensor_product.TensorProductElement.fiat_equivalent">
+<code class="sig-name descname">fiat_equivalent</code><a class="reference internal" href="_modules/finat/tensor_product.html#TensorProductElement.fiat_equivalent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.tensor_product.TensorProductElement.fiat_equivalent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py attribute">
 <dt id="finat.tensor_product.TensorProductElement.formdegree">

@@ -52,9 +52,11 @@
           <div class="body" role="main">
             
   <h1>Source code for finat.hdivcurl</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">FIAT.reference_element</span> <span class="kn">import</span> <span class="n">LINE</span>
+<span></span><span class="kn">from</span> <span class="nn">FIAT.hdivcurl</span> <span class="kn">import</span> <span class="n">Hdiv</span><span class="p">,</span> <span class="n">Hcurl</span>
+<span class="kn">from</span> <span class="nn">FIAT.reference_element</span> <span class="kn">import</span> <span class="n">LINE</span>
 
 <span class="kn">import</span> <span class="nn">gem</span>
+<span class="kn">from</span> <span class="nn">gem.utils</span> <span class="kn">import</span> <span class="n">cached_property</span>
 <span class="kn">from</span> <span class="nn">finat.finiteelementbase</span> <span class="kn">import</span> <span class="n">FiniteElementBase</span>
 <span class="kn">from</span> <span class="nn">finat.tensor_product</span> <span class="kn">import</span> <span class="n">TensorProductElement</span>
 
@@ -142,6 +144,10 @@
     <span class="k">def</span> <span class="nf">formdegree</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">get_spatial_dimension</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span>
 
+<div class="viewcode-block" id="HDivElement.fiat_equivalent"><a class="viewcode-back" href="../../finat.html#finat.hdivcurl.HDivElement.fiat_equivalent">[docs]</a>    <span class="nd">@cached_property</span>
+    <span class="k">def</span> <span class="nf">fiat_equivalent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">Hdiv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wrappee</span><span class="o">.</span><span class="n">fiat_equivalent</span><span class="p">)</span></div>
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">mapping</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;contravariant piola&quot;</span></div>
@@ -165,6 +171,10 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">formdegree</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="mi">1</span>
+
+<div class="viewcode-block" id="HCurlElement.fiat_equivalent"><a class="viewcode-back" href="../../finat.html#finat.hdivcurl.HCurlElement.fiat_equivalent">[docs]</a>    <span class="nd">@cached_property</span>
+    <span class="k">def</span> <span class="nf">fiat_equivalent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">Hcurl</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wrappee</span><span class="o">.</span><span class="n">fiat_equivalent</span><span class="p">)</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">mapping</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

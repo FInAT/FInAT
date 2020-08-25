@@ -56,6 +56,7 @@
 
 <span class="kn">from</span> <span class="nn">FIAT.reference_element</span> <span class="kn">import</span> <span class="n">UFCHexahedron</span><span class="p">,</span> <span class="n">UFCQuadrilateral</span>
 <span class="kn">from</span> <span class="nn">FIAT.reference_element</span> <span class="kn">import</span> <span class="n">compute_unflattening_map</span><span class="p">,</span> <span class="n">flatten_entities</span>
+<span class="kn">from</span> <span class="nn">FIAT.tensor_product</span> <span class="kn">import</span> <span class="n">FlattenedDimensions</span> <span class="k">as</span> <span class="n">FIAT_FlattenedDimensions</span>
 
 <span class="kn">from</span> <span class="nn">gem.utils</span> <span class="kn">import</span> <span class="n">cached_property</span>
 
@@ -104,6 +105,10 @@
 
 <div class="viewcode-block" id="FlattenedDimensions.space_dimension"><a class="viewcode-back" href="../../finat.html#finat.cube.FlattenedDimensions.space_dimension">[docs]</a>    <span class="k">def</span> <span class="nf">space_dimension</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="o">.</span><span class="n">space_dimension</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="FlattenedDimensions.fiat_equivalent"><a class="viewcode-back" href="../../finat.html#finat.cube.FlattenedDimensions.fiat_equivalent">[docs]</a>    <span class="nd">@cached_property</span>
+    <span class="k">def</span> <span class="nf">fiat_equivalent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">FIAT_FlattenedDimensions</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="o">.</span><span class="n">fiat_equivalent</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="FlattenedDimensions.basis_evaluation"><a class="viewcode-back" href="../../finat.html#finat.cube.FlattenedDimensions.basis_evaluation">[docs]</a>    <span class="k">def</span> <span class="nf">basis_evaluation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">ps</span><span class="p">,</span> <span class="n">entity</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">coordinate_mapping</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return code for evaluating the element at known points on the</span>

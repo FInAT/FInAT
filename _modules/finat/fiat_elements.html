@@ -102,6 +102,11 @@
     <span class="k">def</span> <span class="nf">value_shape</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_element</span><span class="o">.</span><span class="n">value_shape</span><span class="p">()</span>
 
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">fiat_equivalent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Just return the underlying FIAT element</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_element</span>
+
 <div class="viewcode-block" id="FiatElement.basis_evaluation"><a class="viewcode-back" href="../../finat.html#finat.fiat_elements.FiatElement.basis_evaluation">[docs]</a>    <span class="k">def</span> <span class="nf">basis_evaluation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">ps</span><span class="p">,</span> <span class="n">entity</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">coordinate_mapping</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39;Return code for evaluating the element at known points on the</span>
 <span class="sd">        reference element.</span>
@@ -319,6 +324,12 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">value_shape</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Bernstein"><a class="viewcode-back" href="../../finat.html#finat.fiat_elements.Bernstein">[docs]</a><span class="k">class</span> <span class="nc">Bernstein</span><span class="p">(</span><span class="n">ScalarFiatElement</span><span class="p">):</span>
+    <span class="c1"># TODO: Replace this with a smarter implementation</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cell</span><span class="p">,</span> <span class="n">degree</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">FIAT</span><span class="o">.</span><span class="n">Bernstein</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span> <span class="n">degree</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="Bubble"><a class="viewcode-back" href="../../finat.html#finat.fiat_elements.Bubble">[docs]</a><span class="k">class</span> <span class="nc">Bubble</span><span class="p">(</span><span class="n">ScalarFiatElement</span><span class="p">):</span>
