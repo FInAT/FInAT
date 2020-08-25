@@ -34,8 +34,6 @@ def test_awnc():
     mppng = MyMapping(ref_cell, phys_cell)
     Mgem = ref_el_finat.basis_transformation(mppng)
     M = evaluate([Mgem])[0].arr
-    # print(M)
-    # print(ref_vals_piola.shape)
     ref_vals_zany = np.zeros((15, 2, 2, len(phys_pts)))
     for k in range(ref_vals_zany.shape[3]):
         for ell1 in range(2):
@@ -75,22 +73,11 @@ def test_awc():
     mppng = MyMapping(ref_cell, phys_cell)
     Mgem = ref_el_finat.basis_transformation(mppng)
     M = evaluate([Mgem])[0].arr
-    # print(M)
-    # print(ref_vals_piola.shape)
     ref_vals_zany = np.zeros((24, 2, 2, len(phys_pts)))
     for k in range(ref_vals_zany.shape[3]):
         for ell1 in range(2):
             for ell2 in range(2):
                 ref_vals_zany[:, ell1, ell2, k] = \
                     M @ ref_vals_piola[:, ell1, ell2, k]
-
-    # Q = FIAT.make_quadrature(phys_cell, 6)
-    # vals = phys_element.tabulate(0, Q.pts)[(0, 0)]
-    # print()
-    # for i in (0, 9, 21):
-    #     result = 0.0
-    #     for k in range(len(Q.wts)):
-    #         result += Q.wts[k] * (vals[i, :, :, k] ** 2).sum()
-    #     print(np.sqrt(result))
 
     assert np.allclose(ref_vals_zany[:21], phys_vals[:21])
