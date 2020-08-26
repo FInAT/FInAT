@@ -130,7 +130,6 @@ class EnrichedElement(FiniteElementBase):
 
     @property
     def dual_basis(self):
-        # Note: NOT TESTED!!!
         elements_dual_basis = [element.dual_basis for element in self.elements]
         return tuple(chain(*elements_dual_basis))
 
