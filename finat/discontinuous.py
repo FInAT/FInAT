@@ -1,3 +1,5 @@
+import FIAT
+
 from gem.utils import cached_property
 
 from finat.finiteelementbase import FiniteElementBase
@@ -44,6 +46,10 @@ class DiscontinuousElement(FiniteElementBase):
     @property
     def value_shape(self):
         return self.element.value_shape
+
+    @cached_property
+    def fiat_equivalent(self):
+        return FIAT.DiscontinuousElement(self.element.fiat_equivalent)
 
     def basis_evaluation(self, order, ps, entity=None, coordinate_mapping=None):
         return self.element.basis_evaluation(order, ps, entity, coordinate_mapping=coordinate_mapping)
