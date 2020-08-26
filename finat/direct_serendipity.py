@@ -121,6 +121,10 @@ class DirectSerendipity(DirectlyDefinedElement, FiniteElementBase):
     def point_evaluation(self, order, refcoords, entity=None):
         raise NotImplementedError("Not done yet, sorry!")
 
+    @property
+    def dual_basis(self):
+        raise ValueError(f"{self.__class__.__name__} does not have a dual_basis yet!")
+
     def mapping(self):
         return "physical"
 
