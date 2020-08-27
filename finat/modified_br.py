@@ -289,18 +289,18 @@ def beta_GM(xy, f):
 
     w_K1, w_K2, w_K3 = get_w_K(f, X, s1, s2, s3)
 
-    restrict_K1 = sympy.Piecewise(
-                (sympy.Piecewise((1, X[1] < -2*X[0] + 1)),  X[0] < X[1]),
-                (0, True)
-        )
-
     restrict_K2 = sympy.Piecewise(
-                 (sympy.Piecewise((1, X[1] < -0.5*X[0]+0.5)),  X[0] > X[1]),
+                (sympy.Piecewise((1, X[1] < -2*X[0] + 1), (0,True)),  X[0] <X[1]),
                 (0, True)
         )
 
     restrict_K3 = sympy.Piecewise(
-                (sympy.Piecewise((1,  X[1] > -2*X[0] + 1)),   X[1] > -0.5*X[0]+0.5),
+                 (sympy.Piecewise((1, X[1] < -0.5*X[0]+0.5), (0,True)),  X[0] > X[1]),
+                (0, True)
+        )
+
+    restrict_K1 = sympy.Piecewise(
+                (sympy.Piecewise((1,  X[1] > -2*X[0] + 1), (0,True)),   X[1] > -0.5*X[0]+0.5),
                 (0, True)
         )
 
@@ -310,7 +310,7 @@ def beta_GM(xy, f):
     lambda2 = X[0]
     lambda3 = X[1]
 
-    #This numbering is different to Guzma Neilan
+    #This numbering is different to Guzman Neilan
     if f == 1:
         B = lambda2*lambda3
         n = n1
@@ -322,53 +322,54 @@ def beta_GM(xy, f):
         n = n3
 
     beta = B*n - A*w
-    return beta
+
+    return beta, X, w
 
 
 def get_w_K(f, X, s1, s2, s3):
-    lambda0_K1 = lambda phi : 3*phi[0]
-    lambda0_K2 = lambda phi : 3*phi[1]
-    lambda0_K3 = lambda phi : 3 - 3*phi[0] - 3*phi[1]
+    lambda0_K2 = lambda phi : 3*phi[0]
+    lambda0_K3 = lambda phi : 3*phi[1]
+    lambda0_K1 = lambda phi : 3 - 3*phi[0] - 3*phi[1]
 
     #This numbering is different to Guzman Neilan
     if f == 1:
-        w_K1 = -1/18 * sympy.Matrix(
-            [lambda0_K1(-s1*(3*X[0]+6*X[1]-2) + s2*2),
-             lambda0_K1(-s1*(6*X[0]-6*X[1]-2) - s2*(3*X[0]+6*X[1]-2))]
-            )
         w_K2 = -1/18 * sympy.Matrix(
-             [lambda0_K2(-s1*(6*X[0]+3*X[1]-2) - s2*(-6*X[0]+6*X[1]-2)),
-              lambda0_K2(s1*2 - s2*(6*X[0]+3*X[1]-2))]
+            [lambda0_K2(-s1*(3*X[0]+6*X[1]-2) + s2*2),
+             lambda0_K2(-s1*(6*X[0]-6*X[1]-2) - s2*(3*X[0]+6*X[1]-2))]
             )
         w_K3 = -1/18 * sympy.Matrix(
-             [lambda0_K3(-s1*(9*X[0]+9*X[1]-5) - s2*(-12*X[0]-6*X[1]+4)),
-              lambda0_K3(s1*(6*X[0]+12*X[1]-4) + s2*(-9*X[0]-9*X[1]+5))]
+             [lambda0_K3(-s1*(6*X[0]+3*X[1]-2) - s2*(-6*X[0]+6*X[1]-2)),
+              lambda0_K3(s1*2 - s2*(6*X[0]+3*X[1]-2))]
+            )
+        w_K1 = -1/18 * sympy.Matrix(
+             [lambda0_K1(-s1*(9*X[0]+9*X[1]-5) - s2*(-12*X[0]-6*X[1]+4)),
+              lambda0_K1(s1*(6*X[0]+12*X[1]-4) + s2*(-9*X[0]-9*X[1]+5))]
             )
     elif f == 2:
-        w_K1 = -1/18 * sympy.Matrix(
-            [lambda0_K1(s1*(3*X[0]+6*X[1]-2) + s2*(6*X[0]+12*X[1]-6)),
-             lambda0_K1(s1*(6*X[0]-6*X[1]-2) + s2*(15*X[0]-6*X[1]-6))]
-            )
         w_K2 = -1/18 * sympy.Matrix(
-             [lambda0_K2(s1*(6*X[0]+3*X[1]-2) + s2*(6*X[0]+12*X[1]-6)),
-              lambda0_K2(-s1*2 + s2*(6*X[0]+3*X[1]-6))]
+            [lambda0_K2(s1*(3*X[0]+6*X[1]-2) + s2*(6*X[0]+12*X[1]-6)),
+             lambda0_K2(s1*(6*X[0]-6*X[1]-2) + s2*(15*X[0]-6*X[1]-6))]
             )
         w_K3 = -1/18 * sympy.Matrix(
-            [lambda0_K3(s1*(9*X[0]+9*X[1]-5) + s2*(6*X[0]+12*X[1]-6)),
-             lambda0_K3(-s1*(6*X[0]+12*X[1]-4) - s2*(3*X[0]+15*X[1]-3))]
+             [lambda0_K3(s1*(6*X[0]+3*X[1]-2) + s2*(6*X[0]+12*X[1]-6)),
+              lambda0_K3(-s1*2 + s2*(6*X[0]+3*X[1]-6))]
+            )
+        w_K1 = -1/18 * sympy.Matrix(
+            [lambda0_K1(s1*(9*X[0]+9*X[1]-5) + s2*(6*X[0]+12*X[1]-6)),
+             lambda0_K1(-s1*(6*X[0]+12*X[1]-4) - s2*(3*X[0]+15*X[1]-3))]
             )
     elif f == 3:
-        w_K1 = -1/18 * sympy.Matrix(
-            [lambda0_K1(s1*(3*X[0]+6*X[1]-6) - s2*2),
-             lambda0_K1(s1*(12*X[0]+6*X[1]-6) + s2*(3*X[0]+6*X[1]-2))]
-            )
         w_K2 = -1/18 * sympy.Matrix(
-            [lambda0_K2(-s1*(6*X[0]-15*X[1]+6) - s2*(6*X[0]-6*X[1]+2)),
-             lambda0_K2(s1*(12*X[0]+6*X[1]-6) + s2*(6*X[0]+3*X[1]-2))]
+            [lambda0_K2(s1*(3*X[0]+6*X[1]-6) - s2*2),
+             lambda0_K2(s1*(12*X[0]+6*X[1]-6) + s2*(3*X[0]+6*X[1]-2))]
             )
-        w_K3 = -1/18 *  sympy.Matrix(
-            [lambda0_K3(-s1*(15*X[0]+3*X[1]-3) - s2*(12*X[0]+6*X[1]-4)),
-             lambda0_K3(s1*(12*X[0]+6*X[1]-6) + s2*(9*X[0]+9*X[1]-5))]
+        w_K3 = -1/18 * sympy.Matrix(
+            [lambda0_K3(-s1*(6*X[0]-15*X[1]+6) - s2*(6*X[0]-6*X[1]+2)),
+             lambda0_K3(s1*(12*X[0]+6*X[1]-6) + s2*(6*X[0]+3*X[1]-2))]
+            )
+        w_K1 = -1/18 *  sympy.Matrix(
+            [lambda0_K1(-s1*(15*X[0]+3*X[1]-3) - s2*(12*X[0]+6*X[1]-4)),
+             lambda0_K1(s1*(12*X[0]+6*X[1]-6) + s2*(9*X[0]+9*X[1]-5))]
             )
 
     return w_K1, w_K2, w_K3
@@ -377,4 +378,61 @@ xy = np.array([[0, 0],
                [1, 0],
                [0, 1]])
 # basis, X = beta(xy, 0)
-# beta = beta_GM(xy, 1)
+#beta = beta_GM(xy, 1)
+
+if __name__ == "__main__":
+    from firedrake import *
+    from sympy2ufl import *
+    import alfi
+    xy = np.array([[0, 0],
+               [1, 0],
+               [0, 1]])
+    beta, X, w = beta_GM(xy, 1)
+    base = firedrake.UnitTriangleMesh()
+    mh = alfi.BaryMeshHierarchy(base, 0)
+    mesh = mh[-1]
+
+    V = VectorFunctionSpace(mesh, "CG", 2)
+    V1 = FunctionSpace(mesh, "CG", 2)
+
+    def convert2ufl(phi):
+        phi = sympy.Array(phi)
+        phi = sympy2ufl(phi, bindings={X[0]: SpatialCoordinate(mesh)[0], X[1]: SpatialCoordinate(mesh)[1]})
+        phi = as_vector([phi[0][0], phi[1][0]])
+        return phi
+
+    beta = convert2ufl(beta)
+    w = convert2ufl(w)
+
+    beta = interpolate(beta, V)
+    beta.rename("beta")
+
+    w = interpolate(w, V)
+    w.rename("w")
+
+    pvd = File("beta.pvd")
+
+    #compute correct beta
+    x, y = SpatialCoordinate(mesh)
+    lam0 = 1 - x - y
+    lam1 = x
+    lam2 = y
+
+    n = Constant((1/sqrt(5), 1/sqrt(5)))
+    bcdata = lam1 * lam2 * n
+
+    u = Function(V)
+    J = 0.5 * inner(grad(div(u)), grad(div(u)))*dx + 0.5 * inner(jump(div(u)), jump(div(u)))*dS
+
+    F = derivative(J, u, TestFunction(V))
+    bc = DirichletBC(V, bcdata, "on_boundary")
+
+    sp = {"ksp_type": "preonly",
+          "snes_monitor": None,
+          "pc_type": "svd",
+          "pc_svd_monitor": None,
+          "pc_factor_mat_solver_type": "mumps"}
+    u.rename("correct_beta")
+    solve(F == 0, u, bc, solver_parameters=sp)
+
+    pvd.write(beta, w,  u)
