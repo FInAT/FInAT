@@ -279,10 +279,22 @@ def beta_GM(xy, f):
     topology = fiat_cell.get_topology()
     X = sympy.symbols(f'x:{dim}')
 
-    n1 = 1/sympy.sqrt(2)*sympy.Matrix([1+0*X[0], 1+0*X[0]])   ########### Fix it
-    n2 = -1*sympy.Matrix([1+0*X[0], 0*X[0]])
-    n3 = -1*sympy.Matrix([0*X[0], 1+0*X[0]])
-    A = sympy.Matrix([[1+0*X[0], 0*X[0]],[0*X[0], 1+0*X[0]]])   ########### Fix it
+    #compuation of n1, n2, n3
+    R = sympy.Matrix([[0, 1],[-1, 0]])
+    diff1 = sympy.Matrix(xy[2] - xy[1])
+    len1 = sympy.sqrt(diff1[0]**2 + diff1[1]**2)
+    n1 = 1/len1*R*diff1
+
+    diff2 = sympy.Matrix(xy[0] - xy[2])
+    len2 = sympy.sqrt(diff2[0]**2 + diff2[1]**2)
+    n2 = 1/len2*R*diff2
+
+    diff3 = sympy.Matrix(xy[1] - xy[0])
+    len3 = sympy.sqrt(diff3[0]**2 + diff3[1]**2)
+    n3 = 1/len3*R*diff3
+
+    A = sympy.Matrix([[xy[1][0], xy[2][0]],[xy[1][1], xy[2][1]]])
+
     s1 = A.inv()*n1
     s2 = A.inv()*n2
     s3 = A.inv()*n3
@@ -387,11 +399,19 @@ if __name__ == "__main__":
     from firedrake import *
     from sympy2ufl import *
     import alfi
-    xy = np.array([[0, 0],
-               [1, 0],
-               [0, 1]])
+    xy11 = sympy.symbols('xy11')
+    xy12 = sympy.symbols('xy12')
+    xy21 = sympy.symbols('xy21')
+    xy22 = sympy.symbols('xy22')
+    xy31 = sympy.symbols('xy31')
+    xy32 = sympy.symbols('xy32')
+    xy = np.array([[xy11, xy12],
+               [xy21, xy22],
+               [xy31, xy32]])
     f = 1
     beta, X, w = beta_GM(xy, f)
+    beta = beta.subs([(xy11,0), (xy12,0), (xy21,1), (xy22,0), (xy31,0), (xy32,1)])
+    w = w.subs([(xy11,0), (xy12,0), (xy21,1), (xy22,0), (xy31,0), (xy32,1)])
     base = firedrake.UnitTriangleMesh()
     mh = alfi.BaryMeshHierarchy(base, 0)
     mesh = mh[-1]
