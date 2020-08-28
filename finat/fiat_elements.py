@@ -101,7 +101,10 @@ class FiatElement(FiniteElementBase):
                     assert np.allclose(table, 0.0)
                     exprs.append(gem.Zero(self.index_shape))
             if self.value_shape:
+                # As above, this extent may be different from that advertised by the finat element.
                 beta = self.get_indices()
+                assert len(beta) == len(self.get_indices())
+
                 zeta = self.get_value_indices()
                 result[alpha] = gem.ComponentTensor(
                     gem.Indexed(

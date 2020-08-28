@@ -18,6 +18,9 @@ class MyMapping(PhysicalGeometry):
     def jacobian_at(self, point):
         raise NotImplementedError
 
+    def detJ_at(self, point):
+        raise NotImplementedError
+
     def reference_normals(self):
         raise NotImplementedError
 
