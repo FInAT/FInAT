@@ -290,12 +290,12 @@ def beta_GM(xy, f):
     w_K1, w_K2, w_K3 = get_w_K(f, X, s1, s2, s3)
 
     restrict_K2 = sympy.Piecewise(
-                (sympy.Piecewise((1, X[1] < -2*X[0] + 1), (0,True)),  X[0] <X[1]),
+                (sympy.Piecewise((1, X[1] < -2*X[0] + 1), (0,True)),  X[0] < X[1]),
                 (0, True)
         )
 
     restrict_K3 = sympy.Piecewise(
-                 (sympy.Piecewise((1, X[1] < -0.5*X[0]+0.5), (0,True)),  X[0] > X[1]),
+                (sympy.Piecewise((1, X[1] < -0.5*X[0]+0.5+1.0e-10), (0,True)),  X[0] > X[1]-1.0e-10),
                 (0, True)
         )
 
@@ -333,43 +333,46 @@ def get_w_K(f, X, s1, s2, s3):
 
     #This numbering is different to Guzman Neilan
     if f == 1:
-        w_K2 = -1/18 * sympy.Matrix(
-            [lambda0_K2(-s1*(3*X[0]+6*X[1]-2) + s2*2),
-             lambda0_K2(-s1*(6*X[0]-6*X[1]-2) - s2*(3*X[0]+6*X[1]-2))]
+        s = s1
+        w_K2 = -1/18 * lambda0_K2([X[0], X[1]]) * sympy.Matrix(
+            [-s[0]*(3*X[0]+6*X[1]-2) + s[1]*2,
+             -s[0]*(6*X[0]-6*X[1]-2) - s[1]*(3*X[0]+6*X[1]-2)]
             )
-        w_K3 = -1/18 * sympy.Matrix(
-             [lambda0_K3(-s1*(6*X[0]+3*X[1]-2) - s2*(-6*X[0]+6*X[1]-2)),
-              lambda0_K3(s1*2 - s2*(6*X[0]+3*X[1]-2))]
+        w_K3 = -1/18 * lambda0_K3([X[0], X[1]]) * sympy.Matrix(
+             [-s[0]*(6*X[0]+3*X[1]-2) - s[1]*(-6*X[0]+6*X[1]-2),
+              s[0]*2 - s[1]*(6*X[0]+3*X[1]-2)]
             )
-        w_K1 = -1/18 * sympy.Matrix(
-             [lambda0_K1(-s1*(9*X[0]+9*X[1]-5) - s2*(-12*X[0]-6*X[1]+4)),
-              lambda0_K1(s1*(6*X[0]+12*X[1]-4) + s2*(-9*X[0]-9*X[1]+5))]
+        w_K1 = -1/18 * lambda0_K1([X[0], X[1]]) * sympy.Matrix(
+             [-s[0]*(9*X[0]+9*X[1]-5) - s[1]*(-12*X[0]-6*X[1]+4),
+              s[0]*(6*X[0]+12*X[1]-4) + s[1]*(-9*X[0]-9*X[1]+5)]
             )
     elif f == 2:
-        w_K2 = -1/18 * sympy.Matrix(
-            [lambda0_K2(s1*(3*X[0]+6*X[1]-2) + s2*(6*X[0]+12*X[1]-6)),
-             lambda0_K2(s1*(6*X[0]-6*X[1]-2) + s2*(15*X[0]-6*X[1]-6))]
+        s = s2
+        w_K2 = -1/18 * lambda0_K2([X[0], X[1]]) * sympy.Matrix(
+            [s[0]*(3*X[0]+6*X[1]-2) + s[1]*(6*X[0]+12*X[1]-6),
+             s[0]*(6*X[0]-6*X[1]-2) + s[1]*(15*X[0]-6*X[1]-6)]
             )
-        w_K3 = -1/18 * sympy.Matrix(
-             [lambda0_K3(s1*(6*X[0]+3*X[1]-2) + s2*(6*X[0]+12*X[1]-6)),
-              lambda0_K3(-s1*2 + s2*(6*X[0]+3*X[1]-6))]
+        w_K3 = -1/18 * lambda0_K3([X[0], X[1]]) * sympy.Matrix(
+             [s[0]*(6*X[0]+3*X[1]-2) + s[1]*(6*X[0]+12*X[1]-6),
+              -s[0]*2 + s[1]*(6*X[0]+3*X[1]-6)]
             )
-        w_K1 = -1/18 * sympy.Matrix(
-            [lambda0_K1(s1*(9*X[0]+9*X[1]-5) + s2*(6*X[0]+12*X[1]-6)),
-             lambda0_K1(-s1*(6*X[0]+12*X[1]-4) - s2*(3*X[0]+15*X[1]-3))]
+        w_K1 = -1/18 * lambda0_K1([X[0], X[1]]) * sympy.Matrix(
+            [s[0]*(9*X[0]+9*X[1]-5) + s[1]*(6*X[0]+12*X[1]-6),
+             -s[0]*(6*X[0]+12*X[1]-4) - s[1]*(3*X[0]+15*X[1]-3)]
             )
     elif f == 3:
-        w_K2 = -1/18 * sympy.Matrix(
-            [lambda0_K2(s1*(3*X[0]+6*X[1]-6) - s2*2),
-             lambda0_K2(s1*(12*X[0]+6*X[1]-6) + s2*(3*X[0]+6*X[1]-2))]
+        s = s3
+        w_K2 = -1/18 * lambda0_K2([X[0], X[1]]) * sympy.Matrix(
+            [s[0]*(3*X[0]+6*X[1]-6) - s[1]*2,
+             s[0]*(12*X[0]+6*X[1]-6) + s[1]*(3*X[0]+6*X[1]-2)]
             )
-        w_K3 = -1/18 * sympy.Matrix(
-            [lambda0_K3(-s1*(6*X[0]-15*X[1]+6) - s2*(6*X[0]-6*X[1]+2)),
-             lambda0_K3(s1*(12*X[0]+6*X[1]-6) + s2*(6*X[0]+3*X[1]-2))]
+        w_K3 = -1/18 * lambda0_K3([X[0], X[1]]) * sympy.Matrix(
+            [-s[0]*(6*X[0]-15*X[1]+6) - s[1]*(6*X[0]-6*X[1]+2),
+             s[0]*(12*X[0]+6*X[1]-6) + s[1]*(6*X[0]+3*X[1]-2)]
             )
-        w_K1 = -1/18 *  sympy.Matrix(
-            [lambda0_K1(-s1*(15*X[0]+3*X[1]-3) - s2*(12*X[0]+6*X[1]-4)),
-             lambda0_K1(s1*(12*X[0]+6*X[1]-6) + s2*(9*X[0]+9*X[1]-5))]
+        w_K1 = -1/18 * lambda0_K1([X[0], X[1]]) * sympy.Matrix(
+            [-s[0]*(15*X[0]+3*X[1]-3) - s[1]*(12*X[0]+6*X[1]-4),
+             s[0]*(12*X[0]+6*X[1]-6) + s[1]*(9*X[0]+9*X[1]-5)]
             )
 
     return w_K1, w_K2, w_K3
@@ -387,7 +390,8 @@ if __name__ == "__main__":
     xy = np.array([[0, 0],
                [1, 0],
                [0, 1]])
-    beta, X, w = beta_GM(xy, 1)
+    f = 1
+    beta, X, w = beta_GM(xy, f)
     base = firedrake.UnitTriangleMesh()
     mh = alfi.BaryMeshHierarchy(base, 0)
     mesh = mh[-1]
@@ -418,8 +422,15 @@ if __name__ == "__main__":
     lam1 = x
     lam2 = y
 
-    n = Constant((1/sqrt(5), 1/sqrt(5)))
-    bcdata = lam1 * lam2 * n
+    if f ==1:
+         n = Constant((1/sqrt(2), 1/sqrt(2)))
+         bcdata = lam1 * lam2 * n
+    elif f ==2:
+         n = Constant((-1, 0))
+         bcdata = lam0 * lam2 * n
+    elif f ==3:
+         n = Constant((0, -1))
+         bcdata = lam0 * lam1 * n
 
     u = Function(V)
     J = 0.5 * inner(grad(div(u)), grad(div(u)))*dx + 0.5 * inner(jump(div(u)), jump(div(u)))*dS
