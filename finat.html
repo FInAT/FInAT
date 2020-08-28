@@ -77,6 +77,95 @@
 </dd></dl>
 
 </div>
+<div class="section" id="module-finat.aw">
+<span id="finat-aw-module"></span><h2>finat.aw module<a class="headerlink" href="#module-finat.aw" title="Permalink to this headline">¶</a></h2>
+<p>Implementation of the Arnold-Winther finite elements.</p>
+<dl class="py class">
+<dt id="finat.aw.ArnoldWinther">
+<em class="property">class </em><code class="sig-prename descclassname">finat.aw.</code><code class="sig-name descname">ArnoldWinther</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cell</span></em>, <em class="sig-param"><span class="n">degree</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/aw.html#ArnoldWinther"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.aw.ArnoldWinther" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#finat.physically_mapped.PhysicallyMappedElement" title="finat.physically_mapped.PhysicallyMappedElement"><code class="xref py py-class docutils literal notranslate"><span class="pre">finat.physically_mapped.PhysicallyMappedElement</span></code></a>, <a class="reference internal" href="#finat.fiat_elements.FiatElement" title="finat.fiat_elements.FiatElement"><code class="xref py py-class docutils literal notranslate"><span class="pre">finat.fiat_elements.FiatElement</span></code></a></p>
+<dl class="py method">
+<dt id="finat.aw.ArnoldWinther.basis_transformation">
+<code class="sig-name descname">basis_transformation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">coordinate_mapping</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/aw.html#ArnoldWinther.basis_transformation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.aw.ArnoldWinther.basis_transformation" title="Permalink to this definition">¶</a></dt>
+<dd><p>The extra 6 dofs removed here correspond to the constraints.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="finat.aw.ArnoldWinther.entity_closure_dofs">
+<code class="sig-name descname">entity_closure_dofs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/aw.html#ArnoldWinther.entity_closure_dofs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.aw.ArnoldWinther.entity_closure_dofs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the map of topological entities to degrees of
+freedom on the closure of those entities for the finite
+element.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="finat.aw.ArnoldWinther.entity_dofs">
+<code class="sig-name descname">entity_dofs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/aw.html#ArnoldWinther.entity_dofs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.aw.ArnoldWinther.entity_dofs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the map of topological entities to degrees of
+freedom for the finite element.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="finat.aw.ArnoldWinther.index_shape">
+<em class="property">property </em><code class="sig-name descname">index_shape</code><a class="headerlink" href="#finat.aw.ArnoldWinther.index_shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>A tuple indicating the number of degrees of freedom in the
+element. For example a scalar quadratic Lagrange element on a triangle
+would return (6,) while a vector valued version of the same element
+would return (6, 2)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="finat.aw.ArnoldWinther.space_dimension">
+<code class="sig-name descname">space_dimension</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/aw.html#ArnoldWinther.space_dimension"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.aw.ArnoldWinther.space_dimension" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the dimension of the finite element space.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="finat.aw.ArnoldWintherNC">
+<em class="property">class </em><code class="sig-prename descclassname">finat.aw.</code><code class="sig-name descname">ArnoldWintherNC</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cell</span></em>, <em class="sig-param"><span class="n">degree</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/aw.html#ArnoldWintherNC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.aw.ArnoldWintherNC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#finat.physically_mapped.PhysicallyMappedElement" title="finat.physically_mapped.PhysicallyMappedElement"><code class="xref py py-class docutils literal notranslate"><span class="pre">finat.physically_mapped.PhysicallyMappedElement</span></code></a>, <a class="reference internal" href="#finat.fiat_elements.FiatElement" title="finat.fiat_elements.FiatElement"><code class="xref py py-class docutils literal notranslate"><span class="pre">finat.fiat_elements.FiatElement</span></code></a></p>
+<dl class="py method">
+<dt id="finat.aw.ArnoldWintherNC.basis_transformation">
+<code class="sig-name descname">basis_transformation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">coordinate_mapping</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/aw.html#ArnoldWintherNC.basis_transformation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.aw.ArnoldWintherNC.basis_transformation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Note, the extra 3 dofs which are removed here
+correspond to the constraints.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="finat.aw.ArnoldWintherNC.entity_closure_dofs">
+<code class="sig-name descname">entity_closure_dofs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/aw.html#ArnoldWintherNC.entity_closure_dofs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.aw.ArnoldWintherNC.entity_closure_dofs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the map of topological entities to degrees of
+freedom on the closure of those entities for the finite
+element.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="finat.aw.ArnoldWintherNC.entity_dofs">
+<code class="sig-name descname">entity_dofs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/aw.html#ArnoldWintherNC.entity_dofs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.aw.ArnoldWintherNC.entity_dofs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the map of topological entities to degrees of
+freedom for the finite element.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="finat.aw.ArnoldWintherNC.index_shape">
+<em class="property">property </em><code class="sig-name descname">index_shape</code><a class="headerlink" href="#finat.aw.ArnoldWintherNC.index_shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>A tuple indicating the number of degrees of freedom in the
+element. For example a scalar quadratic Lagrange element on a triangle
+would return (6,) while a vector valued version of the same element
+would return (6, 2)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="finat.aw.ArnoldWintherNC.space_dimension">
+<code class="sig-name descname">space_dimension</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/aw.html#ArnoldWintherNC.space_dimension"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.aw.ArnoldWintherNC.space_dimension" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the dimension of the finite element space.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
 <div class="section" id="module-finat.bell">
 <span id="finat-bell-module"></span><h2>finat.bell module<a class="headerlink" href="#module-finat.bell" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
@@ -1401,6 +1490,56 @@ free indices are arbitrary.</p></li>
 </dd></dl>
 
 </div>
+<div class="section" id="module-finat.mtw">
+<span id="finat-mtw-module"></span><h2>finat.mtw module<a class="headerlink" href="#module-finat.mtw" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="finat.mtw.MardalTaiWinther">
+<em class="property">class </em><code class="sig-prename descclassname">finat.mtw.</code><code class="sig-name descname">MardalTaiWinther</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cell</span></em>, <em class="sig-param"><span class="n">degree</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/mtw.html#MardalTaiWinther"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.mtw.MardalTaiWinther" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#finat.physically_mapped.PhysicallyMappedElement" title="finat.physically_mapped.PhysicallyMappedElement"><code class="xref py py-class docutils literal notranslate"><span class="pre">finat.physically_mapped.PhysicallyMappedElement</span></code></a>, <a class="reference internal" href="#finat.fiat_elements.FiatElement" title="finat.fiat_elements.FiatElement"><code class="xref py py-class docutils literal notranslate"><span class="pre">finat.fiat_elements.FiatElement</span></code></a></p>
+<dl class="py method">
+<dt id="finat.mtw.MardalTaiWinther.basis_transformation">
+<code class="sig-name descname">basis_transformation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">coordinate_mapping</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/mtw.html#MardalTaiWinther.basis_transformation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.mtw.MardalTaiWinther.basis_transformation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transformation matrix for the basis functions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>coordinate_mapping</strong> – Object providing physical geometry.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="finat.mtw.MardalTaiWinther.entity_closure_dofs">
+<code class="sig-name descname">entity_closure_dofs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/mtw.html#MardalTaiWinther.entity_closure_dofs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.mtw.MardalTaiWinther.entity_closure_dofs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the map of topological entities to degrees of
+freedom on the closure of those entities for the finite
+element.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="finat.mtw.MardalTaiWinther.entity_dofs">
+<code class="sig-name descname">entity_dofs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/mtw.html#MardalTaiWinther.entity_dofs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.mtw.MardalTaiWinther.entity_dofs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the map of topological entities to degrees of
+freedom for the finite element.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="finat.mtw.MardalTaiWinther.index_shape">
+<em class="property">property </em><code class="sig-name descname">index_shape</code><a class="headerlink" href="#finat.mtw.MardalTaiWinther.index_shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>A tuple indicating the number of degrees of freedom in the
+element. For example a scalar quadratic Lagrange element on a triangle
+would return (6,) while a vector valued version of the same element
+would return (6, 2)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="finat.mtw.MardalTaiWinther.space_dimension">
+<code class="sig-name descname">space_dimension</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/mtw.html#MardalTaiWinther.space_dimension"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.mtw.MardalTaiWinther.space_dimension" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the dimension of the finite element space.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
 <div class="section" id="module-finat.nodal_enriched">
 <span id="finat-nodal-enriched-module"></span><h2>finat.nodal_enriched module<a class="headerlink" href="#module-finat.nodal_enriched" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
@@ -1440,6 +1579,20 @@ either to map or construct their basis functions.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>A GEM expression for the cell size, shape (nvertex, ).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="finat.physically_mapped.PhysicalGeometry.detJ_at">
+<em class="property">abstract </em><code class="sig-name descname">detJ_at</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">point</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/physically_mapped.html#PhysicalGeometry.detJ_at"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#finat.physically_mapped.PhysicalGeometry.detJ_at" title="Permalink to this definition">¶</a></dt>
+<dd><p>The determinant of the jacobian of the physical coordinates at a point.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>point</strong> – The point in reference space to evaluate the Jacobian determinant.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A GEM expression for the Jacobian determinant.</p>
 </dd>
 </dl>
 </dd></dl>

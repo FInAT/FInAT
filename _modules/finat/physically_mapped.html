@@ -138,6 +138,42 @@
 <span class="s2">  doi =          {10.1243/03093247V061020}</span>
 <span class="s2">}</span>
 <span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+    <span class="n">Citations</span><span class="p">()</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;Mardal2002&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">@article{Mardal2002,</span>
+<span class="s2">        doi = {10.1137/s0036142901383910},</span>
+<span class="s2">        year = 2002,</span>
+<span class="s2">        volume = </span><span class="si">{40}</span><span class="s2">,</span>
+<span class="s2">        number = </span><span class="si">{5}</span><span class="s2">,</span>
+<span class="s2">        pages = {1605--1631},</span>
+<span class="s2">        author = {Mardal, K.-A.~ and Tai, X.-C.~ and Winther, R.~},</span>
+<span class="s2">        title = {A robust finite element method for {Darcy--Stokes} flow},</span>
+<span class="s2">        journal = {{SIAM} Journal on Numerical Analysis}</span>
+<span class="s2">}</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+    <span class="n">Citations</span><span class="p">()</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;Arnold2002&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">@article{Arnold2002,</span>
+<span class="s2">        doi = {10.1007/s002110100348},</span>
+<span class="s2">        year = 2002,</span>
+<span class="s2">        volume = </span><span class="si">{92}</span><span class="s2">,</span>
+<span class="s2">        number = </span><span class="si">{3}</span><span class="s2">,</span>
+<span class="s2">        pages = {401--419},</span>
+<span class="s2">        author = {Arnold, R.~N.~ and Winther, R.~},</span>
+<span class="s2">        title = {Mixed finite elements for elasticity},</span>
+<span class="s2">        journal = {Numerische Mathematik}</span>
+<span class="s2">}</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+    <span class="n">Citations</span><span class="p">()</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;Arnold2003&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">@article{arnold2003,</span>
+<span class="s2">        doi = {10.1142/s0218202503002507},</span>
+<span class="s2">        year = 2003,</span>
+<span class="s2">        volume = </span><span class="si">{13}</span><span class="s2">,</span>
+<span class="s2">        number = </span><span class="si">{03}</span><span class="s2">,</span>
+<span class="s2">        pages = {295--307},</span>
+<span class="s2">        author = {Arnold, D.~N.~ and Winther, R.~},</span>
+<span class="s2">        title = {Nonconforming mixed elements for elasticity},</span>
+<span class="s2">        journal = {Mathematical Models and Methods in Applied Sciences}</span>
+<span class="s2">}</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
     <span class="n">Citations</span><span class="p">()</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;Arbogast2017&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">@techreport{Arbogast2017,</span>
 <span class="s2">  title={Direct serendipity finite elements on convex quadrilaterals},</span>
@@ -180,7 +216,9 @@
 
         <span class="k">def</span> <span class="nf">matvec</span><span class="p">(</span><span class="n">table</span><span class="p">):</span>
             <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="n">gem</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-            <span class="n">val</span> <span class="o">=</span> <span class="n">gem</span><span class="o">.</span><span class="n">ComponentTensor</span><span class="p">(</span><span class="n">gem</span><span class="o">.</span><span class="n">IndexSum</span><span class="p">(</span><span class="n">M</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span><span class="o">*</span><span class="n">table</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="p">(</span><span class="n">j</span><span class="p">,)),</span> <span class="p">(</span><span class="n">i</span><span class="p">,))</span>
+            <span class="n">value_indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_value_indices</span><span class="p">()</span>
+            <span class="n">table</span> <span class="o">=</span> <span class="n">gem</span><span class="o">.</span><span class="n">Indexed</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="p">)</span> <span class="o">+</span> <span class="n">value_indices</span><span class="p">)</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">gem</span><span class="o">.</span><span class="n">ComponentTensor</span><span class="p">(</span><span class="n">gem</span><span class="o">.</span><span class="n">IndexSum</span><span class="p">(</span><span class="n">M</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span><span class="o">*</span><span class="n">table</span><span class="p">,</span> <span class="p">(</span><span class="n">j</span><span class="p">,)),</span> <span class="p">(</span><span class="n">i</span><span class="p">,)</span> <span class="o">+</span> <span class="n">value_indices</span><span class="p">)</span>
             <span class="c1"># Eliminate zeros</span>
             <span class="k">return</span> <span class="n">gem</span><span class="o">.</span><span class="n">optimise</span><span class="o">.</span><span class="n">aggressive_unroll</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
 
@@ -215,6 +253,14 @@
 <span class="sd">        :arg point: The point in reference space (on the cell) to</span>
 <span class="sd">             evaluate the Jacobian.</span>
 <span class="sd">        :returns: A GEM expression for the Jacobian, shape (gdim, tdim).</span>
+<span class="sd">        &quot;&quot;&quot;</span></div>
+
+<div class="viewcode-block" id="PhysicalGeometry.detJ_at"><a class="viewcode-back" href="../../finat.html#finat.physically_mapped.PhysicalGeometry.detJ_at">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">detJ_at</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The determinant of the jacobian of the physical coordinates at a point.</span>
+
+<span class="sd">        :arg point: The point in reference space to evaluate the Jacobian determinant.</span>
+<span class="sd">        :returns: A GEM expression for the Jacobian determinant.</span>
 <span class="sd">        &quot;&quot;&quot;</span></div>
 
 <div class="viewcode-block" id="PhysicalGeometry.reference_normals"><a class="viewcode-back" href="../../finat.html#finat.physically_mapped.PhysicalGeometry.reference_normals">[docs]</a>    <span class="nd">@abstractmethod</span>

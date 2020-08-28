@@ -12,6 +12,14 @@ finat.argyris module
    :undoc-members:
    :show-inheritance:
 
+finat.aw module
+---------------
+
+.. automodule:: finat.aw
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 finat.bell module
 -----------------
 
@@ -96,6 +104,14 @@ finat.morley module
 -------------------
 
 .. automodule:: finat.morley
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+finat.mtw module
+----------------
+
+.. automodule:: finat.mtw
    :members:
    :undoc-members:
    :show-inheritance:
