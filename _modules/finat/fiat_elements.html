@@ -155,8 +155,9 @@
                     <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
                     <span class="n">exprs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gem</span><span class="o">.</span><span class="n">Zero</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index_shape</span><span class="p">))</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_shape</span><span class="p">:</span>
-                <span class="c1"># As above, this extent may be different from that advertised by the finat element.</span>
-                <span class="n">beta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_indices</span><span class="p">()</span>
+                <span class="c1"># As above, this extent may be different from that</span>
+                <span class="c1"># advertised by the finat element.</span>
+                <span class="n">beta</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">gem</span><span class="o">.</span><span class="n">Index</span><span class="p">(</span><span class="n">extent</span><span class="o">=</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">index_shape</span><span class="p">)</span>
                 <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">beta</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_indices</span><span class="p">())</span>
 
                 <span class="n">zeta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_value_indices</span><span class="p">()</span>
