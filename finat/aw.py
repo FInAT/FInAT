@@ -3,7 +3,7 @@ import numpy
 
 import FIAT
 
-from gem import Literal, ListTensor
+from gem import Literal, ListTensor, partial_indexed
 
 from finat.fiat_elements import FiatElement
 from finat.physically_mapped import PhysicallyMappedElement, Citations
@@ -18,21 +18,20 @@ def _edge_transform(T, coordinate_mapping):
     for i in range(0, 12, 2):
         Vsub[i, i] = Literal(1)
 
-    # This bypasses the GEM wrapper.
-    that = numpy.array([T.compute_normalized_edge_tangent(i) for i in range(3)])
-    nhat = numpy.array([T.compute_normal(i) for i in range(3)])
+    nhat = coordinate_mapping.reference_normals()
+    that = coordinate_mapping.reference_edge_tangents(normalized=True)
 
     detJ = coordinate_mapping.detJ_at([1/3, 1/3])
     J = coordinate_mapping.jacobian_at([1/3, 1/3])
-    J_np = numpy.array([[J[0, 0], J[0, 1]],
-                        [J[1, 0], J[1, 1]]])
-    JTJ = J_np.T @ J_np
+
+    JTJ = J.T @ J
 
     for e in range(3):
-        # Compute alpha and beta for the edge.
-        Ghat_T = numpy.array([nhat[e, :], that[e, :]])
-
-        (alpha, beta) = Ghat_T @ JTJ @ that[e, :] / detJ
+        nhat_cur = partial_indexed(nhat, (e,))
+        that_cur = partial_indexed(that, (e,))
+        blah = JTJ @ that_cur / detJ
+        alpha = nhat_cur @ blah
+        beta = that_cur @ blah
 
         # Stuff into the right rows and columns.
         (idx1, idx2) = (4*e + 1, 4*e + 3)

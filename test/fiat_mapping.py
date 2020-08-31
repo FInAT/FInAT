@@ -30,10 +30,17 @@ class MyMapping(PhysicalGeometry):
     def jacobian_at(self, point):
         return gem.Literal(self.A)
 
-    def reference_normals(self):
+    def reference_normals(self, normalized=True):
+        cn = (self.ref_cell.compute_normal if normalized
+              else self.ref_cell.compute_scaled_normal)
         return gem.Literal(
-            np.asarray([self.ref_cell.compute_normal(i)
-                        for i in range(3)]))
+            np.asarray([cn(i) for i in range(3)]))
+
+    def reference_edge_tangents(self, normalized=False):
+        ct = (self.ref_cell.compute_normalized_edge_tangent if normalized
+              else self.ref_cell.compute_edge_tangent)
+        return gem.Literal(
+            np.asarray([ct(i) for i in range(3)]))
 
     def physical_normals(self):
         return gem.Literal(
