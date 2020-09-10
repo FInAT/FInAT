@@ -64,6 +64,37 @@
 <span class="kn">from</span> <span class="nn">finat.finiteelementbase</span> <span class="kn">import</span> <span class="n">FiniteElementBase</span>
 <span class="kn">from</span> <span class="nn">finat.sympy2gem</span> <span class="kn">import</span> <span class="n">sympy2gem</span>
 
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">firedrake_citations</span> <span class="kn">import</span> <span class="n">Citations</span>
+    <span class="n">Citations</span><span class="p">()</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;Geevers2018new&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">@article{Geevers2018new,</span>
+<span class="s2"> title={New higher-order mass-lumped tetrahedral elements for wave propagation modelling},</span>
+<span class="s2"> author={Geevers, Sjoerd and Mulder, Wim A and van der Vegt, Jaap JW},</span>
+<span class="s2"> journal={SIAM journal on scientific computing},</span>
+<span class="s2"> volume=</span><span class="si">{40}</span><span class="s2">,</span>
+<span class="s2"> number=</span><span class="si">{5}</span><span class="s2">,</span>
+<span class="s2"> pages={A2830--A2857},</span>
+<span class="s2"> year=</span><span class="si">{2018}</span><span class="s2">,</span>
+<span class="s2"> publisher=</span><span class="si">{SIAM}</span><span class="s2">,</span>
+<span class="s2"> doi={https://doi.org/10.1137/18M1175549},</span>
+<span class="s2">}</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+    <span class="n">Citations</span><span class="p">()</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;Chin1999higher&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">@article{chin1999higher,</span>
+<span class="s2"> title={Higher-order triangular and tetrahedral finite elements with mass lumping for solving the wave equation},</span>
+<span class="s2"> author={Chin-Joe-Kong, MJS and Mulder, Wim A and Van Veldhuizen, M},</span>
+<span class="s2"> journal={Journal of Engineering Mathematics},</span>
+<span class="s2"> volume=</span><span class="si">{35}</span><span class="s2">,</span>
+<span class="s2"> number=</span><span class="si">{4}</span><span class="s2">,</span>
+<span class="s2"> pages={405--426},</span>
+<span class="s2"> year=</span><span class="si">{1999}</span><span class="s2">,</span>
+<span class="s2"> publisher=</span><span class="si">{Springer}</span><span class="s2">,</span>
+<span class="s2"> doi={https://doi.org/10.1023/A:1004420829610},</span>
+<span class="s2">}</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">Citations</span> <span class="o">=</span> <span class="kc">None</span>
+
 
 <div class="viewcode-block" id="FiatElement"><a class="viewcode-back" href="../../finat.html#finat.fiat_elements.FiatElement">[docs]</a><span class="k">class</span> <span class="nc">FiatElement</span><span class="p">(</span><span class="n">FiniteElementBase</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Base class for finite elements for which the tabulation is provided</span>
@@ -354,6 +385,14 @@
 <div class="viewcode-block" id="Lagrange"><a class="viewcode-back" href="../../finat.html#finat.fiat_elements.Lagrange">[docs]</a><span class="k">class</span> <span class="nc">Lagrange</span><span class="p">(</span><span class="n">ScalarFiatElement</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cell</span><span class="p">,</span> <span class="n">degree</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">Lagrange</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">FIAT</span><span class="o">.</span><span class="n">Lagrange</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span> <span class="n">degree</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="KongMulderVeldhuizen"><a class="viewcode-back" href="../../finat.html#finat.fiat_elements.KongMulderVeldhuizen">[docs]</a><span class="k">class</span> <span class="nc">KongMulderVeldhuizen</span><span class="p">(</span><span class="n">ScalarFiatElement</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cell</span><span class="p">,</span> <span class="n">degree</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">KongMulderVeldhuizen</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">FIAT</span><span class="o">.</span><span class="n">KongMulderVeldhuizen</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span> <span class="n">degree</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">Citations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">Citations</span><span class="p">()</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;Chin1999higher&quot;</span><span class="p">)</span>
+            <span class="n">Citations</span><span class="p">()</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;Geevers2018new&quot;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="DiscontinuousLagrange"><a class="viewcode-back" href="../../finat.html#finat.fiat_elements.DiscontinuousLagrange">[docs]</a><span class="k">class</span> <span class="nc">DiscontinuousLagrange</span><span class="p">(</span><span class="n">ScalarFiatElement</span><span class="p">):</span>
