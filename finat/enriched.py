@@ -3,6 +3,8 @@ from operator import add, methodcaller
 
 import numpy
 
+import FIAT
+
 import gem
 from gem.utils import cached_property
 
@@ -13,9 +15,14 @@ class EnrichedElement(FiniteElementBase):
     """A finite element whose basis functions are the union of the
     basis functions of several other finite elements."""
 
-    def __init__(self, elements):
-        super(EnrichedElement, self).__init__()
-        self.elements = tuple(elements)
+    def __new__(cls, elements):
+        elements = tuple(elements)
+        if len(elements) == 1:
+            return elements[0]
+        else:
+            self = super().__new__(cls)
+            self.elements = elements
+            return self
 
     @cached_property
     def cell(self):
@@ -58,6 +65,19 @@ class EnrichedElement(FiniteElementBase):
         '''A tuple indicating the shape of the element.'''
         shape, = set(elem.value_shape for elem in self.elements)
         return shape
+
+    @cached_property
+    def fiat_equivalent(self):
+        # Avoid circular import dependency
+        from finat.mixed import MixedSubElement
+
+        if all(isinstance(e, MixedSubElement) for e in self.elements):
+            # EnrichedElement is actually a MixedElement
+            return FIAT.MixedElement([e.element.fiat_equivalent
+                                      for e in self.elements], ref_el=self.cell)
+        else:
+            return FIAT.EnrichedElement(*(e.fiat_equivalent
+                                          for e in self.elements))
 
     def _compose_evaluations(self, results):
         keys, = set(map(frozenset, results))

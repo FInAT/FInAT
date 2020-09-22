@@ -48,6 +48,11 @@ class FiatElement(FiniteElementBase):
     def value_shape(self):
         return self._element.value_shape()
 
+    @property
+    def fiat_equivalent(self):
+        # Just return the underlying FIAT element
+        return self._element
+
     def basis_evaluation(self, order, ps, entity=None, coordinate_mapping=None):
         '''Return code for evaluating the element at known points on the
         reference element.
@@ -96,7 +101,11 @@ class FiatElement(FiniteElementBase):
                     assert np.allclose(table, 0.0)
                     exprs.append(gem.Zero(self.index_shape))
             if self.value_shape:
-                beta = self.get_indices()
+                # As above, this extent may be different from that
+                # advertised by the finat element.
+                beta = tuple(gem.Index(extent=i) for i in index_shape)
+                assert len(beta) == len(self.get_indices())
+
                 zeta = self.get_value_indices()
                 result[alpha] = gem.ComponentTensor(
                     gem.Indexed(
@@ -267,6 +276,12 @@ class ScalarFiatElement(FiatElement):
         return ()
 
 
+class Bernstein(ScalarFiatElement):
+    # TODO: Replace this with a smarter implementation
+    def __init__(self, cell, degree):
+        super().__init__(FIAT.Bernstein(cell, degree))
+
+
 class Bubble(ScalarFiatElement):
     def __init__(self, cell, degree):
         super(Bubble, self).__init__(FIAT.Bubble(cell, degree))
@@ -314,8 +329,8 @@ class VectorFiatElement(FiatElement):
 
 
 class RaviartThomas(VectorFiatElement):
-    def __init__(self, cell, degree):
-        super(RaviartThomas, self).__init__(FIAT.RaviartThomas(cell, degree))
+    def __init__(self, cell, degree, variant=None):
+        super(RaviartThomas, self).__init__(FIAT.RaviartThomas(cell, degree, variant=variant))
 
 
 class TrimmedSerendipityFace(VectorFiatElement):
@@ -338,8 +353,8 @@ class TrimmedSerendipityCurl(VectorFiatElement):
 
 
 class BrezziDouglasMarini(VectorFiatElement):
-    def __init__(self, cell, degree):
-        super(BrezziDouglasMarini, self).__init__(FIAT.BrezziDouglasMarini(cell, degree))
+    def __init__(self, cell, degree, variant=None):
+        super(BrezziDouglasMarini, self).__init__(FIAT.BrezziDouglasMarini(cell, degree, variant=variant))
 
 
 class BrezziDouglasFortinMarini(VectorFiatElement):
@@ -348,10 +363,10 @@ class BrezziDouglasFortinMarini(VectorFiatElement):
 
 
 class Nedelec(VectorFiatElement):
-    def __init__(self, cell, degree):
-        super(Nedelec, self).__init__(FIAT.Nedelec(cell, degree))
+    def __init__(self, cell, degree, variant=None):
+        super(Nedelec, self).__init__(FIAT.Nedelec(cell, degree, variant=variant))
 
 
 class NedelecSecondKind(VectorFiatElement):
-    def __init__(self, cell, degree):
-        super(NedelecSecondKind, self).__init__(FIAT.NedelecSecondKind(cell, degree))
+    def __init__(self, cell, degree, variant=None):
+        super(NedelecSecondKind, self).__init__(FIAT.NedelecSecondKind(cell, degree, variant=variant))
