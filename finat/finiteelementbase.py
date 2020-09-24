@@ -176,7 +176,8 @@ class FiniteElementBase(metaclass=ABCMeta):
         '''Return code for performing the dual evaluation at the nodes of the
         reference element. Currently only works for non-derivatives.
 
-        :param fn: Callable that takes in PointSet and returns GEM expression.
+        :param fn: Callable that takes in PointSet and returns GEM expression,
+                   requires a dimension attribute storing topological dimension.
         :param entity: the cell entity on which to tabulate for comparing
                        results with FIAT.
         '''
@@ -228,10 +229,7 @@ class FiniteElementBase(metaclass=ABCMeta):
                         zeta = tuple(idx for _ in range(len(point_set.points)) for idx in self.get_value_indices())
                         qexpr = gem.index_sum(gem.partial_indexed(expr, zeta) * weight_tensor[zeta], point_set.indices + zeta)
                     else:
-                        try:
-                            base_rank
-                        except NameError:
-                            base_rank = len(self.value_shape) - len(tensorfe_idx)
+                        base_rank = len(self.value_shape) - len(tensorfe_idx)
 
                         zeta_base = tuple(idx for _ in range(len(point_set.points)) for idx in
                                           [gem.Index(extent=d)for d in self.value_shape[:base_rank]])
