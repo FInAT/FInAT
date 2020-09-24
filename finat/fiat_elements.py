@@ -241,7 +241,7 @@ class FiatElement(FiniteElementBase):
                     # For direct indexing
                     alpha_idx = tuple(tuple(chain(*[(j,)*a for j, a in enumerate(alph)])) for alph in alpha)
                     # TODO: How to ensure correct combination (indexing) with weight_tensor?
-                    alpha_arr = np.zeros((self._element.ref_el.get_spatial_dimension(),) * derivative_order)
+                    alpha_arr = np.zeros((self.cell.get_spatial_dimension(),) * derivative_order)
                     for idx in alpha_idx:
                         alpha_arr[idx] = 1
                     alpha_tensor = gem.Literal(alpha_arr)
@@ -252,7 +252,7 @@ class FiatElement(FiniteElementBase):
                         point_set = PointSet((pt,))
                         point_set_cache[(pt,)] = point_set
 
-                    weight_dict = {c: w for w, c in zip(weight, cmp)}
+                    weight_dict = dict(zip(cmp, weight))
                     # Each entry of tensor is weight of that component
                     if len(self.value_shape) == 0:
                         weight_tensor = gem.Literal(weight_dict[tuple()])
