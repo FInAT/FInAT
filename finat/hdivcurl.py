@@ -1,6 +1,8 @@
+from FIAT.hdivcurl import Hdiv, Hcurl
 from FIAT.reference_element import LINE
 
 import gem
+from gem.utils import cached_property
 from finat.finiteelementbase import FiniteElementBase
 from finat.tensor_product import TensorProductElement
 
@@ -88,6 +90,10 @@ class HDivElement(WrapperElementBase):
     def formdegree(self):
         return self.cell.get_spatial_dimension() - 1
 
+    @cached_property
+    def fiat_equivalent(self):
+        return Hdiv(self.wrappee.fiat_equivalent)
+
     @property
     def mapping(self):
         return "contravariant piola"
@@ -111,6 +117,10 @@ class HCurlElement(WrapperElementBase):
     @property
     def formdegree(self):
         return 1
+
+    @cached_property
+    def fiat_equivalent(self):
+        return Hcurl(self.wrappee.fiat_equivalent)
 
     @property
     def mapping(self):

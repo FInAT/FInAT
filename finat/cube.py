@@ -2,6 +2,7 @@ from __future__ import absolute_import, print_function, division
 
 from FIAT.reference_element import UFCHexahedron, UFCQuadrilateral
 from FIAT.reference_element import compute_unflattening_map, flatten_entities
+from FIAT.tensor_product import FlattenedDimensions as FIAT_FlattenedDimensions
 
 from gem.utils import cached_property
 
@@ -50,6 +51,10 @@ class FlattenedDimensions(FiniteElementBase):
 
     def space_dimension(self):
         return self.product.space_dimension()
+
+    @cached_property
+    def fiat_equivalent(self):
+        return FIAT_FlattenedDimensions(self.product.fiat_equivalent)
 
     def basis_evaluation(self, order, ps, entity=None, coordinate_mapping=None):
         """Return code for evaluating the element at known points on the

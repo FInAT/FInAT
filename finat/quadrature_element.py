@@ -2,6 +2,8 @@ from functools import reduce
 
 import numpy
 
+import FIAT
+
 import gem
 from gem.utils import cached_property
 
@@ -50,6 +52,12 @@ class QuadratureElement(FiniteElementBase):
     @property
     def value_shape(self):
         return ()
+
+    @cached_property
+    def fiat_equivalent(self):
+        ps = self._rule.point_set
+        weights = getattr(self._rule, 'weights', None)
+        return FIAT.QuadratureElement(self.cell, ps.points, weights)
 
     def basis_evaluation(self, order, ps, entity=None, coordinate_mapping=None):
         '''Return code for evaluating the element at known points on the

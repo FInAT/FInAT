@@ -1,12 +1,15 @@
-import numpy
-
-from finat.finiteelementbase import FiniteElementBase
-from finat.physically_mapped import DirectlyDefinedElement, Citations
-from FIAT.reference_element import UFCQuadrilateral
-from FIAT.polynomial_set import mis
+from itertools import chain, repeat
 
 import gem
+import numpy
+import symengine
 import sympy
+from FIAT.polynomial_set import mis
+from FIAT.reference_element import UFCQuadrilateral
+from gem.utils import cached_property
+
+from finat.finiteelementbase import FiniteElementBase
+from finat.physically_mapped import Citations, DirectlyDefinedElement
 from finat.sympy2gem import sympy2gem
 
 
@@ -20,6 +23,7 @@ class DirectSerendipity(DirectlyDefinedElement, FiniteElementBase):
 
         self._cell = cell
         self._degree = degree
+        self._deriv_cache = {}
 
     @property
     def cell(self):
@@ -61,6 +65,19 @@ class DirectSerendipity(DirectlyDefinedElement, FiniteElementBase):
     def value_shape(self):
         return ()
 
+    @cached_property
+    def _basis(self):
+        return ds_sym(self.cell.topology, self.degree, sp=symengine)
+
+    def _basis_deriv(self, xx, alpha):
+        key = (tuple(xx), alpha)
+        _, _, phis = self._basis
+        try:
+            return self._deriv_cache[key]
+        except KeyError:
+            dphi = tuple(diff(phi, xx, alpha) for phi in phis)
+            return self._deriv_cache.setdefault(key, dphi)
+
     def basis_evaluation(self, order, ps, entity=None, coordinate_mapping=None):
         '''Return code for evaluating the element at known points on the
         reference element.
@@ -69,14 +86,8 @@ class DirectSerendipity(DirectlyDefinedElement, FiniteElementBase):
         :param ps: the point set.
         :param entity: the cell entity on which to tabulate.
         '''
-        ct = self.cell.topology
-
         # Build everything in sympy
-        vs, xx, phis = ds_sympy(ct, self.degree)
-        if self.degree == 1:
-            vs, xx, phis = ds1_sympy(ct)
-        else:
-            vs, xx, phis = dsr_sympy(ct, self.degree)
+        vs, xx, _ = self._basis
 
         # and convert -- all this can be used for each derivative!
         phys_verts = coordinate_mapping.physical_vertices()
@@ -85,18 +96,20 @@ class DirectSerendipity(DirectlyDefinedElement, FiniteElementBase):
             coordinate_mapping.physical_points(ps, entity=entity),
             ps.indices)
 
-        repl = {vs[i, j]: phys_verts[i, j] for i in range(4) for j in range(2)}
+        repl = dict((vs[idx], phys_verts[idx])
+                    for idx in numpy.ndindex(vs.shape))
 
-        repl.update({s: phys_points[i] for i, s in enumerate(xx)})
+        repl.update(zip(xx, phys_points))
 
         mapper = gem.node.Memoizer(sympy2gem)
         mapper.bindings = repl
 
         result = {}
+
         for i in range(order+1):
             alphas = mis(2, i)
             for alpha in alphas:
-                dphis = [phi.diff(*tuple(zip(xx, alpha))) for phi in phis]
+                dphis = self._basis_deriv(xx, alpha)
                 result[alpha] = gem.ListTensor(list(map(mapper, dphis)))
 
         return result
@@ -112,7 +125,7 @@ def xysub(x, y):
     return {x[0]: y[0], x[1]: y[1]}
 
 
-def ds1_sympy(ct, vs=None):
+def ds1_sym(ct, *, vs=None, sp=symengine):
     """Constructs lowest-order case of Arbogast's directly defined C^0 serendipity
     elements, which are a special case.
     :param ct: The cell topology of the reference quadrilateral.
@@ -123,12 +136,12 @@ def ds1_sympy(ct, vs=None):
               of the four basis functions.
     """
     if vs is None:
-        vs = numpy.asarray(list(zip(sympy.symbols('x:4'),
-                                    sympy.symbols('y:4'))))
+        vs = numpy.asarray(list(zip(sp.symbols('x:4'),
+                                    sp.symbols('y:4'))))
     else:
         vs = numpy.asarray(vs)
 
-    xx = numpy.asarray(sympy.symbols("x,y"))
+    xx = numpy.asarray(sp.symbols("x,y"))
 
     ts = numpy.zeros((4, 2), dtype=object)
     for e in range(4):
@@ -216,7 +229,21 @@ def newton_poly(nds, fs, xsym):
     return result
 
 
-def dsr_sympy(ct, r, vs=None):
+def diff(expr, xx, alpha):
+    """Differentiate expr with respect to xx.
+
+    :arg expr: symengine/symengine Expression to differentiate.
+    :arg xx: iterable of coordinates to differentiate with respect to.
+    :arg alpha: derivative multiindex, one entry for each entry of xx
+        indicating how many derivatives in that direction.
+    :returns: New symengine/symengine expression."""
+    if isinstance(expr, sympy.Expr):
+        return expr.diff(*(zip(xx, alpha)))
+    else:
+        return symengine.diff(expr, *(chain(*(repeat(x, a) for x, a in zip(xx, alpha)))))
+
+
+def dsr_sym(ct, r, *, vs=None, sp=symengine):
     """Constructs higher-order (>= 2) case of Arbogast's directly defined C^0 serendipity
     elements, which include all polynomials of degree r plus a couple of rational
     functions.
@@ -228,11 +255,11 @@ def dsr_sympy(ct, r, vs=None):
               of the four basis functions.
     """
     if vs is None:  # do vertices symbolically
-        vs = numpy.asarray(list(zip(sympy.symbols('x:4'),
-                                    sympy.symbols('y:4'))))
+        vs = numpy.asarray(list(zip(sp.symbols('x:4'),
+                                    sp.symbols('y:4'))))
     else:
         vs = numpy.asarray(vs)
-    xx = numpy.asarray(sympy.symbols("x,y"))
+    xx = numpy.asarray(sp.symbols("x,y"))
 
     ts = numpy.zeros((4, 2), dtype=object)
     for e in range(4):
@@ -267,27 +294,51 @@ def dsr_sympy(ct, r, vs=None):
         ybar = sum(vs[i, 1] for i in range(4)) / 4
         internal_bfs = [bubble / bubble.subs(xysub(xx, (xbar, ybar)))]
         internal_nodes = [(xbar, ybar)]
-    else:  # build a lattice inside the quad
+    else:  # build a triangular lattice inside the quad
         dx0 = (vs[1, :] - vs[0, :]) / (r-2)
         dx1 = (vs[2, :] - vs[0, :]) / (r-2)
 
-        internal_nodes = [vs[0, :] + dx0 * i + dx1 * j
-                          for i in range(1, r-2)
-                          for j in range(1, r-1-i)]
+        # Vertices of the triangle
+        v0 = vs[0, :] + dx0 + dx1
+        v1 = vs[0, :] + (r-3) * dx0 + dx1
+        v2 = vs[0, :] + dx0 + (r-3) * dx1
 
-        mons = [xx[0] ** i * xx[1] ** j
-                for i in range(r-3) for j in range(r-3-i)]
+        # Pardon the fortran, but these are barycentric coordinates...
+        bary = numpy.zeros((3,), dtype="object")
+        y12 = v1[1] - v2[1]
+        x21 = v2[0] - v1[0]
+        x02 = v0[0] - v2[0]
+        y02 = v0[1] - v2[1]
+        det = y12 * x02 + x21 * y02
+        delx = xx[0] - v2[0]
+        dely = xx[1] - v2[1]
+        bary[0] = (y12 * delx + x21 * dely) / det
+        bary[1] = (-y02 * delx + x02 * dely) / det
+        bary[2] = 1 - bary[0] - bary[1]
 
-        V = sympy.Matrix([[mon.subs(xysub(xx, nd)) for mon in mons]
-                          for nd in internal_nodes])
-        Vinv = V.inv()
-        nmon = len(mons)
+        # And this bit directly constructs the Lagrange polynomials
+        # of degree r-4 on the triangular lattice inside the triangle.
+        # This trick is restricted to equispaced points, but we're on a much
+        # lower degree than r.  This bypasses symbolic inversion/etc otherwise
+        # required to build the Lagrange polynomials.
+        rm4 = r - 4
+        lags = []
+        internal_nodes = []
+        for i in range(rm4, -1, -1):
+            for j in range(rm4-i, -1, -1):
+                k = rm4 - i - j
+                internal_nodes.append((v0 * i + v1 * j + v2 * k)/rm4)
+                ii = (i, j, k)
+                lag_cur = sp.Integer(1)
+                for q in range(3):
+                    for p in range(ii[q]):
+                        lag_cur *= (rm4 * bary[q] - p) / (ii[q] - p)
+                lags.append(lag_cur.simplify())
 
         internal_bfs = []
-        for j in range(nmon):
-            preibf = bubble * sum(Vinv[i, j] * mons[i] for i in range(nmon))
-            internal_bfs.append(preibf
-                                / preibf.subs(xysub(xx, internal_nodes[j])))
+        for lag, nd in zip(lags, internal_nodes):
+            foo = lag * bubble
+            internal_bfs.append(foo / foo.subs(xysub(xx, nd)))
 
     RV = (lams[0] - lams[1]) / (lams[0] + lams[1])
     RH = (lams[2] - lams[3]) / (lams[2] + lams[3])
@@ -295,13 +346,12 @@ def dsr_sympy(ct, r, vs=None):
     # R for each edge (1 on edge, zero on opposite
     Rs = [(1 - RV) / 2, (1 + RV) / 2, (1 - RH) / 2, (1 + RH) / 2]
 
-    nodes1d = [sympy.Rational(i, r) for i in range(1, r)]
+    nodes1d = [sp.Rational(i, r) for i in range(1, r)]
 
-    s = sympy.Symbol('s')
+    s = sp.Symbol('s')
 
     # for each edge:
-    # I need its adjacent two edges
-    # and its opposite edge
+    # I need its adjacent two edges and its opposite edge
     # and its "tunnel R" RH or RV
     # This is very 2d specific.
     opposite_edges = {e: [eother for eother in ct[1]
@@ -416,8 +466,8 @@ def dsr_sympy(ct, r, vs=None):
     return vs, xx, numpy.asarray(bfs)
 
 
-def ds_sympy(ct, r, vs=None):
-    """Symbolically Constructs Arbogast's directly defined C^0 serendipity elements, 
+def ds_sym(ct, r, *, vs=None, sp=symengine):
+    """Symbolically Constructs Arbogast's directly defined C^0 serendipity elements,
     which include all polynomials of degree r plus a couple of rational functions.
     :param ct: The cell topology of the reference quadrilateral.
     :param vs: (Optional) coordinates of cell on which to construct the basis.
@@ -427,6 +477,6 @@ def ds_sympy(ct, r, vs=None):
               of the four basis functions.
     """
     if r == 1:
-        return ds1_sympy(ct, vs)
+        return ds1_sym(ct, vs=vs, sp=sp)
     else:
-        return dsr_sympy(ct, r, vs)
+        return dsr_sym(ct, r, vs=vs, sp=sp)
