@@ -5,6 +5,7 @@ import numpy
 import FIAT
 
 import gem
+from gem.interpreter import evaluate
 from gem.utils import cached_property
 
 from finat.finiteelementbase import FiniteElementBase
@@ -57,6 +58,12 @@ class QuadratureElement(FiniteElementBase):
     def fiat_equivalent(self):
         ps = self._rule.point_set
         weights = getattr(self._rule, 'weights', None)
+        if weights is None:
+            # we need the weights.
+            weights, = evaluate([self._rule.weight_expression])
+            weights = weights.arr.flatten()
+            self._rule.weights = weights
+
         return FIAT.QuadratureElement(self.cell, ps.points, weights)
 
     def basis_evaluation(self, order, ps, entity=None, coordinate_mapping=None):
