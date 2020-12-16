@@ -99,6 +99,13 @@ class FiniteElementBase(metaclass=ABCMeta):
     def value_shape(self):
         '''A tuple indicating the shape of the element.'''
 
+    @property
+    def fiat_equivalent(self):
+        '''The FIAT element equivalent to this FInAT element.'''
+        raise NotImplementedError(
+            f"Cannot make equivalent FIAT element for {type(self).__name__}"
+        )
+
     def get_indices(self):
         '''A tuple of GEM :class:`Index` of the correct extents to loop over
         the basis functions of this element.'''
@@ -120,7 +127,7 @@ class FiniteElementBase(metaclass=ABCMeta):
         :param ps: the point set object.
         :param entity: the cell entity on which to tabulate.
         :param coordinate_mapping: a
-        :class:`~.physically_mapped.PhysicalGeometry` object that
+           :class:`~.physically_mapped.PhysicalGeometry` object that
            provides physical geometry callbacks (may be None).
         '''
 
