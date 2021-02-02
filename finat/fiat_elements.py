@@ -390,3 +390,8 @@ class Nedelec(VectorFiatElement):
 class NedelecSecondKind(VectorFiatElement):
     def __init__(self, cell, degree, variant=None):
         super(NedelecSecondKind, self).__init__(FIAT.NedelecSecondKind(cell, degree, variant=variant))
+
+
+class NewElement(ScalarFiatElement):
+    def __init__(self, cell, degree):
+        super(NewElement, self).__init__(FIAT.NewElement(cell, degree))
