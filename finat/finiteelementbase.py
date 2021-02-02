@@ -9,7 +9,7 @@ from gem.interpreter import evaluate
 from gem.utils import cached_property
 
 from finat.quadrature import make_quadrature
-
+from finat.point_set import PointSet, PointSingleton
 
 class FiniteElementBase(metaclass=ABCMeta):
 
@@ -163,7 +163,7 @@ class FiniteElementBase(metaclass=ABCMeta):
             ((((point_set_10, weight_tensor_10, alpha_tensor_10),
                (point_set_11, weight_tensor_11, alpha_tensor_11)), None)
              (((point_set_20, weight_tensor_20, alpha_tensor_20),
-              ()), None)
+              ()), None))
 
         where one of the innermost tuples is empty because there are no evaluations
         at that order. The `None` is either a placeholder for \'normal\' elements,
@@ -191,6 +191,99 @@ class FiniteElementBase(metaclass=ABCMeta):
 
         dual_expressions = []   # One for each functional
         expr_cache = {}         # Sharing of evaluation of the expression at points
+
+        # List of points to evaluate
+        x = []
+
+        # DOK Sparse matrix in (row, col)=>value pairs - to become a gem.SparseLiteral
+        Q = {}
+
+        #
+        # BUILD Q MATRIX
+        #
+
+        # FIXME: The below loop is REALLY SLOW for BDM - Q and x should just be output as the dual basis
+
+        last_shape = None
+        # i are rows of Q
+        for i in range(len(self.dual_basis)):
+            # Ignore tensorfe_idx
+            dual_functional_w_derivs, _ = self.dual_basis[i]
+            # Only use 1st entry in dual which assumes no derivatives
+            assert len(dual_functional_w_derivs) == 1
+            dual_functional = dual_functional_w_derivs[0]
+            for j in range(len(dual_functional)):
+                # Ignore alpha, just extract point (x_j) and weights (q_j)
+                x_j, q_j, _ = dual_functional[j]
+
+                # Esure all weights have the same shape
+                if last_shape is not None:
+                    assert q_j.shape == last_shape
+                last_shape = q_j.shape
+
+                assert q_j.children == ()
+                assert q_j.free_indices == ()
+
+                # Get k - the columns of Q.
+                x_matches = [x_j.almost_equal(x_k) for x_k in x]
+                if any(x_matches):
+                    k = x_matches.index(True)
+                else:
+                    k = len(x)
+                    x.append(x_j)
+
+                # q_j may be tensor valued
+                it = numpy.nditer(q_j.array, flags=['multi_index'])
+                for q_j_entry in it:
+                    Q[(i, k) + it.multi_index] = q_j_entry
+
+        #
+        # CONVERT Q TO gem.SparseLiteral
+        #
+
+        # Convert dictionary of keys to SparseLiteral
+        Q = gem.SparseLiteral(Q) # FIXME: This fails to compile since Impero can't yet deal with a sparse tensor
+        # FIXME: Temporarily use a normal literal
+        Q = gem.Literal(Q.array.todense())
+
+        #
+        # CONVERT x TO gem.PointSet
+        #
+
+        # Convert list of points to equivalent PointSet
+        allpts = None
+        dim = None
+        for i in range(len(x)):
+            # For the future - can only have one UnknownPointSingleton in the
+            # pointset.
+            # if isinstance(x[i], UnknownPointSingleton):
+            #     assert len(x) == 1
+            #     x = x[0]
+            # and skip x = PointSet(allpts)
+            if dim is not None:
+                assert x[i].dimension == dim
+            dim = x[i].dimension
+            if allpts is not None:
+                allpts = numpy.concatenate((allpts, x[i].points), axis=0)
+            else:
+                allpts = x[i].points
+        assert allpts.shape[1] == dim
+        x = PointSet(allpts)
+
+        #
+        # EVALUATE fn AT x
+        #
+        expr = fn(x)
+
+        #
+        # TENSOR CONTRACT Q WITH expr
+        #
+        expr_shape_indices = tuple(gem.Index(extent=ex) for ex in expr.shape)
+        assert Q.free_indices == ()
+        Q2_shape_indices = tuple(gem.Index(extent=ex) for ex in Q.shape)
+        assert tuple(i.extent for i in Q2_shape_indices[2:]) == tuple(i.extent for i in expr_shape_indices)
+        dual_eval_is = gem.index_sum(Q[Q2_shape_indices[:1] + x.indices + expr_shape_indices] * expr[expr_shape_indices], x.indices+expr_shape_indices)
+        return dual_eval_is
 
         for dual, tensorfe_idx in self.dual_basis:
             qexprs = gem.Zero()
