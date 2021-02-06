@@ -278,11 +278,11 @@ class FiniteElementBase(metaclass=ABCMeta):
         #
         # TENSOR CONTRACT Q WITH expr
         #
-        expr_non_contraction_indices = tuple(gem.Index(extent=ex) for ex in self.value_shape)
+        expr_shape_indices = tuple(gem.Index(extent=ex) for ex in expr.shape)
         assert Q.free_indices == ()
         Q2_shape_indices = tuple(gem.Index(extent=ex) for ex in Q.shape)
-        # Don't contract out value indices
-        dual_eval_is = gem.index_sum(Q[Q2_shape_indices[:1] + x.indices + Q2_shape_indices[2:]] * expr[Q2_shape_indices[2:]+expr_non_contraction_indices], x.indices+Q2_shape_indices[2:])
+        assert tuple(i.extent for i in Q2_shape_indices[2:]) == tuple(i.extent for i in expr_shape_indices)
+        dual_eval_is = gem.index_sum(Q[Q2_shape_indices[:1] + x.indices + expr_shape_indices] * expr[expr_shape_indices], x.indices+expr_shape_indices)
         return dual_eval_is
 
         for dual, tensorfe_idx in self.dual_basis:
