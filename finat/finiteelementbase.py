@@ -9,7 +9,8 @@ from gem.interpreter import evaluate
 from gem.utils import cached_property
 
 from finat.quadrature import make_quadrature
-from finat.point_set import PointSet, PointSingleton
+from finat.point_set import PointSet
+
 
 class FiniteElementBase(metaclass=ABCMeta):
 
@@ -267,7 +268,7 @@ class FiniteElementBase(metaclass=ABCMeta):
             #
 
             # Convert dictionary of keys to SparseLiteral
-            Q = gem.SparseLiteral(Q) # FIXME: This fails to compile since Impero can't yet deal with a sparse tensor
+            Q = gem.SparseLiteral(Q)  # FIXME: This fails to compile since Impero can't yet deal with a sparse tensor
             # FIXME: Temporarily use a normal literal
             Q = gem.Literal(Q.array.todense())
 
@@ -304,7 +305,6 @@ class FiniteElementBase(metaclass=ABCMeta):
             # TENSOR CONTRACT Q WITH expr
             #
             expr_shape_indices = tuple(gem.Index(extent=ex) for ex in expr.shape)
-            expr_arg_indices = tuple(set(expr.free_indices) - set(x.indices))
             assert Q.free_indices == ()
             Q_shape_indices = tuple(gem.Index(extent=ex) for ex in Q.shape)
             assert tuple(i.extent for i in Q_shape_indices[2:]) == tuple(i.extent for i in expr_shape_indices)
@@ -315,7 +315,7 @@ class FiniteElementBase(metaclass=ABCMeta):
             assert dual_eval_is_w_shape.shape[0] == Q.shape[0]
             return dual_eval_is_w_shape
 
-        else: # Can't construct Q so use old method
+        else:  # Can't construct Q so use old method
 
             for dual, tensorfe_idx in self.dual_basis:
                 qexprs = gem.Zero()
@@ -357,14 +357,14 @@ class FiniteElementBase(metaclass=ABCMeta):
                             base_rank = len(self.value_shape) - len(tensorfe_idx)
 
                             zeta_base = tuple(idx for _ in range(len(point_set.points)) for idx in
-                                            [gem.Index(extent=d)for d in self.value_shape[:base_rank]])
+                                              [gem.Index(extent=d)for d in self.value_shape[:base_rank]])
                             zeta_tensor = tuple(idx for _ in range(len(point_set.points)) for idx in
                                                 [gem.Index(extent=d)for d in self.value_shape[base_rank:]])
                             deltas = reduce(gem.Product, (gem.Delta(z, t) for z, t in zip(zeta_tensor, tensorfe_idx)))
                             zeta = zeta_tensor + zeta_base
 
                             qexpr = gem.index_sum(gem.partial_indexed(expr, zeta) * deltas * weight_tensor[zeta_base],
-                                                point_set.indices + zeta)
+                                                  point_set.indices + zeta)
                         # Sum for all derivatives
                         qexprs = gem.Sum(qexprs, qexpr)
 
