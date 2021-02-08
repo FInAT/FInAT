@@ -222,6 +222,7 @@ class FiniteElementBase(metaclass=ABCMeta):
 
         can_construct = True
         last_shape = None
+        is_identity = True
         # i are rows of Q
         for i in range(len(self.dual_basis)):
             # Ignore tensorfe_idx
@@ -260,6 +261,11 @@ class FiniteElementBase(metaclass=ABCMeta):
                 it = numpy.nditer(q_j.array, flags=['multi_index'])
                 for q_j_entry in it:
                     Q[(i, k) + it.multi_index] = q_j_entry
+                    if it.multi_index != ():
+                        is_identity = False
+
+                if i != k:
+                    is_identity = False
 
         if can_construct:
 
@@ -309,8 +315,9 @@ class FiniteElementBase(metaclass=ABCMeta):
             Q_shape_indices = tuple(gem.Index(extent=ex) for ex in Q.shape)
             assert tuple(i.extent for i in Q_shape_indices[2:]) == tuple(i.extent for i in expr_shape_indices)
             basis_indices = Q_shape_indices[:1]
-            dual_eval_is = gem.index_sum(Q[basis_indices + x.indices + expr_shape_indices] * expr[expr_shape_indices], x.indices+expr_shape_indices)
-            # Need to only have node count as free indices
+            if is_identity:
+                Q = gem.ComponentTensor(gem.Delta(Q_shape_indices[0], Q_shape_indices[1]), Q_shape_indices)
+            dual_eval_is = gem.optimise.make_product((Q[basis_indices + x.indices + expr_shape_indices], expr[expr_shape_indices]), x.indices+expr_shape_indices)
             dual_eval_is_w_shape = gem.ComponentTensor(dual_eval_is, basis_indices)
             assert dual_eval_is_w_shape.shape[0] == Q.shape[0]
             return dual_eval_is_w_shape
