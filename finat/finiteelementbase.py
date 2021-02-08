@@ -306,9 +306,9 @@ class FiniteElementBase(metaclass=ABCMeta):
             expr_shape_indices = tuple(gem.Index(extent=ex) for ex in expr.shape)
             expr_arg_indices = tuple(set(expr.free_indices) - set(x.indices))
             assert Q.free_indices == ()
-            Q2_shape_indices = tuple(gem.Index(extent=ex) for ex in Q.shape)
-            assert tuple(i.extent for i in Q2_shape_indices[2:]) == tuple(i.extent for i in expr_shape_indices)
-            basis_indices = Q2_shape_indices[:1]
+            Q_shape_indices = tuple(gem.Index(extent=ex) for ex in Q.shape)
+            assert tuple(i.extent for i in Q_shape_indices[2:]) == tuple(i.extent for i in expr_shape_indices)
+            basis_indices = Q_shape_indices[:1]
             dual_eval_is = gem.index_sum(Q[basis_indices + x.indices + expr_shape_indices] * expr[expr_shape_indices], x.indices+expr_shape_indices)
             # Need to only have node count as free indices
             dual_eval_is_w_shape = gem.ComponentTensor(dual_eval_is, basis_indices)
