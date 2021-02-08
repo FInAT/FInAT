@@ -261,11 +261,12 @@ class FiniteElementBase(metaclass=ABCMeta):
                 it = numpy.nditer(q_j.array, flags=['multi_index'])
                 for q_j_entry in it:
                     Q[(i, k) + it.multi_index] = q_j_entry
-                    if it.multi_index != ():
+                    if len(set((i, k) + it.multi_index)) > 1:
+                        # Identity has i == k == it.multi_index[0] == ...
+                        # Since i increases from 0 in increments of 1 we know
+                        # that if this check is not triggered we definitely
+                        # have an identity tensor.
                         is_identity = False
-
-                if i != k:
-                    is_identity = False
 
         if can_construct:
 
@@ -316,8 +317,16 @@ class FiniteElementBase(metaclass=ABCMeta):
             assert tuple(i.extent for i in Q_shape_indices[2:]) == tuple(i.extent for i in expr_shape_indices)
             basis_indices = Q_shape_indices[:1]
             if is_identity:
-                Q = gem.ComponentTensor(gem.Delta(Q_shape_indices[0], Q_shape_indices[1]), Q_shape_indices)
-            dual_eval_is = gem.optimise.make_product((Q[basis_indices + x.indices + expr_shape_indices], expr[expr_shape_indices]), x.indices+expr_shape_indices)
+                assert len(set(Q.shape)) == 1
+                # Don't bother multiplying by an identity tensor
+                dual_eval_is = expr
+                # replace the free index with an index of the same extent in
+                # expr. TODO: Consider if basis_indices can be found in Q in
+                # general by checking index extents
+                basis_index = tuple(i for i in expr.free_indices if i.extent == basis_indices[0].extent)[0]
+                basis_indices = (basis_index,)
+            else:
+                dual_eval_is = gem.optimise.make_product((Q[basis_indices + x.indices + expr_shape_indices], expr[expr_shape_indices]), x.indices+expr_shape_indices)
             dual_eval_is_w_shape = gem.ComponentTensor(dual_eval_is, basis_indices)
             assert dual_eval_is_w_shape.shape[0] == Q.shape[0]
             return dual_eval_is_w_shape
