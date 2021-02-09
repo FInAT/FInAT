@@ -210,9 +210,15 @@ class FiniteElementBase(metaclass=ABCMeta):
         # tensor valued.
         Q = {}
 
-        # List of unique points to evaluate in the order required for correct
-        # contraction with Q - to become a FInAT.PointSet
-        x = []
+        # Dict of unique points to evaluate stored as
+        # {hash(tuple(pt_hash.flatten())): (x_k, k)} pairs. Points in index k
+        # order form a vector required for correct contraction with Q. Will
+        # become a FInAT.PointSet later.
+        # pt_hash = numpy.round(x_k, x_hash_decimals) such that
+        # numpy.allclose(x_k, pt_hash, atol=1*10**-dec) == true
+        x = {}
+        x_hash_decimals = 12
+        x_hash_atol = 1e-12  # = 1*10**-dec
 
         #
         # BUILD Q MATRIX
@@ -249,13 +255,17 @@ class FiniteElementBase(metaclass=ABCMeta):
                 assert q_j.children == ()
                 assert q_j.free_indices == ()
 
-                # Get k - the columns of Q.
-                x_matches = [x_j.almost_equal(x_k) for x_k in x]
-                if any(x_matches):
-                    k = x_matches.index(True)
-                else:
+                # Create hash into x
+                x_hash = numpy.round(x_j.points, x_hash_decimals)
+                assert numpy.allclose(x_j.points, x_hash, atol=x_hash_atol)
+                x_hash = hash(tuple(x_hash.flatten()))
+
+                # Get value and index k or add to dict. k are the columns of Q.
+                try:
+                    x_j, k = x[x_hash]
+                except KeyError:
                     k = len(x)
-                    x.append(x_j)
+                    x[x_hash] = x_j, k
 
                 # q_j may be tensor valued
                 it = numpy.nditer(q_j.array, flags=['multi_index'])
@@ -283,23 +293,20 @@ class FiniteElementBase(metaclass=ABCMeta):
             # CONVERT x TO gem.PointSet
             #
 
-            # Convert list of points to equivalent PointSet
-            allpts = None
-            dim = None
-            for i in range(len(x)):
+            # Convert PointSets to a single PointSet with the correct ordering
+            # for contraction with Q
+            random_pt, _ = next(iter(x.values()))
+            dim = random_pt.dimension
+            allpts = numpy.empty((len(x), dim), dtype=random_pt.points.dtype)
+            for _, (x_k, k) in x.items():
+                assert x_k.dimension == dim
+                allpts[k, :] = x_k.points
                 # For the future - can only have one UnknownPointSingleton in the
                 # pointset.
                 # if isinstance(x[i], UnknownPointSingleton):
                 #     assert len(x) == 1
                 #     x = x[0]
                 # and skip x = PointSet(allpts)
-                if dim is not None:
-                    assert x[i].dimension == dim
-                dim = x[i].dimension
-                if allpts is not None:
-                    allpts = numpy.concatenate((allpts, x[i].points), axis=0)
-                else:
-                    allpts = x[i].points
             assert allpts.shape[1] == dim
             x = PointSet(allpts)
 
