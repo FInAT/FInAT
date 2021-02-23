@@ -286,8 +286,8 @@ class FiniteElementBase(metaclass=ABCMeta):
 
             # Convert dictionary of keys to SparseLiteral
             Q = gem.SparseLiteral(Q)  # FIXME: This fails to compile since Impero can't yet deal with a sparse tensor
-            # FIXME: Temporarily use a normal literal
-            Q = gem.Literal(Q.array.todense())
+            # # FIXME: Temporarily use a normal literal
+            # Q = gem.Literal(Q.array.todense())
 
             #
             # CONVERT x TO gem.PointSet
@@ -341,7 +341,8 @@ class FiniteElementBase(metaclass=ABCMeta):
                 basis_index = tuple(i for i in expr.free_indices if i.extent == basis_indices[0].extent)[0]
                 basis_indices = (basis_index,)
             else:
-                dual_eval_is = gem.optimise.make_product((Q[basis_indices + x.indices + expr_shape_indices], expr[expr_shape_indices]), x.indices+expr_shape_indices)
+                # dual_eval_is = gem.optimise.make_product((Q[basis_indices + x.indices + expr_shape_indices], expr[expr_shape_indices]), x.indices+expr_shape_indices)
+                dual_eval_is = gem.SparseContraction(Q[basis_indices + x.indices + expr_shape_indices], expr[expr_shape_indices], x.indices+expr_shape_indices)
             dual_eval_is_w_shape = gem.ComponentTensor(dual_eval_is, basis_indices)
             assert dual_eval_is_w_shape.shape[0] == Q.shape[0]
             return dual_eval_is_w_shape
