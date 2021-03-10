@@ -2,8 +2,12 @@ from itertools import chain, repeat
 
 import gem
 import numpy
-import symengine
 import sympy
+try:
+    import symengine
+    symbolics = symengine
+except ImportError:
+    symbolics = sympy
 from FIAT.polynomial_set import mis
 from FIAT.reference_element import UFCQuadrilateral
 from gem.utils import cached_property
@@ -67,7 +71,7 @@ class DirectSerendipity(DirectlyDefinedElement, FiniteElementBase):
 
     @cached_property
     def _basis(self):
-        return ds_sym(self.cell.topology, self.degree, sp=symengine)
+        return ds_sym(self.cell.topology, self.degree, sp=symbolics)
 
     def _basis_deriv(self, xx, alpha):
         key = (tuple(xx), alpha)
@@ -125,7 +129,7 @@ def xysub(x, y):
     return {x[0]: y[0], x[1]: y[1]}
 
 
-def ds1_sym(ct, *, vs=None, sp=symengine):
+def ds1_sym(ct, *, vs=None, sp=symbolics):
     """Constructs lowest-order case of Arbogast's directly defined C^0 serendipity
     elements, which are a special case.
     :param ct: The cell topology of the reference quadrilateral.
@@ -243,7 +247,7 @@ def diff(expr, xx, alpha):
         return symengine.diff(expr, *(chain(*(repeat(x, a) for x, a in zip(xx, alpha)))))
 
 
-def dsr_sym(ct, r, *, vs=None, sp=symengine):
+def dsr_sym(ct, r, *, vs=None, sp=symbolics):
     """Constructs higher-order (>= 2) case of Arbogast's directly defined C^0 serendipity
     elements, which include all polynomials of degree r plus a couple of rational
     functions.
@@ -466,7 +470,7 @@ def dsr_sym(ct, r, *, vs=None, sp=symengine):
     return vs, xx, numpy.asarray(bfs)
 
 
-def ds_sym(ct, r, *, vs=None, sp=symengine):
+def ds_sym(ct, r, *, vs=None, sp=symbolics):
     """Symbolically Constructs Arbogast's directly defined C^0 serendipity elements,
     which include all polynomials of degree r plus a couple of rational functions.
     :param ct: The cell topology of the reference quadrilateral.
