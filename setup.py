@@ -14,8 +14,9 @@ setup(name="FInAT",
       url="https://github.com/FInAT/FInAT",
       license="MIT",
       packages=["finat"],
+      # symengine is optional, but faster than sympy.
+      extras_require={'full': ['symengine']},
       install_requires=[
           'numpy>=1.16',
-          'symengine',
           'sympy',
       ])
