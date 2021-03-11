@@ -1,7 +1,13 @@
 from functools import singledispatch, reduce
 
 import sympy
-import symengine
+try:
+    import symengine
+except ImportError:
+    class Mock:
+        def __getattribute__(self, name):
+            return Mock
+    symengine = Mock()
 
 import gem
 
