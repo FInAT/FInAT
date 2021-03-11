@@ -12,7 +12,6 @@
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
 <!--[if lte IE 6]>
@@ -55,8 +54,12 @@
 
 <span class="kn">import</span> <span class="nn">gem</span>
 <span class="kn">import</span> <span class="nn">numpy</span>
-<span class="kn">import</span> <span class="nn">symengine</span>
 <span class="kn">import</span> <span class="nn">sympy</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">symengine</span>
+    <span class="n">symbolics</span> <span class="o">=</span> <span class="n">symengine</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">symbolics</span> <span class="o">=</span> <span class="n">sympy</span>
 <span class="kn">from</span> <span class="nn">FIAT.polynomial_set</span> <span class="kn">import</span> <span class="n">mis</span>
 <span class="kn">from</span> <span class="nn">FIAT.reference_element</span> <span class="kn">import</span> <span class="n">UFCQuadrilateral</span>
 <span class="kn">from</span> <span class="nn">gem.utils</span> <span class="kn">import</span> <span class="n">cached_property</span>
@@ -120,7 +123,7 @@
 
     <span class="nd">@cached_property</span>
     <span class="k">def</span> <span class="nf">_basis</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">ds_sym</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">topology</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">degree</span><span class="p">,</span> <span class="n">sp</span><span class="o">=</span><span class="n">symengine</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ds_sym</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">topology</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">degree</span><span class="p">,</span> <span class="n">sp</span><span class="o">=</span><span class="n">symbolics</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_basis_deriv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xx</span><span class="p">,</span> <span class="n">alpha</span><span class="p">):</span>
         <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">xx</span><span class="p">),</span> <span class="n">alpha</span><span class="p">)</span>
@@ -178,7 +181,7 @@
     <span class="k">return</span> <span class="p">{</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">]}</span></div>
 
 
-<div class="viewcode-block" id="ds1_sym"><a class="viewcode-back" href="../../finat.html#finat.direct_serendipity.ds1_sym">[docs]</a><span class="k">def</span> <span class="nf">ds1_sym</span><span class="p">(</span><span class="n">ct</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">vs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sp</span><span class="o">=</span><span class="n">symengine</span><span class="p">):</span>
+<div class="viewcode-block" id="ds1_sym"><a class="viewcode-back" href="../../finat.html#finat.direct_serendipity.ds1_sym">[docs]</a><span class="k">def</span> <span class="nf">ds1_sym</span><span class="p">(</span><span class="n">ct</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">vs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sp</span><span class="o">=</span><span class="n">symbolics</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Constructs lowest-order case of Arbogast&#39;s directly defined C^0 serendipity</span>
 <span class="sd">    elements, which are a special case.</span>
 <span class="sd">    :param ct: The cell topology of the reference quadrilateral.</span>
@@ -296,7 +299,7 @@
         <span class="k">return</span> <span class="n">symengine</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="o">*</span><span class="p">(</span><span class="n">chain</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">repeat</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="n">alpha</span><span class="p">)))))</span></div>
 
 
-<div class="viewcode-block" id="dsr_sym"><a class="viewcode-back" href="../../finat.html#finat.direct_serendipity.dsr_sym">[docs]</a><span class="k">def</span> <span class="nf">dsr_sym</span><span class="p">(</span><span class="n">ct</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">vs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sp</span><span class="o">=</span><span class="n">symengine</span><span class="p">):</span>
+<div class="viewcode-block" id="dsr_sym"><a class="viewcode-back" href="../../finat.html#finat.direct_serendipity.dsr_sym">[docs]</a><span class="k">def</span> <span class="nf">dsr_sym</span><span class="p">(</span><span class="n">ct</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">vs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sp</span><span class="o">=</span><span class="n">symbolics</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Constructs higher-order (&gt;= 2) case of Arbogast&#39;s directly defined C^0 serendipity</span>
 <span class="sd">    elements, which include all polynomials of degree r plus a couple of rational</span>
 <span class="sd">    functions.</span>
@@ -519,7 +522,7 @@
     <span class="k">return</span> <span class="n">vs</span><span class="p">,</span> <span class="n">xx</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">bfs</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="ds_sym"><a class="viewcode-back" href="../../finat.html#finat.direct_serendipity.ds_sym">[docs]</a><span class="k">def</span> <span class="nf">ds_sym</span><span class="p">(</span><span class="n">ct</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">vs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sp</span><span class="o">=</span><span class="n">symengine</span><span class="p">):</span>
+<div class="viewcode-block" id="ds_sym"><a class="viewcode-back" href="../../finat.html#finat.direct_serendipity.ds_sym">[docs]</a><span class="k">def</span> <span class="nf">ds_sym</span><span class="p">(</span><span class="n">ct</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">vs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sp</span><span class="o">=</span><span class="n">symbolics</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Symbolically Constructs Arbogast&#39;s directly defined C^0 serendipity elements,</span>
 <span class="sd">    which include all polynomials of degree r plus a couple of rational functions.</span>
 <span class="sd">    :param ct: The cell topology of the reference quadrilateral.</span>
@@ -543,7 +546,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2014--2020, David A. Ham, Robert C. Kirby and others.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.4.3.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
     </div>
   </body>
 </html>
