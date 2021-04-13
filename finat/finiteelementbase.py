@@ -323,9 +323,17 @@ class FiniteElementBase(metaclass=ABCMeta):
             Q_shape_indices = tuple(gem.Index(extent=ex) for ex in Q.shape)
             assert tuple(i.extent for i in Q_shape_indices[2:]) == tuple(i.extent for i in expr_shape_indices)
             basis_indices = Q_shape_indices[:1]
-            if is_identity:
+            if is_identity and expr.free_indices != ():
                 assert len(set(Q.shape)) == 1
                 # Don't bother multiplying by an identity tensor
+
+                # FIXME - Since expr can have no free indices at this
+                # point (see TSFC issue #240), there's no easy way to make this
+                # short cut where expr.free_indices == () whilst maintaining
+                # the interface that dual_evaluation returns something with
+                # (num_nodes,) shape. To make this work, I'll need to change
+                # driver.py to expect a different interface.
+
                 dual_eval_is = expr
                 # replace the free index with an index of the same extent in
                 # expr. TODO: Consider if basis_indices can be found in Q in
