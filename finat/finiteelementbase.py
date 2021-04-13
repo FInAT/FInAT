@@ -9,7 +9,7 @@ from gem.interpreter import evaluate
 from gem.utils import cached_property
 
 from finat.quadrature import make_quadrature
-from finat.point_set import PointSet
+from finat.point_set import PointSet, UnknownPointSingleton
 
 
 class FiniteElementBase(metaclass=ABCMeta):
@@ -246,6 +246,11 @@ class FiniteElementBase(metaclass=ABCMeta):
             for j in range(len(dual_functional)):
                 # Ignore alpha, just extract point (x_j) and weights (q_j)
                 x_j, q_j, _ = dual_functional[j]
+
+                # Don't try to make a matrix for a runtime point
+                if isinstance(x_j, UnknownPointSingleton):
+                    can_construct = False
+                    break
 
                 # Esure all weights have the same shape
                 if last_shape is not None:
