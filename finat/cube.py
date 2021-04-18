@@ -49,6 +49,9 @@ class FlattenedDimensions(FiniteElementBase):
     def entity_dofs(self):
         return self._entity_dofs
 
+    def entity_dofs_per_derivative_order(self):
+        return None
+
     def space_dimension(self):
         return self.product.space_dimension()
 

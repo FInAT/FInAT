@@ -55,6 +55,11 @@ class TensorProductElement(FiniteElementBase):
     def entity_dofs(self):
         return self._entity_dofs
 
+    def entity_dofs_per_derivative_order(self):
+        '''Return the map of topological entities to degrees of
+        freedom per derivative order for the finite element.'''
+        return None
+
     def space_dimension(self):
         return numpy.prod([fe.space_dimension() for fe in self.factors])
 

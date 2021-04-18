@@ -65,6 +65,9 @@ class FiatElement(FiniteElementBase):
     def entity_dofs(self):
         return self._element.entity_dofs()
 
+    def entity_dofs_per_derivative_order(self):
+        return self._element.entity_dofs_per_derivative_order()
+
     def entity_closure_dofs(self):
         return self._element.entity_closure_dofs()
 

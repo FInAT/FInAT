@@ -62,6 +62,9 @@ class RuntimeTabulated(FiniteElementBase):
     def entity_dofs(self):
         raise NotImplementedError("I cannot tell where my DoFs are... :-/")
 
+    def entity_dofs_per_derivative_order(self):
+        raise NotImplementedError("I cannot tell where my DoFs are... :-/")
+
     def space_dimension(self):
         return self.degree + 1
 

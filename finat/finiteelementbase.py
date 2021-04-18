@@ -32,6 +32,11 @@ class FiniteElementBase(metaclass=ABCMeta):
         '''Return the map of topological entities to degrees of
         freedom for the finite element.'''
 
+    @abstractmethod
+    def entity_dofs_per_derivative_order(self):
+        '''Return the map of topological entities to degrees of
+        freedom per derivative order for the finite element.'''
+
     @cached_property
     def _entity_closure_dofs(self):
         # Compute the nodes on the closure of each sub_entity.

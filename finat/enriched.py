@@ -52,6 +52,11 @@ class EnrichedElement(FiniteElementBase):
         return concatenate_entity_dofs(self.cell, self.elements,
                                        methodcaller("entity_support_dofs"))
 
+    def entity_dofs_per_derivative_order(self):
+        '''Return the map of topological entities to degrees of
+        freedom per derivative order for the finite element.'''
+        return None
+
     def space_dimension(self):
         '''Return the dimension of the finite element space.'''
         return sum(elem.space_dimension() for elem in self.elements)
