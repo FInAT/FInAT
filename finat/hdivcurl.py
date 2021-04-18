@@ -39,6 +39,9 @@ class WrapperElementBase(FiniteElementBase):
     def entity_support_dofs(self):
         return self.wrappee.entity_support_dofs()
 
+    def entity_dofs_per_derivative_order(self):
+        return None
+
     def space_dimension(self):
         return self.wrappee.space_dimension()
 

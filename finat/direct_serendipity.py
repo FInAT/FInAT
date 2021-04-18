@@ -58,6 +58,9 @@ class DirectSerendipity(DirectlyDefinedElement, FiniteElementBase):
                     2: {0: list(range(4 + 4 * (self.degree - 1),
                                       self.space_dimension()))}}
 
+    def entity_dofs_per_derivative_order(self):
+        return None
+
     def space_dimension(self):
         return 4 if self.degree == 1 else (self.degree+1)*(self.degree+2)//2 + 2
 
