@@ -70,6 +70,10 @@ class FiatElement(FiniteElementBase):
     def entity_closure_dofs(self):
         return self._element.entity_closure_dofs()
 
+    @property
+    def entity_permutations(self):
+        return self._element.entity_permutations()
+
     def space_dimension(self):
         return self._element.space_dimension()
 
