@@ -37,21 +37,21 @@ class PointSingleton(AbstractPointSet):
     """Just a single point."""
 
     def __init__(self, point):
-        point = numpy.asarray(point)
-        assert len(point.shape) == 1
+        point = numpy.asarray(point).reshape(1, -1)
+        assert point.shape[0] == 1
         self.point = point
 
     @property
     def points(self):
-        return self.point.reshape(1, -1)
+        return self.point
 
     @property
     def indices(self):
-        return ()
+        return (gem.Index(extent=len(self.points)),)
 
     @cached_property
     def expression(self):
-        return gem.Literal(self.point)
+        return gem.Literal(self.point[0])
 
 
 class PointSet(AbstractPointSet):
