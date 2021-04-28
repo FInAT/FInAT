@@ -72,6 +72,9 @@ class PointSet(AbstractPointSet):
 
     @cached_property
     def expression(self):
+        npoints, _ = self.points.shape
+        if npoints <= 1:
+            return gem.Literal(self.points[0])
         return gem.partial_indexed(gem.Literal(self.points), self.indices)
 
     def almost_equal(self, other, tolerance=1e-12):
