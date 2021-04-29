@@ -9,7 +9,12 @@ from gem.utils import cached_property
 
 class AbstractPointSet(metaclass=ABCMeta):
     """A way of specifying a known set of points, perhaps with some
-    (tensor) structure."""
+    (tensor) structure.
+
+    Points, when stored, have shape point_set_shape + (point_dimension,)
+    where point_set_shape is () for scalar, (N,) for N element vector,
+    (N, M) for N x M matrix etc.
+    """
 
     @abstractproperty
     def points(self):
@@ -34,15 +39,24 @@ class AbstractPointSet(metaclass=ABCMeta):
 
 
 class PointSingleton(AbstractPointSet):
-    """Just a single point."""
+    """A point set representing a single point.
+
+    These have a `gem.Literal` expression and no indices."""
 
     def __init__(self, point):
+        """Build a PointSingleton from a single point.
+
+        :arg point: A single point of shape (D,) where D is the dimension of
+            the point."""
         point = numpy.asarray(point)
+        # 1 point ought to be a 1D array - see docstring above and points method
         assert len(point.shape) == 1
         self.point = point
 
     @property
     def points(self):
+        # Make sure we conform to the expected (# of points, point dimension)
+        # shape
         return self.point.reshape(1, -1)
 
     @property
@@ -55,9 +69,14 @@ class PointSingleton(AbstractPointSet):
 
 
 class PointSet(AbstractPointSet):
-    """A basic point set with no internal structure."""
+    """A basic point set with no internal structure representing a vector of
+    points."""
 
     def __init__(self, points):
+        """Build a PointSet from a vector of points
+
+        :arg points: A vector of N points of shape (N, D) where D is the
+            dimension of each point."""
         points = numpy.asarray(points)
         assert len(points.shape) == 2
         self.points = points
