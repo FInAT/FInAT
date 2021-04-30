@@ -61,7 +61,12 @@
 
 <div class="viewcode-block" id="AbstractPointSet"><a class="viewcode-back" href="../../finat.html#finat.point_set.AbstractPointSet">[docs]</a><span class="k">class</span> <span class="nc">AbstractPointSet</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">ABCMeta</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;A way of specifying a known set of points, perhaps with some</span>
-<span class="sd">    (tensor) structure.&quot;&quot;&quot;</span>
+<span class="sd">    (tensor) structure.</span>
+
+<span class="sd">    Points, when stored, have shape point_set_shape + (point_dimension,)</span>
+<span class="sd">    where point_set_shape is () for scalar, (N,) for N element vector,</span>
+<span class="sd">    (N, M) for N x M matrix etc.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="nd">@abstractproperty</span>
     <span class="k">def</span> <span class="nf">points</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -86,15 +91,24 @@
 
 
 <div class="viewcode-block" id="PointSingleton"><a class="viewcode-back" href="../../finat.html#finat.point_set.PointSingleton">[docs]</a><span class="k">class</span> <span class="nc">PointSingleton</span><span class="p">(</span><span class="n">AbstractPointSet</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Just a single point.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;A point set representing a single point.</span>
+
+<span class="sd">    These have a `gem.Literal` expression and no indices.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Build a PointSingleton from a single point.</span>
+
+<span class="sd">        :arg point: A single point of shape (D,) where D is the dimension of</span>
+<span class="sd">            the point.&quot;&quot;&quot;</span>
         <span class="n">point</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">point</span><span class="p">)</span>
+        <span class="c1"># 1 point ought to be a 1D array - see docstring above and points method</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">point</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">point</span> <span class="o">=</span> <span class="n">point</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">points</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Make sure we conform to the expected (# of points, point dimension)</span>
+        <span class="c1"># shape</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">point</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
 
     <span class="nd">@property</span>
@@ -107,9 +121,14 @@
 
 
 <div class="viewcode-block" id="PointSet"><a class="viewcode-back" href="../../finat.html#finat.point_set.PointSet">[docs]</a><span class="k">class</span> <span class="nc">PointSet</span><span class="p">(</span><span class="n">AbstractPointSet</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A basic point set with no internal structure.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;A basic point set with no internal structure representing a vector of</span>
+<span class="sd">    points.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Build a PointSet from a vector of points</span>
+
+<span class="sd">        :arg points: A vector of N points of shape (N, D) where D is the</span>
+<span class="sd">            dimension of each point.&quot;&quot;&quot;</span>
         <span class="n">points</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">points</span> <span class="o">=</span> <span class="n">points</span>
@@ -192,7 +211,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2014--2020, David A. Ham, Robert C. Kirby and others.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
     </div>
   </body>
 </html>

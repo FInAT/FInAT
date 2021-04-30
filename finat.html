@@ -1742,6 +1742,9 @@ basis functions.</p>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>A way of specifying a known set of points, perhaps with some
 (tensor) structure.</p>
+<p>Points, when stored, have shape point_set_shape + (point_dimension,)
+where point_set_shape is () for scalar, (N,) for N element vector,
+(N, M) for N x M matrix etc.</p>
 <dl class="py method">
 <dt id="finat.point_set.AbstractPointSet.dimension">
 <em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">dimension</span></code><a class="headerlink" href="#finat.point_set.AbstractPointSet.dimension" title="Permalink to this definition">¶</a></dt>
@@ -1777,6 +1780,13 @@ point set.</p>
 <dd><p>Bases: <a class="reference internal" href="#finat.point_set.PointSet" title="finat.point_set.PointSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">finat.point_set.PointSet</span></code></a></p>
 <p>Gauss-Legendre quadrature points on the interval.</p>
 <p>This facilitates implementing discontinuous spectral elements.</p>
+<p>Build a PointSet from a vector of points</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>points</strong> – A vector of N points of shape (N, D) where D is the
+dimension of each point.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py class">
@@ -1785,13 +1795,28 @@ point set.</p>
 <dd><p>Bases: <a class="reference internal" href="#finat.point_set.PointSet" title="finat.point_set.PointSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">finat.point_set.PointSet</span></code></a></p>
 <p>Gauss-Lobatto-Legendre quadrature points on the interval.</p>
 <p>This facilitates implementing continuous spectral elements.</p>
+<p>Build a PointSet from a vector of points</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>points</strong> – A vector of N points of shape (N, D) where D is the
+dimension of each point.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py class">
 <dt id="finat.point_set.PointSet">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">finat.point_set.</span></code><code class="sig-name descname"><span class="pre">PointSet</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/point_set.html#PointSet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.point_set.PointSet" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#finat.point_set.AbstractPointSet" title="finat.point_set.AbstractPointSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">finat.point_set.AbstractPointSet</span></code></a></p>
-<p>A basic point set with no internal structure.</p>
+<p>A basic point set with no internal structure representing a vector of
+points.</p>
+<p>Build a PointSet from a vector of points</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>points</strong> – A vector of N points of shape (N, D) where D is the
+dimension of each point.</p>
+</dd>
+</dl>
 <dl class="py method">
 <dt id="finat.point_set.PointSet.almost_equal">
 <code class="sig-name descname"><span class="pre">almost_equal</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-12</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/point_set.html#PointSet.almost_equal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.point_set.PointSet.almost_equal" title="Permalink to this definition">¶</a></dt>
@@ -1819,7 +1844,15 @@ point set.</p>
 <dt id="finat.point_set.PointSingleton">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">finat.point_set.</span></code><code class="sig-name descname"><span class="pre">PointSingleton</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/point_set.html#PointSingleton"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.point_set.PointSingleton" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#finat.point_set.AbstractPointSet" title="finat.point_set.AbstractPointSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">finat.point_set.AbstractPointSet</span></code></a></p>
-<p>Just a single point.</p>
+<p>A point set representing a single point.</p>
+<p>These have a <cite>gem.Literal</cite> expression and no indices.</p>
+<p>Build a PointSingleton from a single point.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>point</strong> – A single point of shape (D,) where D is the dimension of
+the point.</p>
+</dd>
+</dl>
 <dl class="py attribute">
 <dt id="finat.point_set.PointSingleton.expression">
 <code class="sig-name descname"><span class="pre">expression</span></code><a class="reference internal" href="_modules/finat/point_set.html#PointSingleton.expression"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.point_set.PointSingleton.expression" title="Permalink to this definition">¶</a></dt>
@@ -2737,7 +2770,7 @@ free indices are arbitrary.</p></li>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2014--2020, David A. Ham, Robert C. Kirby and others.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
     </div>
   </body>
 </html>
