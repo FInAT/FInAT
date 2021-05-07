@@ -69,12 +69,28 @@ class PointSingleton(AbstractPointSet):
 
 
 class UnknownPointSingleton(AbstractPointSet):
-    """A single unknown point."""
+    """A point set representing a single point with unknown location but known
+    `gem.Variable` expression.
+
+    Stored points are `numpy.nan`s to indicate that they are not known.
+
+    In the future this can be easily replaced with an equivalent for a whole
+    point set representing multiple points though storing the full array of
+    `numpy.nans` may become undesirable and require interface changes."""
 
     def __init__(self, point_expr):
+        """Build a PointSingleton from a gem expression for a single point.
+
+        :arg point_expr: A `gem.Variable` expression representing a single
+            point of shape (D,) where D is the dimension of the point.
+            Since this represents a single point and is a `gem.Variable` it
+            should have no free indices."""
         assert isinstance(point_expr, gem.Variable)
+        # Check we only have 1 point
+        assert point_expr.free_indices == ()
+        assert len(point_expr.shape) == 1
         self.expression = point_expr
-        self.points = numpy.full((1, 1), numpy.nan)
+        self.points = numpy.full(point_expr.shape, numpy.nan).reshape(1, -1)
 
     @cached_property
     def points(self):
