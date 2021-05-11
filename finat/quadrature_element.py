@@ -12,17 +12,38 @@ from finat.finiteelementbase import FiniteElementBase
 from finat.quadrature import make_quadrature, AbstractQuadratureRule
 
 
+def make_quadrature_element(fiat_ref_cell, degree, scheme="default"):
+    """Construct a :class:`QuadratureElement` from a given a reference
+    element, degree and scheme.
+
+    :param fiat_ref_cell: The FIAT reference cell to build the
+        :class:`QuadratureElement` on.
+    :param degree: The degree of polynomial that the rule should
+        integrate exactly.
+    :param scheme: The quadrature scheme to use - e.g. "default",
+        "canonical" or "KMV".
+    :returns: The appropriate :class:`QuadratureElement`
+    """
+    rule = make_quadrature(fiat_ref_cell, degree, scheme)
+    return QuadratureElement(fiat_ref_cell, rule)
+
+
 class QuadratureElement(FiniteElementBase):
     """A set of quadrature points pretending to be a finite element."""
 
-    def __init__(self, cell, degree, scheme="default", rule=None):
-        self.cell = cell
-        if rule is not None:
-            if not isinstance(rule, AbstractQuadratureRule):
-                raise TypeError("rule is not an AbstractQuadratureRule")
-            self._rule = rule
-        else:
-            self._rule = make_quadrature(cell, degree, scheme)
+    def __init__(self, fiat_ref_cell, rule):
+        """Construct a :class:`QuadratureElement`.
+
+        :param fiat_ref_cell: The FIAT reference cell to build the
+            :class:`QuadratureElement` on
+        :param rule: A :class:`AbstractQuadratureRule` to use
+        """
+        self.cell = fiat_ref_cell
+        if not isinstance(rule, AbstractQuadratureRule):
+            raise TypeError("rule is not an AbstractQuadratureRule")
+        if fiat_ref_cell.get_dimension() != rule.point_set.dimension:
+            raise ValueError("Cell dimension does not match rule's point set dimension")
+        self._rule = rule
 
     @cached_property
     def cell(self):

@@ -23,7 +23,7 @@ def make_quadrature(ref_el, degree, scheme="default"):
     Gauss scheme on simplices.  On tensor-product cells, it is a
     tensor-product quadrature rule of the subcells.
 
-    :arg cell: The FIAT cell to create the quadrature for.
+    :arg ref_el: The FIAT cell to create the quadrature for.
     :arg degree: The degree of polynomial that the rule should
         integrate exactly.
     """
