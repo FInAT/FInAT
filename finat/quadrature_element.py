@@ -1,3 +1,4 @@
+from finat.point_set import PointSet, UnknownPointSet
 from functools import reduce
 
 import numpy
@@ -83,6 +84,12 @@ class QuadratureElement(FiniteElementBase):
     @cached_property
     def fiat_equivalent(self):
         ps = self._rule.point_set
+        if isinstance(ps, UnknownPointSet):
+            # This really should raise a ValueError since there ought not to be
+            # a FIAT equivalent where the points are unknown.
+            # For compatibility until FInAT dual evaluation is done we pass an
+            # array of NaNs of correct shape as the points.
+            ps = PointSet(numpy.full(ps.points.shape, numpy.nan))
         weights = getattr(self._rule, 'weights', None)
         if weights is None:
             # we need the weights.
