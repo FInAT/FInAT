@@ -3,7 +3,9 @@ import numpy
 
 import FIAT
 
-from gem import Literal, ListTensor
+#from gem import Literal, ListTensor
+import gem
+from gem import Literal, ListTensor, Index, Indexed, Product, IndexSum, MathFunction
 
 from finat.fiat_elements import FiatElement
 from finat.physically_mapped import PhysicallyMappedElement, Citations
@@ -27,19 +29,39 @@ def _edge_transform(T, coordinate_mapping):
     J_np = numpy.array([[J[0, 0], J[0, 1]],
                         [J[1, 0], J[1, 1]]])
     JTJ = J_np.T @ J_np
+    
+    #phys_len = coordinate_mapping.physical_edge_lengths()
 
     for e in range(3):
         # Compute alpha and beta for the edge.
         Ghat_T = numpy.array([nhat[e, :], that[e, :]])
 
         (alpha, beta) = Ghat_T @ JTJ @ that[e, :] / detJ
-
         # Stuff into the right rows and columns.
         (idx1, idx2) = (4*e + 1, 4*e + 3)
         Vsub[idx1, idx1-1] = Literal(-1) * alpha / beta
         Vsub[idx1, idx1] = Literal(1) / beta
         Vsub[idx2, idx2-1] = Literal(-1) * alpha / beta
         Vsub[idx2, idx2] = Literal(1) / beta
+        
+        #vec = J_np @ that[e, :]
+        #Vec = gem.ListTensor(vec)
+        #k = gem.Index()
+        #veck = gem.Indexed(Vec, (k, ))
+        #veck2 = gem.Product(veck, veck)
+        #vec2 = gem.IndexSum(veck2, (k,))
+        #l2 = gem.MathFunction("sqrt", vec2)
+        #l2 = phys_len[e]
+        #for t in range(4):
+        #    for r in range(4):
+        #        Vsub[4*e + t] = Vsub[4*e + t]*l2
+        #l2 = Literal(l2)
+        #Vsub[idx1, idx1-1] = l2*Vsub[idx1, idx1-1]
+        #Vsub[idx1, idx1] = l2*Vsub[idx1,idx1]
+        #Vsub[idx2, idx2-1] = l2*Vsub[idx2, idx2-1]
+        #Vsub[idx2, idx2] = l2*Vsub[idx2, idx2]
+        #Vsub[4*e,4*e] = l2*Vsub[4*e,4*e]
+        #Vsub[4*e+2,4*e+2] = l2*Vsub[4*e+2,4*e+2]
 
     return Vsub
 
@@ -62,8 +84,39 @@ class ArnoldWintherNC(PhysicallyMappedElement, FiatElement):
         V[:12, :12] = _edge_transform(T, coordinate_mapping)
 
         # internal dofs
-        for i in range(12, 15):
-            V[i, i] = Literal(1)
+        #for i in range(12, 15):
+        #    V[i, i] = Literal(1)
+        # The `correct' matrix for the internal DOFs (in the sense of consistent with the paper)
+        J = coordinate_mapping.jacobian_at([1/3, 1/3])
+
+        W = numpy.zeros((3, 3), dtype=object)
+        W[0, 0] = J[1, 1]*J[1, 1]
+        W[0, 1] = -2*J[1, 1]*J[0, 1]
+        W[0, 2] = J[0, 1]*J[0, 1]
+        W[1, 0] = -1*J[1, 1]*J[1, 0]
+        W[1, 1] = J[1, 1]*J[0, 0] + J[0, 1]*J[1, 0]
+        W[1, 2] = -1*J[0, 1]*J[0, 0]
+        W[2, 0] = J[1, 0]*J[1, 0]
+        W[2, 1] = -2*J[1, 0]*J[0, 0]
+        W[2, 2] = J[0, 0]*J[0, 0]
+
+        detJ = coordinate_mapping.detJ_at([1/3, 1/3])
+        V[12:15, 12:15] = W / detJ
+
+        ## RESCALING FOR CONDITIONING
+        h = coordinate_mapping.cell_size()
+        for e in range(3):
+            id1, id2 = [i for i in range(3) if i != e]
+            eff_h = (h[id1] + h[id2]) / 2
+            for i in range(15):
+                V[i,4*e] = V[i,4*e]*eff_h
+                V[i,1+4*e] = V[i,1+4*e]*eff_h
+                V[i,2+4*e] = V[i,2+4*e]*eff_h*eff_h
+                V[i,3+4*e] = V[i,3+4*e]*eff_h*eff_h
+
+
+        avg_h = (h[0] + h[1] + h[2]) / 3            
+        V[12:15, 12:15] = V[12:15, 12:15] * (avg_h*avg_h)
 
         return ListTensor(V.T)
 
@@ -120,8 +173,25 @@ class ArnoldWinther(PhysicallyMappedElement, FiatElement):
 
         V[9:21, 9:21] = _edge_transform(self.cell, coordinate_mapping)
 
-        for i in range(21, 24):
-            V[i, i] = Literal(1)
+        #for i in range(21, 24):
+        #    V[i, i] = Literal(1)
+        # The `correct' matrix for the internal DOFs (in the sense of consistent with the paper)
+        detJ = coordinate_mapping.detJ_at([1/3, 1/3])
+        V[21:24, 21:24] = W / detJ
+
+        ## RESCALING FOR CONDITIONING
+        h = coordinate_mapping.cell_size()
+        for e in range(3):
+            id1, id2 = [i for i in range(3) if i != e]
+            eff_h = (h[id1] + h[id2]) / 2
+            for i in range(24):
+                V[i,9+4*e] = V[i,9+4*e]*eff_h
+                V[i,10+4*e] = V[i,10+4*e]*eff_h
+                V[i,11+4*e] = V[i,11+4*e]*eff_h*eff_h
+                V[i,12+4*e] = V[i,12+4*e]*eff_h*eff_h
+
+        avg_h = (h[0] + h[1] + h[2]) / 3
+        V[21:24, 21:24] = V[21:24, 21:24] * (avg_h*avg_h)
 
         return ListTensor(V.T)
 
