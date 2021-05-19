@@ -109,14 +109,17 @@ class ArnoldWintherNC(PhysicallyMappedElement, FiatElement):
             id1, id2 = [i for i in range(3) if i != e]
             eff_h = (h[id1] + h[id2]) / 2
             for i in range(15):
-                V[i,4*e] = V[i,4*e]*eff_h
-                V[i,1+4*e] = V[i,1+4*e]*eff_h
-                V[i,2+4*e] = V[i,2+4*e]*eff_h*eff_h
-                V[i,3+4*e] = V[i,3+4*e]*eff_h*eff_h
-
+                V[i,4*e] = V[i,4*e]#*eff_h*eff_h
+                V[i,1+4*e] = V[i,1+4*e]#*eff_h*eff_h
+                V[i,2+4*e] = V[i,2+4*e]#*eff_h*eff_h*eff_h
+                V[i,3+4*e] = V[i,3+4*e]#*eff_h*eff_h*eff_h
 
         avg_h = (h[0] + h[1] + h[2]) / 3            
-        V[12:15, 12:15] = V[12:15, 12:15] * (avg_h*avg_h)
+        #V[12:15, 12:15] = V[12:15, 12:15] * (avg_h*avg_h)
+        for e in range(3):
+            for i in range(15):
+                V[i,12+e] = V[i,12+e]#*(avg_h*avg_h)
+                # there's some redundancy here
 
         return ListTensor(V.T)
 
@@ -181,17 +184,28 @@ class ArnoldWinther(PhysicallyMappedElement, FiatElement):
 
         ## RESCALING FOR CONDITIONING
         h = coordinate_mapping.cell_size()
+
+        for e in range(3):
+            eff_h = h[e]
+            for i in range(24):
+                V[i,3*e] = V[i,3*e]/(eff_h*eff_h)
+                V[i,1+3*e] = V[i,1+3*e]/(eff_h*eff_h)
+                V[i,2+3*e] = V[i,2+3*e]/(eff_h*eff_h)
+
         for e in range(3):
             id1, id2 = [i for i in range(3) if i != e]
             eff_h = (h[id1] + h[id2]) / 2
             for i in range(24):
-                V[i,9+4*e] = V[i,9+4*e]*eff_h
-                V[i,10+4*e] = V[i,10+4*e]*eff_h
-                V[i,11+4*e] = V[i,11+4*e]*eff_h*eff_h
-                V[i,12+4*e] = V[i,12+4*e]*eff_h*eff_h
+                V[i,9+4*e] = V[i,9+4*e]#*eff_h
+                V[i,10+4*e] = V[i,10+4*e]#*eff_h
+                V[i,11+4*e] = V[i,11+4*e]#*eff_h*eff_h
+                V[i,12+4*e] = V[i,12+4*e]#*eff_h*eff_h
 
         avg_h = (h[0] + h[1] + h[2]) / 3
-        V[21:24, 21:24] = V[21:24, 21:24] * (avg_h*avg_h)
+        #V[21:24, 21:24] = V[21:24, 21:24]# * (avg_h*avg_h)
+        for e in range(3):
+            for i in range(24):
+                V[i,21+e] = V[i,21+e]#*(avg_h*avg_h)
 
         return ListTensor(V.T)
 
