@@ -30,8 +30,6 @@ def _edge_transform(T, coordinate_mapping):
                         [J[1, 0], J[1, 1]]])
     JTJ = J_np.T @ J_np
     
-    #phys_len = coordinate_mapping.physical_edge_lengths()
-
     for e in range(3):
         # Compute alpha and beta for the edge.
         Ghat_T = numpy.array([nhat[e, :], that[e, :]])
@@ -44,26 +42,24 @@ def _edge_transform(T, coordinate_mapping):
         Vsub[idx2, idx2-1] = Literal(-1) * alpha / beta
         Vsub[idx2, idx2] = Literal(1) / beta
         
-        #vec = J_np @ that[e, :]
-        #Vec = gem.ListTensor(vec)
-        #k = gem.Index()
-        #veck = gem.Indexed(Vec, (k, ))
-        #veck2 = gem.Product(veck, veck)
-        #vec2 = gem.IndexSum(veck2, (k,))
-        #l2 = gem.MathFunction("sqrt", vec2)
-        #l2 = phys_len[e]
-        #for t in range(4):
-        #    for r in range(4):
-        #        Vsub[4*e + t] = Vsub[4*e + t]*l2
-        #l2 = Literal(l2)
-        #Vsub[idx1, idx1-1] = l2*Vsub[idx1, idx1-1]
-        #Vsub[idx1, idx1] = l2*Vsub[idx1,idx1]
-        #Vsub[idx2, idx2-1] = l2*Vsub[idx2, idx2-1]
-        #Vsub[idx2, idx2] = l2*Vsub[idx2, idx2]
-        #Vsub[4*e,4*e] = l2*Vsub[4*e,4*e]
-        #Vsub[4*e+2,4*e+2] = l2*Vsub[4*e+2,4*e+2]
-
     return Vsub
+
+
+def _evaluation_transform(coordinate_mapping):
+    J = coordinate_mapping.jacobian_at([1/3, 1/3])
+
+    W = numpy.zeros((3, 3), dtype=object)
+    W[0, 0] = J[1, 1]*J[1, 1]
+    W[0, 1] = -2*J[1, 1]*J[0, 1]
+    W[0, 2] = J[0, 1]*J[0, 1]
+    W[1, 0] = -1*J[1, 1]*J[1, 0]
+    W[1, 1] = J[1, 1]*J[0, 0] + J[0, 1]*J[1, 0]
+    W[1, 2] = -1*J[0, 1]*J[0, 0]
+    W[2, 0] = J[1, 0]*J[1, 0]
+    W[2, 1] = -2*J[1, 0]*J[0, 0]
+    W[2, 2] = J[0, 0]*J[0, 0]
+
+    return W
 
 
 class ArnoldWintherNC(PhysicallyMappedElement, FiatElement):
@@ -84,42 +80,14 @@ class ArnoldWintherNC(PhysicallyMappedElement, FiatElement):
         V[:12, :12] = _edge_transform(T, coordinate_mapping)
 
         # internal dofs
-        #for i in range(12, 15):
-        #    V[i, i] = Literal(1)
-        # The `correct' matrix for the internal DOFs (in the sense of consistent with the paper)
-        J = coordinate_mapping.jacobian_at([1/3, 1/3])
-
-        W = numpy.zeros((3, 3), dtype=object)
-        W[0, 0] = J[1, 1]*J[1, 1]
-        W[0, 1] = -2*J[1, 1]*J[0, 1]
-        W[0, 2] = J[0, 1]*J[0, 1]
-        W[1, 0] = -1*J[1, 1]*J[1, 0]
-        W[1, 1] = J[1, 1]*J[0, 0] + J[0, 1]*J[1, 0]
-        W[1, 2] = -1*J[0, 1]*J[0, 0]
-        W[2, 0] = J[1, 0]*J[1, 0]
-        W[2, 1] = -2*J[1, 0]*J[0, 0]
-        W[2, 2] = J[0, 0]*J[0, 0]
-
+        W = _evaluation_transform(coordinate_mapping)
         detJ = coordinate_mapping.detJ_at([1/3, 1/3])
+
         V[12:15, 12:15] = W / detJ
 
-        ## RESCALING FOR CONDITIONING
-        h = coordinate_mapping.cell_size()
-        for e in range(3):
-            id1, id2 = [i for i in range(3) if i != e]
-            eff_h = (h[id1] + h[id2]) / 2
-            for i in range(15):
-                V[i,4*e] = V[i,4*e]#*eff_h*eff_h
-                V[i,1+4*e] = V[i,1+4*e]#*eff_h*eff_h
-                V[i,2+4*e] = V[i,2+4*e]#*eff_h*eff_h*eff_h
-                V[i,3+4*e] = V[i,3+4*e]#*eff_h*eff_h*eff_h
-
-        avg_h = (h[0] + h[1] + h[2]) / 3            
-        #V[12:15, 12:15] = V[12:15, 12:15] * (avg_h*avg_h)
-        for e in range(3):
-            for i in range(15):
-                V[i,12+e] = V[i,12+e]#*(avg_h*avg_h)
-                # there's some redundancy here
+        # Note: that the edge DOFs are scaled by edge lengths in FIAT implies
+        # that they are already have the necessary rescaling to improve
+        # conditioning.
 
         return ListTensor(V.T)
 
@@ -159,26 +127,14 @@ class ArnoldWinther(PhysicallyMappedElement, FiatElement):
             V[multiindex] = Literal(V[multiindex])
 
         J = coordinate_mapping.jacobian_at([1/3, 1/3])
-
-        W = numpy.zeros((3, 3), dtype=object)
-        W[0, 0] = J[1, 1]*J[1, 1]
-        W[0, 1] = -2*J[1, 1]*J[0, 1]
-        W[0, 2] = J[0, 1]*J[0, 1]
-        W[1, 0] = -1*J[1, 1]*J[1, 0]
-        W[1, 1] = J[1, 1]*J[0, 0] + J[0, 1]*J[1, 0]
-        W[1, 2] = -1*J[0, 1]*J[0, 0]
-        W[2, 0] = J[1, 0]*J[1, 0]
-        W[2, 1] = -2*J[1, 0]*J[0, 0]
-        W[2, 2] = J[0, 0]*J[0, 0]
+        W = _evaluation_transform(coordinate_mapping)
 
         # Put into the right rows and columns.
         V[0:3, 0:3] = V[3:6, 3:6] = V[6:9, 6:9] = W
 
         V[9:21, 9:21] = _edge_transform(self.cell, coordinate_mapping)
 
-        #for i in range(21, 24):
-        #    V[i, i] = Literal(1)
-        # The `correct' matrix for the internal DOFs (in the sense of consistent with the paper)
+        # internal DOFs
         detJ = coordinate_mapping.detJ_at([1/3, 1/3])
         V[21:24, 21:24] = W / detJ
 
@@ -192,20 +148,9 @@ class ArnoldWinther(PhysicallyMappedElement, FiatElement):
                 V[i,1+3*e] = V[i,1+3*e]/(eff_h*eff_h)
                 V[i,2+3*e] = V[i,2+3*e]/(eff_h*eff_h)
 
-        for e in range(3):
-            id1, id2 = [i for i in range(3) if i != e]
-            eff_h = (h[id1] + h[id2]) / 2
-            for i in range(24):
-                V[i,9+4*e] = V[i,9+4*e]#*eff_h
-                V[i,10+4*e] = V[i,10+4*e]#*eff_h
-                V[i,11+4*e] = V[i,11+4*e]#*eff_h*eff_h
-                V[i,12+4*e] = V[i,12+4*e]#*eff_h*eff_h
-
-        avg_h = (h[0] + h[1] + h[2]) / 3
-        #V[21:24, 21:24] = V[21:24, 21:24]# * (avg_h*avg_h)
-        for e in range(3):
-            for i in range(24):
-                V[i,21+e] = V[i,21+e]#*(avg_h*avg_h)
+        # Note: that the edge DOFs are scaled by edge lengths in FIAT implies
+        # that they are already have the necessary rescaling to improve
+        # conditioning.
 
         return ListTensor(V.T)
 
