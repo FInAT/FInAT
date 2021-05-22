@@ -347,6 +347,7 @@ class TrimmedSerendipityEdge(VectorFiatElement):
     def __init__(self, cell, degree):
         super(TrimmedSerendipityEdge, self).__init__(FIAT.TrimmedSerendipityEdge(cell, degree))
 
+
 class TrimmedSerendipityCurl(VectorFiatElement):
     def __init__(self, cell, degree):
         super(TrimmedSerendipityCurl, self).__init__(FIAT.TrimmedSerendipityCurl(cell, degree))
@@ -354,8 +355,7 @@ class TrimmedSerendipityCurl(VectorFiatElement):
 
 class BrezziDouglasMarini(VectorFiatElement):
     def __init__(self, cell, degree, variant=None):
-        #super(BrezziDouglasMarini, self).__init__(FIAT.BrezziDouglasMarini(cell, degree, variant=variant))
-        super(BrezziDouglasMarini, self).__init__(FIAT.BrezziDouglasMarini(cell, degree))
+        super(BrezziDouglasMarini, self).__init__(FIAT.BrezziDouglasMarini(cell, degree, variant=variant))
 
 
 class BrezziDouglasFortinMarini(VectorFiatElement):
@@ -364,8 +364,8 @@ class BrezziDouglasFortinMarini(VectorFiatElement):
 
 
 class Nedelec(VectorFiatElement):
-    def __init__(self, cell, degree):
-        super(Nedelec, self).__init__(FIAT.Nedelec(cell, degree))
+    def __init__(self, cell, degree, variant=None):
+        super(Nedelec, self).__init__(FIAT.Nedelec(cell, degree, variant=variant))
 
 
 class NedelecSecondKind(VectorFiatElement):
