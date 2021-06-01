@@ -6,9 +6,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>finat.point_set &#8212; FInAT 0.1 documentation</title>
-    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../../_static/fenics.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/fenics.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
@@ -70,8 +70,8 @@
 
     <span class="nd">@abstractproperty</span>
     <span class="k">def</span> <span class="nf">points</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;A flattened numpy array of points with shape</span>
-<span class="sd">        (# of points, point dimension).&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;A flattened numpy array of points or ``UnknownPointsArray``</span>
+<span class="sd">        object with shape (# of points, point dimension).&quot;&quot;&quot;</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">dimension</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -93,7 +93,7 @@
 <div class="viewcode-block" id="PointSingleton"><a class="viewcode-back" href="../../finat.html#finat.point_set.PointSingleton">[docs]</a><span class="k">class</span> <span class="nc">PointSingleton</span><span class="p">(</span><span class="n">AbstractPointSet</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;A point set representing a single point.</span>
 
-<span class="sd">    These have a `gem.Literal` expression and no indices.&quot;&quot;&quot;</span>
+<span class="sd">    These have a ``gem.Literal`` expression and no indices.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Build a PointSingleton from a single point.</span>
@@ -105,19 +105,71 @@
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">point</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">point</span> <span class="o">=</span> <span class="n">point</span>
 
-    <span class="nd">@property</span>
+<div class="viewcode-block" id="PointSingleton.points"><a class="viewcode-back" href="../../finat.html#finat.point_set.PointSingleton.points">[docs]</a>    <span class="nd">@cached_property</span>
     <span class="k">def</span> <span class="nf">points</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Make sure we conform to the expected (# of points, point dimension)</span>
         <span class="c1"># shape</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">point</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">point</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span></div>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">indices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">()</span>
+    <span class="n">indices</span> <span class="o">=</span> <span class="p">()</span>
 
 <div class="viewcode-block" id="PointSingleton.expression"><a class="viewcode-back" href="../../finat.html#finat.point_set.PointSingleton.expression">[docs]</a>    <span class="nd">@cached_property</span>
     <span class="k">def</span> <span class="nf">expression</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">gem</span><span class="o">.</span><span class="n">Literal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">point</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="UnknownPointsArray"><a class="viewcode-back" href="../../finat.html#finat.point_set.UnknownPointsArray">[docs]</a><span class="k">class</span> <span class="nc">UnknownPointsArray</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;A placeholder for a set of unknown points with appropriate length</span>
+<span class="sd">    and size but without indexable values. For use with</span>
+<span class="sd">    :class:`AbstractPointSet`s whose points are not known at compile</span>
+<span class="sd">    time.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :arg shape: The shape of the unknown set of N points of shape</span>
+<span class="sd">            (N, D) where D is the dimension of each point.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">shape</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="UnknownPointSet"><a class="viewcode-back" href="../../finat.html#finat.point_set.UnknownPointSet">[docs]</a><span class="k">class</span> <span class="nc">UnknownPointSet</span><span class="p">(</span><span class="n">AbstractPointSet</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A point set representing a vector of points with unknown</span>
+<span class="sd">    locations but known ``gem.Variable`` expression.</span>
+
+<span class="sd">    The ``.points`` property is an `UnknownPointsArray` object with</span>
+<span class="sd">    shape (N, D) where N is the number of points and D is their</span>
+<span class="sd">    dimension.</span>
+
+<span class="sd">    The ``.expression`` property is a derived `gem.partial_indexed` with</span>
+<span class="sd">    shape (D,) and free indices for the points N.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points_expr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Build a PointSingleton from a gem expression for a single point.</span>
+
+<span class="sd">        :arg points_expr: A ``gem.Variable`` expression representing a</span>
+<span class="sd">            vector of N points in D dimensions. Should have shape (N, D)</span>
+<span class="sd">            and no free indices. For runtime tabulation the variable</span>
+<span class="sd">            name should begin with \&#39;rt_:\&#39;.&quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">points_expr</span><span class="p">,</span> <span class="n">gem</span><span class="o">.</span><span class="n">Variable</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">points_expr</span><span class="o">.</span><span class="n">free_indices</span> <span class="o">==</span> <span class="p">()</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">points_expr</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_points_expr</span> <span class="o">=</span> <span class="n">points_expr</span>
+
+<div class="viewcode-block" id="UnknownPointSet.points"><a class="viewcode-back" href="../../finat.html#finat.point_set.UnknownPointSet.points">[docs]</a>    <span class="nd">@cached_property</span>
+    <span class="k">def</span> <span class="nf">points</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">UnknownPointsArray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_points_expr</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="UnknownPointSet.indices"><a class="viewcode-back" href="../../finat.html#finat.point_set.UnknownPointSet.indices">[docs]</a>    <span class="nd">@cached_property</span>
+    <span class="k">def</span> <span class="nf">indices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">N</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_points_expr</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">gem</span><span class="o">.</span><span class="n">Index</span><span class="p">(</span><span class="n">extent</span><span class="o">=</span><span class="n">N</span><span class="p">),)</span></div>
+
+<div class="viewcode-block" id="UnknownPointSet.expression"><a class="viewcode-back" href="../../finat.html#finat.point_set.UnknownPointSet.expression">[docs]</a>    <span class="nd">@cached_property</span>
+    <span class="k">def</span> <span class="nf">expression</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">gem</span><span class="o">.</span><span class="n">partial_indexed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_points_expr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="PointSet"><a class="viewcode-back" href="../../finat.html#finat.point_set.PointSet">[docs]</a><span class="k">class</span> <span class="nc">PointSet</span><span class="p">(</span><span class="n">AbstractPointSet</span><span class="p">):</span>
@@ -211,7 +263,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2014--2020, David A. Ham, Robert C. Kirby and others.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.0.2.
     </div>
   </body>
 </html>

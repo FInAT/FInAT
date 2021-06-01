@@ -6,9 +6,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>finat.quadrature_element &#8212; FInAT 0.1 documentation</title>
-    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../../_static/fenics.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/fenics.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
@@ -50,7 +50,8 @@
           <div class="body" role="main">
             
   <h1>Source code for finat.quadrature_element</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">reduce</span>
+<span></span><span class="kn">from</span> <span class="nn">finat.point_set</span> <span class="kn">import</span> <span class="n">PointSet</span><span class="p">,</span> <span class="n">UnknownPointSet</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">reduce</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span>
 
@@ -61,15 +62,41 @@
 <span class="kn">from</span> <span class="nn">gem.utils</span> <span class="kn">import</span> <span class="n">cached_property</span>
 
 <span class="kn">from</span> <span class="nn">finat.finiteelementbase</span> <span class="kn">import</span> <span class="n">FiniteElementBase</span>
-<span class="kn">from</span> <span class="nn">finat.quadrature</span> <span class="kn">import</span> <span class="n">make_quadrature</span>
+<span class="kn">from</span> <span class="nn">finat.quadrature</span> <span class="kn">import</span> <span class="n">make_quadrature</span><span class="p">,</span> <span class="n">AbstractQuadratureRule</span>
+
+
+<div class="viewcode-block" id="make_quadrature_element"><a class="viewcode-back" href="../../finat.html#finat.quadrature_element.make_quadrature_element">[docs]</a><span class="k">def</span> <span class="nf">make_quadrature_element</span><span class="p">(</span><span class="n">fiat_ref_cell</span><span class="p">,</span> <span class="n">degree</span><span class="p">,</span> <span class="n">scheme</span><span class="o">=</span><span class="s2">&quot;default&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Construct a :class:`QuadratureElement` from a given a reference</span>
+<span class="sd">    element, degree and scheme.</span>
+
+<span class="sd">    :param fiat_ref_cell: The FIAT reference cell to build the</span>
+<span class="sd">        :class:`QuadratureElement` on.</span>
+<span class="sd">    :param degree: The degree of polynomial that the rule should</span>
+<span class="sd">        integrate exactly.</span>
+<span class="sd">    :param scheme: The quadrature scheme to use - e.g. &quot;default&quot;,</span>
+<span class="sd">        &quot;canonical&quot; or &quot;KMV&quot;.</span>
+<span class="sd">    :returns: The appropriate :class:`QuadratureElement`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">rule</span> <span class="o">=</span> <span class="n">make_quadrature</span><span class="p">(</span><span class="n">fiat_ref_cell</span><span class="p">,</span> <span class="n">degree</span><span class="p">,</span> <span class="n">scheme</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">QuadratureElement</span><span class="p">(</span><span class="n">fiat_ref_cell</span><span class="p">,</span> <span class="n">rule</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="QuadratureElement"><a class="viewcode-back" href="../../finat.html#finat.quadrature_element.QuadratureElement">[docs]</a><span class="k">class</span> <span class="nc">QuadratureElement</span><span class="p">(</span><span class="n">FiniteElementBase</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;A set of quadrature points pretending to be a finite element.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cell</span><span class="p">,</span> <span class="n">degree</span><span class="p">,</span> <span class="n">scheme</span><span class="o">=</span><span class="s2">&quot;default&quot;</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cell</span> <span class="o">=</span> <span class="n">cell</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_rule</span> <span class="o">=</span> <span class="n">make_quadrature</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span> <span class="n">degree</span><span class="p">,</span> <span class="n">scheme</span><span class="p">)</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fiat_ref_cell</span><span class="p">,</span> <span class="n">rule</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Construct a :class:`QuadratureElement`.</span>
+
+<span class="sd">        :param fiat_ref_cell: The FIAT reference cell to build the</span>
+<span class="sd">            :class:`QuadratureElement` on</span>
+<span class="sd">        :param rule: A :class:`AbstractQuadratureRule` to use</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cell</span> <span class="o">=</span> <span class="n">fiat_ref_cell</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="n">AbstractQuadratureRule</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;rule is not an AbstractQuadratureRule&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">fiat_ref_cell</span><span class="o">.</span><span class="n">get_dimension</span><span class="p">()</span> <span class="o">!=</span> <span class="n">rule</span><span class="o">.</span><span class="n">point_set</span><span class="o">.</span><span class="n">dimension</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cell dimension does not match rule&#39;s point set dimension&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rule</span> <span class="o">=</span> <span class="n">rule</span>
 
 <div class="viewcode-block" id="QuadratureElement.cell"><a class="viewcode-back" href="../../finat.html#finat.quadrature_element.QuadratureElement.cell">[docs]</a>    <span class="nd">@cached_property</span>
     <span class="k">def</span> <span class="nf">cell</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -109,6 +136,12 @@
 <div class="viewcode-block" id="QuadratureElement.fiat_equivalent"><a class="viewcode-back" href="../../finat.html#finat.quadrature_element.QuadratureElement.fiat_equivalent">[docs]</a>    <span class="nd">@cached_property</span>
     <span class="k">def</span> <span class="nf">fiat_equivalent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">ps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rule</span><span class="o">.</span><span class="n">point_set</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ps</span><span class="p">,</span> <span class="n">UnknownPointSet</span><span class="p">):</span>
+            <span class="c1"># This really should raise a ValueError since there ought not to be</span>
+            <span class="c1"># a FIAT equivalent where the points are unknown.</span>
+            <span class="c1"># For compatibility until FInAT dual evaluation is done we pass an</span>
+            <span class="c1"># array of NaNs of correct shape as the points.</span>
+            <span class="n">ps</span> <span class="o">=</span> <span class="n">PointSet</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">ps</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nan</span><span class="p">))</span>
         <span class="n">weights</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rule</span><span class="p">,</span> <span class="s1">&#39;weights&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">weights</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># we need the weights.</span>
@@ -159,7 +192,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2014--2020, David A. Ham, Robert C. Kirby and others.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.0.2.
     </div>
   </body>
 </html>
