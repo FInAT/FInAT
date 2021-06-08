@@ -1,12 +1,7 @@
 """Implementation of the Arnold-Winther finite elements."""
 import numpy
-
 import FIAT
-
-#from gem import Literal, ListTensor
-import gem
-from gem import Literal, ListTensor, Index, Indexed, Product, IndexSum, MathFunction
-
+from gem import Literal, ListTensor
 from finat.fiat_elements import FiatElement
 from finat.physically_mapped import PhysicallyMappedElement, Citations
 
@@ -29,7 +24,7 @@ def _edge_transform(T, coordinate_mapping):
     J_np = numpy.array([[J[0, 0], J[0, 1]],
                         [J[1, 0], J[1, 1]]])
     JTJ = J_np.T @ J_np
-    
+
     for e in range(3):
         # Compute alpha and beta for the edge.
         Ghat_T = numpy.array([nhat[e, :], that[e, :]])
@@ -41,7 +36,7 @@ def _edge_transform(T, coordinate_mapping):
         Vsub[idx1, idx1] = Literal(1) / beta
         Vsub[idx2, idx2-1] = Literal(-1) * alpha / beta
         Vsub[idx2, idx2] = Literal(1) / beta
-        
+
     return Vsub
 
 
@@ -126,7 +121,6 @@ class ArnoldWinther(PhysicallyMappedElement, FiatElement):
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
 
-        J = coordinate_mapping.jacobian_at([1/3, 1/3])
         W = _evaluation_transform(coordinate_mapping)
 
         # Put into the right rows and columns.
@@ -138,15 +132,15 @@ class ArnoldWinther(PhysicallyMappedElement, FiatElement):
         detJ = coordinate_mapping.detJ_at([1/3, 1/3])
         V[21:24, 21:24] = W / detJ
 
-        ## RESCALING FOR CONDITIONING
+        # RESCALING FOR CONDITIONING
         h = coordinate_mapping.cell_size()
 
         for e in range(3):
             eff_h = h[e]
             for i in range(24):
-                V[i,3*e] = V[i,3*e]/(eff_h*eff_h)
-                V[i,1+3*e] = V[i,1+3*e]/(eff_h*eff_h)
-                V[i,2+3*e] = V[i,2+3*e]/(eff_h*eff_h)
+                V[i, 3*e] = V[i, 3*e]/(eff_h*eff_h)
+                V[i, 1+3*e] = V[i, 1+3*e]/(eff_h*eff_h)
+                V[i, 2+3*e] = V[i, 2+3*e]/(eff_h*eff_h)
 
         # Note: that the edge DOFs are scaled by edge lengths in FIAT implies
         # that they are already have the necessary rescaling to improve
