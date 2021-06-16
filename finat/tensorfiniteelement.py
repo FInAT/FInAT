@@ -122,20 +122,7 @@ class TensorFiniteElement(FiniteElementBase):
 
     @property
     def dual_basis(self):
-        base_dual_basis = self._base_element.dual_basis
-        base_rank = len(self._base_element.value_shape)
-
-        # Note: Does not assert idx of base_dual_basis is None
-        if not self._transpose:
-            tensor_dual_basis = tuple((base_dual, idx)
-                                      for base_dual, _ in base_dual_basis
-                                      for idx in numpy.ndindex(self.value_shape[base_rank:]))
-        else:
-            tensor_dual_basis = tuple((base_dual, idx)
-                                      for idx in numpy.ndindex(self.value_shape[base_rank:])
-                                      for base_dual, _ in base_dual_basis)
-
-        return tensor_dual_basis
+        raise ValueError(f"{self.__class__.__name__} does not have a dual_basis yet!")
 
     @property
     def mapping(self):

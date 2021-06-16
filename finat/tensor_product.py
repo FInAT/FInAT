@@ -164,13 +164,7 @@ class TensorProductElement(FiniteElementBase):
 
     @property
     def dual_basis(self):
-        if len(self.factors) == 1:
-            return self.factors[0].dual_basis
-
-        factor_dual_basis = [fe.dual_basis for fe in self.factors]
-
-        # TODO: Is this right for more than 2 factors?
-        return reduce(product_dual_basis, factor_dual_basis)
+        raise ValueError(f"{self.__class__.__name__} does not have a dual_basis yet!")
 
     @cached_property
     def mapping(self):
@@ -244,47 +238,3 @@ def factor_point_set(product_cell, product_dim, point_set):
         return result
 
     raise NotImplementedError("How to tabulate TensorProductElement on %s?" % (type(point_set).__name__,))
-
-
-def product_dual_basis(a_dual_basis, b_dual_basis):
-    """Dual basis of 2 factors. Only a_dual_basis can be non-scalar.
-    """
-
-    product_dual_basis = []
-    # Multiply every term in a_dual by b_dual
-    for a_dual, a_tensorfe_idx in a_dual_basis:
-        for a_deriv in a_dual:
-            # TODO: Sum all a_tups first before product by b_dual_basis
-            for a_tups in a_deriv:
-                try:
-                    a_point_set, a_weight_tensor, a_alpha_tensor = a_tups
-                except ValueError:  # Empty
-                    continue
-
-                if any(a_alpha_tensor.shape):
-                    raise NotImplementedError('Cannot create dual basis for factors with derivatives!')
-
-                for b_dual, b_tensorfe_idx in b_dual_basis:
-                    product_derivs = []
-                    for b_deriv in b_dual:
-                        product_pts_in_derivs = []
-                        for b_tups in b_deriv:
-                            try:
-                                b_point_set, b_weight_tensor, b_alpha_tensor = b_tups
-                            except ValueError:  # Empty
-                                continue
-
-                            if any(b_alpha_tensor.shape):
-                                raise NotImplementedError('Cannot create dual basis for factors with derivatives!')
-
-                            product_point_set = TensorPointSet((a_point_set, b_point_set))
-
-                            # Only first factor can be non-scalar, but b may have quadrature
-                            product_weight_tensor = a_weight_tensor * b_weight_tensor
-
-                            product_alpha_tensor = a_alpha_tensor
-
-                            product_pts_in_derivs.append((product_point_set, product_weight_tensor, product_alpha_tensor))
-                        product_derivs.append(tuple(product_pts_in_derivs))
-                    product_dual_basis.append(tuple([tuple(product_derivs), None]))
-    return tuple(product_dual_basis)

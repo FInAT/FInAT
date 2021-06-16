@@ -77,20 +77,7 @@ class WrapperElementBase(FiniteElementBase):
 
     @property
     def dual_basis(self):
-        dual_basis = []
-        for wrappee_dual, tensorfe_idx in self.wrappee.dual_basis:
-            assert tensorfe_idx is None
-            derivs = []
-            for wrappee_deriv in wrappee_dual:
-                pts_in_derivs = []
-                for wrappee_point_set, wrappee_weight_tensor, wrappee_alpha_tensor in wrappee_deriv:
-                    weight_tensor = self.inverse_transform(wrappee_weight_tensor)
-                    pts_in_derivs.append((wrappee_point_set, weight_tensor, wrappee_alpha_tensor))
-
-                derivs.append(tuple(pts_in_derivs))
-            dual_basis.append((tuple(derivs), None))
-
-        return tuple(dual_basis)
+        return self.wrappee.dual_basis
 
 
 class HDivElement(WrapperElementBase):
