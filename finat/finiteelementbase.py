@@ -178,7 +178,7 @@ class FiniteElementBase(metaclass=ABCMeta):
         expr_shape_indices = tuple(gem.Index(extent=ex) for ex in expr.shape)
         assert Q.free_indices == ()
         Q_shape_indices = tuple(gem.Index(extent=ex) for ex in Q.shape)
-        assert tuple(i.extent for i in Q_shape_indices[2:]) == tuple(i.extent for i in expr_shape_indices)
+        # assert tuple(i.extent for i in Q_shape_indices[2:]) == tuple(i.extent for i in expr_shape_indices)
         basis_indices = Q_shape_indices[:1]
         if self.Q_is_identity and expr.free_indices != ():
             assert len(set(Q.shape)) == 1
@@ -207,6 +207,8 @@ class FiniteElementBase(metaclass=ABCMeta):
     def mapping(self):
         '''Appropriate mapping from the reference cell to a physical cell for
         all basis functions of the finite element.'''
+
+    Q_is_identity = None
 
 
 def entity_support_dofs(elem, entity_dim):
