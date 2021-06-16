@@ -122,7 +122,24 @@ class TensorFiniteElement(FiniteElementBase):
 
     @property
     def dual_basis(self):
-        raise ValueError(f"{self.__class__.__name__} does not have a dual_basis yet!")
+
+        scalar = self._base_element
+        Q, points = scalar.dual_basis
+
+        if len(self._shape) == 2:
+            # Suppose the tensor element has shape (2, 4)
+            # These identity matrices may have difference sizes depending the shapes
+            # tQ = Q ⊗ 𝟙₂ ⊗ 𝟙₄
+            # This can be concretely realised with
+            indices = gem.indices(len(Q.shape))
+            i, j = (gem.Index(extent=self._shape[0]) for _ in range(self._shape[0]))
+            k, l = (gem.Index(extent=self._shape[1]) for _ in range(self._shape[1])) # noqa E741
+            # TODO Need to check how this plays with the transpose argument to TensorFiniteElement.
+            tQ = gem.ComponentTensor(Q[indices]*gem.Delta(i, j)*gem.Delta(k, l), indices + (i, j, k, l))
+        else:
+            raise NotImplementedError("Not implemented for this shape")
+
+        return tQ, points
 
     @property
     def mapping(self):
