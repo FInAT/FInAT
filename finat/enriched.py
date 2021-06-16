@@ -129,7 +129,7 @@ class EnrichedElement(FiniteElementBase):
 
     @property
     def dual_basis(self):
-        return tuple(dual_vector for element in self.elements for dual_vector in element.dual_basis)
+        raise ValueError(f"{self.__class__.__name__} does not have a dual_basis yet!")
 
     @property
     def mapping(self):

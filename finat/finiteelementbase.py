@@ -146,58 +146,10 @@ class FiniteElementBase(metaclass=ABCMeta):
         :param entity: the cell entity on which to tabulate.
         '''
 
-    @abstractproperty
+    @property
     def dual_basis(self):
-        '''Returns a tuple where each element of the tuple represents one
-        functional in the dual space. Each functional is represented by
-        a tuple of tuples containing the points (PointSet), a weight tensor
-        which holds the weights for each component of value_shape of functions,
-        and a alpha tensor for extracting the alpha components from ReferenceGrad,
-        sorted by total derivative order.
-
-        For example, a dual basis containing 2 functionals with maximum derivative
-        order of 1 would be represented by:
-
-        .. highlight:: python
-        .. code-block:: python
-
-            ((((point_set_10, weight_tensor_10, alpha_tensor_10),
-               (point_set_11, weight_tensor_11, alpha_tensor_11)), None)
-             (((point_set_20, weight_tensor_20, alpha_tensor_20),
-              ()), None))
-
-        where one of the innermost tuples is empty because there are no evaluations
-        at that order. The `None` is either a placeholder for \'normal\' elements,
-        or a tuple containing the index of expression to extract using gem.Delta
-        (currently just used by TensorFiniteElement).
-        '''
-        # TODO: Add label for type of evaluation?
-
-    def dual_evaluation(self, fn, entity=None):
-        '''Return code for performing the dual basis evaluation at the nodes of
-        the reference element. Currently only works for non-derivatives.
-
-        :param fn: Callable for point evaluation of the expression to dual
-                   evaluate. The callable should take in a PointSet and return
-                   a GEM expression for the point evaluation of the expression
-                   at those points. Requires a dimension attribute storing
-                   topological dimension.
-        :param entity: the cell entity on which to tabulate for comparing
-                       results with FIAT.
-        :returns: A gem tensor with (num_nodes,) shape and any number of free
-                  indices.
-        '''
-        if entity is not None:
-            # TODO: Add comparison to FIAT
-            raise NotImplementedError("Comparison with FIAT is not implemented!")
-
-        if any(len(dual) > 1 for dual, tensorfe_idx in self.dual_basis):
-            raise NotImplementedError("Can only interpolate onto dual basis functionals"
-                                      " without derivative evaluation, sorry!")
-
-        dual_expressions = []   # One for each functional
-        expr_cache = {}         # Sharing of evaluation of the expression at points
-
+        '''Base method which will work in most cases but can be
+        overwritten as necessary'''
         # A tensor of weights (of total rank R) to contract with a unique
         # vector of points to evaluate at, giving a tensor (of total rank R-1)
         # where the first indices (rows) correspond to a basis functional
@@ -221,18 +173,21 @@ class FiniteElementBase(metaclass=ABCMeta):
         x_hash_atol = 1e-12  # = 1*10**-dec
 
         #
-        # BUILD Q MATRIX
+        # BUILD Q TENSOR
         #
 
         # FIXME: The below loop is REALLY SLOW for BDM - Q and x should just be output as the dual basis
 
         can_construct = True
         last_shape = None
-        is_identity = True
+        self.Q_is_identity = True  # TODO do this better
+
+        dual_basis_tuple = fiat_element_dual_basis(self._element)
+
         # i are rows of Q
-        for i in range(len(self.dual_basis)):
+        for i in range(len(dual_basis_tuple)):
             # Ignore tensorfe_idx
-            dual_functional_w_derivs, tensor_idx = self.dual_basis[i]
+            dual_functional_w_derivs, tensor_idx = dual_basis_tuple[i]
             # Can only build if not tensor valued
             if tensor_idx is not None:
                 can_construct = False
@@ -276,138 +231,194 @@ class FiniteElementBase(metaclass=ABCMeta):
                         # Since i increases from 0 in increments of 1 we know
                         # that if this check is not triggered we definitely
                         # have an identity tensor.
-                        is_identity = False
+                        self.Q_is_identity = False
 
-        if can_construct:
+        if not can_construct:
+            raise NotImplementedError("todo!")
 
-            #
-            # CONVERT Q TO gem.SparseLiteral
-            #
+        #
+        # CONVERT Q TO gem.Literal (TODO: should be a sparse tensor)
+        #
 
-            # Convert dictionary of keys to SparseLiteral
-            Q = gem.SparseLiteral(Q)  # FIXME: This fails to compile since Impero can't yet deal with a sparse tensor
-            # FIXME: Temporarily use a normal literal
-            Q = gem.Literal(Q.array.todense())
+        # temporary until sparse literals are implemented in GEM which will
+        # automatically convert a dictionary of keys internally.
+        import sparse
+        Q = gem.Literal(sparse.as_coo(Q).todense())
 
-            #
-            # CONVERT x TO gem.PointSet
-            #
+        #
+        # CONVERT x TO gem.PointSet
+        #
 
-            # Convert PointSets to a single PointSet with the correct ordering
-            # for contraction with Q
-            random_pt, _ = next(iter(x.values()))
-            dim = random_pt.dimension
-            allpts = numpy.empty((len(x), dim), dtype=random_pt.points.dtype)
-            for _, (x_k, k) in x.items():
-                assert x_k.dimension == dim
-                allpts[k, :] = x_k.points
-                # For the future - can only have one UnknownPointSingleton in the
-                # pointset.
-                # if isinstance(x[i], UnknownPointSingleton):
-                #     assert len(x) == 1
-                #     x = x[0]
-                # and skip x = PointSet(allpts)
-            assert allpts.shape[1] == dim
-            x = PointSet(allpts)
+        # Convert PointSets to a single PointSet with the correct ordering
+        # for contraction with Q
+        random_pt, _ = next(iter(x.values()))
+        dim = random_pt.dimension
+        allpts = numpy.empty((len(x), dim), dtype=random_pt.points.dtype)
+        for _, (x_k, k) in x.items():
+            assert x_k.dimension == dim
+            allpts[k, :] = x_k.points
+            # FIXME
+            # For the future - can only have one UnknownPointSingleton in the
+            # pointset.
+            # if isinstance(x[i], UnknownPointSingleton):
+            #     assert len(x) == 1
+            #     x = x[0]
+            # and skip x = PointSet(allpts)
+        assert allpts.shape[1] == dim
+        x = PointSet(allpts)
+        return (Q, x)
 
-            #
-            # EVALUATE fn AT x
-            #
-            expr = fn(x)
+    def dual_evaluation(self, fn):
+        '''Return code for performing the dual basis evaluation at the nodes of
+        the reference element. Currently only works for non-derivatives.
 
-            #
-            # TENSOR CONTRACT Q WITH expr
-            #
-            expr_shape_indices = tuple(gem.Index(extent=ex) for ex in expr.shape)
-            assert Q.free_indices == ()
-            Q_shape_indices = tuple(gem.Index(extent=ex) for ex in Q.shape)
-            assert tuple(i.extent for i in Q_shape_indices[2:]) == tuple(i.extent for i in expr_shape_indices)
-            basis_indices = Q_shape_indices[:1]
-            if is_identity and expr.free_indices != ():
-                assert len(set(Q.shape)) == 1
-                # Don't bother multiplying by an identity tensor
+        :param fn: Callable representing the function to dual evaluate.
+                   Callable should take in an :class:`AbstractPointSet` and
+                   return a GEM expression for evaluation of the function at
+                   those points. If the callable provides a ``.factors``
+                   property then it may be used for sum factorisation in
+                   :class:`TensorProductElement`s
+        :returns: A gem tensor with (num_nodes,) shape and any number of free
+                  indices.
 
-                # FIXME - Since expr can have no free indices at this
-                # point (see TSFC issue #240), there's no easy way to make this
-                # short cut where expr.free_indices == () whilst maintaining
-                # the interface that dual_evaluation returns something with
-                # (num_nodes,) shape. To make this work, I'll need to change
-                # driver.py to expect a different interface.
+        Base method which will work in most cases but can be overwritten as
+        necessary.'''
 
-                dual_eval_is = expr
-                # replace the free index with an index of the same extent in
-                # expr. TODO: Consider if basis_indices can be found in Q in
-                # general by checking index extents
-                basis_index = tuple(i for i in expr.free_indices if i.extent == basis_indices[0].extent)[0]
-                basis_indices = (basis_index,)
-            else:
-                dual_eval_is = gem.optimise.make_product((Q[basis_indices + x.indices + expr_shape_indices], expr[expr_shape_indices]), x.indices+expr_shape_indices)
-            dual_eval_is_w_shape = gem.ComponentTensor(dual_eval_is, basis_indices)
-            assert dual_eval_is_w_shape.shape[0] == Q.shape[0]
-            return dual_eval_is_w_shape
+        Q, x = self.dual_basis
 
-        else:  # Can't construct Q so use old method
+        #
+        # EVALUATE fn AT x
+        #
+        expr = fn(x)
 
-            for dual, tensorfe_idx in self.dual_basis:
-                qexprs = gem.Zero()
-                for derivative_order, deriv in enumerate(dual):
-                    for tups in deriv:
-                        try:
-                            point_set, weight_tensor, alpha_tensor = tups
-                        except ValueError:  # Empty
-                            continue
+        #
+        # TENSOR CONTRACT Q WITH expr
+        #
+        expr_shape_indices = tuple(gem.Index(extent=ex) for ex in expr.shape)
+        assert Q.free_indices == ()
+        Q_shape_indices = tuple(gem.Index(extent=ex) for ex in Q.shape)
+        assert tuple(i.extent for i in Q_shape_indices[2:]) == tuple(i.extent for i in expr_shape_indices)
+        basis_indices = Q_shape_indices[:1]
+        if self.Q_is_identity and expr.free_indices != ():
+            assert len(set(Q.shape)) == 1
+            # Don't bother multiplying by an identity tensor
 
-                        try:
-                            # TODO: Choose hash method
-                            expr = expr_cache[(point_set.points.data.tobytes(), alpha_tensor.array.tobytes())]
-                        except KeyError:
-                            expr_grad = fn(point_set, derivative=derivative_order)
-                            # TODO: Multiple alpha at once
-                            if derivative_order == 0:
-                                expr = expr_grad
-                            else:
-                                # Extract derivative component
-                                alpha_idx = tuple(gem.Index(extent=fn.dimension) for _ in range(derivative_order))
+            # FIXME - Since expr can have no free indices at this
+            # point (see TSFC issue #240), there's no easy way to make this
+            # short cut where expr.free_indices == () whilst maintaining
+            # the interface that dual_evaluation returns something with
+            # (num_nodes,) shape. To make this work, I'll need to change
+            # driver.py to expect a different interface.
 
-                                # gem.partial_indexed but from back
-                                rank = len(expr_grad.shape) - len(alpha_idx)
-                                shape_indices = tuple(gem.Index() for _ in range(rank))
-                                expr_partial = gem.ComponentTensor(
-                                    gem.Indexed(expr_grad, shape_indices + alpha_idx),
-                                    shape_indices)
-
-                                expr = gem.index_sum(expr_partial * alpha_tensor[alpha_idx], alpha_idx)
-                            expr_cache[(point_set.points.data.tobytes(), alpha_tensor.array.tobytes())] = expr
-
-                        # Apply weights
-                        # For point_set with multiple points
-                        if tensorfe_idx is None:
-                            zeta = tuple(idx for _ in range(len(point_set.points)) for idx in self.get_value_indices())
-                            qexpr = gem.index_sum(gem.partial_indexed(expr, zeta) * weight_tensor[zeta], point_set.indices + zeta)
-                        else:
-                            base_rank = len(self.value_shape) - len(tensorfe_idx)
-
-                            zeta_base = tuple(idx for _ in range(len(point_set.points)) for idx in
-                                              [gem.Index(extent=d)for d in self.value_shape[:base_rank]])
-                            zeta_tensor = tuple(idx for _ in range(len(point_set.points)) for idx in
-                                                [gem.Index(extent=d)for d in self.value_shape[base_rank:]])
-                            deltas = reduce(gem.Product, (gem.Delta(z, t) for z, t in zip(zeta_tensor, tensorfe_idx)))
-                            zeta = zeta_tensor + zeta_base
-
-                            qexpr = gem.index_sum(gem.partial_indexed(expr, zeta) * deltas * weight_tensor[zeta_base],
-                                                  point_set.indices + zeta)
-                        # Sum for all derivatives
-                        qexprs = gem.Sum(qexprs, qexpr)
-
-                assert qexprs.shape == ()
-                dual_expressions.append(qexprs)
-            ir_shape = gem.ListTensor(dual_expressions)
-            return ir_shape
+            dual_eval_is = expr
+            # replace the free index with an index of the same extent in
+            # expr. TODO: Consider if basis_indices can be found in Q in
+            # general by checking index extents
+            basis_index = tuple(i for i in expr.free_indices if i.extent == basis_indices[0].extent)[0]
+            basis_indices = (basis_index,)
+        else:
+            dual_eval_is = gem.optimise.make_product((Q[basis_indices + x.indices + expr_shape_indices], expr[expr_shape_indices]), x.indices+expr_shape_indices)
+        dual_eval_is_w_shape = gem.ComponentTensor(dual_eval_is, basis_indices)
+        assert dual_eval_is_w_shape.shape[0] == Q.shape[0]
+        return dual_eval_is_w_shape
 
     @abstractproperty
     def mapping(self):
         '''Appropriate mapping from the reference cell to a physical cell for
         all basis functions of the finite element.'''
+
+
+# TODO update this
+def fiat_element_dual_basis(fiat_element):
+
+    max_deriv_order = max([ell.max_deriv_order for ell in fiat_element.dual_basis()])
+
+    duals = []
+    point_set_cache = {}    # To avoid repeating points?
+    for dual in fiat_element.dual_basis():
+        derivs = []
+        pts_in_derivs = []
+
+        # For non-derivatives
+        for pt, tups in sorted(dual.get_point_dict().items()):  # Ensure parallel safety
+            try:
+                point_set = point_set_cache[(pt,)]
+            except KeyError:
+                point_set = PointSet((pt,))
+                point_set_cache[(pt,)] = point_set
+
+            # No derivative component extraction required
+            alpha_tensor = gem.Literal(1)
+
+            weight_dict = {c: w for w, c in tups}
+            # Each entry of tensor is weight of that component
+            if len(fiat_element.value_shape()) == 0:
+                weight_tensor = gem.Literal(weight_dict[tuple()])
+            else:
+                weight_array = np.zeros(fiat_element.value_shape())
+                for key, item in weight_dict.items():
+                    weight_array[key] = item
+                weight_tensor = gem.Literal(weight_array)
+
+            pts_in_derivs.append((point_set, weight_tensor, alpha_tensor))
+        derivs.append(pts_in_derivs)
+
+        # For derivatives
+        deriv_dict_items = sorted(dual.deriv_dict.items())  # Ensure parallel safety
+        for derivative_order in range(1, max_deriv_order+1):
+            pts_in_derivs = []
+            # TODO: Combine tensors for tups of same derivative order
+            for pt, tups in deriv_dict_items:
+                weights, alphas, cmps = zip(*tups)
+
+                # TODO: Repeated points and repeated tups
+                # Get evaluations of this derivative order
+                weight, alpha, cmp = [], [], []
+                for j, a in enumerate(alphas):
+                    if sum(a) == derivative_order:
+                        weight.append(weights[j])
+                        alpha.append(alphas[j])
+                        cmp.append(cmps[j])
+                if len(alpha) == 0:
+                    continue
+
+                # alpha_tensor assumes weights for each derivative component are equal
+                # TODO: Case for unequal weights
+                if len(alpha) > 1:
+                    if 0.0 not in weight:
+                        assert np.isclose(min(weight), max(weight))
+                    else:
+                        non_zero_weight = [w for w in weight if w != 0.0]
+                        assert np.isclose(min(non_zero_weight), max(non_zero_weight))
+
+                # For direct indexing
+                alpha_idx = tuple(tuple(chain(*[(j,)*a for j, a in enumerate(alph)])) for alph in alpha)
+                # TODO: How to ensure correct combination (indexing) with weight_tensor?
+                alpha_arr = np.zeros((fiat_element.cell().get_spatial_dimension(),) * derivative_order)
+                for idx in alpha_idx:
+                    alpha_arr[idx] = 1
+                alpha_tensor = gem.Literal(alpha_arr)
+
+                try:
+                    point_set = point_set_cache[(pt,)]
+                except KeyError:
+                    point_set = PointSet((pt,))
+                    point_set_cache[(pt,)] = point_set
+
+                weight_dict = dict(zip(cmp, weight))
+                # Each entry of tensor is weight of that component
+                if len(fiat_element.value_shape()) == 0:
+                    weight_tensor = gem.Literal(weight_dict[tuple()])
+                else:
+                    weight_array = np.zeros(fiat_element.value_shape())
+                    for key, item in weight_dict.items():
+                        weight_array[key] = item
+                    weight_tensor = gem.Literal(weight_array)
+
+                pts_in_derivs.append((point_set, weight_tensor, alpha_tensor))
+            derivs.append(tuple(pts_in_derivs))
+        duals.append(tuple([tuple(derivs), None]))
+    return tuple(duals)
 
 
 def entity_support_dofs(elem, entity_dim):
