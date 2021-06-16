@@ -6,6 +6,8 @@ from itertools import chain
 import FIAT
 from FIAT.polynomial_set import mis, form_matrix_product
 
+import sparse
+
 import gem
 
 from finat.finiteelementbase import FiniteElementBase
@@ -176,6 +178,125 @@ class FiatElement(FiniteElementBase):
         return point_evaluation(self._element, order, refcoords, (entity_dim, entity_i))
 
     @property
+    def dual_basis(self):
+        # A tensor of weights (of total rank R) to contract with a unique
+        # vector of points to evaluate at, giving a tensor (of total rank R-1)
+        # where the first indices (rows) correspond to a basis functional
+        # (node).
+        # DOK Sparse matrix in (row, col, higher,..)=>value pairs - to become a
+        # gem.SparseLiteral.
+        # Rows are number of nodes/dual functionals.
+        # Columns are unique points to evaluate.
+        # Higher indices are tensor indices of the weights when weights are
+        # tensor valued.
+        Q = {}
+
+        # Dict of unique points to evaluate stored as
+        # {hash(tuple(pt_hash.flatten())): (x_k, k)} pairs. Points in index k
+        # order form a vector required for correct contraction with Q. Will
+        # become a FInAT.PointSet later.
+        # pt_hash = numpy.round(x_k, x_hash_decimals) such that
+        # numpy.allclose(x_k, pt_hash, atol=1*10**-dec) == true
+        x = {}
+        x_hash_decimals = 12
+        x_hash_atol = 1e-12  # = 1*10**-dec
+
+        #
+        # BUILD Q TENSOR
+        #
+
+        # FIXME: The below loop is REALLY SLOW for BDM - Q and x should just be output as the dual basis
+
+        can_construct = True
+        last_shape = None
+        self.Q_is_identity = True  # TODO do this better
+
+        dual_basis_tuple = fiat_element_dual_basis_tuple(self._element)
+
+        # i are rows of Q
+        for i in range(len(dual_basis_tuple)):
+            # Ignore tensorfe_idx
+            dual_functional_w_derivs, tensor_idx = dual_basis_tuple[i]
+            # Can only build if not tensor valued
+            if tensor_idx is not None:
+                can_construct = False
+                break
+            # Only use 1st entry in dual which assumes no derivatives otherwise
+            # try other method.
+            if len(dual_functional_w_derivs) != 1:
+                can_construct = False
+                break
+            dual_functional = dual_functional_w_derivs[0]
+            for j in range(len(dual_functional)):
+                # Ignore alpha, just extract point (x_j) and weights (q_j)
+                x_j, q_j, _ = dual_functional[j]
+
+                # Esure all weights have the same shape
+                if last_shape is not None:
+                    assert q_j.shape == last_shape
+                last_shape = q_j.shape
+
+                assert q_j.children == ()
+                assert q_j.free_indices == ()
+
+                # Create hash into x
+                x_hash = np.round(x_j.points, x_hash_decimals)
+                assert np.allclose(x_j.points, x_hash, atol=x_hash_atol)
+                x_hash = hash(tuple(x_hash.flatten()))
+
+                # Get value and index k or add to dict. k are the columns of Q.
+                try:
+                    x_j, k = x[x_hash]
+                except KeyError:
+                    k = len(x)
+                    x[x_hash] = x_j, k
+
+                # q_j may be tensor valued
+                it = np.nditer(q_j.array, flags=['multi_index'])
+                for q_j_entry in it:
+                    Q[(i, k) + it.multi_index] = q_j_entry
+                    if len(set((i, k) + it.multi_index)) > 1:
+                        # Identity has i == k == it.multi_index[0] == ...
+                        # Since i increases from 0 in increments of 1 we know
+                        # that if this check is not triggered we definitely
+                        # have an identity tensor.
+                        self.Q_is_identity = False
+
+        if not can_construct:
+            raise NotImplementedError("todo!")
+
+        #
+        # CONVERT Q TO gem.Literal (TODO: should be a sparse tensor)
+        #
+
+        # temporary until sparse literals are implemented in GEM which will
+        # automatically convert a dictionary of keys internally.
+        Q = gem.Literal(sparse.as_coo(Q).todense())
+
+        #
+        # CONVERT x TO gem.PointSet
+        #
+
+        # Convert PointSets to a single PointSet with the correct ordering
+        # for contraction with Q
+        random_pt, _ = next(iter(x.values()))
+        dim = random_pt.dimension
+        allpts = np.empty((len(x), dim), dtype=random_pt.points.dtype)
+        for _, (x_k, k) in x.items():
+            assert x_k.dimension == dim
+            allpts[k, :] = x_k.points
+            # FIXME
+            # For the future - can only have one UnknownPointSingleton in the
+            # pointset.
+            # if isinstance(x[i], UnknownPointSingleton):
+            #     assert len(x) == 1
+            #     x = x[0]
+            # and skip x = PointSet(allpts)
+        assert allpts.shape[1] == dim
+        x = PointSet(allpts)
+        return (Q, x)
+
+    @property
     def mapping(self):
         mappings = set(self._element.mapping())
         if len(mappings) != 1:
@@ -291,6 +412,99 @@ def point_evaluation_ciarlet(fiat_element, order, refcoords, entity):
                     beta
                 )
     return result
+
+
+# TODO update this
+def fiat_element_dual_basis_tuple(fiat_element):
+
+    max_deriv_order = max([ell.max_deriv_order for ell in fiat_element.dual_basis()])
+
+    duals = []
+    point_set_cache = {}    # To avoid repeating points?
+    for dual in fiat_element.dual_basis():
+        derivs = []
+        pts_in_derivs = []
+
+        # For non-derivatives
+        for pt, tups in sorted(dual.get_point_dict().items()):  # Ensure parallel safety
+            try:
+                point_set = point_set_cache[(pt,)]
+            except KeyError:
+                point_set = PointSet((pt,))
+                point_set_cache[(pt,)] = point_set
+
+            # No derivative component extraction required
+            alpha_tensor = gem.Literal(1)
+
+            weight_dict = {c: w for w, c in tups}
+            # Each entry of tensor is weight of that component
+            if len(fiat_element.value_shape()) == 0:
+                weight_tensor = gem.Literal(weight_dict[tuple()])
+            else:
+                weight_array = np.zeros(fiat_element.value_shape())
+                for key, item in weight_dict.items():
+                    weight_array[key] = item
+                weight_tensor = gem.Literal(weight_array)
+
+            pts_in_derivs.append((point_set, weight_tensor, alpha_tensor))
+        derivs.append(pts_in_derivs)
+
+        # For derivatives
+        deriv_dict_items = sorted(dual.deriv_dict.items())  # Ensure parallel safety
+        for derivative_order in range(1, max_deriv_order+1):
+            pts_in_derivs = []
+            # TODO: Combine tensors for tups of same derivative order
+            for pt, tups in deriv_dict_items:
+                weights, alphas, cmps = zip(*tups)
+
+                # TODO: Repeated points and repeated tups
+                # Get evaluations of this derivative order
+                weight, alpha, cmp = [], [], []
+                for j, a in enumerate(alphas):
+                    if sum(a) == derivative_order:
+                        weight.append(weights[j])
+                        alpha.append(alphas[j])
+                        cmp.append(cmps[j])
+                if len(alpha) == 0:
+                    continue
+
+                # alpha_tensor assumes weights for each derivative component are equal
+                # TODO: Case for unequal weights
+                if len(alpha) > 1:
+                    if 0.0 not in weight:
+                        assert np.isclose(min(weight), max(weight))
+                    else:
+                        non_zero_weight = [w for w in weight if w != 0.0]
+                        assert np.isclose(min(non_zero_weight), max(non_zero_weight))
+
+                # For direct indexing
+                alpha_idx = tuple(tuple(chain(*[(j,)*a for j, a in enumerate(alph)])) for alph in alpha)
+                # TODO: How to ensure correct combination (indexing) with weight_tensor?
+                alpha_arr = np.zeros((fiat_element.cell().get_spatial_dimension(),) * derivative_order)
+                for idx in alpha_idx:
+                    alpha_arr[idx] = 1
+                alpha_tensor = gem.Literal(alpha_arr)
+
+                try:
+                    point_set = point_set_cache[(pt,)]
+                except KeyError:
+                    point_set = PointSet((pt,))
+                    point_set_cache[(pt,)] = point_set
+
+                weight_dict = dict(zip(cmp, weight))
+                # Each entry of tensor is weight of that component
+                if len(fiat_element.value_shape()) == 0:
+                    weight_tensor = gem.Literal(weight_dict[tuple()])
+                else:
+                    weight_array = np.zeros(fiat_element.value_shape())
+                    for key, item in weight_dict.items():
+                        weight_array[key] = item
+                    weight_tensor = gem.Literal(weight_array)
+
+                pts_in_derivs.append((point_set, weight_tensor, alpha_tensor))
+            derivs.append(tuple(pts_in_derivs))
+        duals.append(tuple([tuple(derivs), None]))
+    return tuple(duals)
 
 
 class Regge(FiatElement):  # naturally tensor valued
