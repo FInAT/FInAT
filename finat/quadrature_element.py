@@ -1,4 +1,4 @@
-from finat.point_set import PointSet, UnknownPointSet
+from finat.point_set import UnknownPointSet
 from functools import reduce
 
 import numpy
@@ -85,11 +85,7 @@ class QuadratureElement(FiniteElementBase):
     def fiat_equivalent(self):
         ps = self._rule.point_set
         if isinstance(ps, UnknownPointSet):
-            # This really should raise a ValueError since there ought not to be
-            # a FIAT equivalent where the points are unknown.
-            # For compatibility until FInAT dual evaluation is done we pass an
-            # array of NaNs of correct shape as the points.
-            ps = PointSet(numpy.full(ps.points.shape, numpy.nan))
+            raise ValueError("A quadrature element with rule with runtime points has no fiat equivalent!")
         weights = getattr(self._rule, 'weights', None)
         if weights is None:
             # we need the weights.
@@ -129,7 +125,9 @@ class QuadratureElement(FiniteElementBase):
 
     @property
     def dual_basis(self):
-        raise ValueError(f"{self.__class__.__name__} does not have a dual_basis yet!")
+        ps = self._rule.point_set
+        Q = gem.Literal([self._rule.weights])
+        return Q, ps
 
     @property
     def mapping(self):
