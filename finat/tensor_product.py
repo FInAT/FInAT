@@ -164,7 +164,25 @@ class TensorProductElement(FiniteElementBase):
 
     @property
     def dual_basis(self):
-        raise ValueError(f"{self.__class__.__name__} does not have a dual_basis yet!")
+        # Outer product the dual bases of the factors
+        qs, pss = zip(*(f.dual_basis for f in self.factors))
+        ps = TensorPointSet(pss)
+        if len(qs) == 2:
+            # suppose there are two factors
+            qA, qB = qs
+            Aindices = gem.indices(len(qA.shape))
+            Bindices = gem.indices(len(qB.shape))
+            Q = gem.ComponentTensor(qA[Aindices]*qB[Bindices], Aindices + Bindices)
+            return Q, ps
+        else:
+            raise ValueError(f"{self.__class__.__name__} does not have a dual_basis yet!")
+
+    def dual_evaluation(self, fn):
+        if hasattr(fn, 'factors'):
+            # TODO do sum factorisation applying function factors to
+            # dual bases of factors and then putting back together again
+            pass
+        return super().dual_evaluation(fn)
 
     @cached_property
     def mapping(self):
