@@ -178,11 +178,21 @@ class TensorProductElement(FiniteElementBase):
             raise ValueError(f"{self.__class__.__name__} does not have a dual_basis yet!")
 
     def dual_evaluation(self, fn):
-        if hasattr(fn, 'factors'):
+        if not hasattr(fn, 'factors'):
+            return super().dual_evaluation(fn)
+        else:
+            raise NotImplementedError('Sum factorised dual evaluation is not yet implemented')
             # TODO do sum factorisation applying function factors to
-            # dual bases of factors and then putting back together again
-            pass
-        return super().dual_evaluation(fn)
+            # dual bases of factors and then putting back together again.
+            # Will look something like this:
+            # assert len(fn.factors) == len(self.factors)
+            # for i, factor in enumerate(self.factors):
+            #     factor_Q, factor_ps = factor.dual_basis
+            #     factor_gem_tensor = factor.dual_evaluation(fn.factors[i])
+            #     ...
+            #     somehow build up whole dual evaluation using above info
+            #     ...
+            # return gem_tensor
 
     @cached_property
     def mapping(self):
