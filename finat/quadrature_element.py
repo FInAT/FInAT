@@ -42,7 +42,7 @@ class QuadratureElement(FiniteElementBase):
         self.cell = fiat_ref_cell
         if not isinstance(rule, AbstractQuadratureRule):
             raise TypeError("rule is not an AbstractQuadratureRule")
-        if fiat_ref_cell.get_dimension() != rule.point_set.dimension:
+        if fiat_ref_cell.get_spatial_dimension() != rule.point_set.dimension:
             raise ValueError("Cell dimension does not match rule's point set dimension")
         self._rule = rule
 
