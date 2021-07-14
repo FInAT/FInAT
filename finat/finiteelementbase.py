@@ -180,7 +180,25 @@ class FiniteElementBase(metaclass=ABCMeta):
         Q_shape_indices = tuple(gem.Index(extent=ex) for ex in Q.shape)
         # assert tuple(i.extent for i in Q_shape_indices[2:]) == tuple(i.extent for i in expr_shape_indices)
         basis_indices = Q_shape_indices[:1]
-        if self.Q_is_identity and expr.free_indices != ():
+        if hasattr(self, '_shape') and len(self._shape) == 2:
+            # Tensor case with rank 2
+            tQ = Q
+            tQ_shape_indices = Q_shape_indices
+            Q, _ = self._base_element.dual_basis
+            q = [gem.Index(extent=ex) for ex in Q.shape]
+            for i, index in enumerate(x.indices):
+                q[1+i] = x.indices[i]  # replace invented Q shape indices with the ones we need to sum over from x
+            q = tuple(q)
+            i, j, k, l = tQ_shape_indices[-4:]  # noqa E741
+            i2, j2 = expr_shape_indices
+            assert i2.extent == i.extent
+            assert j2.extent == j.extent
+            expr_ij = expr[i, j]  # Also has x indices and any argument free indices
+            tQ_qijkl = tQ[q + (i, j, k, l)]
+            tQexpr_qkl = gem.IndexSum(tQ_qijkl * expr_ij, x.indices + (i, j))  # NOTE we also sum over the points which is the key part of the contraction here!
+            evaluation = gem.ComponentTensor(tQexpr_qkl, (q[0], k, l))
+            return evaluation
+        elif self.Q_is_identity and expr.free_indices != ():
             assert len(set(Q.shape)) == 1
             # Don't bother multiplying by an identity tensor
 
