@@ -132,10 +132,11 @@ class TensorFiniteElement(FiniteElementBase):
             # tQ = Q ⊗ 𝟙₂ ⊗ 𝟙₄
             # This can be concretely realised with
             indices = gem.indices(len(Q.shape))
-            i, j = (gem.Index(extent=self._shape[0]) for _ in range(self._shape[0]))
-            k, l = (gem.Index(extent=self._shape[1]) for _ in range(self._shape[1])) # noqa E741
+            i_s = tuple(gem.Index(extent=d) for d in self._shape)
+            j_s = tuple(gem.Index(extent=d) for d in self._shape)
+            deltas = reduce(gem.Product, (gem.Delta(i, j) for i, j in zip(i_s, j_s)))
             # TODO Need to check how this plays with the transpose argument to TensorFiniteElement.
-            tQ = gem.ComponentTensor(Q[indices]*gem.Delta(i, j)*gem.Delta(k, l), indices + (i, j, k, l))
+            tQ = gem.ComponentTensor(Q[indices]*deltas, indices + i_s + j_s)
         else:
             raise NotImplementedError("Not implemented for this shape")
 
