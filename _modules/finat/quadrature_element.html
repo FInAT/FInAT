@@ -94,7 +94,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">cell</span> <span class="o">=</span> <span class="n">fiat_ref_cell</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="n">AbstractQuadratureRule</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;rule is not an AbstractQuadratureRule&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">fiat_ref_cell</span><span class="o">.</span><span class="n">get_dimension</span><span class="p">()</span> <span class="o">!=</span> <span class="n">rule</span><span class="o">.</span><span class="n">point_set</span><span class="o">.</span><span class="n">dimension</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">fiat_ref_cell</span><span class="o">.</span><span class="n">get_spatial_dimension</span><span class="p">()</span> <span class="o">!=</span> <span class="n">rule</span><span class="o">.</span><span class="n">point_set</span><span class="o">.</span><span class="n">dimension</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cell dimension does not match rule&#39;s point set dimension&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_rule</span> <span class="o">=</span> <span class="n">rule</span>
 
@@ -192,7 +192,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2014--2020, David A. Ham, Robert C. Kirby and others.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.0.2.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.1.0.
     </div>
   </body>
 </html>
