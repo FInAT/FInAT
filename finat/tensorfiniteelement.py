@@ -126,21 +126,53 @@ class TensorFiniteElement(FiniteElementBase):
         scalar = self._base_element
         Q, points = scalar.dual_basis
 
-        if len(self._shape) == 2:
-            # Suppose the tensor element has shape (2, 4)
-            # These identity matrices may have difference sizes depending the shapes
-            # tQ = Q ⊗ 𝟙₂ ⊗ 𝟙₄
-            # This can be concretely realised with
-            indices = gem.indices(len(Q.shape))
-            i_s = tuple(gem.Index(extent=d) for d in self._shape)
-            j_s = tuple(gem.Index(extent=d) for d in self._shape)
-            deltas = reduce(gem.Product, (gem.Delta(i, j) for i, j in zip(i_s, j_s)))
-            # TODO Need to check how this plays with the transpose argument to TensorFiniteElement.
-            tQ = gem.ComponentTensor(Q[indices]*deltas, indices + i_s + j_s)
-        else:
-            raise NotImplementedError("Not implemented for this shape")
+        # Suppose the tensor element has shape (2, 4)
+        # These identity matrices may have difference sizes depending the shapes
+        # tQ = Q ⊗ 𝟙₂ ⊗ 𝟙₄
+        Q_shape_indices = gem.indices(len(Q.shape))
+        i_s = tuple(gem.Index(extent=d) for d in self._shape)
+        j_s = tuple(gem.Index(extent=d) for d in self._shape)
+        # we need one delta for each shape axis
+        deltas = reduce(gem.Product, (gem.Delta(i, j) for i, j in zip(i_s, j_s)))
+        # TODO Need to check how this plays with the transpose argument to TensorFiniteElement.
+        tQ = gem.ComponentTensor(Q[Q_shape_indices]*deltas, Q_shape_indices + i_s + j_s)
 
         return tQ, points
+
+    def dual_evaluation(self, fn):
+
+        Q, x = self.dual_basis
+
+        expr = fn(x)
+
+        #
+        # TENSOR CONTRACT Q WITH expr
+        #
+        expr_shape_indices = tuple(gem.Index(extent=ex) for ex in expr.shape)
+        assert Q.free_indices == ()
+        Q_shape_indices = tuple(gem.Index(extent=ex) for ex in Q.shape)
+        # assert tuple(i.extent for i in Q_shape_indices[2:]) == tuple(i.extent for i in expr_shape_indices)
+        # TODO: Add shortcut (if relevant) for tQ being identity tensor
+        if len(self._shape) == 2:
+            # Tensor case with rank 2
+            tQ = Q
+            tQ_shape_indices = Q_shape_indices
+            Q, _ = self._base_element.dual_basis
+            q = [gem.Index(extent=ex) for ex in Q.shape]
+            for i, index in enumerate(x.indices):
+                q[1+i] = x.indices[i]  # replace invented Q shape indices with the ones we need to sum over from x
+            q = tuple(q)
+            i, j, k, l = tQ_shape_indices[-4:]  # noqa E741
+            i2, j2 = expr_shape_indices
+            assert i2.extent == i.extent
+            assert j2.extent == j.extent
+            expr_ij = expr[i, j]  # Also has x indices and any argument free indices
+            tQ_qijkl = tQ[q + (i, j, k, l)]
+            tQexpr_qkl = gem.IndexSum(tQ_qijkl * expr_ij, x.indices + (i, j))  # NOTE we also sum over the points which is the key part of the contraction here!
+            evaluation = gem.ComponentTensor(tQexpr_qkl, (q[0], k, l))
+            return evaluation
+        else:
+            raise NotImplementedError(f"Not implemented for shape {self._shape}")
 
     @property
     def mapping(self):

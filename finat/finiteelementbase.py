@@ -144,10 +144,23 @@ class FiniteElementBase(metaclass=ABCMeta):
         :param entity: the cell entity on which to tabulate.
         '''
 
-    @abstractproperty
     def dual_basis(self):
-        '''Base method which will work in most cases but can be
-        overwritten as necessary'''
+        '''Return a dual evaluation weight tensor Q and point set x to dual
+        evaluate a function fn at.
+
+        The general dual evaluation is then Q * fn(x).
+
+        If the dual weights are scalar then Q, for a general FIAT element, is a
+        matrix with dimensions (num_nodes, num_points).
+
+        If the dual weights are tensor valued then Q, for a general FIAT
+        element, is a tensor with dimensions
+        (num_nodes, num_points, dual_weight_shape[0], ..., dual_weight_shape[n])
+        .
+        '''
+        raise NotImplementedError(
+            f"Dual basis not defined for element {type(self).__name__}"
+        )
 
     def dual_evaluation(self, fn):
         '''Return code for performing the dual basis evaluation at the nodes of
@@ -161,65 +174,10 @@ class FiniteElementBase(metaclass=ABCMeta):
                    :class:`TensorProductElement`s
         :returns: A gem tensor with (num_nodes,) shape and any number of free
                   indices.
-
-        Base method which will work in most cases but can be overwritten as
-        necessary.'''
-
-        Q, x = self.dual_basis
-
-        #
-        # EVALUATE fn AT x
-        #
-        expr = fn(x)
-
-        #
-        # TENSOR CONTRACT Q WITH expr
-        #
-        expr_shape_indices = tuple(gem.Index(extent=ex) for ex in expr.shape)
-        assert Q.free_indices == ()
-        Q_shape_indices = tuple(gem.Index(extent=ex) for ex in Q.shape)
-        # assert tuple(i.extent for i in Q_shape_indices[2:]) == tuple(i.extent for i in expr_shape_indices)
-        basis_indices = Q_shape_indices[:1]
-        if hasattr(self, '_shape') and len(self._shape) == 2:
-            # Tensor case with rank 2
-            tQ = Q
-            tQ_shape_indices = Q_shape_indices
-            Q, _ = self._base_element.dual_basis
-            q = [gem.Index(extent=ex) for ex in Q.shape]
-            for i, index in enumerate(x.indices):
-                q[1+i] = x.indices[i]  # replace invented Q shape indices with the ones we need to sum over from x
-            q = tuple(q)
-            i, j, k, l = tQ_shape_indices[-4:]  # noqa E741
-            i2, j2 = expr_shape_indices
-            assert i2.extent == i.extent
-            assert j2.extent == j.extent
-            expr_ij = expr[i, j]  # Also has x indices and any argument free indices
-            tQ_qijkl = tQ[q + (i, j, k, l)]
-            tQexpr_qkl = gem.IndexSum(tQ_qijkl * expr_ij, x.indices + (i, j))  # NOTE we also sum over the points which is the key part of the contraction here!
-            evaluation = gem.ComponentTensor(tQexpr_qkl, (q[0], k, l))
-            return evaluation
-        elif self.Q_is_identity and expr.free_indices != ():
-            assert len(set(Q.shape)) == 1
-            # Don't bother multiplying by an identity tensor
-
-            # FIXME - Since expr can have no free indices at this
-            # point (see TSFC issue #240), there's no easy way to make this
-            # short cut where expr.free_indices == () whilst maintaining
-            # the interface that dual_evaluation returns something with
-            # (num_nodes,) shape. To make this work, I'll need to change
-            # driver.py to expect a different interface.
-
-            dual_eval_is = expr
-            # replace the free index with an index of the same extent in
-            # expr. TODO: Consider if basis_indices can be found in Q in
-            # general by checking index extents
-            basis_index = tuple(i for i in expr.free_indices if i.extent == basis_indices[0].extent)[0]
-            basis_indices = (basis_index,)
-        else:
-            dual_eval_is = gem.optimise.make_product((Q[basis_indices + x.indices + expr_shape_indices], expr[expr_shape_indices]), x.indices+expr_shape_indices)
-        dual_eval_is_w_shape = gem.ComponentTensor(dual_eval_is, basis_indices)
-        assert dual_eval_is_w_shape.shape[0] == Q.shape[0]
-        return dual_eval_is_w_shape
+        '''
+        raise NotImplementedError(
+            f"Dual evaluation not defined for element {type(self).__name__}"
+        )
 
     @abstractproperty
     def mapping(self):
