@@ -188,6 +188,8 @@ class FiatElement(FiniteElementBase):
         # Columns are unique points to evaluate.
         # Higher indices are tensor indices of the weights when weights are
         # tensor valued.
+        # The columns (unique points to evaluate) are indexed out ready for
+        # contraction with the point set free index.
         Q = {}
 
         # Dict of unique points to evaluate stored as
@@ -275,7 +277,18 @@ class FiatElement(FiniteElementBase):
             allpts[k, :] = x_k.points
         assert allpts.shape[1] == dim
         x = PointSet(allpts)
-        return (Q, x)
+
+        #
+        # INDEX OUT x.indices from Q
+        #
+        assert len(x.indices) == 1
+        assert Q.shape[1] == x.indices[0].extent
+        shape_indices = tuple(gem.Index(extent=s) for s in Q.shape)
+        Q = gem.ComponentTensor(
+            gem.Indexed(Q, (shape_indices[0],) + x.indices + shape_indices[2:]),
+            (shape_indices[0],) + shape_indices[2:])
+
+        return Q, x
 
     def dual_evaluation(self, fn):
         # NOTE: This is a 'flat' implementation that does not deal with
@@ -292,10 +305,12 @@ class FiatElement(FiniteElementBase):
         #
         # TENSOR CONTRACT Q WITH expr
         #
+
+        # NOTE: any shape indices in the expression are because the expression
+        # is tensor valued.
+        assert expr.shape == Q.shape[1:]
         expr_shape_indices = tuple(gem.Index(extent=ex) for ex in expr.shape)
-        assert Q.free_indices == ()
         Q_shape_indices = tuple(gem.Index(extent=ex) for ex in Q.shape)
-        # assert tuple(i.extent for i in Q_shape_indices[2:]) == tuple(i.extent for i in expr_shape_indices)
         basis_indices = Q_shape_indices[:1]
         if self.Q_is_identity and expr.free_indices != ():
             assert len(set(Q.shape)) == 1
@@ -316,7 +331,7 @@ class FiatElement(FiniteElementBase):
             basis_index = tuple(i for i in expr.free_indices if i.extent == basis_indices[0].extent)[0]
             basis_indices = (basis_index,)
         else:
-            dual_eval_is = gem.optimise.make_product((Q[basis_indices + x.indices + expr_shape_indices], expr[expr_shape_indices]), x.indices+expr_shape_indices)
+            dual_eval_is = gem.optimise.make_product((Q[basis_indices + expr_shape_indices], expr[expr_shape_indices]), x.indices+expr_shape_indices)
         # TODO: rename this
         dual_eval_is_w_shape = gem.ComponentTensor(dual_eval_is, basis_indices)
         assert dual_eval_is_w_shape.shape[0] == Q.shape[0]

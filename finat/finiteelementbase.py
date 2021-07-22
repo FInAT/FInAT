@@ -151,12 +151,13 @@ class FiniteElementBase(metaclass=ABCMeta):
         The general dual evaluation is then Q * fn(x).
 
         If the dual weights are scalar then Q, for a general FIAT element, is a
-        matrix with dimensions (num_nodes, num_points).
+        matrix with dimensions (num_nodes, num_points) where num_points made a
+        free index that matches the free
 
         If the dual weights are tensor valued then Q, for a general FIAT
         element, is a tensor with dimensions
         (num_nodes, num_points, dual_weight_shape[0], ..., dual_weight_shape[n])
-        .
+        where num_points made a free index that matches the free index of x.
         '''
         raise NotImplementedError(
             f"Dual basis not defined for element {type(self).__name__}"

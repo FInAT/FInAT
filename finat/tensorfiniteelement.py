@@ -148,19 +148,18 @@ class TensorFiniteElement(FiniteElementBase):
         #
         # TENSOR CONTRACT Q WITH expr
         #
+
+        # NOTE: any shape indices in the expression are because the expression
+        # is tensor valued.
+        assert expr.shape == self._shape
         expr_shape_indices = tuple(gem.Index(extent=ex) for ex in expr.shape)
-        assert tQ.free_indices == ()
         tQ_shape_indices = tuple(gem.Index(extent=ex) for ex in tQ.shape)
-        # assert tuple(i.extent for i in Q_shape_indices[2:]) == tuple(i.extent for i in expr_shape_indices)
         # TODO: Add shortcut (if relevant) for tQ being identity tensor
         # TODO: generalise to general rank
         if len(self._shape) == 1:
             # Tensor with rank 1
             Q, _ = self._base_element.dual_basis
-            q = [gem.Index(extent=ex) for ex in Q.shape]
-            for i, index in enumerate(x.indices):
-                q[1+i] = x.indices[i]  # replace invented Q shape indices with the ones we need to sum over from x
-            q = tuple(q)
+            q = tuple(gem.Index(extent=ex) for ex in Q.shape)
             i, j = tQ_shape_indices[-2:]
             assert len(expr_shape_indices) == 1
             i2, = expr_shape_indices
@@ -173,10 +172,7 @@ class TensorFiniteElement(FiniteElementBase):
         elif len(self._shape) == 2:
             # Tensor with rank 2
             Q, _ = self._base_element.dual_basis
-            q = [gem.Index(extent=ex) for ex in Q.shape]
-            for i, index in enumerate(x.indices):
-                q[1+i] = x.indices[i]  # replace invented Q shape indices with the ones we need to sum over from x
-            q = tuple(q)
+            q = tuple(gem.Index(extent=ex) for ex in Q.shape)
             i, j, k, l = tQ_shape_indices[-4:]  # noqa E741
             i2, j2 = expr_shape_indices
             assert i2.extent == i.extent
