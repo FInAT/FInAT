@@ -321,11 +321,10 @@ class FiatElement(FiniteElementBase):
 
             dual_evaluation_indexed_sum = expr
             # replace the basis index with an index of the same extent in
-            # expr. TODO: Try to make this more solid. What if the expression
-            # happens to have two free indices of the same extent and the basis
-            # index isn't the one that gets picked out?
-            basis_index = tuple(i for i in expr.free_indices if i.extent == basis_indices[0].extent)[0]
-            basis_indices = (basis_index,)
+            # expr.
+            assert len(basis_indices) == 1
+            basis_indices = tuple(i for i in expr.free_indices if i.extent == basis_indices[0].extent)
+            assert len(basis_indices) == 1
         else:
             dual_evaluation_indexed_sum = gem.optimise.make_product((Q[basis_indices + expr_shape_indices], expr[expr_shape_indices]), x.indices+expr_shape_indices)
 
