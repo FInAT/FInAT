@@ -315,24 +315,21 @@ class FiatElement(FiniteElementBase):
             assert len(set(Q.shape)) == 1
             # Don't bother multiplying by an identity tensor
 
-            # FIXME - Since expr can have no free indices at this
+            # NOTE - Since expr can have no free indices at this
             # point (see TSFC issue #240), there's no easy way to make this
-            # short cut where expr.free_indices == () whilst maintaining
-            # the interface that dual_evaluation returns something with
-            # (num_nodes,) shape. To make this work, I'll need to change
-            # driver.py to expect a different interface.
+            # short cut where expr.free_indices == ()
 
-            # TODO: rename this
-            dual_eval_is = expr
-            # replace the free index with an index of the same extent in
-            # expr. TODO: Consider if basis_indices can be found in Q in
-            # general by checking index extents
+            dual_evaluation_indexed_sum = expr
+            # replace the basis index with an index of the same extent in
+            # expr. TODO: Try to make this more solid. What if the expression
+            # happens to have two free indices of the same extent and the basis
+            # index isn't the one that gets picked out?
             basis_index = tuple(i for i in expr.free_indices if i.extent == basis_indices[0].extent)[0]
             basis_indices = (basis_index,)
         else:
-            dual_eval_is = gem.optimise.make_product((Q[basis_indices + expr_shape_indices], expr[expr_shape_indices]), x.indices+expr_shape_indices)
+            dual_evaluation_indexed_sum = gem.optimise.make_product((Q[basis_indices + expr_shape_indices], expr[expr_shape_indices]), x.indices+expr_shape_indices)
 
-        return dual_eval_is, basis_indices
+        return dual_evaluation_indexed_sum, basis_indices
 
     @property
     def mapping(self):
