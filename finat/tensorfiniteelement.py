@@ -157,8 +157,8 @@ class TensorFiniteElement(FiniteElementBase):
         # TODO: Add shortcut (if relevant) for tQ being identity tensor
         # TODO: generalise to general rank
         if len(self._shape) == 1:
-            # Tensor with rank 1
             Q, _ = self._base_element.dual_basis
+            # Tensor with rank 1
             q = tuple(gem.Index(extent=ex) for ex in Q.shape)
             i, j = tQ_shape_indices[-2:]
             assert len(expr_shape_indices) == 1
@@ -167,8 +167,7 @@ class TensorFiniteElement(FiniteElementBase):
             expr_i = expr[i]
             tQ_qij = tQ[q + (i, j)]
             tQexpr_qj = gem.IndexSum(tQ_qij * expr_i, x.indices + (i,))  # NOTE we also sum over the points which is the key part of the contraction here!
-            evaluation = gem.ComponentTensor(tQexpr_qj, (q[0], j))
-            return evaluation
+            return tQexpr_qj, (q[0], j)
         elif len(self._shape) == 2:
             # Tensor with rank 2
             Q, _ = self._base_element.dual_basis
@@ -180,8 +179,7 @@ class TensorFiniteElement(FiniteElementBase):
             expr_ij = expr[i, j]  # Also has x indices and any argument free indices
             tQ_qijkl = tQ[q + (i, j, k, l)]
             tQexpr_qkl = gem.IndexSum(tQ_qijkl * expr_ij, x.indices + (i, j))  # NOTE we also sum over the points which is the key part of the contraction here!
-            evaluation = gem.ComponentTensor(tQexpr_qkl, (q[0], k, l))
-            return evaluation
+            return tQexpr_qkl, (q[0], k, l)
         else:
             raise NotImplementedError(f"Not implemented for shape {self._shape}")
 

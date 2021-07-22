@@ -173,8 +173,7 @@ class FiniteElementBase(metaclass=ABCMeta):
                    those points. If the callable provides a ``.factors``
                    property then it may be used for sum factorisation in
                    :class:`TensorProductElement`s
-        :returns: A gem tensor with (num_nodes,) shape and any number of free
-                  indices.
+        :returns: A tuple (dual_evaluation_indexed_sum, basis_indices)
         '''
         raise NotImplementedError(
             f"Dual evaluation not defined for element {type(self).__name__}"

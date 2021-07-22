@@ -310,8 +310,7 @@ class FiatElement(FiniteElementBase):
         # is tensor valued.
         assert expr.shape == Q.shape[1:]
         expr_shape_indices = tuple(gem.Index(extent=ex) for ex in expr.shape)
-        Q_shape_indices = tuple(gem.Index(extent=ex) for ex in Q.shape)
-        basis_indices = Q_shape_indices[:1]
+        basis_indices = tuple(gem.Index(extent=ex) for ex in Q.shape[:1])
         if self.Q_is_identity and expr.free_indices != ():
             assert len(set(Q.shape)) == 1
             # Don't bother multiplying by an identity tensor
@@ -332,10 +331,8 @@ class FiatElement(FiniteElementBase):
             basis_indices = (basis_index,)
         else:
             dual_eval_is = gem.optimise.make_product((Q[basis_indices + expr_shape_indices], expr[expr_shape_indices]), x.indices+expr_shape_indices)
-        # TODO: rename this
-        dual_eval_is_w_shape = gem.ComponentTensor(dual_eval_is, basis_indices)
-        assert dual_eval_is_w_shape.shape[0] == Q.shape[0]
-        return dual_eval_is_w_shape
+
+        return dual_eval_is, basis_indices
 
     @property
     def mapping(self):
