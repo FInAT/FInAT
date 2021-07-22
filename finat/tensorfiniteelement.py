@@ -141,7 +141,7 @@ class TensorFiniteElement(FiniteElementBase):
 
     def dual_evaluation(self, fn):
 
-        Q, x = self.dual_basis
+        tQ, x = self.dual_basis
 
         expr = fn(x)
 
@@ -149,14 +149,29 @@ class TensorFiniteElement(FiniteElementBase):
         # TENSOR CONTRACT Q WITH expr
         #
         expr_shape_indices = tuple(gem.Index(extent=ex) for ex in expr.shape)
-        assert Q.free_indices == ()
-        Q_shape_indices = tuple(gem.Index(extent=ex) for ex in Q.shape)
+        assert tQ.free_indices == ()
+        tQ_shape_indices = tuple(gem.Index(extent=ex) for ex in tQ.shape)
         # assert tuple(i.extent for i in Q_shape_indices[2:]) == tuple(i.extent for i in expr_shape_indices)
         # TODO: Add shortcut (if relevant) for tQ being identity tensor
-        if len(self._shape) == 2:
-            # Tensor case with rank 2
-            tQ = Q
-            tQ_shape_indices = Q_shape_indices
+        # TODO: generalise to general rank
+        if len(self._shape) == 1:
+            # Tensor with rank 1
+            Q, _ = self._base_element.dual_basis
+            q = [gem.Index(extent=ex) for ex in Q.shape]
+            for i, index in enumerate(x.indices):
+                q[1+i] = x.indices[i]  # replace invented Q shape indices with the ones we need to sum over from x
+            q = tuple(q)
+            i, j = tQ_shape_indices[-2:]
+            assert len(expr_shape_indices) == 1
+            i2, = expr_shape_indices
+            assert i2.extent == i.extent
+            expr_i = expr[i]
+            tQ_qij = tQ[q + (i, j)]
+            tQexpr_qj = gem.IndexSum(tQ_qij * expr_i, x.indices + (i,))  # NOTE we also sum over the points which is the key part of the contraction here!
+            evaluation = gem.ComponentTensor(tQexpr_qj, (q[0], j))
+            return evaluation
+        elif len(self._shape) == 2:
+            # Tensor with rank 2
             Q, _ = self._base_element.dual_basis
             q = [gem.Index(extent=ex) for ex in Q.shape]
             for i, index in enumerate(x.indices):
