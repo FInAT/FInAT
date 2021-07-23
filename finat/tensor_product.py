@@ -3,6 +3,7 @@ from itertools import chain, product
 from operator import methodcaller
 
 import numpy
+import operator
 
 import FIAT
 from FIAT.polynomial_set import mis
@@ -169,16 +170,12 @@ class TensorProductElement(FiniteElementBase):
         # TODO: check if this Q_is_identity calculation is correct
         self.Q_is_identity = all(f.Q_is_identity for f in self.factors)
         ps = TensorPointSet(pss)
-        # TODO: generalise to any number of factors
-        if len(qs) == 2:
-            # suppose there are two factors
-            qA, qB = qs
-            Aindices = gem.indices(len(qA.shape))
-            Bindices = gem.indices(len(qB.shape))
-            Q = gem.ComponentTensor(qA[Aindices]*qB[Bindices], Aindices + Bindices)
-            return Q, ps
-        else:
-            raise ValueError(f"{self.__class__.__name__} does not have a dual_basis yet!")
+        indices = ()
+        for q in qs:
+            indices += gem.indices(len(q.shape))
+        q_muls = reduce(operator.mul, (q[i] for q, i in zip(qs, indices)))
+        Q = gem.ComponentTensor(q_muls, indices)
+        return Q, ps
 
     def dual_evaluation(self, fn):
         if not hasattr(fn, 'factors'):
