@@ -166,7 +166,10 @@ class TensorProductElement(FiniteElementBase):
     def dual_basis(self):
         # Outer product the dual bases of the factors
         qs, pss = zip(*(f.dual_basis for f in self.factors))
+        # TODO: check if this Q_is_identity calculation is correct
+        self.Q_is_identity = all(f.Q_is_identity for f in self.factors)
         ps = TensorPointSet(pss)
+        # TODO: generalise to any number of factors
         if len(qs) == 2:
             # suppose there are two factors
             qA, qB = qs
@@ -179,7 +182,29 @@ class TensorProductElement(FiniteElementBase):
 
     def dual_evaluation(self, fn):
         if not hasattr(fn, 'factors'):
-            return super().dual_evaluation(fn)
+
+            Q, x = self.dual_basis
+
+            #
+            # EVALUATE fn AT x
+            #
+            expr = fn(x)
+
+            #
+            # TENSOR CONTRACT Q WITH expr
+            #
+
+            # NOTE: any shape indices in the expression are because the expression
+            # is tensor valued.
+            # NOTE: here the first TWO rows of Q are node sets (for each factor)
+            assert expr.shape == Q.shape[2:]
+            expr_shape_indices = tuple(gem.Index(extent=ex) for ex in expr.shape)
+            basis_indices = tuple(gem.Index(extent=ex) for ex in Q.shape[:2])
+            # TODO: Work out how to deal with identity Q in this case.
+            dual_evaluation_indexed_sum = gem.optimise.make_product((Q[basis_indices + expr_shape_indices], expr[expr_shape_indices]), x.indices+expr_shape_indices)
+
+            return dual_evaluation_indexed_sum, basis_indices
+
         else:
             raise NotImplementedError('Sum factorised dual evaluation is not yet implemented')
             # TODO do sum factorisation applying function factors to
