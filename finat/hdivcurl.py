@@ -79,6 +79,9 @@ class WrapperElementBase(FiniteElementBase):
     def dual_basis(self):
         return self.wrappee.dual_basis
 
+    def dual_evaluation(self, fn):
+        return self.wrappee.dual_evaluation(fn)
+
 
 class HDivElement(WrapperElementBase):
     """H(div) wrapper element for tensor product elements."""
