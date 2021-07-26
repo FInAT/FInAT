@@ -197,21 +197,23 @@ class FiniteElementBase(metaclass=ABCMeta):
         assert expr.shape == Q.shape[1:]
         expr_shape_indices = tuple(gem.Index(extent=ex) for ex in expr.shape)
         basis_indices = tuple(gem.Index(extent=ex) for ex in Q.shape[:1])
-        if self.Q_is_identity and expr.free_indices != ():
-            assert len(set(Q.shape)) == 1
-            # Don't bother multiplying by an identity tensor
-
+        try:
+            # Try not to bother multiplying by an identity tensor.
             # NOTE - Since expr can have no free indices at this
             # point (see TSFC issue #240), there's no easy way to make this
             # short cut where expr.free_indices == ()
-
-            dual_evaluation_indexed_sum = expr
+            assert self.Q_is_identity and expr.free_indices != ()
+            assert len(set(Q.shape)) == 1
             # replace the basis index with an index of the same extent in
             # expr.
             assert len(basis_indices) == 1
-            basis_indices = tuple(i for i in expr.free_indices if i.extent == basis_indices[0].extent)
-            assert len(basis_indices) == 1
-        else:
+            # NOTE: since we are searching by extent, this can fail and we have
+            # to revert to doing the multiplication by identity
+            expr_basis_indices = tuple(i for i in expr.free_indices if i.extent == basis_indices[0].extent)
+            assert len(expr_basis_indices) == 1
+            basis_indices = expr_basis_indices
+            dual_evaluation_indexed_sum = expr
+        except AssertionError:
             dual_evaluation_indexed_sum = gem.optimise.make_product((Q[basis_indices + expr_shape_indices], expr[expr_shape_indices]), x.indices+expr_shape_indices)
 
         return dual_evaluation_indexed_sum, basis_indices
