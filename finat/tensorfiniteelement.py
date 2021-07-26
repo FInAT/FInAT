@@ -151,12 +151,12 @@ class TensorFiniteElement(FiniteElementBase):
 
         # NOTE: any shape indices in the expression are because the expression
         # is tensor valued.
-        assert expr.shape == self._shape
+        assert set(expr.shape) == set(self.value_shape)
         expr_shape_indices = tuple(gem.Index(extent=ex) for ex in expr.shape)
         tQ_shape_indices = tuple(gem.Index(extent=ex) for ex in tQ.shape)
         # TODO: Add shortcut (if relevant) for tQ being identity tensor
-        # TODO: generalise to general rank
-        if len(self._shape) == 1:
+        # TODO: generalise to general rank shape and expression indices
+        if len(self._shape + self.base_element.value_shape) == 1 and len(self.base_element.value_shape) == 0:
             Q, _ = self._base_element.dual_basis
             # Tensor with rank 1
             q = tuple(gem.Index(extent=ex) for ex in Q.shape)
@@ -168,7 +168,7 @@ class TensorFiniteElement(FiniteElementBase):
             tQ_qij = tQ[q + (i, j)]
             tQexpr_qj = gem.IndexSum(tQ_qij * expr_i, x.indices + (i,))  # NOTE we also sum over the points which is the key part of the contraction here!
             return tQexpr_qj, (q[0], j)
-        elif len(self._shape) == 2:
+        elif len(self._shape) == 2 and len(self.base_element.value_shape) == 0:
             # Tensor with rank 2
             Q, _ = self._base_element.dual_basis
             q = tuple(gem.Index(extent=ex) for ex in Q.shape)
@@ -181,7 +181,7 @@ class TensorFiniteElement(FiniteElementBase):
             tQexpr_qkl = gem.IndexSum(tQ_qijkl * expr_ij, x.indices + (i, j))  # NOTE we also sum over the points which is the key part of the contraction here!
             return tQexpr_qkl, (q[0], k, l)
         else:
-            raise NotImplementedError(f"Not implemented for shape {self._shape}")
+            raise NotImplementedError(f"Not implemented for shape {self._shape} with base element shape {self.base_element.value_shape}")
 
     @property
     def mapping(self):
