@@ -128,10 +128,6 @@ class EnrichedElement(FiniteElementBase):
         return self._compose_evaluations(results)
 
     @property
-    def dual_basis(self):
-        raise ValueError(f"{self.__class__.__name__} does not have a dual_basis yet!")
-
-    @property
     def mapping(self):
         mappings = set(elem.mapping for elem in self.elements)
         if len(mappings) != 1:

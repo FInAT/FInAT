@@ -144,6 +144,7 @@ class FiniteElementBase(metaclass=ABCMeta):
         :param entity: the cell entity on which to tabulate.
         '''
 
+    @property
     def dual_basis(self):
         '''Return a dual evaluation weight tensor Q and point set x to dual
         evaluate a function fn at.
