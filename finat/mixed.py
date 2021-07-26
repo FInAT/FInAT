@@ -92,9 +92,5 @@ class MixedSubElement(FiniteElementBase):
         return self._transform_evaluation(core_eval)
 
     @property
-    def dual_basis(self):
-        raise NotImplementedError(f"{self.__class__.__name__} does not have a dual_basis yet!")
-
-    @property
     def mapping(self):
         return self.element.mapping
