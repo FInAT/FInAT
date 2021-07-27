@@ -159,6 +159,14 @@ class FiniteElementBase(metaclass=ABCMeta):
         element, is a tensor with dimensions
         (num_nodes, num_points, dual_weight_shape[0], ..., dual_weight_shape[n])
         where num_points made a free index that matches the free index of x.
+
+        if the dual basis is of a tensor product element with  N factors then Q
+        in general is a tensor with dimensions
+        (num_nodes_factor1, ..., num_nodes_factorN,
+            num_points_factor1, ..., num_points_factorN,
+            dual_weight_shape[0], ..., dual_weight_shape[n])
+        where num_points_factorX are made free indices that match the free
+        indices of x (which is now a TensorPointSet).
         '''
         raise NotImplementedError(
             f"Dual basis not defined for element {type(self).__name__}"
