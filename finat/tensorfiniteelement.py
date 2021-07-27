@@ -5,6 +5,7 @@ import numpy
 import gem
 
 from finat.finiteelementbase import FiniteElementBase
+from finat.tensor_product import TensorProductElement
 
 
 class TensorFiniteElement(FiniteElementBase):
@@ -123,8 +124,8 @@ class TensorFiniteElement(FiniteElementBase):
     @property
     def dual_basis(self):
 
-        scalar = self._base_element
-        Q, points = scalar.dual_basis
+        base = self.base_element
+        Q, points = base.dual_basis
 
         # Suppose the tensor element has shape (2, 4)
         # These identity matrices may have difference sizes depending the shapes
@@ -152,36 +153,24 @@ class TensorFiniteElement(FiniteElementBase):
         # NOTE: any shape indices in the expression are because the expression
         # is tensor valued.
         assert set(expr.shape) == set(self.value_shape)
-        expr_shape_indices = tuple(gem.Index(extent=ex) for ex in expr.shape)
-        tQ_shape_indices = tuple(gem.Index(extent=ex) for ex in tQ.shape)
         # TODO: Add shortcut (if relevant) for tQ being identity tensor
         # TODO: generalise to general rank shape and expression indices
-        if len(self._shape + self.base_element.value_shape) == 1 and len(self.base_element.value_shape) == 0:
-            Q, _ = self._base_element.dual_basis
-            # Tensor with rank 1
-            q = tuple(gem.Index(extent=ex) for ex in Q.shape)
-            i, j = tQ_shape_indices[-2:]
-            assert len(expr_shape_indices) == 1
-            i2, = expr_shape_indices
-            assert i2.extent == i.extent
-            expr_i = expr[i]
-            tQ_qij = tQ[q + (i, j)]
-            tQexpr_qj = gem.IndexSum(tQ_qij * expr_i, x.indices + (i,))  # NOTE we also sum over the points which is the key part of the contraction here!
-            return tQexpr_qj, (q[0], j)
-        elif len(self._shape) == 2 and len(self.base_element.value_shape) == 0:
-            # Tensor with rank 2
-            Q, _ = self._base_element.dual_basis
-            q = tuple(gem.Index(extent=ex) for ex in Q.shape)
-            i, j, k, l = tQ_shape_indices[-4:]  # noqa E741
-            i2, j2 = expr_shape_indices
-            assert i2.extent == i.extent
-            assert j2.extent == j.extent
-            expr_ij = expr[i, j]  # Also has x indices and any argument free indices
-            tQ_qijkl = tQ[q + (i, j, k, l)]
-            tQexpr_qkl = gem.IndexSum(tQ_qijkl * expr_ij, x.indices + (i, j))  # NOTE we also sum over the points which is the key part of the contraction here!
-            return tQexpr_qkl, (q[0], k, l)
-        else:
-            raise NotImplementedError(f"Not implemented for shape {self._shape} with base element shape {self.base_element.value_shape}")
+        base_value_indices = self.base_element.get_value_indices()
+        Q, _ = self.base_element.dual_basis
+        Q_shape_indices = tuple(gem.Index(extent=ex) for ex in Q.shape)
+        delta_indices_1 = tuple(gem.Index(extent=d) for d in self._shape)
+        delta_indices_2 = tuple(gem.Index(extent=d) for d in self._shape)
+        basis_indices = Q_shape_indices[:1] + delta_indices_2
+        expr_indexed = expr[base_value_indices + delta_indices_1]
+        # TODO: what if the basis indices in the shape of Q are more than just
+        # the first shape index as in tensor product elements?
+        tQ_indexed = tQ[basis_indices + base_value_indices + delta_indices_1]
+        dual_evaluation_indexed_sum = gem.optimise.make_product((tQ_indexed, expr_indexed), x.indices + base_value_indices + delta_indices_1)
+        if len(base_value_indices) != 0:
+            raise NotImplementedError('Cannot dual evaluate tensor-valued non-scalar elements yet')
+        if isinstance(self.base_element, TensorProductElement):
+            raise NotImplementedError('Cannot dual evaluate tensor-valued tensor product element yet')
+        return dual_evaluation_indexed_sum, basis_indices
 
     @property
     def mapping(self):
