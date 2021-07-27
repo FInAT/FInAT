@@ -193,10 +193,12 @@ class TensorProductElement(FiniteElementBase):
 
             # NOTE: any shape indices in the expression are because the expression
             # is tensor valued.
-            # NOTE: here the first TWO rows of Q are node sets (for each factor)
-            assert expr.shape == Q.shape[2:]
+            # NOTE: here the first num_factors rows of Q are node sets (1 for
+            # each factor)
+            num_factors = len(self.factors)
+            assert expr.shape == Q.shape[num_factors:]
             expr_shape_indices = tuple(gem.Index(extent=ex) for ex in expr.shape)
-            basis_indices = tuple(gem.Index(extent=ex) for ex in Q.shape[:2])
+            basis_indices = tuple(gem.Index(extent=ex) for ex in Q.shape[:num_factors])
             # TODO: Work out how to deal with identity Q in this case.
             dual_evaluation_indexed_sum = gem.optimise.make_product((Q[basis_indices + expr_shape_indices], expr[expr_shape_indices]), x.indices+expr_shape_indices)
 
