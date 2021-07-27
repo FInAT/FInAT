@@ -5,7 +5,6 @@ import numpy
 import gem
 
 from finat.finiteelementbase import FiniteElementBase
-from finat.tensor_product import TensorProductElement
 
 
 class TensorFiniteElement(FiniteElementBase):
@@ -158,14 +157,18 @@ class TensorFiniteElement(FiniteElementBase):
         Q_shape_indices = tuple(gem.Index(extent=ex) for ex in Q.shape)
         expr_contraction_indices = tuple(gem.Index(extent=d) for d in self._shape)
         basis_tensor_indices = tuple(gem.Index(extent=d) for d in self._shape)
-        # TODO: what if the basis indices in the shape of Q are more than just
-        # the first shape index as in tensor product elements?
-        Q_indexed = Q[Q_shape_indices[:1] + base_value_indices + expr_contraction_indices + basis_tensor_indices]
+        num_factors = 1
+        if hasattr(self.base_element, 'factors'):
+            num_factors = len(self.base_element.factors)
+        elif hasattr(self.base_element, 'product'):
+            num_factors = len(self.base_element.product.factors)
+        # TODO: work out if there are any other cases where the basis indices
+        # in the shape of Q are more than just the first shape index (as in
+        # tensor product elements)
+        Q_indexed = Q[Q_shape_indices[:num_factors] + base_value_indices + expr_contraction_indices + basis_tensor_indices]
         expr_indexed = expr[expr_contraction_indices + base_value_indices]
         dual_evaluation_indexed_sum = gem.optimise.make_product((Q_indexed, expr_indexed), x.indices + base_value_indices + expr_contraction_indices)
-        basis_indices = Q_shape_indices[:1] + basis_tensor_indices
-        if isinstance(self.base_element, TensorProductElement):
-            raise NotImplementedError('Cannot dual evaluate tensor-valued tensor product element yet')
+        basis_indices = Q_shape_indices[:num_factors] + basis_tensor_indices
         return dual_evaluation_indexed_sum, basis_indices
 
     @property
