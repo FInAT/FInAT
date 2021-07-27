@@ -142,30 +142,28 @@ class TensorFiniteElement(FiniteElementBase):
 
     def dual_evaluation(self, fn):
 
-        Q, x = self.base_element.dual_basis
+        Q, x = self.dual_basis
         expr = fn(x)
+
+        # TODO: Add shortcut (if relevant) for Q being identity tensor
 
         # NOTE: any shape indices in the expression are because the expression
         # is tensor valued.
         assert set(expr.shape) == set(self.value_shape)
-        # TODO: Add shortcut (if relevant) for tQ being identity tensor
+
         base_value_indices = self.base_element.get_value_indices()
 
-        # Suppose the tensor element has shape (2, 4)
-        # These identity matrices may have difference sizes depending the shapes
-        # tQ = Q ⊗ 𝟙₂ ⊗ 𝟙₄
+        # Reconstruct the indices from the deltas in dual_basis above and
+        # contract Q with expr
         Q_shape_indices = tuple(gem.Index(extent=ex) for ex in Q.shape)
         expr_contraction_indices = tuple(gem.Index(extent=d) for d in self._shape)
         basis_tensor_indices = tuple(gem.Index(extent=d) for d in self._shape)
-        # we need one delta for each shape axis
-        deltas = reduce(gem.Product, (gem.Delta(i, j) for i, j in zip(expr_contraction_indices, basis_tensor_indices)))
-        # TODO Need to check how this plays with the transpose argument to TensorFiniteElement.
         # TODO: what if the basis indices in the shape of Q are more than just
         # the first shape index as in tensor product elements?
-        tQ_indexed = Q[Q_shape_indices[:1] + base_value_indices]*deltas
-        basis_indices = Q_shape_indices[:1] + basis_tensor_indices
+        Q_indexed = Q[Q_shape_indices[:1] + base_value_indices + expr_contraction_indices + basis_tensor_indices]
         expr_indexed = expr[expr_contraction_indices + base_value_indices]
-        dual_evaluation_indexed_sum = gem.optimise.make_product((tQ_indexed, expr_indexed), x.indices + base_value_indices + expr_contraction_indices)
+        dual_evaluation_indexed_sum = gem.optimise.make_product((Q_indexed, expr_indexed), x.indices + base_value_indices + expr_contraction_indices)
+        basis_indices = Q_shape_indices[:1] + basis_tensor_indices
         if isinstance(self.base_element, TensorProductElement):
             raise NotImplementedError('Cannot dual evaluate tensor-valued tensor product element yet')
         return dual_evaluation_indexed_sum, basis_indices
