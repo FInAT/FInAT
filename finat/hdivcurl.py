@@ -10,7 +10,7 @@ from finat.tensor_product import TensorProductElement
 class WrapperElementBase(FiniteElementBase):
     """Common base class for H(div) and H(curl) element wrappers."""
 
-    def __init__(self, wrappee, transform, inverse_transform):
+    def __init__(self, wrappee, transform):
         super(WrapperElementBase, self).__init__()
         self.wrappee = wrappee
         """An appropriate tensor product FInAT element whose basis
@@ -20,11 +20,6 @@ class WrapperElementBase(FiniteElementBase):
         self.transform = transform
         """A transformation applied on the scalar/vector values of the
         wrapped element to produce an H(div) or H(curl) conforming
-        element."""
-
-        self.inverse_transform = inverse_transform
-        """A transformation applied to the weight_tensors of the
-        wrapped element to revert the H(div) or H(curl) conforming
         element."""
 
     @property
@@ -75,13 +70,6 @@ class WrapperElementBase(FiniteElementBase):
         core_eval = self.wrappee.point_evaluation(order, refcoords, entity)
         return self._transform_evaluation(core_eval)
 
-    @property
-    def dual_basis(self):
-        return self.wrappee.dual_basis
-
-    def dual_evaluation(self, fn):
-        return self.wrappee.dual_evaluation(fn)
-
 
 class HDivElement(WrapperElementBase):
     """H(div) wrapper element for tensor product elements."""
@@ -96,8 +84,7 @@ class HDivElement(WrapperElementBase):
             raise ValueError("H(div) requires (n-1)-form element!")
 
         transform = select_hdiv_transformer(wrappee)
-        inverse_transform = select_inverse_hdiv_transformer(wrappee)
-        super(HDivElement, self).__init__(wrappee, transform, inverse_transform)
+        super(HDivElement, self).__init__(wrappee, transform)
 
     @property
     def formdegree(self):
@@ -125,8 +112,7 @@ class HCurlElement(WrapperElementBase):
             raise ValueError("H(curl) requires 1-form element!")
 
         transform = select_hcurl_transformer(wrappee)
-        inverse_transform = select_inverse_hcurl_transformer(wrappee)
-        super(HCurlElement, self).__init__(wrappee, transform, inverse_transform)
+        super(HCurlElement, self).__init__(wrappee, transform)
 
     @property
     def formdegree(self):
@@ -214,80 +200,5 @@ def select_hcurl_transformer(element):
         return lambda v: [gem.Product(gem.Literal(-1), gem.Indexed(v, (1,))),
                           gem.Indexed(v, (0,)),
                           gem.Zero()]
-    else:
-        assert False, "Unexpected original mapping!"
-
-
-def select_inverse_hdiv_transformer(element):
-    # Assume: something x interval
-    assert len(element.factors) == 2
-    assert element.factors[1].cell.get_shape() == LINE
-
-    # Globally consistent edge orientations of the reference
-    # quadrilateral: rightward horizontally, upward vertically.
-    # Their rotation by 90 degrees anticlockwise is interpreted as the
-    # positive direction for normal vectors.
-    ks = tuple(fe.formdegree for fe in element.factors)
-    if ks == (0, 1):
-        # Apply scalar weight to scalar "base" expression, which is
-        # the leftward-pointing normal on the y-aligned edges.
-        return lambda w: gem.Literal([-w.value, 0])
-    elif ks == (1, 0):
-        # Apply scalar weight to scalar "base" expression, which is
-        # the scalar value the upward-pointing normal on the
-        # x-aligned edges.
-        return lambda w: gem.Literal([0, w.value])
-    elif ks == (2, 0):
-        # Same for 3D, so scalar weight is applied to scalar "base"
-        # expression on z-plane.
-        return lambda w: gem.Literal([0, 0, w.value])
-    elif ks == (1, 1):
-        if element.mapping == "contravariant piola":
-            # Apply vector weights to "base" vector expression
-            return lambda w: gem.Literal([w.array[0], w.array[1], 0])
-        elif element.mapping == "covariant piola":
-            # Apply vector weight to "base" vector expression, which has its
-            # 2-vector tangential component rotated 90 degrees anticlockwise
-            # onto the "base" cell into a 3-vector.
-            return lambda w: gem.Literal([w.array[1], -w.array[0], 0])
-        else:
-            assert False, "Unexpected original mapping!"
-    else:
-        assert False, "Unexpected form degree combination!"
-
-
-def select_inverse_hcurl_transformer(element):
-    # Assume: something x interval
-    assert len(element.factors) == 2
-    assert element.factors[1].cell.get_shape() == LINE
-
-    # Globally consistent edge orientations of the reference
-    # quadrilateral: rightward horizontally, upward vertically.
-    # Tangential vectors interpret these as the positive direction.
-    dim = element.cell.get_spatial_dimension()
-    ks = tuple(fe.formdegree for fe in element.factors)
-    if element.mapping == "affine":
-        if ks == (1, 0):
-            # Can only be 2D.
-            # Apply scalar weight to "base" scalar expression, which is
-            # the rightward-pointing tangential on the x-aligned edges.
-            return lambda w: gem.Literal([w.value, 0])
-        elif ks == (0, 1):
-            # Can be any spatial dimension.
-            # Apply scalar weight to "base" scalar expression, which is
-            # the upward-pointing tangential.
-            return lambda w: gem.Literal([0] * (dim - 1) + [w.value])
-        else:
-            assert False
-    elif element.mapping == "covariant piola":
-        # Second factor must be continuous interval.
-        # # Apply vector weights to "base" vector expression
-        return lambda w: gem.Literal([w.array[0], w.array[1], 0])
-    elif element.mapping == "contravariant piola":
-        # Second factor must be continuous interval.
-        # Apply vector weight to "base" vector expression, which has its
-        # 2-vector tangential component rotated 90 degrees clockwise
-        # onto the "base" cell into a 3-vector.
-        return lambda w: gem.Literal([-w.array[1], w.array[0], 0])
     else:
         assert False, "Unexpected original mapping!"
