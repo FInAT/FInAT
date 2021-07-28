@@ -9,6 +9,9 @@ import gem
 from gem.utils import cached_property
 
 from finat.finiteelementbase import FiniteElementBase
+from finat.cube import FlattenedDimensions
+from finat.tensor_product import total_num_factors
+from finat.point_set import PointSet
 
 
 class EnrichedElement(FiniteElementBase):
@@ -126,6 +129,57 @@ class EnrichedElement(FiniteElementBase):
         results = [element.point_evaluation(order, refcoords, entity)
                    for element in self.elements]
         return self._compose_evaluations(results)
+
+    @property
+    def dual_basis(self):
+        # Stack the nodes in the Qs
+        Q_fulls = []
+        xs = []
+        num_factors_set = []
+        for element in self.elements:
+            Q, x = element.dual_basis
+            Q_shape_indices = tuple(gem.Index(extent=ex) for ex in Q.shape)
+            # NOTE: here the first num_factors rows of Q are node sets (1 for
+            # each factor)
+            # TODO: work out if there are any other cases where the basis
+            # indices in the shape of the dual basis tensor Q are more than
+            # just the first shape index
+            if hasattr(element, 'factors'):
+                num_factors = total_num_factors(element)
+            elif isinstance(element, FlattenedDimensions):
+                # Factor might be a FlattenedDimensions which introduces
+                # another factor without having a factors property
+                num_factors = 2
+            else:
+                num_factors = 1
+            Q_indexed = Q[Q_shape_indices]
+            # Put the point set indices back into Q since we will make a new
+            # point set with new indices.
+            Q_full = gem.ComponentTensor(Q[Q_shape_indices], Q_shape_indices[:num_factors] + x.indices + Q_shape_indices[num_factors:])
+            Q_fulls.append(Q_full)
+            xs.append(x)
+            num_factors_set.append(num_factors)
+
+        # Make a new point set by concatenating the existing ones
+        if not isinstance(xs[0], PointSet):
+            raise NotImplementedError('Can only concatenate ordinary (e.g. non tensor) point sets')
+        x = PointSet(numpy.concatenate([x.points for x in xs]))
+
+        assert len(set(num_factors_set)) == 1
+        num_factors = num_factors_set[0]
+
+        # Now stack the Qs along the first dimension TODO: maybe this isn't right
+        Q_full_shape = Q_fulls[0].shape
+        if not all(Q_full_shape == Q_full.shape for Q_full in Q_fulls):
+            raise ValueError('Cannot interpolate into enriched element with non-matching shape expressions')
+        new_Q_full_shape = (len(Q_fulls)*Q_full_shape[0],) + Q_full_shape[1:]
+        new_Q_full_shape_indices = tuple(gem.Index(extent=ex) for ex in new_Q_full_shape)
+        beta = self.get_indices()
+        new_Q_full = gem.ComponentTensor(
+                gem.Indexed(gem.Concatenate(*Q_fulls), beta),
+                new_Q_full_shape_indices[:num_factors] + x.indices + new_Q_full_shape_indices[num_factors:])
+
+        breakpoint()
 
     @property
     def mapping(self):
