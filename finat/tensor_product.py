@@ -198,7 +198,7 @@ class TensorProductElement(FiniteElementBase):
             # each factor)
             # TODO: work out if there are any other cases where the basis
             # indices in the shape of the dual basis tensor Q are more than
-            # just the first shape index
+            # just the first shape index (e.g. with EnrichedElement)
             num_factors = total_num_factors(self.factors)
             assert expr.shape == Q.shape[num_factors:]
             expr_shape_indices = tuple(gem.Index(extent=ex) for ex in expr.shape)

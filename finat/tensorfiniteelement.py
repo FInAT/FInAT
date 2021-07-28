@@ -163,7 +163,7 @@ class TensorFiniteElement(FiniteElementBase):
         # each factor)
         # TODO: work out if there are any other cases where the basis
         # indices in the shape of the dual basis tensor Q are more than
-        # just the first shape index
+        # just the first shape index (e.g. with EnrichedElement)
         if hasattr(self.base_element, 'factors'):
             num_factors = total_num_factors(self.base_element.factors)
         elif isinstance(self.base_element, FlattenedDimensions):

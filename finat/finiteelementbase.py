@@ -146,22 +146,27 @@ class FiniteElementBase(metaclass=ABCMeta):
 
     @property
     def dual_basis(self):
-        '''Return a dual evaluation weight tensor Q and point set x to dual
+        '''Return a dual evaluation gem weight tensor Q and point set x to dual
         evaluate a function fn at.
 
         The general dual evaluation is then Q * fn(x).
 
-        If the dual weights are scalar then Q, for a general FIAT element, is a
-        matrix with dimensions (num_nodes, num_points) where num_points made a
-        free index that matches the free
+        Note that the contraction index of the point set x is indexed out of Q
+        to avoid confusion when trying index it out of Q later in
+        dual_evaluation.
 
-        If the dual weights are tensor valued then Q, for a general FIAT
-        element, is a tensor with dimensions
+        If the dual weights are scalar then Q, for a general scalar FIAT
+        element, is a matrix with dimensions
+        (num_nodes, num_points)
+        where num_points is made a free index that match the free index of x.
+
+        If the dual weights are tensor valued then Q, for a general tensor
+        valued FIAT element, is a tensor with dimensions
         (num_nodes, num_points, dual_weight_shape[0], ..., dual_weight_shape[n])
         where num_points made a free index that matches the free index of x.
 
-        if the dual basis is of a tensor product element with  N factors then Q
-        in general is a tensor with dimensions
+        if the dual basis is of a tensor product or FlattenedDimensions element
+        with N factors then Q in general is a tensor with dimensions
         (num_nodes_factor1, ..., num_nodes_factorN,
             num_points_factor1, ..., num_points_factorN,
             dual_weight_shape[0], ..., dual_weight_shape[n])
@@ -213,9 +218,9 @@ class FiniteElementBase(metaclass=ABCMeta):
             # short cut where expr.free_indices == ()
             assert self.Q_is_identity and expr.free_indices != ()
             assert len(set(Q.shape)) == 1
+            assert len(basis_indices) == 1
             # replace the basis index with an index of the same extent in
             # expr.
-            assert len(basis_indices) == 1
             # NOTE: since we are searching by extent, this can fail and we have
             # to revert to doing the multiplication by identity
             expr_basis_indices = tuple(i for i in expr.free_indices if i.extent == basis_indices[0].extent)
