@@ -5,6 +5,8 @@ import numpy
 import gem
 
 from finat.finiteelementbase import FiniteElementBase
+from finat.tensor_product import total_num_factors
+from finat.cube import FlattenedDimensions
 
 
 class TensorFiniteElement(FiniteElementBase):
@@ -157,14 +159,19 @@ class TensorFiniteElement(FiniteElementBase):
         Q_shape_indices = tuple(gem.Index(extent=ex) for ex in Q.shape)
         expr_contraction_indices = tuple(gem.Index(extent=d) for d in self._shape)
         basis_tensor_indices = tuple(gem.Index(extent=d) for d in self._shape)
-        num_factors = 1
+        # NOTE: here the first num_factors rows of Q are node sets (1 for
+        # each factor)
+        # TODO: work out if there are any other cases where the basis
+        # indices in the shape of the dual basis tensor Q are more than
+        # just the first shape index
         if hasattr(self.base_element, 'factors'):
-            num_factors = len(self.base_element.factors)
-        elif hasattr(self.base_element, 'product'):
-            num_factors = len(self.base_element.product.factors)
-        # TODO: work out if there are any other cases where the basis indices
-        # in the shape of Q are more than just the first shape index (as in
-        # tensor product elements)
+            num_factors = total_num_factors(self.base_element.factors)
+        elif isinstance(self.base_element, FlattenedDimensions):
+            # Factor might be a FlattenedDimensions which introduces
+            # another factor without having a factors property
+            num_factors = 2
+        else:
+            num_factors = 1
         Q_indexed = Q[Q_shape_indices[:num_factors] + base_value_indices + expr_contraction_indices + basis_tensor_indices]
         expr_indexed = expr[expr_contraction_indices + base_value_indices]
         dual_evaluation_indexed_sum = gem.optimise.make_product((Q_indexed, expr_indexed), x.indices + base_value_indices + expr_contraction_indices)
