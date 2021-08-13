@@ -193,14 +193,14 @@ class FiatElement(FiniteElementBase):
         Q = {}
 
         # Dict of unique points to evaluate stored as
-        # {hash(tuple(pt_hash.flatten())): (x_k, k)} pairs. Points in index k
+        # {tuple(pt_hash.flatten()): (x_k, k)} pairs. Points in index k
         # order form a vector required for correct contraction with Q. Will
         # become a FInAT.PointSet later.
-        # pt_hash = numpy.round(x_k, x_hash_decimals) such that
+        # x_key = numpy.round(x_k, x_key_decimals) such that
         # numpy.allclose(x_k, pt_hash, atol=1*10**-dec) == true
         x = {}
-        x_hash_decimals = 12
-        x_hash_atol = 1e-12  # = 1*10**-dec
+        x_key_decimals = 12
+        x_key_atol = 1e-12  # = 1*10**-dec
 
         #
         # BUILD Q TENSOR
@@ -232,17 +232,17 @@ class FiatElement(FiniteElementBase):
                     assert q_j.shape == last_shape
                 last_shape = q_j.shape
 
-                # Create hash into x
-                x_hash = np.round(x_j.points, x_hash_decimals)
-                assert np.allclose(x_j.points, x_hash, atol=x_hash_atol)
-                x_hash = hash(tuple(x_hash.flatten()))
+                # Create key into x dict
+                x_key = np.round(x_j.points, x_key_decimals)
+                assert np.allclose(x_j.points, x_key, atol=x_key_atol)
+                x_key = tuple(x_key.flatten())
 
                 # Get value and index k or add to dict. k are the columns of Q.
                 try:
-                    x_j, k = x[x_hash]
+                    x_j, k = x[x_key]
                 except KeyError:
                     k = len(x)
-                    x[x_hash] = x_j, k
+                    x[x_key] = x_j, k
 
                 # q_j may be tensor valued
                 it = np.nditer(q_j, flags=['multi_index'])
@@ -262,7 +262,6 @@ class FiatElement(FiniteElementBase):
         # temporary until sparse literals are implemented in GEM which will
         # automatically convert a dictionary of keys internally.
         Q = gem.Literal(sparse.as_coo(Q).todense())
-
         #
         # CONVERT x TO gem.PointSet
         #
