@@ -275,7 +275,8 @@ def point_evaluation_ciarlet(fiat_element, order, refcoords, entity):
             assert table.shape[-1] == m
             zerocols = np.isclose(abs(table).max(axis=tuple(range(table.ndim - 1))), 0.0)
             if all(np.logical_or(const_mask, zerocols)):
-                vals = base_values_sympy[const_mask]
+                # Casting is safe by assertion of is_const
+                vals = base_values_sympy[const_mask].astype(np.float64)
                 result[alpha] = gem.Literal(table[..., const_mask].dot(vals))
             else:
                 beta = tuple(gem.Index() for s in table.shape[:-1])
