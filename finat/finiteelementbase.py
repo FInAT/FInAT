@@ -186,15 +186,12 @@ class FiniteElementBase(metaclass=ABCMeta):
     def dual_evaluation(self, fn):
         '''Return code for performing the dual basis evaluation at the nodes of
         the reference element. Currently only works for non-derivatives (not
-        implemented) and flat elements (implemented in TensorFiniteElement and
-        TensorProductElement).
+        implemented) and flat elements (implemented in TensorFiniteElement).
 
         :param fn: Callable representing the function to dual evaluate.
                    Callable should take in an :class:`AbstractPointSet` and
                    return a GEM expression for evaluation of the function at
-                   those points. If the callable provides a ``.factors``
-                   property then it may be used for sum factorisation in
-                   :class:`TensorProductElement`s
+                   those points.
         :returns: A tuple (dual_evaluation_indexed_sum, basis_indices)
         '''
         # NOTE: This is a 'flat' implementation that does not deal with
@@ -214,20 +211,23 @@ class FiniteElementBase(metaclass=ABCMeta):
 
         # NOTE: any shape indices in the expression are because the expression
         # is tensor valued.
-        assert expr.shape == Q.shape[1:]
-        expr_shape_indices = tuple(gem.Index(extent=ex) for ex in expr.shape)
-        basis_indices = tuple(gem.Index(extent=ex) for ex in Q.shape[:1])
+        expr_shape_indices = gem.indices(len(expr.shape))
+        basis_indices = gem.indices(len(Q.shape) - len(expr.shape))
         try:
-            assert self.Q_is_identity
-            assert len(set(Q.shape)) == 1
-            assert len(basis_indices) == 1
+            if not self.Q_is_identity:
+                raise Exception
+            if not len(set(Q.shape)) == 1:
+                raise Exception
+            if not len(basis_indices) == 1:
+                raise Exception
             # Skip the multiplication by an identity tensor
             basis_indices = x.indices
-            dual_evaluation_indexed_sum = expr
-        except AssertionError:
-            dual_evaluation_indexed_sum = gem.optimise.make_product((Q[basis_indices + expr_shape_indices], expr[expr_shape_indices]), x.indices+expr_shape_indices)
+            Qfn = expr
+        except Exception:
+            Qfn = gem.IndexSum(Q[basis_indices + expr_shape_indices] * expr[expr_shape_indices], x.indices + expr_shape_indices)
+            Qfn = gem.optimise.contraction(Qfn)
 
-        return dual_evaluation_indexed_sum, basis_indices
+        return Qfn, basis_indices
 
     @abstractproperty
     def mapping(self):

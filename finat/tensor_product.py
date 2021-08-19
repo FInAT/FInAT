@@ -178,50 +178,6 @@ class TensorProductElement(FiniteElementBase):
         Q = gem.ComponentTensor(q_muls, q_shape_indices)
         return Q, ps
 
-    def dual_evaluation(self, fn):
-        if not hasattr(fn, 'factors'):
-
-            Q, x = self.dual_basis
-
-            #
-            # EVALUATE fn AT x
-            #
-            expr = fn(x)
-
-            #
-            # TENSOR CONTRACT Q WITH expr
-            #
-
-            # NOTE: any shape indices in the expression are because the
-            # expression is tensor valued.
-            # NOTE: here the first num_factors rows of Q are node sets (1 for
-            # each factor)
-            # TODO: work out if there are any other cases where the basis
-            # indices in the shape of the dual basis tensor Q are more than
-            # just the first shape index (e.g. with EnrichedElement)
-            num_factors = total_num_factors(self.factors)
-            assert expr.shape == Q.shape[num_factors:]
-            expr_shape_indices = tuple(gem.Index(extent=ex) for ex in expr.shape)
-            basis_indices = tuple(gem.Index(extent=ex) for ex in Q.shape[:num_factors])
-            # TODO: Work out how to deal with identity Q in this case.
-            dual_evaluation_indexed_sum = gem.optimise.make_product((Q[basis_indices + expr_shape_indices], expr[expr_shape_indices]), x.indices+expr_shape_indices)
-
-            return dual_evaluation_indexed_sum, basis_indices
-
-        else:
-            raise NotImplementedError('Sum factorised dual evaluation is not yet implemented')
-            # TODO do sum factorisation applying function factors to
-            # dual bases of factors and then putting back together again.
-            # Will look something like this:
-            # assert len(fn.factors) == len(self.factors)
-            # for i, factor in enumerate(self.factors):
-            #     factor_Q, factor_ps = factor.dual_basis
-            #     factor_gem_tensor = factor.dual_evaluation(fn.factors[i])
-            #     ...
-            #     somehow build up whole dual evaluation using above info
-            #     ...
-            # return gem_tensor
-
     @cached_property
     def mapping(self):
         mappings = [fe.mapping for fe in self.factors if fe.mapping != "affine"]
