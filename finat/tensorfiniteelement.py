@@ -5,8 +5,6 @@ import numpy
 import gem
 
 from finat.finiteelementbase import FiniteElementBase
-from finat.tensor_product import total_num_factors
-from finat.cube import FlattenedDimensions
 
 
 class TensorFiniteElement(FiniteElementBase):
@@ -131,52 +129,48 @@ class TensorFiniteElement(FiniteElementBase):
         # Suppose the tensor element has shape (2, 4)
         # These identity matrices may have difference sizes depending the shapes
         # tQ = Q ⊗ 𝟙₂ ⊗ 𝟙₄
-        Q_shape_indices = gem.indices(len(Q.shape))
-        i_s = tuple(gem.Index(extent=d) for d in self._shape)
-        j_s = tuple(gem.Index(extent=d) for d in self._shape)
-        # we need one delta for each shape axis
-        deltas = reduce(gem.Product, (gem.Delta(i, j) for i, j in zip(i_s, j_s)))
-        # TODO Need to check how this plays with the transpose argument to TensorFiniteElement.
-        tQ = gem.ComponentTensor(Q[Q_shape_indices]*deltas, Q_shape_indices + i_s + j_s)
+        scalar_i = self.base_element.get_indices()
+        scalar_vi = self.base_element.get_value_indices()
+        tensor_i = tuple(gem.Index(extent=d) for d in self._shape)
+        tensor_vi = tuple(gem.Index(extent=d) for d in self._shape)
+        # Couple new basis function and value indices
+        deltas = reduce(gem.Product, (gem.Delta(j, k)
+                                      for j, k in zip(tensor_i, tensor_vi)))
+        if self._transpose:
+            index_ordering = tensor_i + scalar_i + tensor_vi + scalar_vi
+        else:
+            index_ordering = scalar_i + tensor_i + tensor_vi + scalar_vi
 
+        Qi = Q[scalar_i + scalar_vi]
+        tQ = gem.ComponentTensor(Qi*deltas, index_ordering)
         return tQ, points
 
     def dual_evaluation(self, fn):
 
-        Q, x = self.dual_basis
+        tQ, x = self.dual_basis
         expr = fn(x)
 
-        # TODO: Add shortcut (if relevant) for Q being identity tensor
+        gem.optimise.contraction(expr)
 
         # NOTE: any shape indices in the expression are because the expression
         # is tensor valued.
-        assert set(expr.shape) == set(self.value_shape)
+        assert expr.shape == self.value_shape
 
-        base_value_indices = self.base_element.get_value_indices()
+        scalar_i = self.base_element.get_indices()
+        scalar_vi = self.base_element.get_value_indices()
+        tensor_i = tuple(gem.Index(extent=d) for d in self._shape)
+        tensor_vi = tuple(gem.Index(extent=d) for d in self._shape)
 
-        # Reconstruct the indices from the deltas in dual_basis above and
-        # contract Q with expr
-        Q_shape_indices = tuple(gem.Index(extent=ex) for ex in Q.shape)
-        expr_contraction_indices = tuple(gem.Index(extent=d) for d in self._shape)
-        basis_tensor_indices = tuple(gem.Index(extent=d) for d in self._shape)
-        # NOTE: here the first num_factors rows of Q are node sets (1 for
-        # each factor)
-        # TODO: work out if there are any other cases where the basis
-        # indices in the shape of the dual basis tensor Q are more than
-        # just the first shape index (e.g. with EnrichedElement)
-        if hasattr(self.base_element, 'factors'):
-            num_factors = total_num_factors(self.base_element.factors)
-        elif isinstance(self.base_element, FlattenedDimensions):
-            # Factor might be a FlattenedDimensions which introduces
-            # another factor without having a factors property
-            num_factors = 2
+        if self._transpose:
+            index_ordering = tensor_i + scalar_i + tensor_vi + scalar_vi
         else:
-            num_factors = 1
-        Q_indexed = Q[Q_shape_indices[:num_factors] + base_value_indices + expr_contraction_indices + basis_tensor_indices]
-        expr_indexed = expr[expr_contraction_indices + base_value_indices]
-        dual_evaluation_indexed_sum = gem.optimise.make_product((Q_indexed, expr_indexed), x.indices + base_value_indices + expr_contraction_indices)
-        basis_indices = Q_shape_indices[:num_factors] + basis_tensor_indices
-        return dual_evaluation_indexed_sum, basis_indices
+            index_ordering = scalar_i + tensor_i + tensor_vi + scalar_vi
+
+        tQi = tQ[index_ordering]
+        expri = expr[tensor_i + scalar_vi]
+        evaluation = gem.IndexSum(tQi * expri, x.indices + scalar_vi + tensor_i)
+        evaluation = gem.optimise.contraction(evaluation)
+        return evaluation, scalar_i + tensor_vi
 
     @property
     def mapping(self):
