@@ -194,47 +194,29 @@ class FiniteElementBase(metaclass=ABCMeta):
                    those points.
         :returns: A tuple (dual_evaluation_indexed_sum, basis_indices)
         '''
-        # NOTE: This is a 'flat' implementation that does not deal with
-        # tensor valued expressions or points. These are dealt with in
-        # TensorFiniteElement and TensorProductElement
-
         Q, x = self.dual_basis
 
-        #
-        # EVALUATE fn AT x
-        #
         expr = fn(x)
-
-        #
-        # TENSOR CONTRACT Q WITH expr
-        #
-
+        # Apply sum factorisation and delta elimination to the
+        # expression
+        expr = gem.optimise.contraction(expr)
         # NOTE: any shape indices in the expression are because the expression
         # is tensor valued.
-        expr_shape_indices = gem.indices(len(expr.shape))
+        assert expr.shape == Q.shape[len(Q.shape)-len(expr.shape):]
+        shape_indices = gem.indices(len(expr.shape))
         basis_indices = gem.indices(len(Q.shape) - len(expr.shape))
-        try:
-            if not self.Q_is_identity:
-                raise Exception
-            if not len(set(Q.shape)) == 1:
-                raise Exception
-            if not len(basis_indices) == 1:
-                raise Exception
-            # Skip the multiplication by an identity tensor
-            basis_indices = x.indices
-            Qfn = expr
-        except Exception:
-            Qfn = gem.IndexSum(Q[basis_indices + expr_shape_indices] * expr[expr_shape_indices], x.indices + expr_shape_indices)
-            Qfn = gem.optimise.contraction(Qfn)
-
-        return Qfn, basis_indices
+        Qi = Q[basis_indices + shape_indices]
+        expri = expr[shape_indices]
+        evaluation = gem.IndexSum(Qi * expri, x.indices + shape_indices)
+        # Don't want to factorise over the shape indices in the
+        # contraction, so exclude those from the optimisation routines.
+        evaluation = gem.optimise.contraction(evaluation, shape_indices)
+        return evaluation, basis_indices
 
     @abstractproperty
     def mapping(self):
         '''Appropriate mapping from the reference cell to a physical cell for
         all basis functions of the finite element.'''
-
-    Q_is_identity = None
 
 
 def entity_support_dofs(elem, entity_dim):
