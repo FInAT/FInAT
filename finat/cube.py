@@ -79,9 +79,6 @@ class FlattenedDimensions(FiniteElementBase):
     def dual_basis(self):
         return self.product.dual_basis
 
-    def dual_evaluation(self, fn):
-        return self.product.dual_evaluation(fn)
-
     @property
     def index_shape(self):
         return self.product.index_shape
