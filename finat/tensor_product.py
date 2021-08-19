@@ -3,7 +3,6 @@ from itertools import chain, product
 from operator import methodcaller
 
 import numpy
-import operator
 
 import FIAT
 from FIAT.polynomial_set import mis
@@ -166,15 +165,11 @@ class TensorProductElement(FiniteElementBase):
     @property
     def dual_basis(self):
         # Outer product the dual bases of the factors
-        qs, pss = zip(*(f.dual_basis for f in self.factors))
-        # TODO: check if this Q_is_identity calculation is correct
-        self.Q_is_identity = all(f.Q_is_identity for f in self.factors)
+        qs, pss = zip(*(factor.dual_basis for factor in self.factors))
         ps = TensorPointSet(pss)
-        tuples_of_q_shape_indices = tuple(gem.indices(len(q.shape)) for q in qs)
-        q_muls = reduce(operator.mul, (q[i] for q, i in zip(qs, tuples_of_q_shape_indices)))
-        # Flatten to get final shape indices
-        q_shape_indices = tuple(index for tuple_of_indices in tuples_of_q_shape_indices for index in tuple_of_indices)
-        Q = gem.ComponentTensor(q_muls, q_shape_indices)
+        qis = tuple(q[gem.indices(len(q.shape))] for q in qs)
+        indices = tuple(chain(*(q.index_ordering() for q in qis)))
+        Q = gem.ComponentTensor(reduce(gem.Product, qis), indices)
         return Q, ps
 
     @cached_property
