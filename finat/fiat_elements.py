@@ -190,103 +190,50 @@ class FiatElement(FiniteElementBase):
         # tensor valued.
         # The columns (unique points to evaluate) are indexed out ready for
         # contraction with the point set free index.
+        dual_basis = self._element.dual_basis()
+        seen = dict()
+        allpts = []
+        # Find the unique points to evaluate at.
+        # We might be able to make this a smaller set by treating each
+        # point one by one, but most of the redundancy comes from
+        # multiple functionals using the same quadrature rule.
+        for dual in dual_basis:
+            pts = dual.get_point_dict().keys()
+            pts = tuple(sorted(pts))  # need this for determinism
+            if pts in seen:
+                continue
+            else:
+                kstart = len(allpts)
+                kend = kstart + len(pts)
+                seen[pts] = kstart, kend
+                allpts.extend(pts)
+        allpts = np.asarray(allpts, dtype=np.float64)
         Q = {}
-
-        # Dict of unique points to evaluate stored as
-        # {tuple(pt_hash.flatten()): (x_k, k)} pairs. Points in index k
-        # order form a vector required for correct contraction with Q. Will
-        # become a FInAT.PointSet later.
-        # x_key = numpy.round(x_k, x_key_decimals) such that
-        # numpy.allclose(x_k, pt_hash, atol=1*10**-dec) == true
-        x = {}
-        x_key_decimals = 12
-        x_key_atol = 1e-12  # = 1*10**-dec
-
-        #
-        # BUILD Q TENSOR
-        #
-
-        # FIXME: The below loop is REALLY SLOW for BDM - Q and x should just be output as the dual basis
-
-        last_shape = None
-        self.Q_is_identity = True  # TODO do this better
-
-        fiat_dual_basis = self._element.dual_basis()
-        # i are rows of Q
-        for i, dual in enumerate(fiat_dual_basis):
+        for i, dual in enumerate(dual_basis):
             point_dict = dual.get_point_dict()
-            for j, (x_j, tuples) in enumerate(point_dict.items()):
-                x_j = PointSet((x_j,))  # TODO doesn't need to be PointSet
-                # get weights q_j for point x_j from complicated FIAT dual data
-                # structure
-                weight_dict = {cmp: weight for weight, cmp in tuples}
-                if len(self._element.value_shape()) == 0:
-                    q_j = np.array(weight_dict[tuple()])
-                else:
-                    q_j = np.zeros(self._element.value_shape())
-                    for key, item in weight_dict.items():
-                        q_j[key] = item
+            pts = tuple(sorted(point_dict.keys()))
+            kstart, kend = seen[pts]
+            for p, k in zip(pts, range(kstart, kend)):
+                for weight, cmp in point_dict[p]:
+                    Q[(i, k, *cmp)] = weight
 
-                # Ensure all weights have the same shape
-                if last_shape is not None:
-                    assert q_j.shape == last_shape
-                last_shape = q_j.shape
-
-                # Create key into x dict
-                x_key = np.round(x_j.points, x_key_decimals)
-                assert np.allclose(x_j.points, x_key, atol=x_key_atol)
-                x_key = tuple(x_key.flatten())
-
-                # Get value and index k or add to dict. k are the columns of Q.
-                try:
-                    x_j, k = x[x_key]
-                except KeyError:
-                    k = len(x)
-                    x[x_key] = x_j, k
-
-                # q_j may be tensor valued
-                it = np.nditer(q_j, flags=['multi_index'])
-                for q_j_entry in it:
-                    Q[(i, k) + it.multi_index] = q_j_entry
-                    if len(set((i, k) + it.multi_index)) > 1:
-                        # Identity has i == k == it.multi_index[0] == ...
-                        # Since i increases from 0 in increments of 1 we know
-                        # that if this check is not triggered we definitely
-                        # have an identity tensor.
-                        self.Q_is_identity = False
-
-        #
-        # CONVERT Q TO gem.Literal (TODO: should be a sparse tensor)
-        #
-
-        # temporary until sparse literals are implemented in GEM which will
-        # automatically convert a dictionary of keys internally.
-        Q = gem.Literal(sparse.as_coo(Q).todense())
-        #
-        # CONVERT x TO gem.PointSet
-        #
-
-        # Convert PointSets to a single PointSet with the correct ordering
-        # for contraction with Q
-        random_pt, _ = next(iter(x.values()))
-        dim = random_pt.dimension
-        allpts = np.empty((len(x), dim), dtype=random_pt.points.dtype)
-        for _, (x_k, k) in x.items():
-            assert x_k.dimension == dim
-            allpts[k, :] = x_k.points
-        assert allpts.shape[1] == dim
         x = PointSet(allpts)
+        if all(len(set(key)) == 1 and np.isclose(weight, 1) and len(key) == 2
+               for key, weight in Q.items()):
+            # Identity, is this the most general case?
+            extents = tuple(map(max, zip(*Q.keys())))
+            js = tuple(gem.Index(extent=e+1) for e in extents)
+            assert len(js) == 2
+            Q = gem.ComponentTensor(gem.Delta(*js), js)
+        else:
+            # temporary until sparse literals are implemented in GEM which will
+            # automatically convert a dictionary of keys internally.
+            Q = gem.Literal(sparse.as_coo(Q).todense())
 
-        #
-        # INDEX OUT x.indices from Q
-        #
         assert len(x.indices) == 1
         assert Q.shape[1] == x.indices[0].extent
-        shape_indices = tuple(gem.Index(extent=s) for s in Q.shape)
-        Q = gem.ComponentTensor(
-            gem.Indexed(Q, (shape_indices[0],) + x.indices + shape_indices[2:]),
-            (shape_indices[0],) + shape_indices[2:])
-
+        i, *js = gem.indices(len(Q.shape) - 1)
+        Q = gem.ComponentTensor(gem.Indexed(Q, (i, *x.indices, *js)), (i, *js))
         return Q, x
 
     @property
