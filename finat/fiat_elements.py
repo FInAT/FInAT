@@ -178,26 +178,14 @@ class FiatElement(FiniteElementBase):
 
     @property
     def dual_basis(self):
-        # A tensor of weights (of total rank R) to contract with a unique
-        # vector of points to evaluate at, giving a tensor (of total rank R-1)
-        # where the first indices (rows) correspond to a basis functional
-        # (node).
-        # DOK Sparse matrix in (row, col, higher,..)=>value pairs - to become a
-        # gem.SparseLiteral.
-        # Rows are number of nodes/dual functionals.
-        # Columns are unique points to evaluate.
-        # Higher indices are tensor indices of the weights when weights are
-        # tensor valued.
-        # The columns (unique points to evaluate) are indexed out ready for
-        # contraction with the point set free index.
-        dual_basis = self._element.dual_basis()
+        fiat_dual_basis = self._element.dual_basis()
         seen = dict()
         allpts = []
         # Find the unique points to evaluate at.
         # We might be able to make this a smaller set by treating each
         # point one by one, but most of the redundancy comes from
         # multiple functionals using the same quadrature rule.
-        for dual in dual_basis:
+        for dual in fiat_dual_basis:
             pts = dual.get_point_dict().keys()
             pts = tuple(sorted(pts))  # need this for determinism
             if pts not in seen:
@@ -206,20 +194,29 @@ class FiatElement(FiniteElementBase):
                 kend = kstart + len(pts)
                 seen[pts] = kstart, kend
                 allpts.extend(pts)
-        allpts = np.asarray(allpts, dtype=np.float64)
+        x = PointSet(allpts)
+        # Build Q.
+        # Q is a tensor of weights (of total rank R) to contract with a unique
+        # vector of points to evaluate at, giving a tensor (of total rank R-1)
+        # where the first indices (rows) correspond to a basis functional
+        # (node).
+        # Q is a DOK Sparse matrix in (row, col, higher,..)=>value pairs (to
+        # become a gem.SparseLiteral when implemented).
+        # Rows (i) are number of nodes/dual functionals.
+        # Columns (k) are unique points to evaluate.
+        # Higher indices (*cmp) are tensor indices of the weights when weights
+        # are tensor valued.
         Q = {}
-        for i, dual in enumerate(dual_basis):
+        for i, dual in enumerate(fiat_dual_basis):
             point_dict = dual.get_point_dict()
             pts = tuple(sorted(point_dict.keys()))
             kstart, kend = seen[pts]
             for p, k in zip(pts, range(kstart, kend)):
                 for weight, cmp in point_dict[p]:
                     Q[(i, k, *cmp)] = weight
-
-        x = PointSet(allpts)
         if all(len(set(key)) == 1 and np.isclose(weight, 1) and len(key) == 2
                for key, weight in Q.items()):
-            # Identity, is this the most general case?
+            # Identity matrix Q can be expressed symbolically
             extents = tuple(map(max, zip(*Q.keys())))
             js = tuple(gem.Index(extent=e+1) for e in extents)
             assert len(js) == 2
@@ -229,6 +226,7 @@ class FiatElement(FiniteElementBase):
             # automatically convert a dictionary of keys internally.
             Q = gem.Literal(sparse.as_coo(Q).todense())
 
+        # Return Q with x.indices already a free index for the consumer to use
         assert len(x.indices) == 1
         assert Q.shape[1] == x.indices[0].extent
         i, *js = gem.indices(len(Q.shape) - 1)

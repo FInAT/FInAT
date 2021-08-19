@@ -5,6 +5,7 @@ import numpy
 
 import gem
 from gem.interpreter import evaluate
+from gem.optimise import delta_elimination, sum_factorise, traverse_product
 from gem.utils import cached_property
 
 from finat.quadrature import make_quadrature
@@ -149,27 +150,32 @@ class FiniteElementBase(metaclass=ABCMeta):
         '''Return a dual evaluation gem weight tensor Q and point set x to dual
         evaluate a function fn at.
 
-        The general dual evaluation is then Q * fn(x).
-
-        Note that the contraction index of the point set x is indexed out of Q
-        to avoid confusion when trying index it out of Q later in
-        dual_evaluation.
+        The general dual evaluation is then Q * fn(x) (the contraction of Q
+        with fn(x) along the the indices of x and any shape introduced by fn).
 
         If the dual weights are scalar then Q, for a general scalar FIAT
         element, is a matrix with dimensions
-        (num_nodes, num_points)
-        where num_points is made a free index that match the free index of x.
+
+        .. code-block:: text
+
+            (num_nodes, num_points)
 
         If the dual weights are tensor valued then Q, for a general tensor
         valued FIAT element, is a tensor with dimensions
-        (num_nodes, num_points, dual_weight_shape[0], ..., dual_weight_shape[n])
-        where num_points made a free index that matches the free index of x.
+
+        .. code-block:: text
+
+            (num_nodes, num_points, dual_weight_shape[0], ..., dual_weight_shape[n])
 
         If the dual basis is of a tensor product or FlattenedDimensions element
         with N factors then Q in general is a tensor with dimensions
-        (num_nodes_factor1, ..., num_nodes_factorN,
-            num_points_factor1, ..., num_points_factorN,
-            dual_weight_shape[0], ..., dual_weight_shape[n])
+
+        .. code-block:: text
+
+            (num_nodes_factor1, ..., num_nodes_factorN,
+             num_points_factor1, ..., num_points_factorN,
+             dual_weight_shape[0], ..., dual_weight_shape[n])
+
         where num_points_factorX are made free indices that match the free
         indices of x (which is now a TensorPointSet).
 
@@ -177,39 +183,58 @@ class FiniteElementBase(metaclass=ABCMeta):
         (S1, S2, ..., Sn) then the tensor element tQ is constructed from the
         base element's Q by taking the outer product with appropriately sized
         identity matrices:
-        tQ = Q ⊗ 𝟙ₛ₁ ⊗ 𝟙ₛ₂ ⊗ ... ⊗ 𝟙ₛₙ
+
+        .. code-block:: text
+
+            tQ = Q ⊗ 𝟙ₛ₁ ⊗ 𝟙ₛ₂ ⊗ ... ⊗ 𝟙ₛₙ
+
+        .. note::
+
+            When Q is returned, the contraction indices of the point set are
+            already free indices rather than being left in its shape (as either
+            ``num_points`` or ``num_points_factorX``). This is to avoid index
+            labelling confusion when performing the dual evaluation
+            contraction.
         '''
         raise NotImplementedError(
             f"Dual basis not defined for element {type(self).__name__}"
         )
 
     def dual_evaluation(self, fn):
-        '''Return code for performing the dual basis evaluation at the nodes of
-        the reference element. Currently only works for non-derivatives (not
-        implemented) and flat elements (implemented in TensorFiniteElement).
+        '''Get a GEM expression for performing the dual basis evaluation at
+        the nodes of the reference element. Currently only works for
+        non-derivatives (not implemented) and flat elements (tensor elements
+        are implemented in :class:`TensorFiniteElement`)
 
         :param fn: Callable representing the function to dual evaluate.
                    Callable should take in an :class:`AbstractPointSet` and
                    return a GEM expression for evaluation of the function at
                    those points.
-        :returns: A tuple (dual_evaluation_indexed_sum, basis_indices)
+        :returns: A tuple ``(dual_evaluation_gem_expression, basis_indices)``
+                  where the given ``basis_indices`` are those needed to form a
+                  return expression for the code which is compiled from
+                  ``dual_evaluation_gem_expression`` (alongside any argument
+                  multiindices already encoded within ``fn``)
         '''
         Q, x = self.dual_basis
 
         expr = fn(x)
-        # Apply sum factorisation and delta elimination to the
-        # expression
-        expr = gem.optimise.contraction(expr)
-        # NOTE: any shape indices in the expression are because the expression
-        # is tensor valued.
+        # Apply targeted sum factorisation and delta elimination to
+        # the expression
+        sum_indices, factors = delta_elimination(*traverse_product(expr))
+        expr = sum_factorise(sum_indices, factors)
+        # NOTE: any shape indices in the expression are because the
+        # expression is tensor valued.
         assert expr.shape == Q.shape[len(Q.shape)-len(expr.shape):]
         shape_indices = gem.indices(len(expr.shape))
         basis_indices = gem.indices(len(Q.shape) - len(expr.shape))
         Qi = Q[basis_indices + shape_indices]
         expri = expr[shape_indices]
         evaluation = gem.IndexSum(Qi * expri, x.indices + shape_indices)
-        # Don't want to factorise over the shape indices in the
-        # contraction, so exclude those from the optimisation routines.
+        # Now we want to factorise over the new contraction with x,
+        # ignoring any shape indices to avoid hitting the sum-
+        # factorisation index limit (this is a bit of a hack).
+        # Really need to do a more targeted job here.
         evaluation = gem.optimise.contraction(evaluation, shape_indices)
         return evaluation, basis_indices
 
