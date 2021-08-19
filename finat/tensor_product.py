@@ -14,7 +14,6 @@ from gem.utils import cached_property
 
 from finat.finiteelementbase import FiniteElementBase
 from finat.point_set import PointSingleton, PointSet, TensorPointSet
-from finat.cube import FlattenedDimensions
 
 
 class TensorProductElement(FiniteElementBase):
@@ -250,21 +249,3 @@ def factor_point_set(product_cell, product_dim, point_set):
         return result
 
     raise NotImplementedError("How to tabulate TensorProductElement on %s?" % (type(point_set).__name__,))
-
-
-def total_num_factors(factors):
-    '''Return the total number of (potentially nested) factors in a list
-    element factors.
-
-    :arg factors: An iterable of FInAT finite elements
-    :returns: The total number of factors in the flattened iterable
-    '''
-    num_factors = len(factors)
-    for factor in factors:
-        if hasattr(factor, 'factors'):
-            num_factors += total_num_factors(factor.factors)
-        if isinstance(factor, FlattenedDimensions):
-            # FlattenedDimensions introduces another factor without
-            # having a factors property
-            num_factors += 1
-    return num_factors
