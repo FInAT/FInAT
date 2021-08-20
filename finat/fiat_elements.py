@@ -5,8 +5,6 @@ from functools import singledispatch
 import FIAT
 from FIAT.polynomial_set import mis, form_matrix_product
 
-import sparse
-
 import gem
 
 from finat.finiteelementbase import FiniteElementBase
@@ -224,7 +222,15 @@ class FiatElement(FiniteElementBase):
         else:
             # temporary until sparse literals are implemented in GEM which will
             # automatically convert a dictionary of keys internally.
-            Q = gem.Literal(sparse.as_coo(Q).todense())
+            # TODO the below is unnecessarily slow and would be sped up
+            # significantly by building Q in a COO format rather than DOK (i.e.
+            # storing coords and associated data in (nonzeros, entries) shaped
+            # numpy arrays) to take advantage of numpy multiindexing
+            Qshape = tuple(s + 1 for s in map(max, *Q))
+            Qdense = np.zeros(Qshape)
+            for idx, value in Q.items():
+                Qdense[idx] = value
+            Q = gem.Literal(Qdense)
 
         # Return Q with x.indices already a free index for the consumer to use
         assert len(x.indices) == 1

@@ -19,5 +19,4 @@ setup(name="FInAT",
       install_requires=[
           'numpy>=1.16',
           'sympy',
-          'sparse',
       ])
