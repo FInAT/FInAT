@@ -126,14 +126,12 @@ class QuadratureElement(FiniteElementBase):
     @property
     def dual_basis(self):
         ps = self._rule.point_set
-        Q = gem.Literal([self._rule.weights])
-        # Index out ps.indices from Q
-        assert len(ps.indices) == 1
-        assert Q.shape[1] == ps.indices[0].extent
-        shape_indices = tuple(gem.Index(extent=s) for s in Q.shape)
-        Q = gem.ComponentTensor(
-            gem.Indexed(Q, (shape_indices[0],) + ps.indices + shape_indices[2:]),
-            (shape_indices[0],) + shape_indices[2:])
+        multiindex = self.get_indices()
+        # Evaluation matrix is just an outer product of identity
+        # matrices, evaluation points are just the quadrature points.
+        Q = reduce(gem.Product, (gem.Delta(q, r)
+                                 for q, r in zip(ps.indices, multiindex)))
+        Q = gem.ComponentTensor(Q, multiindex)
         return Q, ps
 
     @property
