@@ -189,6 +189,8 @@ class FiatElement(FiniteElementBase):
         # point one by one, but most of the redundancy comes from
         # multiple functionals using the same quadrature rule.
         for dual in fiat_dual_basis:
+            if len(dual.deriv_dict) != 0:
+                raise NotImplementedError("FIAT dual bases with derivative nodes represented via a ``Functional.deriv_dict`` property do not currently have a FInAT dual basis")
             pts = dual.get_point_dict().keys()
             pts = tuple(sorted(pts))  # need this for determinism
             if pts not in seen:

@@ -195,6 +195,13 @@ class FiniteElementBase(metaclass=ABCMeta):
             ``num_points`` or ``num_points_factorX``). This is to avoid index
             labelling confusion when performing the dual evaluation
             contraction.
+
+        .. note::
+
+            FIAT element dual bases are built from their ``Functional.pt_dict``
+            properties. Therefore any FIAT dual bases with derivative nodes
+            represented via a ``Functional.deriv_dict`` property does not
+            currently have a FInAT dual basis.
         '''
         raise NotImplementedError(
             f"Dual basis not defined for element {type(self).__name__}"
@@ -202,9 +209,9 @@ class FiniteElementBase(metaclass=ABCMeta):
 
     def dual_evaluation(self, fn):
         '''Get a GEM expression for performing the dual basis evaluation at
-        the nodes of the reference element. Currently only works for
-        non-derivatives (not implemented) and flat elements (tensor elements
-        are implemented in :class:`TensorFiniteElement`)
+        the nodes of the reference element. Currently only works for flat
+        elements: tensor elements are implemented in
+        :class:`TensorFiniteElement`.
 
         :param fn: Callable representing the function to dual evaluate.
                    Callable should take in an :class:`AbstractPointSet` and
