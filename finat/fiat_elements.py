@@ -6,8 +6,10 @@ import FIAT
 from FIAT.polynomial_set import mis, form_matrix_product
 
 import gem
+from gem.utils import cached_property
 
 from finat.finiteelementbase import FiniteElementBase
+from finat.point_set import PointSet
 from finat.sympy2gem import sympy2gem
 
 try:
@@ -172,6 +174,85 @@ class FiatElement(FiniteElementBase):
 
         # Dispatch on FIAT element class
         return point_evaluation(self._element, order, refcoords, (entity_dim, entity_i))
+
+    @cached_property
+    def _dual_basis(self):
+        # Return the numerical part of the dual basis, this split is
+        # needed because the dual_basis itself can't produce the same
+        # point set over and over in case it is used multiple times
+        # (in for example a tensorproductelement).
+        fiat_dual_basis = self._element.dual_basis()
+        seen = dict()
+        allpts = []
+        # Find the unique points to evaluate at.
+        # We might be able to make this a smaller set by treating each
+        # point one by one, but most of the redundancy comes from
+        # multiple functionals using the same quadrature rule.
+        for dual in fiat_dual_basis:
+            if len(dual.deriv_dict) != 0:
+                raise NotImplementedError("FIAT dual bases with derivative nodes represented via a ``Functional.deriv_dict`` property do not currently have a FInAT dual basis")
+            pts = dual.get_point_dict().keys()
+            pts = tuple(sorted(pts))  # need this for determinism
+            if pts not in seen:
+                # k are indices into Q (see below) for the seen points
+                kstart = len(allpts)
+                kend = kstart + len(pts)
+                seen[pts] = kstart, kend
+                allpts.extend(pts)
+        # Build Q.
+        # Q is a tensor of weights (of total rank R) to contract with a unique
+        # vector of points to evaluate at, giving a tensor (of total rank R-1)
+        # where the first indices (rows) correspond to a basis functional
+        # (node).
+        # Q is a DOK Sparse matrix in (row, col, higher,..)=>value pairs (to
+        # become a gem.SparseLiteral when implemented).
+        # Rows (i) are number of nodes/dual functionals.
+        # Columns (k) are unique points to evaluate.
+        # Higher indices (*cmp) are tensor indices of the weights when weights
+        # are tensor valued.
+        Q = {}
+        for i, dual in enumerate(fiat_dual_basis):
+            point_dict = dual.get_point_dict()
+            pts = tuple(sorted(point_dict.keys()))
+            kstart, kend = seen[pts]
+            for p, k in zip(pts, range(kstart, kend)):
+                for weight, cmp in point_dict[p]:
+                    Q[(i, k, *cmp)] = weight
+        if all(len(set(key)) == 1 and np.isclose(weight, 1) and len(key) == 2
+               for key, weight in Q.items()):
+            # Identity matrix Q can be expressed symbolically
+            extents = tuple(map(max, zip(*Q.keys())))
+            js = tuple(gem.Index(extent=e+1) for e in extents)
+            assert len(js) == 2
+            Q = gem.ComponentTensor(gem.Delta(*js), js)
+        else:
+            # temporary until sparse literals are implemented in GEM which will
+            # automatically convert a dictionary of keys internally.
+            # TODO the below is unnecessarily slow and would be sped up
+            # significantly by building Q in a COO format rather than DOK (i.e.
+            # storing coords and associated data in (nonzeros, entries) shaped
+            # numpy arrays) to take advantage of numpy multiindexing
+            Qshape = tuple(s + 1 for s in map(max, *Q))
+            Qdense = np.zeros(Qshape, dtype=np.float64)
+            for idx, value in Q.items():
+                Qdense[idx] = value
+            Q = gem.Literal(Qdense)
+        return Q, np.asarray(allpts)
+
+    @property
+    def dual_basis(self):
+        # Return Q with x.indices already a free index for the
+        # consumer to use
+        # expensive numerical extraction is done once per element
+        # instance, but the point set must be created every time we
+        # build the dual.
+        Q, pts = self._dual_basis
+        x = PointSet(pts)
+        assert len(x.indices) == 1
+        assert Q.shape[1] == x.indices[0].extent
+        i, *js = gem.indices(len(Q.shape) - 1)
+        Q = gem.ComponentTensor(gem.Indexed(Q, (i, *x.indices, *js)), (i, *js))
+        return Q, x
 
     @property
     def mapping(self):
