@@ -50,7 +50,7 @@
           <div class="body" role="main">
             
   <h1>Source code for finat.quadrature_element</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">finat.point_set</span> <span class="kn">import</span> <span class="n">PointSet</span><span class="p">,</span> <span class="n">UnknownPointSet</span>
+<span></span><span class="kn">from</span> <span class="nn">finat.point_set</span> <span class="kn">import</span> <span class="n">UnknownPointSet</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">reduce</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span>
@@ -137,11 +137,7 @@
     <span class="k">def</span> <span class="nf">fiat_equivalent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">ps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rule</span><span class="o">.</span><span class="n">point_set</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ps</span><span class="p">,</span> <span class="n">UnknownPointSet</span><span class="p">):</span>
-            <span class="c1"># This really should raise a ValueError since there ought not to be</span>
-            <span class="c1"># a FIAT equivalent where the points are unknown.</span>
-            <span class="c1"># For compatibility until FInAT dual evaluation is done we pass an</span>
-            <span class="c1"># array of NaNs of correct shape as the points.</span>
-            <span class="n">ps</span> <span class="o">=</span> <span class="n">PointSet</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">ps</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nan</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;A quadrature element with rule with runtime points has no fiat equivalent!&quot;</span><span class="p">)</span>
         <span class="n">weights</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rule</span><span class="p">,</span> <span class="s1">&#39;weights&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">weights</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># we need the weights.</span>
@@ -178,6 +174,17 @@
 
 <div class="viewcode-block" id="QuadratureElement.point_evaluation"><a class="viewcode-back" href="../../finat.html#finat.quadrature_element.QuadratureElement.point_evaluation">[docs]</a>    <span class="k">def</span> <span class="nf">point_evaluation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">refcoords</span><span class="p">,</span> <span class="n">entity</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;QuadratureElement cannot do point evaluation!&quot;</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">dual_basis</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">ps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rule</span><span class="o">.</span><span class="n">point_set</span>
+        <span class="n">multiindex</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_indices</span><span class="p">()</span>
+        <span class="c1"># Evaluation matrix is just an outer product of identity</span>
+        <span class="c1"># matrices, evaluation points are just the quadrature points.</span>
+        <span class="n">Q</span> <span class="o">=</span> <span class="n">reduce</span><span class="p">(</span><span class="n">gem</span><span class="o">.</span><span class="n">Product</span><span class="p">,</span> <span class="p">(</span><span class="n">gem</span><span class="o">.</span><span class="n">Delta</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span>
+                                 <span class="k">for</span> <span class="n">q</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ps</span><span class="o">.</span><span class="n">indices</span><span class="p">,</span> <span class="n">multiindex</span><span class="p">)))</span>
+        <span class="n">Q</span> <span class="o">=</span> <span class="n">gem</span><span class="o">.</span><span class="n">ComponentTensor</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">multiindex</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Q</span><span class="p">,</span> <span class="n">ps</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">mapping</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

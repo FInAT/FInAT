@@ -55,6 +55,7 @@
 <span class="kn">import</span> <span class="nn">numpy</span>
 
 <span class="kn">import</span> <span class="nn">gem</span>
+<span class="kn">from</span> <span class="nn">gem.optimise</span> <span class="kn">import</span> <span class="n">delta_elimination</span><span class="p">,</span> <span class="n">sum_factorise</span><span class="p">,</span> <span class="n">traverse_product</span>
 
 <span class="kn">from</span> <span class="nn">finat.finiteelementbase</span> <span class="kn">import</span> <span class="n">FiniteElementBase</span>
 
@@ -88,7 +89,7 @@
 <span class="sd">        we subscript the vector-value with :math:`\gamma\epsilon` then we can write:</span>
 
 <span class="sd">        .. math::</span>
-<span class="sd">           \boldsymbol\phi_{\gamma\epsilon(i\alpha\beta)} = \delta_{\gamma\alpha}\delta{\epsilon\beta}\phi_i</span>
+<span class="sd">           \boldsymbol\phi_{\gamma\epsilon(i\alpha\beta)} = \delta_{\gamma\alpha}\delta_{\epsilon\beta}\phi_i</span>
 
 <span class="sd">        This form enables the simplification of the loop nests which</span>
 <span class="sd">        will eventually be created, so it is the form we employ here.&quot;&quot;&quot;</span>
@@ -135,9 +136,9 @@
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Produce the recipe for basis function evaluation at a set of points :math:`q`:</span>
 
 <span class="sd">        .. math::</span>
-<span class="sd">            \boldsymbol\phi_{(\gamma \epsilon) (i \alpha \beta) q} = \delta_{\alpha \gamma}\delta{\beta \epsilon}\phi_{i q}</span>
+<span class="sd">            \boldsymbol\phi_{(\gamma \epsilon) (i \alpha \beta) q} = \delta_{\alpha \gamma} \delta_{\beta \epsilon}\phi_{i q}</span>
 
-<span class="sd">            \nabla\boldsymbol\phi_{(\epsilon \gamma \zeta) (i \alpha \beta) q} = \delta_{\alpha \epsilon} \deta{\beta \gamma}\nabla\phi_{\zeta i q}</span>
+<span class="sd">            \nabla\boldsymbol\phi_{(\epsilon \gamma \zeta) (i \alpha \beta) q} = \delta_{\alpha \epsilon} \delta_{\beta \gamma}\nabla\phi_{\zeta i q}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">scalar_evaluation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_base_element</span><span class="o">.</span><span class="n">basis_evaluation</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tensorise</span><span class="p">(</span><span class="n">scalar_evaluation</span><span class="p">(</span><span class="n">order</span><span class="p">,</span> <span class="n">ps</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">coordinate_mapping</span><span class="o">=</span><span class="n">coordinate_mapping</span><span class="p">))</span></div>
@@ -171,6 +172,60 @@
                 <span class="n">index_ordering</span>
             <span class="p">)</span>
         <span class="k">return</span> <span class="n">result</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">dual_basis</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">base</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_element</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">points</span> <span class="o">=</span> <span class="n">base</span><span class="o">.</span><span class="n">dual_basis</span>
+
+        <span class="c1"># Suppose the tensor element has shape (2, 4)</span>
+        <span class="c1"># These identity matrices may have difference sizes depending the shapes</span>
+        <span class="c1"># tQ = Q ⊗ 𝟙₂ ⊗ 𝟙₄</span>
+        <span class="n">scalar_i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_element</span><span class="o">.</span><span class="n">get_indices</span><span class="p">()</span>
+        <span class="n">scalar_vi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_element</span><span class="o">.</span><span class="n">get_value_indices</span><span class="p">()</span>
+        <span class="n">tensor_i</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">gem</span><span class="o">.</span><span class="n">Index</span><span class="p">(</span><span class="n">extent</span><span class="o">=</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shape</span><span class="p">)</span>
+        <span class="n">tensor_vi</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">gem</span><span class="o">.</span><span class="n">Index</span><span class="p">(</span><span class="n">extent</span><span class="o">=</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shape</span><span class="p">)</span>
+        <span class="c1"># Couple new basis function and value indices</span>
+        <span class="n">deltas</span> <span class="o">=</span> <span class="n">reduce</span><span class="p">(</span><span class="n">gem</span><span class="o">.</span><span class="n">Product</span><span class="p">,</span> <span class="p">(</span><span class="n">gem</span><span class="o">.</span><span class="n">Delta</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+                                      <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">tensor_i</span><span class="p">,</span> <span class="n">tensor_vi</span><span class="p">)))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transpose</span><span class="p">:</span>
+            <span class="n">index_ordering</span> <span class="o">=</span> <span class="n">tensor_i</span> <span class="o">+</span> <span class="n">scalar_i</span> <span class="o">+</span> <span class="n">tensor_vi</span> <span class="o">+</span> <span class="n">scalar_vi</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">index_ordering</span> <span class="o">=</span> <span class="n">scalar_i</span> <span class="o">+</span> <span class="n">tensor_i</span> <span class="o">+</span> <span class="n">tensor_vi</span> <span class="o">+</span> <span class="n">scalar_vi</span>
+
+        <span class="n">Qi</span> <span class="o">=</span> <span class="n">Q</span><span class="p">[</span><span class="n">scalar_i</span> <span class="o">+</span> <span class="n">scalar_vi</span><span class="p">]</span>
+        <span class="n">tQ</span> <span class="o">=</span> <span class="n">gem</span><span class="o">.</span><span class="n">ComponentTensor</span><span class="p">(</span><span class="n">Qi</span><span class="o">*</span><span class="n">deltas</span><span class="p">,</span> <span class="n">index_ordering</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">tQ</span><span class="p">,</span> <span class="n">points</span>
+
+<div class="viewcode-block" id="TensorFiniteElement.dual_evaluation"><a class="viewcode-back" href="../../finat.html#finat.tensorfiniteelement.TensorFiniteElement.dual_evaluation">[docs]</a>    <span class="k">def</span> <span class="nf">dual_evaluation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">):</span>
+        <span class="n">tQ</span><span class="p">,</span> <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dual_basis</span>
+        <span class="n">expr</span> <span class="o">=</span> <span class="n">fn</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="c1"># Apply targeted sum factorisation and delta elimination to</span>
+        <span class="c1"># the expression</span>
+        <span class="n">sum_indices</span><span class="p">,</span> <span class="n">factors</span> <span class="o">=</span> <span class="n">delta_elimination</span><span class="p">(</span><span class="o">*</span><span class="n">traverse_product</span><span class="p">(</span><span class="n">expr</span><span class="p">))</span>
+        <span class="n">expr</span> <span class="o">=</span> <span class="n">sum_factorise</span><span class="p">(</span><span class="n">sum_indices</span><span class="p">,</span> <span class="n">factors</span><span class="p">)</span>
+        <span class="c1"># NOTE: any shape indices in the expression are because the</span>
+        <span class="c1"># expression is tensor valued.</span>
+        <span class="k">assert</span> <span class="n">expr</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_shape</span>
+
+        <span class="n">scalar_i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_element</span><span class="o">.</span><span class="n">get_indices</span><span class="p">()</span>
+        <span class="n">scalar_vi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_element</span><span class="o">.</span><span class="n">get_value_indices</span><span class="p">()</span>
+        <span class="n">tensor_i</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">gem</span><span class="o">.</span><span class="n">Index</span><span class="p">(</span><span class="n">extent</span><span class="o">=</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shape</span><span class="p">)</span>
+        <span class="n">tensor_vi</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">gem</span><span class="o">.</span><span class="n">Index</span><span class="p">(</span><span class="n">extent</span><span class="o">=</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shape</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transpose</span><span class="p">:</span>
+            <span class="n">index_ordering</span> <span class="o">=</span> <span class="n">tensor_i</span> <span class="o">+</span> <span class="n">scalar_i</span> <span class="o">+</span> <span class="n">tensor_vi</span> <span class="o">+</span> <span class="n">scalar_vi</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">index_ordering</span> <span class="o">=</span> <span class="n">scalar_i</span> <span class="o">+</span> <span class="n">tensor_i</span> <span class="o">+</span> <span class="n">tensor_vi</span> <span class="o">+</span> <span class="n">scalar_vi</span>
+
+        <span class="n">tQi</span> <span class="o">=</span> <span class="n">tQ</span><span class="p">[</span><span class="n">index_ordering</span><span class="p">]</span>
+        <span class="n">expri</span> <span class="o">=</span> <span class="n">expr</span><span class="p">[</span><span class="n">tensor_i</span> <span class="o">+</span> <span class="n">scalar_vi</span><span class="p">]</span>
+        <span class="n">evaluation</span> <span class="o">=</span> <span class="n">gem</span><span class="o">.</span><span class="n">IndexSum</span><span class="p">(</span><span class="n">tQi</span> <span class="o">*</span> <span class="n">expri</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">indices</span> <span class="o">+</span> <span class="n">scalar_vi</span> <span class="o">+</span> <span class="n">tensor_i</span><span class="p">)</span>
+        <span class="c1"># This doesn&#39;t work perfectly, the resulting code doesn&#39;t have</span>
+        <span class="c1"># a minimal memory footprint, although the operation count</span>
+        <span class="c1"># does appear to be minimal.</span>
+        <span class="n">evaluation</span> <span class="o">=</span> <span class="n">gem</span><span class="o">.</span><span class="n">optimise</span><span class="o">.</span><span class="n">contraction</span><span class="p">(</span><span class="n">evaluation</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">evaluation</span><span class="p">,</span> <span class="n">scalar_i</span> <span class="o">+</span> <span class="n">tensor_vi</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">mapping</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

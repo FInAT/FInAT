@@ -58,8 +58,10 @@
 <span class="kn">from</span> <span class="nn">FIAT.polynomial_set</span> <span class="kn">import</span> <span class="n">mis</span><span class="p">,</span> <span class="n">form_matrix_product</span>
 
 <span class="kn">import</span> <span class="nn">gem</span>
+<span class="kn">from</span> <span class="nn">gem.utils</span> <span class="kn">import</span> <span class="n">cached_property</span>
 
 <span class="kn">from</span> <span class="nn">finat.finiteelementbase</span> <span class="kn">import</span> <span class="n">FiniteElementBase</span>
+<span class="kn">from</span> <span class="nn">finat.point_set</span> <span class="kn">import</span> <span class="n">PointSet</span>
 <span class="kn">from</span> <span class="nn">finat.sympy2gem</span> <span class="kn">import</span> <span class="n">sympy2gem</span>
 
 <span class="k">try</span><span class="p">:</span>
@@ -224,6 +226,85 @@
 
         <span class="c1"># Dispatch on FIAT element class</span>
         <span class="k">return</span> <span class="n">point_evaluation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_element</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">refcoords</span><span class="p">,</span> <span class="p">(</span><span class="n">entity_dim</span><span class="p">,</span> <span class="n">entity_i</span><span class="p">))</span></div>
+
+    <span class="nd">@cached_property</span>
+    <span class="k">def</span> <span class="nf">_dual_basis</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Return the numerical part of the dual basis, this split is</span>
+        <span class="c1"># needed because the dual_basis itself can&#39;t produce the same</span>
+        <span class="c1"># point set over and over in case it is used multiple times</span>
+        <span class="c1"># (in for example a tensorproductelement).</span>
+        <span class="n">fiat_dual_basis</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_element</span><span class="o">.</span><span class="n">dual_basis</span><span class="p">()</span>
+        <span class="n">seen</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="n">allpts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># Find the unique points to evaluate at.</span>
+        <span class="c1"># We might be able to make this a smaller set by treating each</span>
+        <span class="c1"># point one by one, but most of the redundancy comes from</span>
+        <span class="c1"># multiple functionals using the same quadrature rule.</span>
+        <span class="k">for</span> <span class="n">dual</span> <span class="ow">in</span> <span class="n">fiat_dual_basis</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dual</span><span class="o">.</span><span class="n">deriv_dict</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;FIAT dual bases with derivative nodes represented via a ``Functional.deriv_dict`` property do not currently have a FInAT dual basis&quot;</span><span class="p">)</span>
+            <span class="n">pts</span> <span class="o">=</span> <span class="n">dual</span><span class="o">.</span><span class="n">get_point_dict</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+            <span class="n">pts</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">pts</span><span class="p">))</span>  <span class="c1"># need this for determinism</span>
+            <span class="k">if</span> <span class="n">pts</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+                <span class="c1"># k are indices into Q (see below) for the seen points</span>
+                <span class="n">kstart</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">allpts</span><span class="p">)</span>
+                <span class="n">kend</span> <span class="o">=</span> <span class="n">kstart</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span>
+                <span class="n">seen</span><span class="p">[</span><span class="n">pts</span><span class="p">]</span> <span class="o">=</span> <span class="n">kstart</span><span class="p">,</span> <span class="n">kend</span>
+                <span class="n">allpts</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span>
+        <span class="c1"># Build Q.</span>
+        <span class="c1"># Q is a tensor of weights (of total rank R) to contract with a unique</span>
+        <span class="c1"># vector of points to evaluate at, giving a tensor (of total rank R-1)</span>
+        <span class="c1"># where the first indices (rows) correspond to a basis functional</span>
+        <span class="c1"># (node).</span>
+        <span class="c1"># Q is a DOK Sparse matrix in (row, col, higher,..)=&gt;value pairs (to</span>
+        <span class="c1"># become a gem.SparseLiteral when implemented).</span>
+        <span class="c1"># Rows (i) are number of nodes/dual functionals.</span>
+        <span class="c1"># Columns (k) are unique points to evaluate.</span>
+        <span class="c1"># Higher indices (*cmp) are tensor indices of the weights when weights</span>
+        <span class="c1"># are tensor valued.</span>
+        <span class="n">Q</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">dual</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">fiat_dual_basis</span><span class="p">):</span>
+            <span class="n">point_dict</span> <span class="o">=</span> <span class="n">dual</span><span class="o">.</span><span class="n">get_point_dict</span><span class="p">()</span>
+            <span class="n">pts</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">point_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+            <span class="n">kstart</span><span class="p">,</span> <span class="n">kend</span> <span class="o">=</span> <span class="n">seen</span><span class="p">[</span><span class="n">pts</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">pts</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="n">kstart</span><span class="p">,</span> <span class="n">kend</span><span class="p">)):</span>
+                <span class="k">for</span> <span class="n">weight</span><span class="p">,</span> <span class="n">cmp</span> <span class="ow">in</span> <span class="n">point_dict</span><span class="p">[</span><span class="n">p</span><span class="p">]:</span>
+                    <span class="n">Q</span><span class="p">[(</span><span class="n">i</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="o">*</span><span class="n">cmp</span><span class="p">)]</span> <span class="o">=</span> <span class="n">weight</span>
+        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">key</span><span class="p">))</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">weight</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span>
+               <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">weight</span> <span class="ow">in</span> <span class="n">Q</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+            <span class="c1"># Identity matrix Q can be expressed symbolically</span>
+            <span class="n">extents</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">max</span><span class="p">,</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">Q</span><span class="o">.</span><span class="n">keys</span><span class="p">())))</span>
+            <span class="n">js</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">gem</span><span class="o">.</span><span class="n">Index</span><span class="p">(</span><span class="n">extent</span><span class="o">=</span><span class="n">e</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">extents</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">js</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span>
+            <span class="n">Q</span> <span class="o">=</span> <span class="n">gem</span><span class="o">.</span><span class="n">ComponentTensor</span><span class="p">(</span><span class="n">gem</span><span class="o">.</span><span class="n">Delta</span><span class="p">(</span><span class="o">*</span><span class="n">js</span><span class="p">),</span> <span class="n">js</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># temporary until sparse literals are implemented in GEM which will</span>
+            <span class="c1"># automatically convert a dictionary of keys internally.</span>
+            <span class="c1"># TODO the below is unnecessarily slow and would be sped up</span>
+            <span class="c1"># significantly by building Q in a COO format rather than DOK (i.e.</span>
+            <span class="c1"># storing coords and associated data in (nonzeros, entries) shaped</span>
+            <span class="c1"># numpy arrays) to take advantage of numpy multiindexing</span>
+            <span class="n">Qshape</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">s</span> <span class="o">+</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">map</span><span class="p">(</span><span class="nb">max</span><span class="p">,</span> <span class="o">*</span><span class="n">Q</span><span class="p">))</span>
+            <span class="n">Qdense</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">Qshape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">Q</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">Qdense</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="n">Q</span> <span class="o">=</span> <span class="n">gem</span><span class="o">.</span><span class="n">Literal</span><span class="p">(</span><span class="n">Qdense</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Q</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">allpts</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">dual_basis</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Return Q with x.indices already a free index for the</span>
+        <span class="c1"># consumer to use</span>
+        <span class="c1"># expensive numerical extraction is done once per element</span>
+        <span class="c1"># instance, but the point set must be created every time we</span>
+        <span class="c1"># build the dual.</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">pts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dual_basis</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">PointSet</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">indices</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="k">assert</span> <span class="n">Q</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">x</span><span class="o">.</span><span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">extent</span>
+        <span class="n">i</span><span class="p">,</span> <span class="o">*</span><span class="n">js</span> <span class="o">=</span> <span class="n">gem</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">Q</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">Q</span> <span class="o">=</span> <span class="n">gem</span><span class="o">.</span><span class="n">ComponentTensor</span><span class="p">(</span><span class="n">gem</span><span class="o">.</span><span class="n">Indexed</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="o">*</span><span class="n">x</span><span class="o">.</span><span class="n">indices</span><span class="p">,</span> <span class="o">*</span><span class="n">js</span><span class="p">)),</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="o">*</span><span class="n">js</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">Q</span><span class="p">,</span> <span class="n">x</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">mapping</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

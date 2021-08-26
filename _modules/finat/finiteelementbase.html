@@ -57,6 +57,7 @@
 
 <span class="kn">import</span> <span class="nn">gem</span>
 <span class="kn">from</span> <span class="nn">gem.interpreter</span> <span class="kn">import</span> <span class="n">evaluate</span>
+<span class="kn">from</span> <span class="nn">gem.optimise</span> <span class="kn">import</span> <span class="n">delta_elimination</span><span class="p">,</span> <span class="n">sum_factorise</span><span class="p">,</span> <span class="n">traverse_product</span>
 <span class="kn">from</span> <span class="nn">gem.utils</span> <span class="kn">import</span> <span class="n">cached_property</span>
 
 <span class="kn">from</span> <span class="nn">finat.quadrature</span> <span class="kn">import</span> <span class="n">make_quadrature</span>
@@ -195,6 +196,106 @@
 <span class="sd">                          free indices are arbitrary.</span>
 <span class="sd">        :param entity: the cell entity on which to tabulate.</span>
 <span class="sd">        &#39;&#39;&#39;</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">dual_basis</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Return a dual evaluation gem weight tensor Q and point set x to dual</span>
+<span class="sd">        evaluate a function fn at.</span>
+
+<span class="sd">        The general dual evaluation is then Q * fn(x) (the contraction of Q</span>
+<span class="sd">        with fn(x) along the the indices of x and any shape introduced by fn).</span>
+
+<span class="sd">        If the dual weights are scalar then Q, for a general scalar FIAT</span>
+<span class="sd">        element, is a matrix with dimensions</span>
+
+<span class="sd">        .. code-block:: text</span>
+
+<span class="sd">            (num_nodes, num_points)</span>
+
+<span class="sd">        If the dual weights are tensor valued then Q, for a general tensor</span>
+<span class="sd">        valued FIAT element, is a tensor with dimensions</span>
+
+<span class="sd">        .. code-block:: text</span>
+
+<span class="sd">            (num_nodes, num_points, dual_weight_shape[0], ..., dual_weight_shape[n])</span>
+
+<span class="sd">        If the dual basis is of a tensor product or FlattenedDimensions element</span>
+<span class="sd">        with N factors then Q in general is a tensor with dimensions</span>
+
+<span class="sd">        .. code-block:: text</span>
+
+<span class="sd">            (num_nodes_factor1, ..., num_nodes_factorN,</span>
+<span class="sd">             num_points_factor1, ..., num_points_factorN,</span>
+<span class="sd">             dual_weight_shape[0], ..., dual_weight_shape[n])</span>
+
+<span class="sd">        where num_points_factorX are made free indices that match the free</span>
+<span class="sd">        indices of x (which is now a TensorPointSet).</span>
+
+<span class="sd">        If the dual basis is of a tensor finite element with some shape</span>
+<span class="sd">        (S1, S2, ..., Sn) then the tensor element tQ is constructed from the</span>
+<span class="sd">        base element&#39;s Q by taking the outer product with appropriately sized</span>
+<span class="sd">        identity matrices:</span>
+
+<span class="sd">        .. code-block:: text</span>
+
+<span class="sd">            tQ = Q ⊗ 𝟙ₛ₁ ⊗ 𝟙ₛ₂ ⊗ ... ⊗ 𝟙ₛₙ</span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">            When Q is returned, the contraction indices of the point set are</span>
+<span class="sd">            already free indices rather than being left in its shape (as either</span>
+<span class="sd">            ``num_points`` or ``num_points_factorX``). This is to avoid index</span>
+<span class="sd">            labelling confusion when performing the dual evaluation</span>
+<span class="sd">            contraction.</span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">            FIAT element dual bases are built from their ``Functional.pt_dict``</span>
+<span class="sd">            properties. Therefore any FIAT dual bases with derivative nodes</span>
+<span class="sd">            represented via a ``Functional.deriv_dict`` property does not</span>
+<span class="sd">            currently have a FInAT dual basis.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Dual basis not defined for element </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="FiniteElementBase.dual_evaluation"><a class="viewcode-back" href="../../finat.html#finat.finiteelementbase.FiniteElementBase.dual_evaluation">[docs]</a>    <span class="k">def</span> <span class="nf">dual_evaluation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Get a GEM expression for performing the dual basis evaluation at</span>
+<span class="sd">        the nodes of the reference element. Currently only works for flat</span>
+<span class="sd">        elements: tensor elements are implemented in</span>
+<span class="sd">        :class:`TensorFiniteElement`.</span>
+
+<span class="sd">        :param fn: Callable representing the function to dual evaluate.</span>
+<span class="sd">                   Callable should take in an :class:`AbstractPointSet` and</span>
+<span class="sd">                   return a GEM expression for evaluation of the function at</span>
+<span class="sd">                   those points.</span>
+<span class="sd">        :returns: A tuple ``(dual_evaluation_gem_expression, basis_indices)``</span>
+<span class="sd">                  where the given ``basis_indices`` are those needed to form a</span>
+<span class="sd">                  return expression for the code which is compiled from</span>
+<span class="sd">                  ``dual_evaluation_gem_expression`` (alongside any argument</span>
+<span class="sd">                  multiindices already encoded within ``fn``)</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dual_basis</span>
+
+        <span class="n">expr</span> <span class="o">=</span> <span class="n">fn</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="c1"># Apply targeted sum factorisation and delta elimination to</span>
+        <span class="c1"># the expression</span>
+        <span class="n">sum_indices</span><span class="p">,</span> <span class="n">factors</span> <span class="o">=</span> <span class="n">delta_elimination</span><span class="p">(</span><span class="o">*</span><span class="n">traverse_product</span><span class="p">(</span><span class="n">expr</span><span class="p">))</span>
+        <span class="n">expr</span> <span class="o">=</span> <span class="n">sum_factorise</span><span class="p">(</span><span class="n">sum_indices</span><span class="p">,</span> <span class="n">factors</span><span class="p">)</span>
+        <span class="c1"># NOTE: any shape indices in the expression are because the</span>
+        <span class="c1"># expression is tensor valued.</span>
+        <span class="k">assert</span> <span class="n">expr</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">Q</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">Q</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">shape</span><span class="p">):]</span>
+        <span class="n">shape_indices</span> <span class="o">=</span> <span class="n">gem</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+        <span class="n">basis_indices</span> <span class="o">=</span> <span class="n">gem</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">Q</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+        <span class="n">Qi</span> <span class="o">=</span> <span class="n">Q</span><span class="p">[</span><span class="n">basis_indices</span> <span class="o">+</span> <span class="n">shape_indices</span><span class="p">]</span>
+        <span class="n">expri</span> <span class="o">=</span> <span class="n">expr</span><span class="p">[</span><span class="n">shape_indices</span><span class="p">]</span>
+        <span class="n">evaluation</span> <span class="o">=</span> <span class="n">gem</span><span class="o">.</span><span class="n">IndexSum</span><span class="p">(</span><span class="n">Qi</span> <span class="o">*</span> <span class="n">expri</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">indices</span> <span class="o">+</span> <span class="n">shape_indices</span><span class="p">)</span>
+        <span class="c1"># Now we want to factorise over the new contraction with x,</span>
+        <span class="c1"># ignoring any shape indices to avoid hitting the sum-</span>
+        <span class="c1"># factorisation index limit (this is a bit of a hack).</span>
+        <span class="c1"># Really need to do a more targeted job here.</span>
+        <span class="n">evaluation</span> <span class="o">=</span> <span class="n">gem</span><span class="o">.</span><span class="n">optimise</span><span class="o">.</span><span class="n">contraction</span><span class="p">(</span><span class="n">evaluation</span><span class="p">,</span> <span class="n">shape_indices</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">evaluation</span><span class="p">,</span> <span class="n">basis_indices</span></div>
 
     <span class="nd">@abstractproperty</span>
     <span class="k">def</span> <span class="nf">mapping</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

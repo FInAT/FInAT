@@ -128,6 +128,10 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="o">.</span><span class="n">point_evaluation</span><span class="p">(</span><span class="n">order</span><span class="p">,</span> <span class="n">point</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unflatten</span><span class="p">[</span><span class="n">entity</span><span class="p">])</span></div>
 
     <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">dual_basis</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="o">.</span><span class="n">dual_basis</span>
+
+    <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">index_shape</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="o">.</span><span class="n">index_shape</span>
 
