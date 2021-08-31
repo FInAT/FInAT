@@ -1,9 +1,11 @@
 from functools import reduce
+from itertools import chain
 
 import numpy
 
 import gem
 from gem.optimise import delta_elimination, sum_factorise, traverse_product
+from gem.utils import cached_property
 
 from finat.finiteelementbase import FiniteElementBase
 
@@ -63,8 +65,31 @@ class TensorFiniteElement(FiniteElementBase):
     def formdegree(self):
         return self._base_element.formdegree
 
+    @cached_property
+    def _entity_dofs(self):
+        dofs = {}
+        base_dofs = self._base_element.entity_dofs()
+        ndof = int(numpy.prod(self._shape, dtype=int))
+
+        def expand(dofs):
+            dofs = tuple(dofs)
+            if self._transpose:
+                space_dim = self._base_element.space_dimension()
+                # Components stride by space dimension of base element
+                iterable = ((v + i*space_dim for v in dofs)
+                            for i in range(ndof))
+            else:
+                # Components packed together
+                iterable = (range(v*ndof, (v+1)*ndof) for v in dofs)
+            yield from chain.from_iterable(iterable)
+
+        for dim in self.cell.get_topology().keys():
+            dofs[dim] = dict((k, list(expand(d)))
+                             for k, d in base_dofs[dim].items())
+        return dofs
+
     def entity_dofs(self):
-        raise NotImplementedError("No one uses this!")
+        return self._entity_dofs
 
     def space_dimension(self):
         return int(numpy.prod(self.index_shape))
