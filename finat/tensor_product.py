@@ -167,6 +167,16 @@ class TensorProductElement(FiniteElementBase):
 
         return self._merge_evaluations(factor_results)
 
+    @property
+    def dual_basis(self):
+        # Outer product the dual bases of the factors
+        qs, pss = zip(*(factor.dual_basis for factor in self.factors))
+        ps = TensorPointSet(pss)
+        qis = tuple(q[gem.indices(len(q.shape))] for q in qs)
+        indices = tuple(chain(*(q.index_ordering() for q in qis)))
+        Q = gem.ComponentTensor(reduce(gem.Product, qis), indices)
+        return Q, ps
+
     @cached_property
     def mapping(self):
         mappings = [fe.mapping for fe in self.factors if fe.mapping != "affine"]

@@ -1,4 +1,4 @@
-from finat.point_set import PointSet, UnknownPointSet
+from finat.point_set import UnknownPointSet
 from functools import reduce
 
 import numpy
@@ -42,7 +42,7 @@ class QuadratureElement(FiniteElementBase):
         self.cell = fiat_ref_cell
         if not isinstance(rule, AbstractQuadratureRule):
             raise TypeError("rule is not an AbstractQuadratureRule")
-        if fiat_ref_cell.get_dimension() != rule.point_set.dimension:
+        if fiat_ref_cell.get_spatial_dimension() != rule.point_set.dimension:
             raise ValueError("Cell dimension does not match rule's point set dimension")
         self._rule = rule
 
@@ -88,11 +88,7 @@ class QuadratureElement(FiniteElementBase):
     def fiat_equivalent(self):
         ps = self._rule.point_set
         if isinstance(ps, UnknownPointSet):
-            # This really should raise a ValueError since there ought not to be
-            # a FIAT equivalent where the points are unknown.
-            # For compatibility until FInAT dual evaluation is done we pass an
-            # array of NaNs of correct shape as the points.
-            ps = PointSet(numpy.full(ps.points.shape, numpy.nan))
+            raise ValueError("A quadrature element with rule with runtime points has no fiat equivalent!")
         weights = getattr(self._rule, 'weights', None)
         if weights is None:
             # we need the weights.
@@ -129,6 +125,17 @@ class QuadratureElement(FiniteElementBase):
 
     def point_evaluation(self, order, refcoords, entity=None):
         raise NotImplementedError("QuadratureElement cannot do point evaluation!")
+
+    @property
+    def dual_basis(self):
+        ps = self._rule.point_set
+        multiindex = self.get_indices()
+        # Evaluation matrix is just an outer product of identity
+        # matrices, evaluation points are just the quadrature points.
+        Q = reduce(gem.Product, (gem.Delta(q, r)
+                                 for q, r in zip(ps.indices, multiindex)))
+        Q = gem.ComponentTensor(Q, multiindex)
+        return Q, ps
 
     @property
     def mapping(self):

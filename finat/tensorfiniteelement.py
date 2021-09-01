@@ -1,8 +1,11 @@
 from functools import reduce
+from itertools import chain
 
 import numpy
 
 import gem
+from gem.optimise import delta_elimination, sum_factorise, traverse_product
+from gem.utils import cached_property
 
 from finat.finiteelementbase import FiniteElementBase
 
@@ -36,7 +39,7 @@ class TensorFiniteElement(FiniteElementBase):
         we subscript the vector-value with :math:`\gamma\epsilon` then we can write:
 
         .. math::
-           \boldsymbol\phi_{\gamma\epsilon(i\alpha\beta)} = \delta_{\gamma\alpha}\delta{\epsilon\beta}\phi_i
+           \boldsymbol\phi_{\gamma\epsilon(i\alpha\beta)} = \delta_{\gamma\alpha}\delta_{\epsilon\beta}\phi_i
 
         This form enables the simplification of the loop nests which
         will eventually be created, so it is the form we employ here."""
@@ -62,8 +65,31 @@ class TensorFiniteElement(FiniteElementBase):
     def formdegree(self):
         return self._base_element.formdegree
 
+    @cached_property
+    def _entity_dofs(self):
+        dofs = {}
+        base_dofs = self._base_element.entity_dofs()
+        ndof = int(numpy.prod(self._shape, dtype=int))
+
+        def expand(dofs):
+            dofs = tuple(dofs)
+            if self._transpose:
+                space_dim = self._base_element.space_dimension()
+                # Components stride by space dimension of base element
+                iterable = ((v + i*space_dim for v in dofs)
+                            for i in range(ndof))
+            else:
+                # Components packed together
+                iterable = (range(v*ndof, (v+1)*ndof) for v in dofs)
+            yield from chain.from_iterable(iterable)
+
+        for dim in self.cell.get_topology().keys():
+            dofs[dim] = dict((k, list(expand(d)))
+                             for k, d in base_dofs[dim].items())
+        return dofs
+
     def entity_dofs(self):
-        raise NotImplementedError("No one uses this!")
+        return self._entity_dofs
 
     def entity_dofs_per_derivative_order(self):
         raise NotImplementedError("No one uses this!")
@@ -86,9 +112,9 @@ class TensorFiniteElement(FiniteElementBase):
         r"""Produce the recipe for basis function evaluation at a set of points :math:`q`:
 
         .. math::
-            \boldsymbol\phi_{(\gamma \epsilon) (i \alpha \beta) q} = \delta_{\alpha \gamma}\delta{\beta \epsilon}\phi_{i q}
+            \boldsymbol\phi_{(\gamma \epsilon) (i \alpha \beta) q} = \delta_{\alpha \gamma} \delta_{\beta \epsilon}\phi_{i q}
 
-            \nabla\boldsymbol\phi_{(\epsilon \gamma \zeta) (i \alpha \beta) q} = \delta_{\alpha \epsilon} \deta{\beta \gamma}\nabla\phi_{\zeta i q}
+            \nabla\boldsymbol\phi_{(\epsilon \gamma \zeta) (i \alpha \beta) q} = \delta_{\alpha \epsilon} \delta_{\beta \gamma}\nabla\phi_{\zeta i q}
         """
         scalar_evaluation = self._base_element.basis_evaluation
         return self._tensorise(scalar_evaluation(order, ps, entity, coordinate_mapping=coordinate_mapping))
@@ -122,6 +148,60 @@ class TensorFiniteElement(FiniteElementBase):
                 index_ordering
             )
         return result
+
+    @property
+    def dual_basis(self):
+        base = self.base_element
+        Q, points = base.dual_basis
+
+        # Suppose the tensor element has shape (2, 4)
+        # These identity matrices may have difference sizes depending the shapes
+        # tQ = Q ⊗ 𝟙₂ ⊗ 𝟙₄
+        scalar_i = self.base_element.get_indices()
+        scalar_vi = self.base_element.get_value_indices()
+        tensor_i = tuple(gem.Index(extent=d) for d in self._shape)
+        tensor_vi = tuple(gem.Index(extent=d) for d in self._shape)
+        # Couple new basis function and value indices
+        deltas = reduce(gem.Product, (gem.Delta(j, k)
+                                      for j, k in zip(tensor_i, tensor_vi)))
+        if self._transpose:
+            index_ordering = tensor_i + scalar_i + tensor_vi + scalar_vi
+        else:
+            index_ordering = scalar_i + tensor_i + tensor_vi + scalar_vi
+
+        Qi = Q[scalar_i + scalar_vi]
+        tQ = gem.ComponentTensor(Qi*deltas, index_ordering)
+        return tQ, points
+
+    def dual_evaluation(self, fn):
+        tQ, x = self.dual_basis
+        expr = fn(x)
+        # Apply targeted sum factorisation and delta elimination to
+        # the expression
+        sum_indices, factors = delta_elimination(*traverse_product(expr))
+        expr = sum_factorise(sum_indices, factors)
+        # NOTE: any shape indices in the expression are because the
+        # expression is tensor valued.
+        assert expr.shape == self.value_shape
+
+        scalar_i = self.base_element.get_indices()
+        scalar_vi = self.base_element.get_value_indices()
+        tensor_i = tuple(gem.Index(extent=d) for d in self._shape)
+        tensor_vi = tuple(gem.Index(extent=d) for d in self._shape)
+
+        if self._transpose:
+            index_ordering = tensor_i + scalar_i + tensor_vi + scalar_vi
+        else:
+            index_ordering = scalar_i + tensor_i + tensor_vi + scalar_vi
+
+        tQi = tQ[index_ordering]
+        expri = expr[tensor_i + scalar_vi]
+        evaluation = gem.IndexSum(tQi * expri, x.indices + scalar_vi + tensor_i)
+        # This doesn't work perfectly, the resulting code doesn't have
+        # a minimal memory footprint, although the operation count
+        # does appear to be minimal.
+        evaluation = gem.optimise.contraction(evaluation)
+        return evaluation, scalar_i + tensor_vi
 
     @property
     def mapping(self):
