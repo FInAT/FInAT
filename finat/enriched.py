@@ -128,6 +128,34 @@ class EnrichedElement(FiniteElementBase):
         return self._compose_evaluations(results)
 
     @property
+    def dual_basis(self):
+        raise NotImplementedError("EnrichedElements do not advertise a dual, but do support dual_evaluation")
+
+    def dual_evaluation(self, fn):
+        evaluations = []
+        for elem in self.elements:
+            evaluation, indices = elem.dual_evaluation(fn)
+            missing = tuple(i for i in indices if i not in evaluation.free_indices)
+            # Broadcast across missing free indices so that the
+            # correct shape appears for concatenation.
+            if missing:
+                shape = tuple(i.extent for i in missing)
+                evaluation = gem.Indexed(
+                    gem.ListTensor(
+                        numpy.asarray(
+                            [evaluation for _ in
+                             range(numpy.prod(shape, dtype=int))],
+                            dtype=object
+                        ).reshape(shape)
+                    ),
+                    missing
+                )
+            evaluation = gem.ComponentTensor(evaluation, indices)
+            evaluations.append(evaluation)
+        beta = self.get_indices()
+        return gem.Indexed(gem.Concatenate(*evaluations), beta), beta
+
+    @property
     def mapping(self):
         mappings = set(elem.mapping for elem in self.elements)
         if len(mappings) != 1:
