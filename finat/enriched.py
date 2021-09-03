@@ -1,4 +1,5 @@
 from functools import partial
+from itertools import repeat
 from operator import add, methodcaller
 
 import numpy
@@ -9,6 +10,7 @@ import gem
 from gem.utils import cached_property
 
 from finat.finiteelementbase import FiniteElementBase
+from finat.point_set import ConcatPointSet
 
 
 class EnrichedElement(FiniteElementBase):
@@ -126,6 +128,55 @@ class EnrichedElement(FiniteElementBase):
         results = [element.point_evaluation(order, refcoords, entity)
                    for element in self.elements]
         return self._compose_evaluations(results)
+
+    @property
+    def dual_basis(self):
+        qs, pss = zip(*(element.dual_basis for element in self.elements))
+        cps = ConcatPointSet(pss)
+        result = []
+        ps_indices = cps.indices
+        vi = self.get_value_indices()
+        for q, ps in zip(qs, pss):
+            indices = gem.indices(len(q.shape) - len(vi))
+            q = gem.ComponentTensor(
+                gem.Indexed(q, indices + vi),
+                indices
+            )
+            result.append(q)
+        beta = (gem.Index(), )
+        Qconcat = gem.Indexed(gem.Concatenate(*result), beta)
+        result = []
+        for ps in pss:
+            result.append(gem.ComponentTensor(Qconcat, ps.indices))
+        Qconcat = gem.Concatenate(*result)
+        from IPython import embed; embed()
+
+        beta = (gem.Index(), )
+        Q = gem.ComponentTensor(
+            gem.Indexed(gem.Concatenate(result), beta),
+            beta + vi
+        )
+        return Q, cps
+
+    def dual_evaluation(self, fn):
+        evaluations = []
+        for elem in self.elements:
+            evaluation, indices = elem.dual_evaluation(fn)
+            missing = tuple(i for i in indices if i not in evaluation.free_indices)
+            if missing:
+                shape = tuple(i.extent for i in missing)
+                evaluation = gem.Indexed(
+                    gem.ListTensor(
+                        numpy.asarray(
+                            [evaluation for _ in range(numpy.prod(shape, dtype=int))], dtype=object
+                        ).reshape(shape)
+                    ),
+                    missing
+                )
+            evaluation = gem.ComponentTensor(evaluation, indices)
+            evaluations.append(evaluation)
+        beta = self.get_indices()
+        return gem.Indexed(gem.Concatenate(*evaluations), beta), beta
 
     @property
     def mapping(self):
