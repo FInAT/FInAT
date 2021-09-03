@@ -70,6 +70,14 @@ class WrapperElementBase(FiniteElementBase):
         core_eval = self.wrappee.point_evaluation(order, refcoords, entity)
         return self._transform_evaluation(core_eval)
 
+    @property
+    def dual_basis(self):
+        Q, x = self.wrappee.dual_basis
+        beta = self.get_indices()
+        zeta = self.get_value_indices()
+        Q = gem.ListTensor(self.transform(gem.partial_indexed(Q, beta)))
+        return gem.ComponentTensor(Q[zeta], beta + zeta), x
+
 
 class HDivElement(WrapperElementBase):
     """H(div) wrapper element for tensor product elements."""
