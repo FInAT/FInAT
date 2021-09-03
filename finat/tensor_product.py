@@ -167,9 +167,15 @@ class TensorProductElement(FiniteElementBase):
         # Outer product the dual bases of the factors
         qs, pss = zip(*(factor.dual_basis for factor in self.factors))
         ps = TensorPointSet(pss)
-        qis = tuple(q[gem.indices(len(q.shape))] for q in qs)
-        indices = tuple(chain(*(q.index_ordering() for q in qis)))
-        Q = gem.ComponentTensor(reduce(gem.Product, qis), indices)
+        alphas = [factor.get_indices() for factor in self.factors]
+        zetas = [factor.get_value_indices() for factor in self.factors]
+        # Index the factors by so that we can reshape into index-shape
+        # followed by value-shape
+        qis = [q[alpha + zeta] for q, alpha, zeta in zip(qs, alphas, zetas)]
+        Q = gem.ComponentTensor(
+            reduce(gem.Product, qis),
+            tuple(chain(*(alphas + zetas)))
+        )
         return Q, ps
 
     @cached_property
