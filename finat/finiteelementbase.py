@@ -226,24 +226,16 @@ class FiniteElementBase(metaclass=ABCMeta):
         Q, x = self.dual_basis
 
         expr = fn(x)
-        # Apply targeted sum factorisation and delta elimination to
-        # the expression
-        sum_indices, factors = delta_elimination(*traverse_product(expr))
-        expr = sum_factorise(sum_indices, factors)
-        # NOTE: any shape indices in the expression are because the
-        # expression is tensor valued.
-        assert expr.shape == Q.shape[len(Q.shape)-len(expr.shape):]
-        shape_indices = gem.indices(len(expr.shape))
-        basis_indices = gem.indices(len(Q.shape) - len(expr.shape))
-        Qi = Q[basis_indices + shape_indices]
-        expri = expr[shape_indices]
-        evaluation = gem.IndexSum(Qi * expri, x.indices + shape_indices)
-        # Now we want to factorise over the new contraction with x,
-        # ignoring any shape indices to avoid hitting the sum-
-        # factorisation index limit (this is a bit of a hack).
-        # Really need to do a more targeted job here.
-        evaluation = gem.optimise.contraction(evaluation, shape_indices)
-        return evaluation, basis_indices
+
+        alphas = self.get_indices()
+        zetas = self.get_value_indices()
+
+        evaluation = gem.IndexSum(
+            gem.Product(gem.Indexed(Q, alphas + zetas),
+                        gem.Indexed(expr, zetas)),
+            x.indices + zetas
+        )
+        return evaluation, alphas
 
     @abstractproperty
     def mapping(self):

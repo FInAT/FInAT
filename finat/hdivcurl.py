@@ -73,10 +73,10 @@ class WrapperElementBase(FiniteElementBase):
     @property
     def dual_basis(self):
         Q, x = self.wrappee.dual_basis
-        beta = self.get_indices()
-        zeta = self.get_value_indices()
-        Q = gem.ListTensor(self.transform(gem.partial_indexed(Q, beta)))
-        return gem.ComponentTensor(Q[zeta], beta + zeta), x
+        alphas = self.get_indices()
+        zetas = self.get_value_indices()
+        Q = gem.ListTensor(self.transform(gem.partial_indexed(Q, alphas)))
+        return gem.ComponentTensor(gem.Indexed(Q, zetas), alphas + zetas), x
 
 
 class HDivElement(WrapperElementBase):

@@ -91,6 +91,13 @@ class MixedSubElement(FiniteElementBase):
         core_eval = self.element.point_evaluation(order, refcoords, entity)
         return self._transform_evaluation(core_eval)
 
+    def dual_evaluation(self, fn):
+        raise NotImplementedError("Sorry, haven't thought about this")
+
+    @property
+    def dual_point_set(self):
+        raise NotImplementedError("Sorry, haven't thought about this")
+
     @property
     def mapping(self):
         return self.element.mapping

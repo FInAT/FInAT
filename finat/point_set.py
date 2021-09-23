@@ -201,3 +201,39 @@ class TensorPointSet(AbstractPointSet):
             len(self.factors) == len(other.factors) and \
             all(s.almost_equal(o, tolerance=tolerance)
                 for s, o in zip(self.factors, other.factors))
+
+
+class ConcatPointSet(AbstractPointSet):
+
+    def __init__(self, point_sets):
+        self.point_sets = tuple(point_sets)
+
+    @cached_property
+    def points(self):
+        return numpy.concatenate([ps.points for ps in self.point_sets])
+
+    @cached_property
+    def indices(self):
+        return (gem.Index(),)
+
+    @cached_property
+    def expression(self):
+        zetas = (gem.Index(), )
+        exprs = []
+        for ps in self.point_sets:
+            indices = ps.indices()
+            expr = gem.ComponentTensor(
+                gem.Indexed(ps.expression, zetas),
+                indices
+            )
+            exprs.append(expr)
+        indices = self.indices
+        expr = gem.Indexed(gem.Concatenate(*exprs), indices)
+        return gem.ComponentTensor(expr, zetas)
+
+    def almost_equal(self, other, tolerance=1e-12):
+        """Approximate numerical equality of point sets"""
+        return type(self) == type(other) and \
+            len(self.point_sets) == len(other.point_sets) and \
+            all(s.almost_equal(o, tolerance=tolerance)
+                for s, o in zip(self.point_sets, other.point_sets))

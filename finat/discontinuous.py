@@ -57,9 +57,12 @@ class DiscontinuousElement(FiniteElementBase):
     def point_evaluation(self, order, refcoords, entity=None):
         return self.element.point_evaluation(order, refcoords, entity)
 
+    def dual_evaluation(self, fn):
+        return self.element.dual_evaluation(fn)
+
     @property
-    def dual_basis(self):
-        return self.element.dual_basis
+    def dual_point_set(self):
+        return self.element.dual_point_set
 
     @property
     def mapping(self):

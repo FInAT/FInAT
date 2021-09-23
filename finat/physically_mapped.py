@@ -176,6 +176,13 @@ class PhysicallyMappedElement(NeedsCoordinateMappingElement):
     def point_evaluation(self, order, refcoords, entity=None):
         raise NotImplementedError("TODO: not yet thought about it")
 
+    def dual_evaluation(self, fn):
+        raise NotImplementedError("TODO: haven't done duals for weirdly mapped things")
+
+    @property
+    def dual_point_set(self):
+        raise NotImplementedError("TODO: haven't done duals for weirdly mapped things")
+
 
 class DirectlyDefinedElement(NeedsCoordinateMappingElement):
     """Base class for directly defined elements such as direct

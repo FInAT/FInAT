@@ -237,22 +237,32 @@ class FiatElement(FiniteElementBase):
             for idx, value in Q.items():
                 Qdense[idx] = value
             Q = gem.Literal(Qdense)
-        return Q, np.asarray(allpts)
+        allpts = np.asarray(allpts)
+        npts, _ = allpts.shape
+        assert npts == Q.shape[1]
+        return Q, allpts
+
+    @property
+    def dual_point_set(self):
+        _, pts = self._dual_basis
+        return PointSet(pts)
 
     @property
     def dual_basis(self):
-        # Return Q with x.indices already a free index for the
-        # consumer to use
-        # expensive numerical extraction is done once per element
-        # instance, but the point set must be created every time we
-        # build the dual.
+        Q, pts = self._dual_basis
+        return Q, PointSet(pts)
+
+    def dual_evaluation(self, fn):
         Q, pts = self._dual_basis
         x = PointSet(pts)
-        assert len(x.indices) == 1
-        assert Q.shape[1] == x.indices[0].extent
-        i, *js = gem.indices(len(Q.shape) - 1)
-        Q = gem.ComponentTensor(gem.Indexed(Q, (i, *x.indices, *js)), (i, *js))
-        return Q, x
+        alphas = self.get_indices()
+        zetas = self.get_value_indices()
+        f_at = fn(x)
+        expr = gem.Product(
+            gem.Indexed(Q, (*alphas, *x.indices, *zetas)),
+            gem.Indexed(f_at, zetas)
+        )
+        return expr, alphas, x.indices, zetas
 
     @property
     def mapping(self):
