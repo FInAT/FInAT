@@ -85,6 +85,31 @@
         <span class="sd">&#39;&#39;&#39;Return the map of topological entities to degrees of</span>
 <span class="sd">        freedom for the finite element.&#39;&#39;&#39;</span></div>
 
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">entity_permutations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Returns a nested dictionary that gives, for each dimension,</span>
+<span class="sd">        for each entity, and for each possible entity orientation, the</span>
+<span class="sd">        DoF permutation array that maps the entity local DoF ordering</span>
+<span class="sd">        to the canonical global DoF ordering.</span>
+
+<span class="sd">        The entity permutations `dict` for the degree 4 Lagrange finite</span>
+<span class="sd">        element on the interval, for instance, is given by:</span>
+
+<span class="sd">        .. code-block:: python3</span>
+
+<span class="sd">            {0: {0: {0: [0]},</span>
+<span class="sd">                 1: {0: [0]}},</span>
+<span class="sd">             1: {0: {0: [0, 1, 2],</span>
+<span class="sd">                     1: [2, 1, 0]}}}</span>
+
+<span class="sd">        Note that there are two entities on dimension ``0`` (vertices),</span>
+<span class="sd">        each of which has only one possible orientation, while there is</span>
+<span class="sd">        a single entity on dimension ``1`` (interval), which has two</span>
+<span class="sd">        possible orientations representing non-reflected and reflected</span>
+<span class="sd">        intervals.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;entity_permutations not yet implemented for </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
     <span class="nd">@cached_property</span>
     <span class="k">def</span> <span class="nf">_entity_closure_dofs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Compute the nodes on the closure of each sub_entity.</span>
@@ -321,7 +346,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2014--2020, David A. Ham, Robert C. Kirby and others.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.1.2.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.2.0.
     </div>
   </body>
 </html>

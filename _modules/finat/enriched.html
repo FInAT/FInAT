@@ -99,6 +99,12 @@
         <span class="k">return</span> <span class="n">concatenate_entity_dofs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cell</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">,</span>
                                        <span class="n">methodcaller</span><span class="p">(</span><span class="s2">&quot;entity_dofs&quot;</span><span class="p">))</span></div>
 
+<div class="viewcode-block" id="EnrichedElement.entity_permutations"><a class="viewcode-back" href="../../finat.html#finat.enriched.EnrichedElement.entity_permutations">[docs]</a>    <span class="nd">@cached_property</span>
+    <span class="k">def</span> <span class="nf">entity_permutations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Return the map of topological entities to the map of</span>
+<span class="sd">        orientations to permutation lists for the finite element&#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="n">concatenate_entity_permutations</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span></div>
+
     <span class="nd">@cached_property</span>
     <span class="k">def</span> <span class="nf">_entity_support_dofs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">concatenate_entity_dofs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cell</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">,</span>
@@ -218,6 +224,28 @@
             <span class="k">for</span> <span class="n">ent</span><span class="p">,</span> <span class="n">off</span> <span class="ow">in</span> <span class="n">dofs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="n">entity_dofs</span><span class="p">[</span><span class="n">dim</span><span class="p">][</span><span class="n">ent</span><span class="p">]</span> <span class="o">+=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">partial</span><span class="p">(</span><span class="n">add</span><span class="p">,</span> <span class="n">offsets</span><span class="p">[</span><span class="n">i</span><span class="p">]),</span> <span class="n">off</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">entity_dofs</span></div>
+
+
+<div class="viewcode-block" id="concatenate_entity_permutations"><a class="viewcode-back" href="../../finat.html#finat.enriched.concatenate_entity_permutations">[docs]</a><span class="k">def</span> <span class="nf">concatenate_entity_permutations</span><span class="p">(</span><span class="n">elements</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;For each dimension, for each entity, and for each possible</span>
+<span class="sd">    entity orientation, collect the DoF permutation lists from</span>
+<span class="sd">    entity_permutations dicts of elements and concatenate them.</span>
+
+<span class="sd">    :arg elements: subelements whose DoF permutation lists are concatenated</span>
+<span class="sd">    :returns: entity_permutation dict of the :class:`EnrichedElement` object</span>
+<span class="sd">        composed of elements.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">permutations</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">dim</span><span class="p">,</span> <span class="n">e_o_p_map</span> <span class="ow">in</span> <span class="n">element</span><span class="o">.</span><span class="n">entity_permutations</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">dim_permutations</span> <span class="o">=</span> <span class="n">permutations</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">o_p_map</span> <span class="ow">in</span> <span class="n">e_o_p_map</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">e_dim_permutations</span> <span class="o">=</span> <span class="n">dim_permutations</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="p">{})</span>
+                <span class="k">for</span> <span class="n">o</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">o_p_map</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="n">o_e_dim_permutations</span> <span class="o">=</span> <span class="n">e_dim_permutations</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="p">[])</span>
+                    <span class="n">offset</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">o_e_dim_permutations</span><span class="p">)</span>
+                    <span class="n">o_e_dim_permutations</span> <span class="o">+=</span> <span class="nb">list</span><span class="p">(</span><span class="n">offset</span> <span class="o">+</span> <span class="n">q</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">p</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">permutations</span></div>
 </pre></div>
 
             <div class="clearer"></div>
@@ -228,7 +256,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2014--2020, David A. Ham, Robert C. Kirby and others.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.1.2.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.2.0.
     </div>
   </body>
 </html>

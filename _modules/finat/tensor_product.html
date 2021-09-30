@@ -107,6 +107,10 @@
 <div class="viewcode-block" id="TensorProductElement.entity_dofs"><a class="viewcode-back" href="../../finat.html#finat.tensor_product.TensorProductElement.entity_dofs">[docs]</a>    <span class="k">def</span> <span class="nf">entity_dofs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_entity_dofs</span></div>
 
+<div class="viewcode-block" id="TensorProductElement.entity_permutations"><a class="viewcode-back" href="../../finat.html#finat.tensor_product.TensorProductElement.entity_permutations">[docs]</a>    <span class="nd">@cached_property</span>
+    <span class="k">def</span> <span class="nf">entity_permutations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">compose_permutations</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">factors</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="TensorProductElement.space_dimension"><a class="viewcode-back" href="../../finat.html#finat.tensor_product.TensorProductElement.space_dimension">[docs]</a>    <span class="k">def</span> <span class="nf">space_dimension</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">prod</span><span class="p">([</span><span class="n">fe</span><span class="o">.</span><span class="n">space_dimension</span><span class="p">()</span> <span class="k">for</span> <span class="n">fe</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">factors</span><span class="p">])</span></div>
 
@@ -260,6 +264,40 @@
     <span class="k">return</span> <span class="n">dofs</span></div>
 
 
+<div class="viewcode-block" id="compose_permutations"><a class="viewcode-back" href="../../finat.html#finat.tensor_product.compose_permutations">[docs]</a><span class="k">def</span> <span class="nf">compose_permutations</span><span class="p">(</span><span class="n">factors</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;For the :class:`TensorProductElement` object composed of factors,</span>
+<span class="sd">    construct, for each dimension tuple, for each entity, and for each possible</span>
+<span class="sd">    entity orientation combination, the DoF permutation list.</span>
+
+<span class="sd">    :arg factors: element factors.</span>
+<span class="sd">    :returns: entity_permutation dict of the :class:`TensorProductElement` object</span>
+<span class="sd">        composed of factors.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">permutations</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">fe</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">get_topology</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+                         <span class="k">for</span> <span class="n">fe</span> <span class="ow">in</span> <span class="n">factors</span><span class="p">]):</span>
+        <span class="n">dim_permutations</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">e_o_p_maps</span> <span class="o">=</span> <span class="p">[</span><span class="n">fe</span><span class="o">.</span><span class="n">entity_permutations</span><span class="p">[</span><span class="n">d</span><span class="p">]</span>
+                      <span class="k">for</span> <span class="n">fe</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">factors</span><span class="p">,</span> <span class="n">dim</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">e_tuple</span> <span class="ow">in</span> <span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="nb">sorted</span><span class="p">(</span><span class="n">e_o_p_map</span><span class="p">)</span> <span class="k">for</span> <span class="n">e_o_p_map</span> <span class="ow">in</span> <span class="n">e_o_p_maps</span><span class="p">]):</span>
+            <span class="n">o_p_maps</span> <span class="o">=</span> <span class="p">[</span><span class="n">e_o_p_map</span><span class="p">[</span><span class="n">e</span><span class="p">]</span> <span class="k">for</span> <span class="n">e_o_p_map</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">e_o_p_maps</span><span class="p">,</span> <span class="n">e_tuple</span><span class="p">)]</span>
+            <span class="n">o_tuple_perm_map</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">o_tuple</span> <span class="ow">in</span> <span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">o_p_map</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">for</span> <span class="n">o_p_map</span> <span class="ow">in</span> <span class="n">o_p_maps</span><span class="p">]):</span>
+                <span class="n">ps</span> <span class="o">=</span> <span class="p">[</span><span class="n">o_p_map</span><span class="p">[</span><span class="n">o</span><span class="p">]</span> <span class="k">for</span> <span class="n">o_p_map</span><span class="p">,</span> <span class="n">o</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">o_p_maps</span><span class="p">,</span> <span class="n">o_tuple</span><span class="p">)]</span>
+                <span class="n">shape</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">ps</span><span class="p">)</span>
+                <span class="n">size</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">o_tuple_perm_map</span><span class="p">[</span><span class="n">o_tuple</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">a</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">size</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ps</span><span class="p">):</span>
+                        <span class="n">a</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span><span class="p">)[</span><span class="n">p</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+                    <span class="n">o_tuple_perm_map</span><span class="p">[</span><span class="n">o_tuple</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="n">dim_permutations</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">e_tuple</span><span class="p">,</span> <span class="n">o_tuple_perm_map</span><span class="p">))</span>
+        <span class="n">permutations</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">dim_permutations</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">permutations</span></div>
+
+
 <div class="viewcode-block" id="factor_point_set"><a class="viewcode-back" href="../../finat.html#finat.tensor_product.factor_point_set">[docs]</a><span class="k">def</span> <span class="nf">factor_point_set</span><span class="p">(</span><span class="n">product_cell</span><span class="p">,</span> <span class="n">product_dim</span><span class="p">,</span> <span class="n">point_set</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Factors a point set for the product element into a point sets for</span>
 <span class="sd">    each subelement.</span>
@@ -306,7 +344,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2014--2020, David A. Ham, Robert C. Kirby and others.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.1.2.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.2.0.
     </div>
   </body>
 </html>

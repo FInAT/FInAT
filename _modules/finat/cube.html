@@ -53,7 +53,7 @@
 <span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span>
 
 <span class="kn">from</span> <span class="nn">FIAT.reference_element</span> <span class="kn">import</span> <span class="n">UFCHexahedron</span><span class="p">,</span> <span class="n">UFCQuadrilateral</span>
-<span class="kn">from</span> <span class="nn">FIAT.reference_element</span> <span class="kn">import</span> <span class="n">compute_unflattening_map</span><span class="p">,</span> <span class="n">flatten_entities</span>
+<span class="kn">from</span> <span class="nn">FIAT.reference_element</span> <span class="kn">import</span> <span class="n">compute_unflattening_map</span><span class="p">,</span> <span class="n">flatten_entities</span><span class="p">,</span> <span class="n">flatten_permutations</span>
 <span class="kn">from</span> <span class="nn">FIAT.tensor_product</span> <span class="kn">import</span> <span class="n">FlattenedDimensions</span> <span class="k">as</span> <span class="n">FIAT_FlattenedDimensions</span>
 
 <span class="kn">from</span> <span class="nn">gem.utils</span> <span class="kn">import</span> <span class="n">cached_property</span>
@@ -100,6 +100,10 @@
 
 <div class="viewcode-block" id="FlattenedDimensions.entity_dofs"><a class="viewcode-back" href="../../finat.html#finat.cube.FlattenedDimensions.entity_dofs">[docs]</a>    <span class="k">def</span> <span class="nf">entity_dofs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_entity_dofs</span></div>
+
+<div class="viewcode-block" id="FlattenedDimensions.entity_permutations"><a class="viewcode-back" href="../../finat.html#finat.cube.FlattenedDimensions.entity_permutations">[docs]</a>    <span class="nd">@cached_property</span>
+    <span class="k">def</span> <span class="nf">entity_permutations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">flatten_permutations</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="o">.</span><span class="n">entity_permutations</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="FlattenedDimensions.space_dimension"><a class="viewcode-back" href="../../finat.html#finat.cube.FlattenedDimensions.space_dimension">[docs]</a>    <span class="k">def</span> <span class="nf">space_dimension</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="o">.</span><span class="n">space_dimension</span><span class="p">()</span></div>
@@ -152,7 +156,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2014--2020, David A. Ham, Robert C. Kirby and others.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.1.2.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.2.0.
     </div>
   </body>
 </html>

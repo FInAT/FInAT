@@ -303,6 +303,11 @@ freedom for the finite element.</p>
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="finat.cube.FlattenedDimensions.entity_permutations">
+<span class="sig-name descname"><span class="pre">entity_permutations</span></span><a class="reference internal" href="_modules/finat/cube.html#FlattenedDimensions.entity_permutations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.cube.FlattenedDimensions.entity_permutations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="finat.cube.FlattenedDimensions.fiat_equivalent">
 <span class="sig-name descname"><span class="pre">fiat_equivalent</span></span><a class="reference internal" href="_modules/finat/cube.html#FlattenedDimensions.fiat_equivalent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.cube.FlattenedDimensions.fiat_equivalent" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -481,7 +486,7 @@ indicating how many derivatives in that direction.</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="finat.direct_serendipity.ds1_sym">
-<span class="sig-prename descclassname"><span class="pre">finat.direct_serendipity.</span></span><span class="sig-name descname"><span class="pre">ds1_sym</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">ct</span></em>, <em class="sig-param"><span class="pre">*</span></em>, <em class="sig-param"><span class="pre">vs=None</span></em>, <em class="sig-param"><span class="pre">sp=&lt;module</span> <span class="pre">'symengine'</span> <span class="pre">from</span> <span class="pre">'/opt/hostedtoolcache/Python/3.6.14/x64/lib/python3.6/site-packages/symengine/__init__.py'&gt;</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/direct_serendipity.html#ds1_sym"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.direct_serendipity.ds1_sym" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">finat.direct_serendipity.</span></span><span class="sig-name descname"><span class="pre">ds1_sym</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">ct</span></em>, <em class="sig-param"><span class="pre">*</span></em>, <em class="sig-param"><span class="pre">vs=None</span></em>, <em class="sig-param"><span class="pre">sp=&lt;module</span> <span class="pre">'symengine'</span> <span class="pre">from</span> <span class="pre">'/opt/hostedtoolcache/Python/3.6.15/x64/lib/python3.6/site-packages/symengine/__init__.py'&gt;</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/direct_serendipity.html#ds1_sym"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.direct_serendipity.ds1_sym" title="Permalink to this definition">¶</a></dt>
 <dd><p>Constructs lowest-order case of Arbogast’s directly defined C^0 serendipity
 elements, which are a special case.
 :param ct: The cell topology of the reference quadrilateral.
@@ -500,7 +505,7 @@ of the four basis functions.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="finat.direct_serendipity.ds_sym">
-<span class="sig-prename descclassname"><span class="pre">finat.direct_serendipity.</span></span><span class="sig-name descname"><span class="pre">ds_sym</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">ct</span></em>, <em class="sig-param"><span class="pre">r</span></em>, <em class="sig-param"><span class="pre">*</span></em>, <em class="sig-param"><span class="pre">vs=None</span></em>, <em class="sig-param"><span class="pre">sp=&lt;module</span> <span class="pre">'symengine'</span> <span class="pre">from</span> <span class="pre">'/opt/hostedtoolcache/Python/3.6.14/x64/lib/python3.6/site-packages/symengine/__init__.py'&gt;</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/direct_serendipity.html#ds_sym"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.direct_serendipity.ds_sym" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">finat.direct_serendipity.</span></span><span class="sig-name descname"><span class="pre">ds_sym</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">ct</span></em>, <em class="sig-param"><span class="pre">r</span></em>, <em class="sig-param"><span class="pre">*</span></em>, <em class="sig-param"><span class="pre">vs=None</span></em>, <em class="sig-param"><span class="pre">sp=&lt;module</span> <span class="pre">'symengine'</span> <span class="pre">from</span> <span class="pre">'/opt/hostedtoolcache/Python/3.6.15/x64/lib/python3.6/site-packages/symengine/__init__.py'&gt;</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/direct_serendipity.html#ds_sym"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.direct_serendipity.ds_sym" title="Permalink to this definition">¶</a></dt>
 <dd><p>Symbolically Constructs Arbogast’s directly defined C^0 serendipity elements,
 which include all polynomials of degree r plus a couple of rational functions.
 :param ct: The cell topology of the reference quadrilateral.
@@ -519,7 +524,7 @@ of the four basis functions.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="finat.direct_serendipity.dsr_sym">
-<span class="sig-prename descclassname"><span class="pre">finat.direct_serendipity.</span></span><span class="sig-name descname"><span class="pre">dsr_sym</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">ct</span></em>, <em class="sig-param"><span class="pre">r</span></em>, <em class="sig-param"><span class="pre">*</span></em>, <em class="sig-param"><span class="pre">vs=None</span></em>, <em class="sig-param"><span class="pre">sp=&lt;module</span> <span class="pre">'symengine'</span> <span class="pre">from</span> <span class="pre">'/opt/hostedtoolcache/Python/3.6.14/x64/lib/python3.6/site-packages/symengine/__init__.py'&gt;</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/direct_serendipity.html#dsr_sym"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.direct_serendipity.dsr_sym" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">finat.direct_serendipity.</span></span><span class="sig-name descname"><span class="pre">dsr_sym</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">ct</span></em>, <em class="sig-param"><span class="pre">r</span></em>, <em class="sig-param"><span class="pre">*</span></em>, <em class="sig-param"><span class="pre">vs=None</span></em>, <em class="sig-param"><span class="pre">sp=&lt;module</span> <span class="pre">'symengine'</span> <span class="pre">from</span> <span class="pre">'/opt/hostedtoolcache/Python/3.6.15/x64/lib/python3.6/site-packages/symengine/__init__.py'&gt;</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/direct_serendipity.html#dsr_sym"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.direct_serendipity.dsr_sym" title="Permalink to this definition">¶</a></dt>
 <dd><p>Constructs higher-order (&gt;= 2) case of Arbogast’s directly defined C^0 serendipity
 elements, which include all polynomials of degree r plus a couple of rational
 functions.
@@ -655,6 +660,11 @@ freedom for the finite element.</p>
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="finat.discontinuous.DiscontinuousElement.entity_permutations">
+<span class="sig-name descname"><span class="pre">entity_permutations</span></span><a class="reference internal" href="_modules/finat/discontinuous.html#DiscontinuousElement.entity_permutations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.discontinuous.DiscontinuousElement.entity_permutations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="finat.discontinuous.DiscontinuousElement.fiat_equivalent">
 <span class="sig-name descname"><span class="pre">fiat_equivalent</span></span><a class="reference internal" href="_modules/finat/discontinuous.html#DiscontinuousElement.fiat_equivalent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.discontinuous.DiscontinuousElement.fiat_equivalent" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -756,6 +766,13 @@ freedom for the finite element.</p>
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="finat.enriched.EnrichedElement.entity_permutations">
+<span class="sig-name descname"><span class="pre">entity_permutations</span></span><a class="reference internal" href="_modules/finat/enriched.html#EnrichedElement.entity_permutations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.enriched.EnrichedElement.entity_permutations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the map of topological entities to the map of
+orientations to permutation lists for the finite element</p>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="finat.enriched.EnrichedElement.fiat_equivalent">
 <span class="sig-name descname"><span class="pre">fiat_equivalent</span></span><a class="reference internal" href="_modules/finat/enriched.html#EnrichedElement.fiat_equivalent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.enriched.EnrichedElement.fiat_equivalent" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -826,6 +843,23 @@ the elements.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>concatenated entity DoFs dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="finat.enriched.concatenate_entity_permutations">
+<span class="sig-prename descclassname"><span class="pre">finat.enriched.</span></span><span class="sig-name descname"><span class="pre">concatenate_entity_permutations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elements</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/enriched.html#concatenate_entity_permutations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.enriched.concatenate_entity_permutations" title="Permalink to this definition">¶</a></dt>
+<dd><p>For each dimension, for each entity, and for each possible
+entity orientation, collect the DoF permutation lists from
+entity_permutations dicts of elements and concatenate them.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>elements</strong> – subelements whose DoF permutation lists are concatenated</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>entity_permutation dict of the <a class="reference internal" href="#finat.enriched.EnrichedElement" title="finat.enriched.EnrichedElement"><code class="xref py py-class docutils literal notranslate"><span class="pre">EnrichedElement</span></code></a> object
+composed of elements.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -991,6 +1025,28 @@ element.</p>
 <span class="sig-name descname"><span class="pre">entity_dofs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/fiat_elements.html#FiatElement.entity_dofs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.fiat_elements.FiatElement.entity_dofs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the map of topological entities to degrees of
 freedom for the finite element.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.fiat_elements.FiatElement.entity_permutations">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">entity_permutations</span></span><a class="headerlink" href="#finat.fiat_elements.FiatElement.entity_permutations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a nested dictionary that gives, for each dimension,
+for each entity, and for each possible entity orientation, the
+DoF permutation array that maps the entity local DoF ordering
+to the canonical global DoF ordering.</p>
+<p>The entity permutations <cite>dict</cite> for the degree 4 Lagrange finite
+element on the interval, for instance, is given by:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">]},</span>
+     <span class="mi">1</span><span class="p">:</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">]}},</span>
+ <span class="mi">1</span><span class="p">:</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
+         <span class="mi">1</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]}}}</span>
+</pre></div>
+</div>
+<p>Note that there are two entities on dimension <code class="docutils literal notranslate"><span class="pre">0</span></code> (vertices),
+each of which has only one possible orientation, while there is
+a single entity on dimension <code class="docutils literal notranslate"><span class="pre">1</span></code> (interval), which has two
+possible orientations representing non-reflected and reflected
+intervals.</p>
 </dd></dl>
 
 <dl class="py property">
@@ -1273,6 +1329,28 @@ element.</p>
 freedom for the finite element.</p>
 </dd></dl>
 
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.finiteelementbase.FiniteElementBase.entity_permutations">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">entity_permutations</span></span><a class="headerlink" href="#finat.finiteelementbase.FiniteElementBase.entity_permutations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a nested dictionary that gives, for each dimension,
+for each entity, and for each possible entity orientation, the
+DoF permutation array that maps the entity local DoF ordering
+to the canonical global DoF ordering.</p>
+<p>The entity permutations <cite>dict</cite> for the degree 4 Lagrange finite
+element on the interval, for instance, is given by:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">]},</span>
+     <span class="mi">1</span><span class="p">:</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">]}},</span>
+ <span class="mi">1</span><span class="p">:</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
+         <span class="mi">1</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]}}}</span>
+</pre></div>
+</div>
+<p>Note that there are two entities on dimension <code class="docutils literal notranslate"><span class="pre">0</span></code> (vertices),
+each of which has only one possible orientation, while there is
+a single entity on dimension <code class="docutils literal notranslate"><span class="pre">1</span></code> (interval), which has two
+possible orientations representing non-reflected and reflected
+intervals.</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="finat.finiteelementbase.FiniteElementBase.entity_support_dofs">
 <span class="sig-name descname"><span class="pre">entity_support_dofs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/finiteelementbase.html#FiniteElementBase.entity_support_dofs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.finiteelementbase.FiniteElementBase.entity_support_dofs" title="Permalink to this definition">¶</a></dt>
@@ -1474,6 +1552,28 @@ element.</p>
 <span class="sig-name descname"><span class="pre">entity_dofs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/hdivcurl.html#WrapperElementBase.entity_dofs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.hdivcurl.WrapperElementBase.entity_dofs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the map of topological entities to degrees of
 freedom for the finite element.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.hdivcurl.WrapperElementBase.entity_permutations">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">entity_permutations</span></span><a class="headerlink" href="#finat.hdivcurl.WrapperElementBase.entity_permutations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a nested dictionary that gives, for each dimension,
+for each entity, and for each possible entity orientation, the
+DoF permutation array that maps the entity local DoF ordering
+to the canonical global DoF ordering.</p>
+<p>The entity permutations <cite>dict</cite> for the degree 4 Lagrange finite
+element on the interval, for instance, is given by:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">]},</span>
+     <span class="mi">1</span><span class="p">:</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">]}},</span>
+ <span class="mi">1</span><span class="p">:</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
+         <span class="mi">1</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]}}}</span>
+</pre></div>
+</div>
+<p>Note that there are two entities on dimension <code class="docutils literal notranslate"><span class="pre">0</span></code> (vertices),
+each of which has only one possible orientation, while there is
+a single entity on dimension <code class="docutils literal notranslate"><span class="pre">1</span></code> (interval), which has two
+possible orientations representing non-reflected and reflected
+intervals.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -2942,6 +3042,11 @@ freedom for the finite element.</p>
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="finat.tensor_product.TensorProductElement.entity_permutations">
+<span class="sig-name descname"><span class="pre">entity_permutations</span></span><a class="reference internal" href="_modules/finat/tensor_product.html#TensorProductElement.entity_permutations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.tensor_product.TensorProductElement.entity_permutations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="finat.tensor_product.TensorProductElement.fiat_equivalent">
 <span class="sig-name descname"><span class="pre">fiat_equivalent</span></span><a class="reference internal" href="_modules/finat/tensor_product.html#TensorProductElement.fiat_equivalent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.tensor_product.TensorProductElement.fiat_equivalent" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -2996,6 +3101,23 @@ free indices are arbitrary.</p></li>
 <dd><p>A tuple indicating the shape of the element.</p>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="finat.tensor_product.compose_permutations">
+<span class="sig-prename descclassname"><span class="pre">finat.tensor_product.</span></span><span class="sig-name descname"><span class="pre">compose_permutations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">factors</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/tensor_product.html#compose_permutations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.tensor_product.compose_permutations" title="Permalink to this definition">¶</a></dt>
+<dd><p>For the <a class="reference internal" href="#finat.tensor_product.TensorProductElement" title="finat.tensor_product.TensorProductElement"><code class="xref py py-class docutils literal notranslate"><span class="pre">TensorProductElement</span></code></a> object composed of factors,
+construct, for each dimension tuple, for each entity, and for each possible
+entity orientation combination, the DoF permutation list.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>factors</strong> – element factors.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>entity_permutation dict of the <a class="reference internal" href="#finat.tensor_product.TensorProductElement" title="finat.tensor_product.TensorProductElement"><code class="xref py py-class docutils literal notranslate"><span class="pre">TensorProductElement</span></code></a> object
+composed of factors.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -3250,7 +3372,7 @@ free indices are arbitrary.</p></li>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2014--2020, David A. Ham, Robert C. Kirby and others.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.1.2.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.2.0.
     </div>
   </body>
 </html>
