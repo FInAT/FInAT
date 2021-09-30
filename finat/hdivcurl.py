@@ -33,6 +33,10 @@ class WrapperElementBase(FiniteElementBase):
     def entity_dofs(self):
         return self.wrappee.entity_dofs()
 
+    @property
+    def entity_permutations(self):
+        return self.wrappee.entity_permutations
+
     def entity_closure_dofs(self):
         return self.wrappee.entity_closure_dofs()
 
