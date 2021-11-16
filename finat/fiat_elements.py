@@ -243,26 +243,14 @@ class FiatElement(FiniteElementBase):
         return Q, allpts
 
     @property
-    def dual_point_set(self):
-        _, pts = self._dual_basis
-        return PointSet(pts)
-
-    @property
     def dual_basis(self):
         Q, pts = self._dual_basis
-        return Q, PointSet(pts)
-
-    def dual_evaluation(self, fn):
-        Q, pts = self._dual_basis
-        x = PointSet(pts)
-        alphas = self.get_indices()
-        zetas = self.get_value_indices()
-        f_at = fn(x)
-        expr = gem.Product(
-            gem.Indexed(Q, (*alphas, *x.indices, *zetas)),
-            gem.Indexed(f_at, zetas)
-        )
-        return expr, alphas, x.indices, zetas
+        pts = PointSet(pts)
+        beta = self.get_indices()
+        zeta = self.get_value_indices()
+        Qi = gem.Indexed(Q, beta + pts.indices + zeta)
+        Q = gem.ComponentTensor(Qi, beta + zeta)
+        return Q, pts
 
     @property
     def mapping(self):

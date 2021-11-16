@@ -225,17 +225,19 @@ class FiniteElementBase(metaclass=ABCMeta):
         '''
         Q, x = self.dual_basis
 
-        expr = fn(x)
+        # Evaluate f at the points of the dual
+        f_at_x = fn(x)
 
-        alphas = self.get_indices()
-        zetas = self.get_value_indices()
+        beta = self.get_indices()
+        zeta = self.get_value_indices()
 
-        evaluation = gem.IndexSum(
-            gem.Product(gem.Indexed(Q, alphas + zetas),
-                        gem.Indexed(expr, zetas)),
-            x.indices + zetas
-        )
-        return evaluation, alphas
+        Qi = gem.Indexed(Q, beta + zeta)
+        fi = gem.Indexed(f_at_x, zeta)
+
+        contraction = gem.IndexSum(gem.Product(Qi, fi), x.indices + zeta)
+
+        # No optimisation done here, everything is handled in TSFC.
+        return contraction, beta
 
     @abstractproperty
     def mapping(self):

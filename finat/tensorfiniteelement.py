@@ -170,29 +170,6 @@ class TensorFiniteElement(FiniteElementBase):
         tQ = gem.ComponentTensor(Qi*deltas, index_ordering)
         return tQ, points
 
-    def dual_evaluation(self, fn):
-        tQ, x = self.dual_basis
-        expr = fn(x)
-        assert expr.shape == self.value_shape
-
-        scalar_i = self.base_element.get_indices()
-        scalar_vi = self.base_element.get_value_indices()
-        tensor_i = tuple(gem.Index(extent=d) for d in self._shape)
-        tensor_vi = tuple(gem.Index(extent=d) for d in self._shape)
-
-        if self._transpose:
-            index_ordering = tensor_i + scalar_i + tensor_vi + scalar_vi
-        else:
-            index_ordering = scalar_i + tensor_i + tensor_vi + scalar_vi
-
-        tQi = tQ[index_ordering]
-        expri = expr[tensor_i + scalar_vi]
-        evaluation = gem.IndexSum(
-            tQi * expri,
-            x.indices + scalar_vi + tensor_i
-        )
-        return evaluation, scalar_i + tensor_vi
-
     @property
     def mapping(self):
         return self._base_element.mapping

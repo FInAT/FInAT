@@ -1,5 +1,4 @@
 from functools import partial
-from itertools import chain
 from operator import add, methodcaller
 
 import numpy
@@ -143,51 +142,51 @@ class EnrichedElement(FiniteElementBase):
             splits.append(len(alphas))
             xs.append(x)
             exprs.append(Q)
-        Q = gem.TensorConcat(splits, exprs)
+        Q = gem.TensorConcat(splits, *exprs)
         x = ConcatPointSet(xs)
         alphas = self.get_indices()
         Q = gem.Indexed(Q, alphas + x.indices)
         Q = gem.ComponentTensor(Q, alphas + zetas)
         return Q, x
 
-    def dual_evaluation(self, fn):
-        exprs = []
-        zetas = self.get_value_indices()
-        psis = []
-        splits = []
-        for elem in self.elements:
-            expr, alphas, psi, zeta = elem.dual_evaluation(fn)
-            missing = tuple(i for i in alphas if i not in expr.free_indices)
-            # Broadcast across missing free indices so that the
-            # correct shape appears for concatenation.
-            if missing:
-                shape = tuple(i.extent for i in missing)
-                expr = gem.Indexed(
-                    gem.ListTensor(
-                        numpy.asarray(
-                            [expr for _ in
-                             range(numpy.prod(shape, dtype=int))],
-                            dtype=object
-                        ).reshape(shape)
-                    ),
-                    missing
-                )
-            assert len(zeta) == len(zetas)
-            expr = gem.ComponentTensor(
-                gem.Indexed(
-                    gem.ComponentTensor(expr, alphas + psi + zeta),
-                    alphas + psi + zetas
-                ),
-                alphas + psi
-            )
-            splits.append(len(alphas))
-            exprs.append(expr)
-            psis.append(psi)
-        expr = gem.TensorConcat(tuple(splits), *exprs)
-        alphas = self.get_indices()
-        psi = (gem.Index(),)
-        expr = gem.Indexed(expr, alphas + psi)
-        return expr, alphas, psi, zetas
+    # def dual_evaluation(self, fn):
+    #     exprs = []
+    #     zetas = self.get_value_indices()
+    #     psis = []
+    #     splits = []
+    #     for elem in self.elements:
+    #         expr, alphas, psi, zeta = elem.dual_evaluation(fn)
+    #         missing = tuple(i for i in alphas if i not in expr.free_indices)
+    #         # Broadcast across missing free indices so that the
+    #         # correct shape appears for concatenation.
+    #         if missing:
+    #             shape = tuple(i.extent for i in missing)
+    #             expr = gem.Indexed(
+    #                 gem.ListTensor(
+    #                     numpy.asarray(
+    #                         [expr for _ in
+    #                          range(numpy.prod(shape, dtype=int))],
+    #                         dtype=object
+    #                     ).reshape(shape)
+    #                 ),
+    #                 missing
+    #             )
+    #         assert len(zeta) == len(zetas)
+    #         expr = gem.ComponentTensor(
+    #             gem.Indexed(
+    #                 gem.ComponentTensor(expr, alphas + psi + zeta),
+    #                 alphas + psi + zetas
+    #             ),
+    #             alphas + psi
+    #         )
+    #         splits.append(len(alphas))
+    #         exprs.append(expr)
+    #         psis.append(psi)
+    #     expr = gem.TensorConcat(tuple(splits), *exprs)
+    #     alphas = self.get_indices()
+    #     psi = (gem.Index(),)
+    #     expr = gem.Indexed(expr, alphas + psi)
+    #     return expr, alphas, psi, zetas
 
     @property
     def dual_point_set(self):
