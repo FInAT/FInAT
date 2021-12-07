@@ -62,3 +62,11 @@ class GaussLegendre(ScalarFiatElement):
                 r, = self.get_indices()
                 result[(0,) * spatial_dim] = gem.ComponentTensor(gem.Delta(q, r), (r,))
         return result
+
+
+class FDMElement(ScalarFiatElement):
+    """1D (dis)continuous element with FDM shape functions."""
+
+    def __init__(self, cell, degree, formdegree=0):
+        fiat_element = FIAT.FDMElement(cell, degree, formdegree)
+        super(FDMElement, self).__init__(fiat_element)
