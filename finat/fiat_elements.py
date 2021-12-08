@@ -432,6 +432,10 @@ class DiscontinuousLagrange(ScalarFiatElement):
         super(DiscontinuousLagrange, self).__init__(FIAT.DiscontinuousLagrange(cell, degree))
 
 
+class Real(DiscontinuousLagrange):
+    ...
+
+
 class Serendipity(ScalarFiatElement):
     def __init__(self, cell, degree):
         super(Serendipity, self).__init__(FIAT.Serendipity(cell, degree))
