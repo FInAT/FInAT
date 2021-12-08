@@ -126,16 +126,20 @@
 
 <div class="viewcode-block" id="EnrichedElement.fiat_equivalent"><a class="viewcode-back" href="../../finat.html#finat.enriched.EnrichedElement.fiat_equivalent">[docs]</a>    <span class="nd">@cached_property</span>
     <span class="k">def</span> <span class="nf">fiat_equivalent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># Avoid circular import dependency</span>
-        <span class="kn">from</span> <span class="nn">finat.mixed</span> <span class="kn">import</span> <span class="n">MixedSubElement</span>
-
-        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">MixedSubElement</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_mixed</span><span class="p">:</span>
             <span class="c1"># EnrichedElement is actually a MixedElement</span>
             <span class="k">return</span> <span class="n">FIAT</span><span class="o">.</span><span class="n">MixedElement</span><span class="p">([</span><span class="n">e</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">fiat_equivalent</span>
                                       <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">],</span> <span class="n">ref_el</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cell</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">FIAT</span><span class="o">.</span><span class="n">EnrichedElement</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">fiat_equivalent</span>
                                           <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="EnrichedElement.is_mixed"><a class="viewcode-back" href="../../finat.html#finat.enriched.EnrichedElement.is_mixed">[docs]</a>    <span class="nd">@cached_property</span>
+    <span class="k">def</span> <span class="nf">is_mixed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Avoid circular import dependency</span>
+        <span class="kn">from</span> <span class="nn">finat.mixed</span> <span class="kn">import</span> <span class="n">MixedSubElement</span>
+
+        <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">MixedSubElement</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_compose_evaluations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results</span><span class="p">):</span>
         <span class="n">keys</span><span class="p">,</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">frozenset</span><span class="p">,</span> <span class="n">results</span><span class="p">))</span>
@@ -256,7 +260,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2014--2020, David A. Ham, Robert C. Kirby and others.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.2.0.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.1.
     </div>
   </body>
 </html>
