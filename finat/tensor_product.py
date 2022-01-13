@@ -60,6 +60,10 @@ class TensorProductElement(FiniteElementBase):
         freedom per derivative order for the finite element.'''
         return None
 
+    @cached_property
+    def entity_permutations(self):
+        return compose_permutations(self.factors)
+
     def space_dimension(self):
         return numpy.prod([fe.space_dimension() for fe in self.factors])
 
@@ -211,6 +215,40 @@ def productise(factors, method):
         # flatten entity numbers
         dofs[dim] = dict(enumerate(v for k, v in sorted(dim_dofs)))
     return dofs
+
+
+def compose_permutations(factors):
+    """For the :class:`TensorProductElement` object composed of factors,
+    construct, for each dimension tuple, for each entity, and for each possible
+    entity orientation combination, the DoF permutation list.
+
+    :arg factors: element factors.
+    :returns: entity_permutation dict of the :class:`TensorProductElement` object
+        composed of factors.
+    """
+    permutations = {}
+    for dim in product(*[fe.cell.get_topology().keys()
+                         for fe in factors]):
+        dim_permutations = []
+        e_o_p_maps = [fe.entity_permutations[d]
+                      for fe, d in zip(factors, dim)]
+        for e_tuple in product(*[sorted(e_o_p_map) for e_o_p_map in e_o_p_maps]):
+            o_p_maps = [e_o_p_map[e] for e_o_p_map, e in zip(e_o_p_maps, e_tuple)]
+            o_tuple_perm_map = {}
+            for o_tuple in product(*[o_p_map.keys() for o_p_map in o_p_maps]):
+                ps = [o_p_map[o] for o_p_map, o in zip(o_p_maps, o_tuple)]
+                shape = tuple(len(p) for p in ps)
+                size = numpy.prod(shape)
+                if size == 0:
+                    o_tuple_perm_map[o_tuple] = []
+                else:
+                    a = numpy.arange(size).reshape(shape)
+                    for i, p in enumerate(ps):
+                        a = a.swapaxes(0, i)[p, :].swapaxes(0, i)
+                    o_tuple_perm_map[o_tuple] = a.reshape(-1).tolist()
+            dim_permutations.append((e_tuple, o_tuple_perm_map))
+        permutations[dim] = dict(enumerate(v for k, v in sorted(dim_permutations)))
+    return permutations
 
 
 def factor_point_set(product_cell, product_dim, point_set):

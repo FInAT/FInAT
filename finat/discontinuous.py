@@ -41,6 +41,16 @@ class DiscontinuousElement(FiniteElementBase):
         freedom per derivative order for the finite element.'''
         return None
 
+    @cached_property
+    def entity_permutations(self):
+        # Return entity_permutations of the base finite element if it only
+        # has cell degrees of freedom; otherwise entity_permutations is not
+        # yet implemented for DiscontinuousElement.
+        if self.element.entity_dofs() == self.element.entity_closure_dofs():
+            return self.element.entity_permutations
+        else:
+            raise NotImplementedError(f"entity_permutations not yet implemented for a general {type(self)}")
+
     def space_dimension(self):
         return self.element.space_dimension()
 
@@ -61,6 +71,10 @@ class DiscontinuousElement(FiniteElementBase):
 
     def point_evaluation(self, order, refcoords, entity=None):
         return self.element.point_evaluation(order, refcoords, entity)
+
+    @property
+    def dual_basis(self):
+        return self.element.dual_basis
 
     @property
     def mapping(self):

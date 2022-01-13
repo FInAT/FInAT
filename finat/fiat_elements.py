@@ -73,6 +73,10 @@ class FiatElement(FiniteElementBase):
     def entity_closure_dofs(self):
         return self._element.entity_closure_dofs()
 
+    @property
+    def entity_permutations(self):
+        return self._element.entity_permutations()
+
     def space_dimension(self):
         return self._element.space_dimension()
 
@@ -429,6 +433,10 @@ class KongMulderVeldhuizen(ScalarFiatElement):
 class DiscontinuousLagrange(ScalarFiatElement):
     def __init__(self, cell, degree):
         super(DiscontinuousLagrange, self).__init__(FIAT.DiscontinuousLagrange(cell, degree))
+
+
+class Real(DiscontinuousLagrange):
+    ...
 
 
 class Serendipity(ScalarFiatElement):

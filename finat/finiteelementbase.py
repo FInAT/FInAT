@@ -38,6 +38,31 @@ class FiniteElementBase(metaclass=ABCMeta):
         '''Return the map of topological entities to degrees of
         freedom per derivative order for the finite element.'''
 
+    @property
+    def entity_permutations(self):
+        '''Returns a nested dictionary that gives, for each dimension,
+        for each entity, and for each possible entity orientation, the
+        DoF permutation array that maps the entity local DoF ordering
+        to the canonical global DoF ordering.
+
+        The entity permutations `dict` for the degree 4 Lagrange finite
+        element on the interval, for instance, is given by:
+
+        .. code-block:: python3
+
+            {0: {0: {0: [0]},
+                 1: {0: [0]}},
+             1: {0: {0: [0, 1, 2],
+                     1: [2, 1, 0]}}}
+
+        Note that there are two entities on dimension ``0`` (vertices),
+        each of which has only one possible orientation, while there is
+        a single entity on dimension ``1`` (interval), which has two
+        possible orientations representing non-reflected and reflected
+        intervals.
+        '''
+        raise NotImplementedError(f"entity_permutations not yet implemented for {type(self)}")
+
     @cached_property
     def _entity_closure_dofs(self):
         # Compute the nodes on the closure of each sub_entity.
