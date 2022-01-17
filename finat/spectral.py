@@ -64,9 +64,17 @@ class GaussLegendre(ScalarFiatElement):
         return result
 
 
-class FDMElement(ScalarFiatElement):
-    """1D (dis)continuous element with FDM shape functions."""
+class FDMLagrange(ScalarFiatElement):
+    """1D CG element with FDM shape functions."""
 
-    def __init__(self, cell, degree, formdegree=0):
-        fiat_element = FIAT.FDMElement(cell, degree, formdegree)
-        super(FDMElement, self).__init__(fiat_element)
+    def __init__(self, cell, degree):
+        fiat_element = FIAT.FDMLagrange(cell, degree)
+        super(FDMLagrange, self).__init__(fiat_element)
+
+
+class FDMHermite(ScalarFiatElement):
+    """1D CG element with FDM shape functions."""
+
+    def __init__(self, cell, degree):
+        fiat_element = FIAT.FDMHermite(cell, degree)
+        super(FDMHermite, self).__init__(fiat_element)
