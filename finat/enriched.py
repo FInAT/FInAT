@@ -3,6 +3,8 @@ from operator import add, methodcaller
 
 import numpy
 
+import FIAT
+
 import gem
 from gem.utils import cached_property
 
@@ -13,9 +15,14 @@ class EnrichedElement(FiniteElementBase):
     """A finite element whose basis functions are the union of the
     basis functions of several other finite elements."""
 
-    def __init__(self, elements):
-        super(EnrichedElement, self).__init__()
-        self.elements = tuple(elements)
+    def __new__(cls, elements):
+        elements = tuple(elements)
+        if len(elements) == 1:
+            return elements[0]
+        else:
+            self = super().__new__(cls)
+            self.elements = elements
+            return self
 
     @cached_property
     def cell(self):
@@ -41,6 +48,12 @@ class EnrichedElement(FiniteElementBase):
                                        methodcaller("entity_dofs"))
 
     @cached_property
+    def entity_permutations(self):
+        '''Return the map of topological entities to the map of
+        orientations to permutation lists for the finite element'''
+        return concatenate_entity_permutations(self.elements)
+
+    @cached_property
     def _entity_support_dofs(self):
         return concatenate_entity_dofs(self.cell, self.elements,
                                        methodcaller("entity_support_dofs"))
@@ -58,6 +71,23 @@ class EnrichedElement(FiniteElementBase):
         '''A tuple indicating the shape of the element.'''
         shape, = set(elem.value_shape for elem in self.elements)
         return shape
+
+    @cached_property
+    def fiat_equivalent(self):
+        if self.is_mixed:
+            # EnrichedElement is actually a MixedElement
+            return FIAT.MixedElement([e.element.fiat_equivalent
+                                      for e in self.elements], ref_el=self.cell)
+        else:
+            return FIAT.EnrichedElement(*(e.fiat_equivalent
+                                          for e in self.elements))
+
+    @cached_property
+    def is_mixed(self):
+        # Avoid circular import dependency
+        from finat.mixed import MixedSubElement
+
+        return all(isinstance(e, MixedSubElement) for e in self.elements)
 
     def _compose_evaluations(self, results):
         keys, = set(map(frozenset, results))
@@ -146,3 +176,25 @@ def concatenate_entity_dofs(ref_el, elements, method):
             for ent, off in dofs.items():
                 entity_dofs[dim][ent] += list(map(partial(add, offsets[i]), off))
     return entity_dofs
+
+
+def concatenate_entity_permutations(elements):
+    """For each dimension, for each entity, and for each possible
+    entity orientation, collect the DoF permutation lists from
+    entity_permutations dicts of elements and concatenate them.
+
+    :arg elements: subelements whose DoF permutation lists are concatenated
+    :returns: entity_permutation dict of the :class:`EnrichedElement` object
+        composed of elements.
+    """
+    permutations = {}
+    for element in elements:
+        for dim, e_o_p_map in element.entity_permutations.items():
+            dim_permutations = permutations.setdefault(dim, {})
+            for e, o_p_map in e_o_p_map.items():
+                e_dim_permutations = dim_permutations.setdefault(e, {})
+                for o, p in o_p_map.items():
+                    o_e_dim_permutations = e_dim_permutations.setdefault(o, [])
+                    offset = len(o_e_dim_permutations)
+                    o_e_dim_permutations += list(offset + q for q in p)
+    return permutations

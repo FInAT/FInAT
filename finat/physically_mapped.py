@@ -17,6 +17,21 @@ try:
   primaryclass = {math.NA}
 }
 """)
+    Citations().add("Kirby2019zany", """
+@Article{Kirby:2019,
+  author =       {Robert C. Kirby and Lawrence Mitchell},
+  title =        {Code generation for generally mapped finite
+                  elements},
+  journal =      {ACM Transactions on Mathematical Software},
+  year =         2019,
+  volume =       45,
+  number =       41,
+  pages =        {41:1--41:23},
+  doi =          {10.1145/3361745},
+  archiveprefix ={arXiv},
+  eprint =       {1808.05513},
+  primaryclass = {cs.MS}
+}""")
     Citations().add("Argyris1968", """
 @Article{Argyris1968,
   author =       {J. H. Argyris and I. Fried and D. W. Scharpf},
@@ -81,11 +96,61 @@ try:
   year={2019}
 }
 """)
+    Citations().add("Mardal2002", """
+@article{Mardal2002,
+        doi = {10.1137/s0036142901383910},
+        year = 2002,
+        volume = {40},
+        number = {5},
+        pages = {1605--1631},
+        author = {Mardal, K.-A.~ and Tai, X.-C.~ and Winther, R.~},
+        title = {A robust finite element method for {Darcy--Stokes} flow},
+        journal = {{SIAM} Journal on Numerical Analysis}
+}
+""")
+    Citations().add("Arnold2002", """
+@article{Arnold2002,
+        doi = {10.1007/s002110100348},
+        year = 2002,
+        volume = {92},
+        number = {3},
+        pages = {401--419},
+        author = {Arnold, R.~N.~ and Winther, R.~},
+        title = {Mixed finite elements for elasticity},
+        journal = {Numerische Mathematik}
+}
+""")
+    Citations().add("Arnold2003", """
+@article{arnold2003,
+        doi = {10.1142/s0218202503002507},
+        year = 2003,
+        volume = {13},
+        number = {03},
+        pages = {295--307},
+        author = {Arnold, D.~N.~ and Winther, R.~},
+        title = {Nonconforming mixed elements for elasticity},
+        journal = {Mathematical Models and Methods in Applied Sciences}
+}
+""")
+    Citations().add("Arbogast2017", """
+@techreport{Arbogast2017,
+  title={Direct serendipity finite elements on convex quadrilaterals},
+  author={Arbogast, T and Tao, Z},
+  year={2017},
+  institution={Tech. Rep. ICES REPORT 17-28, Institute for Computational Engineering and Sciences}
+}
+""")
 except ImportError:
     Citations = None
 
 
-class PhysicallyMappedElement(metaclass=ABCMeta):
+class NeedsCoordinateMappingElement(metaclass=ABCMeta):
+    """Abstract class for elements that require physical information
+    either to map or construct their basis functions."""
+    pass
+
+
+class PhysicallyMappedElement(NeedsCoordinateMappingElement):
     """A mixin that applies a "physical" transformation to tabulated
     basis functions."""
 
@@ -93,6 +158,7 @@ class PhysicallyMappedElement(metaclass=ABCMeta):
         super().__init__(*args, **kwargs)
         if Citations is not None:
             Citations().register("Kirby2018zany")
+            Citations().register("Kirby2019zany")
 
     @abstractmethod
     def basis_transformation(self, coordinate_mapping):
@@ -108,7 +174,9 @@ class PhysicallyMappedElement(metaclass=ABCMeta):
 
         def matvec(table):
             i, j = gem.indices(2)
-            val = gem.ComponentTensor(gem.IndexSum(M[i, j]*table[j], (j,)), (i,))
+            value_indices = self.get_value_indices()
+            table = gem.Indexed(table, (j, ) + value_indices)
+            val = gem.ComponentTensor(gem.IndexSum(M[i, j]*table, (j,)), (i,) + value_indices)
             # Eliminate zeros
             return gem.optimise.aggressive_unroll(val)
 
@@ -119,6 +187,12 @@ class PhysicallyMappedElement(metaclass=ABCMeta):
 
     def point_evaluation(self, order, refcoords, entity=None):
         raise NotImplementedError("TODO: not yet thought about it")
+
+
+class DirectlyDefinedElement(NeedsCoordinateMappingElement):
+    """Base class for directly defined elements such as direct
+    serendipity that bypass a coordinate mapping."""
+    pass
 
 
 class PhysicalGeometry(metaclass=ABCMeta):
@@ -134,8 +208,17 @@ class PhysicalGeometry(metaclass=ABCMeta):
     def jacobian_at(self, point):
         """The jacobian of the physical coordinates at a point.
 
-        :arg point: The point in reference space to evaluate the Jacobian.
+        :arg point: The point in reference space (on the cell) to
+             evaluate the Jacobian.
         :returns: A GEM expression for the Jacobian, shape (gdim, tdim).
+        """
+
+    @abstractmethod
+    def detJ_at(self, point):
+        """The determinant of the jacobian of the physical coordinates at a point.
+
+        :arg point: The point in reference space to evaluate the Jacobian determinant.
+        :returns: A GEM expression for the Jacobian determinant.
         """
 
     @abstractmethod
@@ -175,3 +258,21 @@ class PhysicalGeometry(metaclass=ABCMeta):
            edge (numbered according to FIAT conventions), shape
            (nfacet, ).
         """
+
+    @abstractmethod
+    def physical_points(self, point_set, entity=None):
+        """Maps reference element points to GEM for the physical coordinates
+
+        :arg point_set: A point_set on the reference cell to push forward to physical space.
+        :arg entity: Reference cell entity on which the point set is
+                     defined (for example if it is a point set on a facet).
+        :returns: a GEM expression for the physical locations of the
+                  points, shape (gdim, ) with free indices of the point_set.
+        """
+
+    @abstractmethod
+    def physical_vertices(self):
+        """Physical locations of the cell vertices.
+
+        :returns: a GEM expression for the physical vertices, shape
+                (gdim, )."""

@@ -21,7 +21,7 @@ class GaussLobattoLegendre(ScalarFiatElement):
         :param ps: the point set.
         :param entity: the cell entity on which to tabulate.
         '''
-        assert coordinate_mapping is None
+
         result = super(GaussLobattoLegendre, self).basis_evaluation(order, ps, entity)
         cell_dimension = self.cell.get_dimension()
         if entity is None or entity == (cell_dimension, 0):  # on cell interior
@@ -50,7 +50,7 @@ class GaussLegendre(ScalarFiatElement):
         :param ps: the point set.
         :param entity: the cell entity on which to tabulate.
         '''
-        assert coordinate_mapping is None
+
         result = super(GaussLegendre, self).basis_evaluation(order, ps, entity)
         cell_dimension = self.cell.get_dimension()
         if entity is None or entity == (cell_dimension, 0):  # on cell interior
@@ -62,3 +62,19 @@ class GaussLegendre(ScalarFiatElement):
                 r, = self.get_indices()
                 result[(0,) * spatial_dim] = gem.ComponentTensor(gem.Delta(q, r), (r,))
         return result
+
+
+class FDMLagrange(ScalarFiatElement):
+    """1D CG element with FDM shape functions."""
+
+    def __init__(self, cell, degree):
+        fiat_element = FIAT.FDMLagrange(cell, degree)
+        super(FDMLagrange, self).__init__(fiat_element)
+
+
+class FDMHermite(ScalarFiatElement):
+    """1D CG element with FDM shape functions."""
+
+    def __init__(self, cell, degree):
+        fiat_element = FIAT.FDMHermite(cell, degree)
+        super(FDMHermite, self).__init__(fiat_element)

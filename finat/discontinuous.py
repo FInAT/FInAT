@@ -1,3 +1,5 @@
+import FIAT
+
 from gem.utils import cached_property
 
 from finat.finiteelementbase import FiniteElementBase
@@ -34,6 +36,16 @@ class DiscontinuousElement(FiniteElementBase):
     def entity_dofs(self):
         return self._entity_dofs
 
+    @cached_property
+    def entity_permutations(self):
+        # Return entity_permutations of the base finite element if it only
+        # has cell degrees of freedom; otherwise entity_permutations is not
+        # yet implemented for DiscontinuousElement.
+        if self.element.entity_dofs() == self.element.entity_closure_dofs():
+            return self.element.entity_permutations
+        else:
+            raise NotImplementedError(f"entity_permutations not yet implemented for a general {type(self)}")
+
     def space_dimension(self):
         return self.element.space_dimension()
 
@@ -45,11 +57,19 @@ class DiscontinuousElement(FiniteElementBase):
     def value_shape(self):
         return self.element.value_shape
 
+    @cached_property
+    def fiat_equivalent(self):
+        return FIAT.DiscontinuousElement(self.element.fiat_equivalent)
+
     def basis_evaluation(self, order, ps, entity=None, coordinate_mapping=None):
         return self.element.basis_evaluation(order, ps, entity, coordinate_mapping=coordinate_mapping)
 
     def point_evaluation(self, order, refcoords, entity=None):
         return self.element.point_evaluation(order, refcoords, entity)
+
+    @property
+    def dual_basis(self):
+        return self.element.dual_basis
 
     @property
     def mapping(self):
