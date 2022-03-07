@@ -1,23 +1,22 @@
 import numpy
 
-import FIAT
 
 from gem import Literal, ListTensor
 
 from finat.fiat_elements import ScalarFiatElement
 from finat.physically_mapped import PhysicallyMappedElement, Citations
-from .wu_xu_fiat import WuXuH3
+from .wu_xu_fiat import WuXuRobustH3NC_fiat
 
-class WuXu(PhysicallyMappedElement, ScalarFiatElement):
+
+class WuXuRobustH3NC(PhysicallyMappedElement, ScalarFiatElement):
     def __init__(self, cell, degree=None):
         if degree is None:
             degree = 7
         if degree != 7:
-            raise ValueError("Degree must be 3 for Wu-Xu element")
+            raise ValueError("Degree must be 7 for robust Wu-Xu element")
         if Citations is not None:
             Citations().register("WuXu2019")
-        super().__init__(WuXuH3(cell))
-
+        super().__init__(WuXuRobustH3NC_fiat(cell))
 
     def basis_transformation(self, coordinate_mapping):
         J = coordinate_mapping.jacobian_at([1/3, 1/3])
@@ -25,13 +24,13 @@ class WuXu(PhysicallyMappedElement, ScalarFiatElement):
                          [J[1, 0], J[1, 1]]])
         [[dxdxhat, dxdyhat], [dydxhat, dydyhat]] = J
 
-        Thetainv =  numpy.array(
+        Thetainv = numpy.array(
             [[dxdxhat*dxdxhat, Literal(2) * dxdxhat * dydxhat, dydxhat*dydxhat],
              [dxdyhat * dxdxhat, dxdyhat * dydxhat + dxdxhat * dydyhat, dydxhat * dydyhat],
              [dxdyhat*dxdyhat, Literal(2) * dxdyhat * dydyhat, dydyhat*dydyhat]])
         nhats = coordinate_mapping.reference_normals()
         ns = coordinate_mapping.physical_normals()
-        
+
         ts = coordinate_mapping.physical_tangents()
 
         thats = numpy.zeros((3, 2), dtype=object)
@@ -39,9 +38,9 @@ class WuXu(PhysicallyMappedElement, ScalarFiatElement):
             tancur = self.cell.compute_normalized_edge_tangent(e)
             for i in range(2):
                 thats[e, i] = Literal(tancur[i])
-        
+
         lens = coordinate_mapping.physical_edge_lengths()
-        
+
         V = numpy.zeros((15, 15), dtype=object)
 
         for multiindex in numpy.ndindex(V.shape):
@@ -54,7 +53,7 @@ class WuXu(PhysicallyMappedElement, ScalarFiatElement):
         B1s = numpy.zeros((3, 2, 2), dtype='O')
         B2s = numpy.zeros((3, 3, 3), dtype='O')
         betas = numpy.zeros((3, 2), dtype='O')
-        
+
         for e in range(3):
             nx = ns[e, 0]
             ny = ns[e, 1]
@@ -68,7 +67,7 @@ class WuXu(PhysicallyMappedElement, ScalarFiatElement):
             Gs[e, :, :] = numpy.asarray([[nx, ny], [tx, ty]])
             Ghats[e, :, :] = numpy.asarray([[nhatx, nhaty],
                                             [thatx, thaty]])
-            
+
             Gammas[e, :, :] = numpy.asarray(
                 [[nx*nx, Literal(2)*nx*tx, tx*tx],
                  [nx*ny, nx*ty+ny*tx, tx*ty],
@@ -87,7 +86,6 @@ class WuXu(PhysicallyMappedElement, ScalarFiatElement):
             betas[e, 0] = nx * B2s[e, 0, 1] + tx * B2s[e, 0, 2]
             betas[e, 1] = ny * B2s[e, 0, 1] + ty * B2s[e, 0, 2]
 
-
         for e in range(3):
             V[3*e, 3*e] = Literal(1)
             for i in range(2):
@@ -100,10 +98,10 @@ class WuXu(PhysicallyMappedElement, ScalarFiatElement):
         V[11, 3] = B1s[2, 0, 1]
         V[9, 6] = B1s[0, 0, 1]
         V[10, 6] = B1s[1, 0, 1]
-        
+
         for e in range(9, 12):
             V[e, e] = B1s[e-9, 0, 0]
-        
+
         for e in range(12, 15):
             V[e, e] = B2s[e-12, 0, 0]
 
@@ -121,23 +119,18 @@ class WuXu(PhysicallyMappedElement, ScalarFiatElement):
         V[13, 8] = betas[1, 1]
 
         # Now let's fix the scaling.
-        
         h = coordinate_mapping.cell_size()
 
-        # Nothing needed for the vertex values
-        
         # This gets the vertex gradients
         for v in range(3):
             for k in range(2):
                 for i in range(15):
-                    V[i, 3*v+1+k] = V[i, 3*v+1+k] / h[v]        
+                    V[i, 3*v+1+k] = V[i, 3*v+1+k] / h[v]
 
         # this scales second derivative moments.  First should be ok.
         for e in range(3):
             v0id, v1id = [i for i in range(3) if i != e]
             for i in range(15):
                 V[i, 12+e] = 2*V[i, 12+e] / (h[v0id] + h[v1id])
-        
-        
 
         return ListTensor(V.T)

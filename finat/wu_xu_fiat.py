@@ -20,10 +20,10 @@ from FIAT import (expansions, polynomial_set, quadrature, dual_set,
                   finite_element, functional, Bubble, Lagrange,
                   reference_element, ufc_simplex)
 import numpy
-from itertools import chain
 from collections import OrderedDict
 
 polydim = expansions.polynomial_dimension
+
 
 class IntegralMomentOfNormalDerivative(functional.Functional):
     """Functional giving normal derivative integrated on a facet."""
@@ -52,8 +52,9 @@ class IntegralMomentOfNormalDerivative(functional.Functional):
         for j, pt in enumerate(dpts):
             dpt_dict[tuple(pt)] = [(qwts[j]*n[i], tuple(alphas[i]), tuple()) for i in range(sd)]
 
-        functional.Functional.__init__(self, ref_el, tuple(),
-                            {}, dpt_dict, "IntegralMomentOfNormalDerivative")
+        functional.Functional.__init__(
+            self, ref_el, tuple(),
+            {}, dpt_dict, "IntegralMomentOfNormalDerivative")
 
 
 class IntegralMomentOfTangentialDerivative(functional.Functional):
@@ -85,16 +86,17 @@ class IntegralMomentOfTangentialDerivative(functional.Functional):
         for j, pt in enumerate(dpts):
             dpt_dict[tuple(pt)] = [(qwts[j]*t[i], tuple(alphas[i]), tuple()) for i in range(sd)]
 
-        functional.Functional.__init__(self, ref_el, tuple(),
-                            {}, dpt_dict, "IntegralMomentOfTangentialDerivative")
-         
+        functional.Functional.__init__(
+            self, ref_el, tuple(),
+            {}, dpt_dict, "IntegralMomentOfTangentialDerivative")
+
+
 class IntegralMomentOfSecondNormalDerivative(functional.Functional):
     """Functional giving second normal derivative integrated on a facet."""
 
     def __init__(self, ref_el, facet_no, Q, avg=True):
         n = ref_el.compute_normal(facet_no)
         sd = ref_el.get_spatial_dimension()
-        nulen = numpy.prod(range(1, sd))
 
         self.n = n
         self.Q = Q
@@ -103,7 +105,6 @@ class IntegralMomentOfSecondNormalDerivative(functional.Functional):
 
         alphas = []
         nu = []
-        cur = 0
         for i in range(sd):
             for j in range(i, sd):
                 alpha = [0] * sd
@@ -130,8 +131,10 @@ class IntegralMomentOfSecondNormalDerivative(functional.Functional):
         for j, pt in enumerate(dpts):
             dpt_dict[tuple(pt)] = [(qwts[j]*nui, tuple(alpha), tuple()) for nui, alpha in zip(nu, alphas)]
 
-        functional.Functional.__init__(self, ref_el, tuple(),
-                            {}, dpt_dict, "IntegralMomentOfSecondNormalDerivative")       
+        functional.Functional.__init__(
+            self, ref_el, tuple(),
+            {}, dpt_dict, "IntegralMomentOfSecondNormalDerivative")
+
 
 class IntegralMomentOfSecondTangentialDerivative(functional.Functional):
     """Functional giving second tangential derivative integrated on a facet."""
@@ -142,11 +145,9 @@ class IntegralMomentOfSecondTangentialDerivative(functional.Functional):
         self.Q = Q
 
         sd = ref_el.get_spatial_dimension()
-        nulen = numpy.prod(range(1, sd))
 
         alphas = []
         tau = []
-        cur = 0
         for i in range(sd):
             for j in range(i, sd):
                 alpha = [0] * sd
@@ -173,8 +174,9 @@ class IntegralMomentOfSecondTangentialDerivative(functional.Functional):
         for j, pt in enumerate(dpts):
             dpt_dict[tuple(pt)] = [(qwts[j]*taui, tuple(alpha), tuple()) for taui, alpha in zip(tau, alphas)]
 
-        functional.Functional.__init__(self, ref_el, tuple(),
-                            {}, dpt_dict, "IntegralMomentOfSecondTangentialDerivative")
+        functional.Functional.__init__(
+            self, ref_el, tuple(),
+            {}, dpt_dict, "IntegralMomentOfSecondTangentialDerivative")
 
 
 class IntegralMomentOfSecondMixedDerivative(functional.Functional):
@@ -186,12 +188,12 @@ class IntegralMomentOfSecondMixedDerivative(functional.Functional):
 
         sd = ref_el.get_spatial_dimension()
 
-        self.n = n;  self.t = t
+        self.n = n
+        self.t = t
         self.Q = Q
 
         alphas = []
         nutau = []
-        cur = 0
         for i in range(sd):
             for j in range(sd):
                 alpha = [0] * sd
@@ -214,11 +216,13 @@ class IntegralMomentOfSecondMixedDerivative(functional.Functional):
         for j, pt in enumerate(dpts):
             dpt_dict[tuple(pt)] = [(qwts[j]*nui, tuple(alpha), tuple()) for nui, alpha in zip(nutau, alphas)]
 
-        functional.Functional.__init__(self, ref_el, tuple(),
-                            {}, dpt_dict, "IntegralMomentOfSecondNormalDerivative")       
+        functional.Functional.__init__(
+            self, ref_el, tuple(),
+            {}, dpt_dict, "IntegralMomentOfSecondNormalDerivative")
 
-def WuXuH3Space(ref_el):
-    """Constructs a basis for the the Wu Xu H^3 nonconforming space
+
+def WuXuRobustH3NCSpace(ref_el):
+    """Constructs a basis for the robust Wu Xu H^3 nonconforming space
     P^{(3,2)}(T) = P_3(T) + b_T P_1(T) + b_T^2 P_1(T),
     where b_T is the standard cubic bubble."""
 
@@ -226,16 +230,15 @@ def WuXuH3Space(ref_el):
     assert sd == 2
 
     em_deg = 7
-    
+
     # Unfortunately,  b_T^2 P_1 has degree 7 (cubic squared times a linear)
     # so we need a high embedded degree!
-    
     p7 = polynomial_set.ONPolynomialSet(ref_el, 7)
 
     dimp1 = polydim(ref_el, 1)
     dimp3 = polydim(ref_el, 3)
     dimp7 = polydim(ref_el, 7)
-    
+
     # Here's the first bit we'll work with.  It's already expressed in terms
     # of the ON basis for P7, so we're golden.
     p3fromp7 = p7.take(list(range(dimp3)))
@@ -244,7 +247,7 @@ def WuXuH3Space(ref_el):
     # reuse the existing bubble functionality
     bT = Bubble(ref_el, 3)
     p1 = Lagrange(ref_el, 1)
-    
+
     # next, we'll have to project b_T P1 and b_T^2 P1 onto P^7
     Q = quadrature.make_quadrature(ref_el, 8)
     Qpts = numpy.array(Q.get_points())
@@ -277,7 +280,7 @@ def WuXuH3Space(ref_el):
     return polynomial_set.polynomial_set_union_normalized(p3fromp7, bubbles)
 
 
-class WuXuH3DualSet(dual_set.DualSet):
+class WuXuRobustH3NCDualSet(dual_set.DualSet):
     """Dual basis for WuXu H3 nonconforming element consisting of
     vertex values and gradients and first and second normals at edge midpoints."""
 
@@ -295,7 +298,7 @@ class WuXuH3DualSet(dual_set.DualSet):
         pd = functional.PointDerivative
         eind = IntegralMomentOfNormalDerivative
         eindd = IntegralMomentOfSecondNormalDerivative
-        
+
         # jet at each vertex
 
         entity_ids[0] = {}
@@ -316,7 +319,7 @@ class WuXuH3DualSet(dual_set.DualSet):
 
         # quadrature rule for edge integrals
         Q = quadrature.make_quadrature(ufc_simplex(1), 4)
-        
+
         for e in sorted(top[1]):
             n = eind(ref_el, e, Q, avg)
             nodes.extend([n])
@@ -328,10 +331,10 @@ class WuXuH3DualSet(dual_set.DualSet):
             nodes.extend([nn])
             entity_ids[1][e].append(cur)
             cur += 1
-            
+
         entity_ids[2] = {0: []}
 
-        super(WuXuH3DualSet, self).__init__(nodes, ref_el, entity_ids)
+        super(WuXuRobustH3NCDualSet, self).__init__(nodes, ref_el, entity_ids)
 
 
 class ExpandedWuXuH3DualSet(dual_set.DualSet):
@@ -352,9 +355,8 @@ class ExpandedWuXuH3DualSet(dual_set.DualSet):
         einn = IntegralMomentOfSecondNormalDerivative
         eint = IntegralMomentOfSecondMixedDerivative
         eitt = IntegralMomentOfSecondTangentialDerivative
-        
-        # jet at each vertex
 
+        # jet at each vertex
         entity_ids[0] = {}
         for v in sorted(top[0]):
             # point value
@@ -373,7 +375,7 @@ class ExpandedWuXuH3DualSet(dual_set.DualSet):
 
         # quadrature rule for edge integrals
         Q = quadrature.make_quadrature(ufc_simplex(1), 4)
-        
+
         for e in sorted(top[1]):
             n = ein(ref_el, e, Q, avg)
             t = eit(ref_el, e, Q, avg)
@@ -393,7 +395,7 @@ class ExpandedWuXuH3DualSet(dual_set.DualSet):
 
         super(ExpandedWuXuH3DualSet, self).__init__(nodes, ref_el, entity_ids)
 
-        
+
 class ExtraWuXuH3DualSet(dual_set.DualSet):
     def __init__(self, ref_el, avg=True):
         entity_ids = {}
@@ -401,14 +403,13 @@ class ExtraWuXuH3DualSet(dual_set.DualSet):
         cur = 0
 
         top = ref_el.get_topology()
-        verts = ref_el.get_vertices()
         sd = ref_el.get_spatial_dimension()
         assert sd == 2
 
         eit = IntegralMomentOfTangentialDerivative
         eint = IntegralMomentOfSecondMixedDerivative
         eitt = IntegralMomentOfSecondTangentialDerivative
-        
+
         # jet at each vertex
 
         entity_ids[0] = {}
@@ -419,9 +420,8 @@ class ExtraWuXuH3DualSet(dual_set.DualSet):
 
         # quadrature rule for edge integrals
         Q = quadrature.make_quadrature(ufc_simplex(1), 4)
-        
+
         for e in sorted(top[1]):
-            pt = ref_el.make_points(1, e, 2)[0]
             t = eit(ref_el, e, Q, avg)
             nodes.extend([t])
             cur += 1
@@ -436,14 +436,14 @@ class ExtraWuXuH3DualSet(dual_set.DualSet):
 
         super(ExtraWuXuH3DualSet, self).__init__(nodes, ref_el, entity_ids)
 
-        
-class WuXuH3(finite_element.CiarletElement):
+
+class WuXuRobustH3NC(finite_element.CiarletElement):
     """The Wu-Xu H3 finite element"""
 
     def __init__(self, ref_el, avg=True):
-        poly_set = WuXuH3Space(ref_el)
-        dual = WuXuH3DualSet(ref_el, avg)
-        super(WuXuH3, self).__init__(poly_set, dual, 7)
+        poly_set = WuXuRobustH3NCSpace(ref_el)
+        dual = WuXuRobustH3NCDualSet(ref_el, avg)
+        super(WuXuRobustH3NC, self).__init__(poly_set, dual, 7)
 
 
 def getD(phys_el):
@@ -454,34 +454,49 @@ def getD(phys_el):
 
     ts = numpy.array(
         [phys_el.compute_normalized_edge_tangent(e) for e in range(3)])
-    
+
     for j, i in enumerate(list(range(10)) + [11, 13, 15, 18, 21]):
         D[i, j] = 1.0
 
-    D[10, 3] = -1.0; D[10, 6] = 1.0
-    D[12, 0] = -1.0; D[12, 6] = 1.0
-    D[14, 0] = -1.0; D[14, 3] = 1.0
+    D[10, 3] = -1.0
+    D[10, 6] = 1.0
+    D[12, 0] = -1.0
+    D[12, 6] = 1.0
+    D[14, 0] = -1.0
+    D[14, 3] = 1.0
 
-    D[16, 4] = -ns[0, 0]; D[16, 5] = -ns[0, 1]
-    D[16, 7] = ns[0, 0];  D[16, 8] = ns[0, 1]
-    D[17, 4] = -ts[0, 0]; D[17, 5] = -ts[0, 1]
-    D[17, 7] = ts[0, 0];  D[17, 8] = ts[0, 1]
-    D[19, 1] = -ns[1, 0]; D[19, 2] = -ns[1, 1]
-    D[19, 7] = ns[1, 0];  D[19, 8] = ns[1, 1]
-    D[20, 1] = -ts[1, 0]; D[20, 2] = -ts[1, 1]
-    D[20, 7] = ts[1, 0];  D[20, 8] = ts[1, 1]
-    D[22, 1] = -ns[2, 0]; D[22, 2] = -ns[2, 1]
-    D[22, 4] = ns[2, 0];  D[22, 5] = ns[2, 1]
-    D[23, 1] = -ts[2, 0]; D[23, 2] = -ts[2, 1]
-    D[23, 4] = ts[2, 0];  D[23, 5] = ts[2, 1]
+    D[16, 4] = -ns[0, 0]
+    D[16, 5] = -ns[0, 1]
+    D[16, 7] = ns[0, 0]
+    D[16, 8] = ns[0, 1]
+    D[17, 4] = -ts[0, 0]
+    D[17, 5] = -ts[0, 1]
+    D[17, 7] = ts[0, 0]
+    D[17, 8] = ts[0, 1]
+    D[19, 1] = -ns[1, 0]
+    D[19, 2] = -ns[1, 1]
+    D[19, 7] = ns[1, 0]
+    D[19, 8] = ns[1, 1]
+    D[20, 1] = -ts[1, 0]
+    D[20, 2] = -ts[1, 1]
+    D[20, 7] = ts[1, 0]
+    D[20, 8] = ts[1, 1]
+    D[22, 1] = -ns[2, 0]
+    D[22, 2] = -ns[2, 1]
+    D[22, 4] = ns[2, 0]
+    D[22, 5] = ns[2, 1]
+    D[23, 1] = -ts[2, 0]
+    D[23, 2] = -ts[2, 1]
+    D[23, 4] = ts[2, 0]
+    D[23, 5] = ts[2, 1]
 
     return D
 
-    
+
 def transform(Tphys, That):
     lens = numpy.array([Tphys.volume_of_subcomplex(1, e)
                         for e in range(3)])
-    
+
     # do I need to reverse this in FInAT?
     J, b = reference_element.make_affine_mapping(Tphys.vertices, That.vertices)
     Jinv = numpy.linalg.inv(J)
@@ -491,7 +506,7 @@ def transform(Tphys, That):
         [[dxdxhat**2, 2 * dxdxhat * dydxhat, dydxhat**2],
          [dxdyhat * dxdxhat, dxdyhat * dydxhat + dxdxhat * dydyhat, dydxhat * dydyhat],
          [dxdyhat**2, 2 * dxdyhat * dydyhat, dydyhat**2]])
-    
+
     # extract actual nodes from extended set.
     E = numpy.zeros((15, 24))
     for i in range(9):
@@ -534,7 +549,7 @@ def transform(Tphys, That):
         nhaty = nhats[e, 1]
         thatx = thats[e, 0]
         thaty = thats[e, 1]
-        
+
         Gammas[e, :, :] = numpy.asarray(
             [[nx**2, 2*nx*tx, tx**2],
              [nx*ny, nx*ty+ny*tx, tx*ty],
@@ -568,7 +583,7 @@ def transform(Tphys, That):
 def compact_transform(Tphys, That):
     lens = numpy.array([Tphys.volume_of_subcomplex(1, e)
                         for e in range(3)])
-    
+
     # do I need to reverse this in FInAT?
     J, b = reference_element.make_affine_mapping(Tphys.vertices, That.vertices)
     Jinv = numpy.linalg.inv(J)
@@ -608,7 +623,7 @@ def compact_transform(Tphys, That):
         nhaty = nhats[e, 1]
         thatx = thats[e, 0]
         thaty = thats[e, 1]
-        
+
         Gammas[e, :, :] = numpy.asarray(
             [[nx**2, 2*nx*tx, tx**2],
              [nx*ny, nx*ty+ny*tx, tx*ty],
@@ -632,12 +647,12 @@ def compact_transform(Tphys, That):
         V[3*e, 3*e] = 1.0
         V[3*e+1:3*e+3, 3*e+1:3*e+3] = Jinv.T
 
-    V[10, 0] = -B1s[1,0,1]
-    V[11, 0] = -B1s[2,0,1]
-    V[9, 3] = -B1s[0,0,1]
-    V[11, 3] = B1s[2,0,1]
-    V[9, 6] = B1s[0,0,1]
-    V[10, 6] = B1s[1,0,1]
+    V[10, 0] = -B1s[1, 0, 1]
+    V[11, 0] = -B1s[2, 0, 1]
+    V[9, 3] = -B1s[0, 0, 1]
+    V[11, 3] = B1s[2, 0, 1]
+    V[9, 6] = B1s[0, 0, 1]
+    V[10, 6] = B1s[1, 0, 1]
 
     for e in range(9, 12):
         V[e, e] = B1s[e-9, 0, 0]
@@ -653,7 +668,7 @@ def compact_transform(Tphys, That):
     V[13, 7:9] = betas[1, :]
 
     return V
-    
+
 
 if __name__ == "__main__":
     Tref = reference_element.ufc_simplex(2)
@@ -668,7 +683,7 @@ if __name__ == "__main__":
     Vfoo = compact_transform(Tphys, Tref)
 
     print(numpy.allclose(V, Vfoo))
-    
+
     # ref_pts = reference_element.make_lattice(Tref.vertices, 4, 1)
     # phys_pts = reference_element.make_lattice(Tphys.vertices, 4, 1)
 

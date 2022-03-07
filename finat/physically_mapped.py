@@ -86,8 +86,7 @@ try:
 """)
     Citations().add("WuXu2019", """
 @article{wu2019nonconforming,
-  title={Nonconforming finite element spaces for $2m^{\mathrm{th}}$ order partial differential equations on $\mathbb{R}^n$ simplicial grids when 
-    $\mathbb{m} = \mathbb{n} + 1$},
+  title={Nonconforming finite element spaces for $2m^{\\mathrm{th}}$ order partial differential equations on $\\mathbb{R}^n$ simplicial grids when $\\mathbb{m} = \\mathbb{n} + 1$},
   author={Wu, Shuonan and Xu, Jinchao},
   journal={Mathematics of Computation},
   volume={88},
