@@ -5,7 +5,7 @@ from gem import Literal, ListTensor
 
 from finat.fiat_elements import ScalarFiatElement
 from finat.physically_mapped import PhysicallyMappedElement, Citations
-from .wu_xu_fiat import WuXuRobustH3NC_fiat
+from .wu_xu_fiat import WuXuRobustH3NC as WuXuRobustH3NC_fiat
 
 
 class WuXuRobustH3NC(PhysicallyMappedElement, ScalarFiatElement):
