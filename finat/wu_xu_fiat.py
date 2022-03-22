@@ -1,5 +1,4 @@
-
-# Copyright (C) 2018 Robert C. Kirby (Baylor University)
+# Copyright (C) 2022 Robert C. Kirby (Baylor University)
 #
 # This file is part of FIAT.
 #
@@ -217,12 +216,12 @@ class IntegralMomentOfSecondMixedDerivative(functional.Functional):
             dpt_dict[tuple(pt)] = [(qwts[j]*nui, tuple(alpha), tuple()) for nui, alpha in zip(nutau, alphas)]
 
         functional.Functional.__init__(
-            self, ref_el, tuple(),
-            {}, dpt_dict, "IntegralMomentOfSecondNormalDerivative")
+            self, ref_el, tuple(), {}, dpt_dict,
+            "IntegralMomentOfSecondNormalDerivative")
 
 
 def WuXuRobustH3NCSpace(ref_el):
-    """Constructs a basis for the robust Wu Xu H^3 nonconforming space
+    """Constructs a basis for the the Wu Xu H^3 nonconforming space
     P^{(3,2)}(T) = P_3(T) + b_T P_1(T) + b_T^2 P_1(T),
     where b_T is the standard cubic bubble."""
 
@@ -278,6 +277,59 @@ def WuXuRobustH3NCSpace(ref_el):
                                            p7.get_dmats())
 
     return polynomial_set.polynomial_set_union_normalized(p3fromp7, bubbles)
+
+
+def WuXuH3NCSpace(ref_el):
+    """Constructs a basis for the the Wu Xu H^3 nonconforming space
+    P^{(3,2)}(T) = P_3(T) + b_T P_1(T),
+    where b_T is the standard cubic bubble."""
+
+    sd = ref_el.get_spatial_dimension()
+    assert sd == 2
+
+    em_deg = 4
+    p4 = polynomial_set.ONPolynomialSet(ref_el, 4)
+
+    # dimp1 = polydim(ref_el, 1)
+    dimp3 = polydim(ref_el, 3)
+    dimp4 = polydim(ref_el, 4)
+
+    # Here's the first bit we'll work with.  It's already expressed in terms
+    # of the ON basis for P4, so we're golden.
+    p3fromp4 = p4.take(list(range(dimp3)))
+
+    # Rather than creating the barycentric coordinates ourself, let's
+    # reuse the existing bubble functionality
+    bT = Bubble(ref_el, 3)
+    p1 = Lagrange(ref_el, 1)
+
+    # next, we'll have to project b_T P1 onto P^4
+    Q = quadrature.make_quadrature(ref_el, 8)
+    Qpts = numpy.array(Q.get_points())
+    Qwts = numpy.array(Q.get_weights())
+
+    zero_index = tuple([0 for i in range(sd)])
+
+    # it's just one bubble function: let's get a 1d array!
+    bT_at_qpts = bT.tabulate(0, Qpts)[zero_index][0, :]
+    p1_at_qpts = p1.tabulate(0, Qpts)[zero_index]
+
+    # Note: difference in signature because bT, p1 are FE and p7 is a
+    # polynomial set
+    p4_at_qpts = p4.tabulate(Qpts)[zero_index]
+
+    bubble_coeffs = numpy.zeros((3, dimp4), "d")
+
+    # bT P1
+    foo = bT_at_qpts * p1_at_qpts * Qwts
+    bubble_coeffs[:, :] = numpy.dot(foo, p4_at_qpts.T)
+
+    bubbles = polynomial_set.PolynomialSet(ref_el, 3, em_deg,
+                                           p4.get_expansion_set(),
+                                           bubble_coeffs,
+                                           p4.get_dmats())
+
+    return polynomial_set.polynomial_set_union_normalized(p3fromp4, bubbles)
 
 
 class WuXuRobustH3NCDualSet(dual_set.DualSet):
@@ -337,7 +389,10 @@ class WuXuRobustH3NCDualSet(dual_set.DualSet):
         super(WuXuRobustH3NCDualSet, self).__init__(nodes, ref_el, entity_ids)
 
 
-class ExpandedWuXuH3DualSet(dual_set.DualSet):
+class WuXuH3NCDualSet(dual_set.DualSet):
+    """Dual basis for WuXu H3 nonconforming element consisting of
+    vertex values and gradients and second normals at edge midpoints."""
+
     def __init__(self, ref_el, avg=True):
         entity_ids = {}
         nodes = []
@@ -350,11 +405,7 @@ class ExpandedWuXuH3DualSet(dual_set.DualSet):
 
         pe = functional.PointEvaluation
         pd = functional.PointDerivative
-        ein = IntegralMomentOfNormalDerivative
-        eit = IntegralMomentOfTangentialDerivative
-        einn = IntegralMomentOfSecondNormalDerivative
-        eint = IntegralMomentOfSecondMixedDerivative
-        eitt = IntegralMomentOfSecondTangentialDerivative
+        eindd = IntegralMomentOfSecondNormalDerivative
 
         # jet at each vertex
         entity_ids[0] = {}
@@ -375,78 +426,60 @@ class ExpandedWuXuH3DualSet(dual_set.DualSet):
 
         # quadrature rule for edge integrals
         Q = quadrature.make_quadrature(ufc_simplex(1), 4)
-
         for e in sorted(top[1]):
-            n = ein(ref_el, e, Q, avg)
-            t = eit(ref_el, e, Q, avg)
-            nodes.extend([n, t])
-            entity_ids[1][e] = [cur, cur+1]
-            cur += 2
-
-        for e in sorted(top[1]):
-            nn = einn(ref_el, e, Q, avg)
-            nt = eint(ref_el, e, Q, avg)
-            tt = eitt(ref_el, e, Q, avg)
-            nodes.extend([nn, nt, tt])
-            entity_ids[1][e].extend([cur, cur+1, cur+2])
-            cur += 3
-
-        entity_ids[2] = {0: []}
-
-        super(ExpandedWuXuH3DualSet, self).__init__(nodes, ref_el, entity_ids)
-
-
-class ExtraWuXuH3DualSet(dual_set.DualSet):
-    def __init__(self, ref_el, avg=True):
-        entity_ids = {}
-        nodes = []
-        cur = 0
-
-        top = ref_el.get_topology()
-        sd = ref_el.get_spatial_dimension()
-        assert sd == 2
-
-        eit = IntegralMomentOfTangentialDerivative
-        eint = IntegralMomentOfSecondMixedDerivative
-        eitt = IntegralMomentOfSecondTangentialDerivative
-
-        # jet at each vertex
-
-        entity_ids[0] = {}
-        for v in sorted(top[0]):
-            entity_ids[0][v] = []
-
-        entity_ids[1] = {}
-
-        # quadrature rule for edge integrals
-        Q = quadrature.make_quadrature(ufc_simplex(1), 4)
-
-        for e in sorted(top[1]):
-            t = eit(ref_el, e, Q, avg)
-            nodes.extend([t])
+            nn = eindd(ref_el, e, Q, avg)
+            nodes.extend([nn])
+            entity_ids[1][e] = [cur]
             cur += 1
-        for e in sorted(top[1]):
-            nt = eint(ref_el, e, Q, avg)
-            tt = eitt(ref_el, e, Q, avg)
-            nodes.extend([nt, tt])
-            entity_ids[1][e] = [cur, cur+2]
-            cur += 2
 
         entity_ids[2] = {0: []}
 
-        super(ExtraWuXuH3DualSet, self).__init__(nodes, ref_el, entity_ids)
+        super(WuXuH3NCDualSet, self).__init__(nodes, ref_el, entity_ids)
 
 
 class WuXuRobustH3NC(finite_element.CiarletElement):
-    """The Wu-Xu H3 finite element"""
-
+    """The Wu-Xu robust H3 nonconforming finite element"""
     def __init__(self, ref_el, avg=True):
         poly_set = WuXuRobustH3NCSpace(ref_el)
         dual = WuXuRobustH3NCDualSet(ref_el, avg)
         super(WuXuRobustH3NC, self).__init__(poly_set, dual, 7)
 
 
+class WuXuH3NC(finite_element.CiarletElement):
+    """The Wu-Xu H3 nonconforming finite element"""
+    def __init__(self, ref_el, avg=True):
+        poly_set = WuXuH3NCSpace(ref_el)
+        dual = WuXuH3NCDualSet(ref_el, avg)
+        super(WuXuH3NC, self).__init__(poly_set, dual, 4)
+
+
 def getD(phys_el):
+    D = numpy.zeros((18, 12))
+    ns = numpy.array(
+        [phys_el.compute_normal(e) for e in range(3)])
+    ts = numpy.array(
+        [phys_el.compute_normalized_edge_tangent(e) for e in range(3)])
+
+    for j, i in enumerate(list(range(10)) + [12, 15]):
+        D[i, j] = 1.0
+
+    D[10, 4:6] = -ns[0, :]
+    D[10, 7:9] = ns[0, :]
+    D[11, 4:6] = -ts[0, :]
+    D[11, 7:9] = ts[0, :]
+    D[13, 1:3] = -ns[1, :]
+    D[13, 7:9] = ns[1, :]
+    D[14, 1:3] = -ts[1, :]
+    D[14, 7:9] = ts[1, :]
+    D[16, 1:3] = -ns[2, :]
+    D[16, 4:6] = ns[2, :]
+    D[17, 1:3] = -ts[2, :]
+    D[17, 4:6] = ts[2, :]
+
+    return D
+
+
+def getD_robust(phys_el):
     D = numpy.zeros((24, 15))
 
     ns = numpy.array(
@@ -493,7 +526,7 @@ def getD(phys_el):
     return D
 
 
-def transform(Tphys, That):
+def transform_robust(Tphys, That):
     lens = numpy.array([Tphys.volume_of_subcomplex(1, e)
                         for e in range(3)])
 
@@ -573,6 +606,89 @@ def transform(Tphys, That):
         Vc[9+2*e:9+2*e+2, 9+2*e:9+2*e+2] = B1s[e]
         Vc[15+3*e:15+3*(e+1), 15+3*e:15+3*(e+1)] = B2s[e]
 
+    D = getD_robust(Tphys)
+
+    V = dt(E, dt(Vc, D))
+
+    return (E, Vc, D, V)
+
+
+def transform(Tphys, That):
+    lens = numpy.array([Tphys.volume_of_subcomplex(1, e)
+                        for e in range(3)])
+
+    J, b = reference_element.make_affine_mapping(Tphys.vertices, That.vertices)
+    Jinv = numpy.linalg.inv(J)
+    [[dxdxhat, dxdyhat], [dydxhat, dydyhat]] = Jinv
+
+    Thetainv = numpy.array(
+        [[dxdxhat**2, 2 * dxdxhat * dydxhat, dydxhat**2],
+         [dxdyhat * dxdxhat, dxdyhat * dydxhat + dxdxhat * dydyhat, dydxhat * dydyhat],
+         [dxdyhat**2, 2 * dxdyhat * dydyhat, dydyhat**2]])
+
+    # extract actual nodes from extended set.
+    E = numpy.zeros((12, 18))
+    for i in range(9):
+        E[i, i] = 1
+    E[9, 9] = 1
+    E[10, 12] = 1
+    E[11, 15] = 1
+
+    Vc = numpy.zeros((18, 18))
+
+    # let's build geometric things for each edge
+    ns = numpy.zeros((3, 2))
+    nhats = numpy.zeros((3, 2))
+    ts = numpy.zeros((3, 2))
+    thats = numpy.zeros((3, 2))
+    Gs = numpy.zeros((3, 2, 2))
+    Ghats = numpy.zeros((3, 2, 2))
+
+    Gammas = numpy.zeros((3, 3, 3))
+    Gammahats = numpy.zeros((3, 3, 3))
+    B1s = numpy.zeros((3, 2, 2))
+    B2s = numpy.zeros((3, 3, 3))
+
+    for e in range(3):
+        nhats[e, :] = That.compute_normal(e)
+        ns[e, :] = Tphys.compute_normal(e)
+        thats[e, :] = That.compute_normalized_edge_tangent(e)
+        ts[e, :] = Tphys.compute_normalized_edge_tangent(e)
+        Gs[e, :, :] = numpy.asarray([ns[e, :], ts[e, :]])
+        Ghats[e, :, :] = numpy.asarray([nhats[e, :], thats[e, :]])
+
+        nx = ns[e, 0]
+        ny = ns[e, 1]
+        tx = ts[e, 0]
+        ty = ts[e, 1]
+        nhatx = nhats[e, 0]
+        nhaty = nhats[e, 1]
+        thatx = thats[e, 0]
+        thaty = thats[e, 1]
+
+        Gammas[e, :, :] = numpy.asarray(
+            [[nx**2, 2*nx*tx, tx**2],
+             [nx*ny, nx*ty+ny*tx, tx*ty],
+             [ny**2, 2*ny*ty, ty**2]])
+
+        Gammahats[e, :, :] = numpy.asarray(
+            [[nhatx**2, 2*nhatx*thatx, thatx**2],
+             [nhatx*nhaty, nhatx*thaty+nhaty*thatx, thatx*thaty],
+             [nhaty**2, 2*nhaty*thaty, thaty**2]])
+
+        dt = numpy.dot
+        inv = numpy.linalg.inv
+        B1s[e, :, :] = dt(Ghats[e], dt(Jinv.T, Gs[e].T)) / lens[e]
+        B2s[e, :, :] = dt(inv(Gammahats[e]), dt(Thetainv, Gammas[e])) / lens[e]
+
+    for e in range(3):
+        Vc[3*e, 3*e] = 1.0
+        Vc[3*e+1:3*e+3, 3*e+1:3*e+3] = Jinv.T
+
+    for e in range(3):
+        # Vc[9+2*e:9+2*e+2, 9+2*e:9+2*e+2] = B1s[e]
+        Vc[9+3*e:9+3*(e+1), 9+3*e:9+3*(e+1)] = B2s[e]
+
     D = getD(Tphys)
 
     V = dt(E, dt(Vc, D))
@@ -580,7 +696,7 @@ def transform(Tphys, That):
     return (E, Vc, D, V)
 
 
-def compact_transform(Tphys, That):
+def compact_transform_robust(Tphys, That):
     lens = numpy.array([Tphys.volume_of_subcomplex(1, e)
                         for e in range(3)])
 
@@ -670,13 +786,124 @@ def compact_transform(Tphys, That):
     return V
 
 
-if __name__ == "__main__":
+def compact_transform(Tphys, That):
+    lens = numpy.array([Tphys.volume_of_subcomplex(1, e)
+                        for e in range(3)])
+
+    # do I need to reverse this in FInAT?
+    J, b = reference_element.make_affine_mapping(Tphys.vertices, That.vertices)
+    Jinv = numpy.linalg.inv(J)
+    [[dxdxhat, dxdyhat], [dydxhat, dydyhat]] = Jinv
+
+    Thetainv = numpy.array(
+        [[dxdxhat**2, 2 * dxdxhat * dydxhat, dydxhat**2],
+         [dxdyhat * dxdxhat, dxdyhat * dydxhat + dxdxhat * dydyhat, dydxhat * dydyhat],
+         [dxdyhat**2, 2 * dxdyhat * dydyhat, dydyhat**2]])
+
+    ns = numpy.zeros((3, 2))
+    nhats = numpy.zeros((3, 2))
+    ts = numpy.zeros((3, 2))
+    thats = numpy.zeros((3, 2))
+    Gs = numpy.zeros((3, 2, 2))
+    Ghats = numpy.zeros((3, 2, 2))
+
+    Gammas = numpy.zeros((3, 3, 3))
+    Gammahats = numpy.zeros((3, 3, 3))
+    B1s = numpy.zeros((3, 2, 2))
+    B2s = numpy.zeros((3, 3, 3))
+    betas = numpy.zeros((3, 2))
+
+    for e in range(3):
+        nhats[e, :] = That.compute_normal(e)
+        ns[e, :] = Tphys.compute_normal(e)
+        thats[e, :] = That.compute_normalized_edge_tangent(e)
+        ts[e, :] = Tphys.compute_normalized_edge_tangent(e)
+        Gs[e, :, :] = numpy.asarray([ns[e, :], ts[e, :]])
+        Ghats[e, :, :] = numpy.asarray([nhats[e, :], thats[e, :]])
+
+        nx = ns[e, 0]
+        ny = ns[e, 1]
+        tx = ts[e, 0]
+        ty = ts[e, 1]
+        nhatx = nhats[e, 0]
+        nhaty = nhats[e, 1]
+        thatx = thats[e, 0]
+        thaty = thats[e, 1]
+
+        Gammas[e, :, :] = numpy.asarray(
+            [[nx**2, 2*nx*tx, tx**2],
+             [nx*ny, nx*ty+ny*tx, tx*ty],
+             [ny**2, 2*ny*ty, ty**2]])
+
+        Gammahats[e, :, :] = numpy.asarray(
+            [[nhatx**2, 2*nhatx*thatx, thatx**2],
+             [nhatx*nhaty, nhatx*thaty+nhaty*thatx, thatx*thaty],
+             [nhaty**2, 2*nhaty*thaty, thaty**2]])
+
+        dt = numpy.dot
+        inv = numpy.linalg.inv
+        B1s[e, :, :] = dt(Ghats[e], dt(Jinv.T, Gs[e].T)) / lens[e]
+        B2s[e, :, :] = dt(inv(Gammahats[e]), dt(Thetainv, Gammas[e])) / lens[e]
+
+        betas[e, 0] = nx * B2s[e, 0, 1] + tx * B2s[e, 0, 2]
+        betas[e, 1] = ny * B2s[e, 0, 1] + ty * B2s[e, 0, 2]
+
+    V = numpy.zeros((12, 12))
+    for e in range(3):
+        V[3*e, 3*e] = 1.0
+        V[3*e+1:3*e+3, 3*e+1:3*e+3] = Jinv.T
+
+    for e in range(9, 12):
+        V[e, e] = B2s[e-9, 0, 0]
+
+    V[9, 4:6] = -betas[0, :]
+    V[9, 7:9] = betas[0, :]
+    V[10, 1:3] = -betas[1, :]
+    V[10, 7:9] = betas[1, :]
+    V[11, 1:3] = -betas[2, :]
+    V[11, 4:6] = betas[2, :]
+
+    return V
+
+
+def test_robust():
     Tref = reference_element.ufc_simplex(2)
     Tphys = reference_element.ufc_simplex(2)
     Tphys.vertices = ((0.0, 0.0), (0.5, 0.1), (0, 0.4))
 
-    # WX = WuXuH3(Tphys, False)
-    # WXhat = WuXuH3(Tref, True)
+    WX = WuXuRobustH3NC(Tphys, False)
+    WXhat = WuXuRobustH3NC(Tref, True)
+
+    (E, Vc, D, V) = transform_robust(Tphys, Tref)
+
+    Vfoo = compact_transform_robust(Tphys, Tref)
+
+    print(numpy.allclose(V, Vfoo))
+
+    ref_pts = reference_element.make_lattice(Tref.vertices, 4, 1)
+    phys_pts = reference_element.make_lattice(Tphys.vertices, 4, 1)
+
+    phys_vals = WX.tabulate(0, phys_pts)[0, 0]
+    ref_vals = WXhat.tabulate(0, ref_pts)[0, 0]
+
+    diffs = phys_vals - numpy.dot(V.T, ref_vals)
+
+    if not numpy.allclose(diffs, numpy.zeros(diffs.shape)):
+        for i in range(15):
+            for j in range(len(ref_pts)):
+                if numpy.abs(diffs[i, j]) < 1.e-10:
+                    diffs[i, j] = 0.0
+    else:
+        print("It works!")
+
+
+def test():
+    Tref = reference_element.ufc_simplex(2)
+    Tphys = reference_element.ufc_simplex(2)
+    Tphys.vertices = ((0.0, 0.0), (0.5, 0.1), (0, 0.4))
+
+    WX = WuXuH3NC(Tphys, False)
+    WXhat = WuXuH3NC(Tref, True)
 
     (E, Vc, D, V) = transform(Tphys, Tref)
 
@@ -684,18 +911,24 @@ if __name__ == "__main__":
 
     print(numpy.allclose(V, Vfoo))
 
-    # ref_pts = reference_element.make_lattice(Tref.vertices, 4, 1)
-    # phys_pts = reference_element.make_lattice(Tphys.vertices, 4, 1)
+    ref_pts = reference_element.make_lattice(Tref.vertices, 4, 1)
+    phys_pts = reference_element.make_lattice(Tphys.vertices, 4, 1)
 
-    # phys_vals = WX.tabulate(0, phys_pts)[0, 0]
-    # ref_vals = WXhat.tabulate(0, ref_pts)[0, 0]
+    phys_vals = WX.tabulate(0, phys_pts)[0, 0]
+    ref_vals = WXhat.tabulate(0, ref_pts)[0, 0]
 
-    # diffs = phys_vals - numpy.dot(V.T, ref_vals)
+    diffs = phys_vals - numpy.dot(V.T, ref_vals)
 
-    # if not numpy.allclose(diffs, numpy.zeros(diffs.shape)):
-    #     for i in range(15):
-    #         for j in range(len(ref_pts)):
-    #             if numpy.abs(diffs[i, j]) < 1.e-10:
-    #                 diffs[i, j] = 0.0
-    # else:
-    #     print("It works!")
+    if not numpy.allclose(diffs, numpy.zeros(diffs.shape)):
+        for i in range(12):
+            for j in range(len(ref_pts)):
+                if numpy.abs(diffs[i, j]) < 1.e-10:
+                    diffs[i, j] = 0.0
+        print("Differences:\n", diffs)
+    else:
+        print("It works!")
+
+
+if __name__ == "__main__":
+    # test_robust()
+    test()
