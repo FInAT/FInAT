@@ -65,7 +65,7 @@ class GaussLegendre(ScalarFiatElement):
 
 
 class FDMLagrange(ScalarFiatElement):
-    """1D CG element with FDM shape functions."""
+    """1D CG element with FDM shape functions and point evaluation BCs."""
 
     def __init__(self, cell, degree):
         fiat_element = FIAT.FDMLagrange(cell, degree)
@@ -73,8 +73,24 @@ class FDMLagrange(ScalarFiatElement):
 
 
 class FDMHermite(ScalarFiatElement):
-    """1D CG element with FDM shape functions."""
+    """1D CG element with FDM shape functions, point evaluation BCs and derivative BCs."""
 
     def __init__(self, cell, degree):
         fiat_element = FIAT.FDMHermite(cell, degree)
         super(FDMHermite, self).__init__(fiat_element)
+
+
+class FDMDiscontinuousH1(ScalarFiatElement):
+    """1D DG element with FDM shape functions."""
+
+    def __init__(self, cell, degree):
+        fiat_element = FIAT.FDMDiscontinuousH1(cell, degree)
+        super(FDMDiscontinuousH1, self).__init__(fiat_element)
+
+
+class FDMDiscontinuousL2(ScalarFiatElement):
+    """1D DG element with derivatives of FDM shape functions."""
+
+    def __init__(self, cell, degree):
+        fiat_element = FIAT.FDMDiscontinuousL2(cell, degree)
+        super(FDMDiscontinuousL2, self).__init__(fiat_element)

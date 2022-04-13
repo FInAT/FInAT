@@ -16,7 +16,7 @@ from .aw import ArnoldWinther           # noqa: F401
 from .aw import ArnoldWintherNC         # noqa: F401
 from .trace import HDivTrace  # noqa: F401
 from .direct_serendipity import DirectSerendipity  # noqa: F401
-from .spectral import GaussLobattoLegendre, GaussLegendre, FDMLagrange, FDMHermite  # noqa: F401
+from .spectral import GaussLobattoLegendre, GaussLegendre, FDMLagrange, FDMHermite, FDMDiscontinuousH1, FDMDiscontinuousL2  # noqa: F401
 from .tensorfiniteelement import TensorFiniteElement  # noqa: F401
 from .tensor_product import TensorProductElement  # noqa: F401
 from .cube import FlattenedDimensions  # noqa: F401
