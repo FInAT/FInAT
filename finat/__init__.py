@@ -12,7 +12,7 @@ from .bell import Bell                  # noqa: F401
 from .hermite import Hermite            # noqa: F401
 from .mtw import MardalTaiWinther       # noqa: F401
 from .morley import Morley              # noqa: F401
-from .wuxu import WuXuRobustH3NC        # noqa: F401
+from .wuxu import WuXuRobustH3NC, WuXuH3NC  # noqa: F401
 from .aw import ArnoldWinther           # noqa: F401
 from .aw import ArnoldWintherNC         # noqa: F401
 from .trace import HDivTrace  # noqa: F401

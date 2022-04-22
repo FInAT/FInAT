@@ -281,55 +281,23 @@ def WuXuRobustH3NCSpace(ref_el):
 
 def WuXuH3NCSpace(ref_el):
     """Constructs a basis for the the Wu Xu H^3 nonconforming space
-    P^{(3,2)}(T) = P_3(T) + b_T P_1(T),
+    P(T) = P_3(T) + b_T P_1(T),
     where b_T is the standard cubic bubble."""
 
-    sd = ref_el.get_spatial_dimension()
-    assert sd == 2
+    assert ref_el.get_spatial_dimension() == 2
 
     em_deg = 4
-    p4 = polynomial_set.ONPolynomialSet(ref_el, 4)
-
-    # dimp1 = polydim(ref_el, 1)
-    dimp3 = polydim(ref_el, 3)
-    dimp4 = polydim(ref_el, 4)
+    p4 = polynomial_set.ONPolynomialSet(ref_el, em_deg)
 
     # Here's the first bit we'll work with.  It's already expressed in terms
     # of the ON basis for P4, so we're golden.
-    p3fromp4 = p4.take(list(range(dimp3)))
+    p3fromp4 = p4.take(list(range(10)))
 
     # Rather than creating the barycentric coordinates ourself, let's
     # reuse the existing bubble functionality
-    bT = Bubble(ref_el, 3)
-    p1 = Lagrange(ref_el, 1)
+    bT = Bubble(ref_el, 4)
 
-    # next, we'll have to project b_T P1 onto P^4
-    Q = quadrature.make_quadrature(ref_el, 8)
-    Qpts = numpy.array(Q.get_points())
-    Qwts = numpy.array(Q.get_weights())
-
-    zero_index = tuple([0 for i in range(sd)])
-
-    # it's just one bubble function: let's get a 1d array!
-    bT_at_qpts = bT.tabulate(0, Qpts)[zero_index][0, :]
-    p1_at_qpts = p1.tabulate(0, Qpts)[zero_index]
-
-    # Note: difference in signature because bT, p1 are FE and p7 is a
-    # polynomial set
-    p4_at_qpts = p4.tabulate(Qpts)[zero_index]
-
-    bubble_coeffs = numpy.zeros((3, dimp4), "d")
-
-    # bT P1
-    foo = bT_at_qpts * p1_at_qpts * Qwts
-    bubble_coeffs[:, :] = numpy.dot(foo, p4_at_qpts.T)
-
-    bubbles = polynomial_set.PolynomialSet(ref_el, 3, em_deg,
-                                           p4.get_expansion_set(),
-                                           bubble_coeffs,
-                                           p4.get_dmats())
-
-    return polynomial_set.polynomial_set_union_normalized(p3fromp4, bubbles)
+    return polynomial_set.polynomial_set_union_normalized(p3fromp4, bT.get_nodal_basis())
 
 
 class WuXuRobustH3NCDualSet(dual_set.DualSet):
@@ -900,8 +868,11 @@ def test_robust():
 def test():
     Tref = reference_element.ufc_simplex(2)
     Tphys = reference_element.ufc_simplex(2)
-    Tphys.vertices = ((0.0, 0.0), (0.5, 0.1), (0, 0.4))
-
+    Tphys.vertices = ((0.0, 0.1), (1.17, -0.09), (0.15, 1.84))
+    print("Edge lengths:")
+    for e in range(3):
+        print(Tphys.volume_of_subcomplex(1, e))
+    
     WX = WuXuH3NC(Tphys, False)
     WXhat = WuXuH3NC(Tref, True)
 
@@ -909,26 +880,19 @@ def test():
 
     Vfoo = compact_transform(Tphys, Tref)
 
-    print(numpy.allclose(V, Vfoo))
+    assert numpy.allclose(V, Vfoo)
 
-    ref_pts = reference_element.make_lattice(Tref.vertices, 4, 1)
-    phys_pts = reference_element.make_lattice(Tphys.vertices, 4, 1)
+    ref_pts = Tref.make_points(2, 0, 6)
+    phys_pts = Tphys.make_points(2, 0, 6)
 
     phys_vals = WX.tabulate(0, phys_pts)[0, 0]
     ref_vals = WXhat.tabulate(0, ref_pts)[0, 0]
 
-    diffs = phys_vals - numpy.dot(V.T, ref_vals)
-
-    if not numpy.allclose(diffs, numpy.zeros(diffs.shape)):
-        for i in range(12):
-            for j in range(len(ref_pts)):
-                if numpy.abs(diffs[i, j]) < 1.e-10:
-                    diffs[i, j] = 0.0
-        print("Differences:\n", diffs)
-    else:
-        print("It works!")
-
+    assert numpy.allclose(phys_vals, V.T @ ref_vals)
 
 if __name__ == "__main__":
     # test_robust()
     test()
+# 2.1829567105190155
+# 1.7464535493393458
+# 1.1853269591129698
