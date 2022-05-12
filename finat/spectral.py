@@ -72,25 +72,33 @@ class FDMLagrange(ScalarFiatElement):
         super(FDMLagrange, self).__init__(fiat_element)
 
 
+class FDMDiscontinuousLagrange(ScalarFiatElement):
+    """1D DG element with derivatives of FDM shape functions with point evaluation Bcs."""
+
+    def __init__(self, cell, degree):
+        fiat_element = FIAT.FDMDiscontinuousLagrange(cell, degree)
+        super(FDMDiscontinuousLagrange, self).__init__(fiat_element)
+
+
+class FDMBrokenH1(ScalarFiatElement):
+    """1D Broken CG element with FDM shape functions."""
+
+    def __init__(self, cell, degree):
+        fiat_element = FIAT.FDMBrokenH1(cell, degree)
+        super(FDMBrokenH1, self).__init__(fiat_element)
+
+
+class FDMBrokenL2(ScalarFiatElement):
+    """1D DG element with derivatives of FDM shape functions."""
+
+    def __init__(self, cell, degree):
+        fiat_element = FIAT.FDMBrokenL2(cell, degree)
+        super(FDMBrokenL2, self).__init__(fiat_element)
+
+
 class FDMHermite(ScalarFiatElement):
     """1D CG element with FDM shape functions, point evaluation BCs and derivative BCs."""
 
     def __init__(self, cell, degree):
         fiat_element = FIAT.FDMHermite(cell, degree)
         super(FDMHermite, self).__init__(fiat_element)
-
-
-class FDMDiscontinuousH1(ScalarFiatElement):
-    """1D DG element with FDM shape functions."""
-
-    def __init__(self, cell, degree):
-        fiat_element = FIAT.FDMDiscontinuousH1(cell, degree)
-        super(FDMDiscontinuousH1, self).__init__(fiat_element)
-
-
-class FDMDiscontinuousL2(ScalarFiatElement):
-    """1D DG element with derivatives of FDM shape functions."""
-
-    def __init__(self, cell, degree):
-        fiat_element = FIAT.FDMDiscontinuousL2(cell, degree)
-        super(FDMDiscontinuousL2, self).__init__(fiat_element)
