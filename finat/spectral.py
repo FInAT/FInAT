@@ -62,3 +62,19 @@ class GaussLegendre(ScalarFiatElement):
                 r, = self.get_indices()
                 result[(0,) * spatial_dim] = gem.ComponentTensor(gem.Delta(q, r), (r,))
         return result
+
+
+class FDMLagrange(ScalarFiatElement):
+    """1D CG element with FDM shape functions."""
+
+    def __init__(self, cell, degree):
+        fiat_element = FIAT.FDMLagrange(cell, degree)
+        super(FDMLagrange, self).__init__(fiat_element)
+
+
+class FDMHermite(ScalarFiatElement):
+    """1D CG element with FDM shape functions."""
+
+    def __init__(self, cell, degree):
+        fiat_element = FIAT.FDMHermite(cell, degree)
+        super(FDMHermite, self).__init__(fiat_element)

@@ -6,9 +6,42 @@ import FIAT
 from FIAT.polynomial_set import mis, form_matrix_product
 
 import gem
+from gem.utils import cached_property
 
 from finat.finiteelementbase import FiniteElementBase
+from finat.point_set import PointSet
 from finat.sympy2gem import sympy2gem
+
+try:
+    from firedrake_citations import Citations
+    Citations().add("Geevers2018new", """
+@article{Geevers2018new,
+ title={New higher-order mass-lumped tetrahedral elements for wave propagation modelling},
+ author={Geevers, Sjoerd and Mulder, Wim A and van der Vegt, Jaap JW},
+ journal={SIAM journal on scientific computing},
+ volume={40},
+ number={5},
+ pages={A2830--A2857},
+ year={2018},
+ publisher={SIAM},
+ doi={https://doi.org/10.1137/18M1175549},
+}
+""")
+    Citations().add("Chin1999higher", """
+@article{chin1999higher,
+ title={Higher-order triangular and tetrahedral finite elements with mass lumping for solving the wave equation},
+ author={Chin-Joe-Kong, MJS and Mulder, Wim A and Van Veldhuizen, M},
+ journal={Journal of Engineering Mathematics},
+ volume={35},
+ number={4},
+ pages={405--426},
+ year={1999},
+ publisher={Springer},
+ doi={https://doi.org/10.1023/A:1004420829610},
+}
+""")
+except ImportError:
+    Citations = None
 
 
 class FiatElement(FiniteElementBase):
@@ -36,6 +69,10 @@ class FiatElement(FiniteElementBase):
 
     def entity_closure_dofs(self):
         return self._element.entity_closure_dofs()
+
+    @property
+    def entity_permutations(self):
+        return self._element.entity_permutations()
 
     def space_dimension(self):
         return self._element.space_dimension()
@@ -142,6 +179,85 @@ class FiatElement(FiniteElementBase):
         # Dispatch on FIAT element class
         return point_evaluation(self._element, order, refcoords, (entity_dim, entity_i))
 
+    @cached_property
+    def _dual_basis(self):
+        # Return the numerical part of the dual basis, this split is
+        # needed because the dual_basis itself can't produce the same
+        # point set over and over in case it is used multiple times
+        # (in for example a tensorproductelement).
+        fiat_dual_basis = self._element.dual_basis()
+        seen = dict()
+        allpts = []
+        # Find the unique points to evaluate at.
+        # We might be able to make this a smaller set by treating each
+        # point one by one, but most of the redundancy comes from
+        # multiple functionals using the same quadrature rule.
+        for dual in fiat_dual_basis:
+            if len(dual.deriv_dict) != 0:
+                raise NotImplementedError("FIAT dual bases with derivative nodes represented via a ``Functional.deriv_dict`` property do not currently have a FInAT dual basis")
+            pts = dual.get_point_dict().keys()
+            pts = tuple(sorted(pts))  # need this for determinism
+            if pts not in seen:
+                # k are indices into Q (see below) for the seen points
+                kstart = len(allpts)
+                kend = kstart + len(pts)
+                seen[pts] = kstart, kend
+                allpts.extend(pts)
+        # Build Q.
+        # Q is a tensor of weights (of total rank R) to contract with a unique
+        # vector of points to evaluate at, giving a tensor (of total rank R-1)
+        # where the first indices (rows) correspond to a basis functional
+        # (node).
+        # Q is a DOK Sparse matrix in (row, col, higher,..)=>value pairs (to
+        # become a gem.SparseLiteral when implemented).
+        # Rows (i) are number of nodes/dual functionals.
+        # Columns (k) are unique points to evaluate.
+        # Higher indices (*cmp) are tensor indices of the weights when weights
+        # are tensor valued.
+        Q = {}
+        for i, dual in enumerate(fiat_dual_basis):
+            point_dict = dual.get_point_dict()
+            pts = tuple(sorted(point_dict.keys()))
+            kstart, kend = seen[pts]
+            for p, k in zip(pts, range(kstart, kend)):
+                for weight, cmp in point_dict[p]:
+                    Q[(i, k, *cmp)] = weight
+        if all(len(set(key)) == 1 and np.isclose(weight, 1) and len(key) == 2
+               for key, weight in Q.items()):
+            # Identity matrix Q can be expressed symbolically
+            extents = tuple(map(max, zip(*Q.keys())))
+            js = tuple(gem.Index(extent=e+1) for e in extents)
+            assert len(js) == 2
+            Q = gem.ComponentTensor(gem.Delta(*js), js)
+        else:
+            # temporary until sparse literals are implemented in GEM which will
+            # automatically convert a dictionary of keys internally.
+            # TODO the below is unnecessarily slow and would be sped up
+            # significantly by building Q in a COO format rather than DOK (i.e.
+            # storing coords and associated data in (nonzeros, entries) shaped
+            # numpy arrays) to take advantage of numpy multiindexing
+            Qshape = tuple(s + 1 for s in map(max, *Q))
+            Qdense = np.zeros(Qshape, dtype=np.float64)
+            for idx, value in Q.items():
+                Qdense[idx] = value
+            Q = gem.Literal(Qdense)
+        return Q, np.asarray(allpts)
+
+    @property
+    def dual_basis(self):
+        # Return Q with x.indices already a free index for the
+        # consumer to use
+        # expensive numerical extraction is done once per element
+        # instance, but the point set must be created every time we
+        # build the dual.
+        Q, pts = self._dual_basis
+        x = PointSet(pts)
+        assert len(x.indices) == 1
+        assert Q.shape[1] == x.indices[0].extent
+        i, *js = gem.indices(len(Q.shape) - 1)
+        Q = gem.ComponentTensor(gem.Indexed(Q, (i, *x.indices, *js)), (i, *js))
+        return Q, x
+
     @property
     def mapping(self):
         mappings = set(self._element.mapping())
@@ -244,7 +360,8 @@ def point_evaluation_ciarlet(fiat_element, order, refcoords, entity):
             assert table.shape[-1] == m
             zerocols = np.isclose(abs(table).max(axis=tuple(range(table.ndim - 1))), 0.0)
             if all(np.logical_or(const_mask, zerocols)):
-                vals = base_values_sympy[const_mask]
+                # Casting is safe by assertion of is_const
+                vals = base_values_sympy[const_mask].astype(np.float64)
                 result[alpha] = gem.Literal(table[..., const_mask].dot(vals))
             else:
                 beta = tuple(gem.Index() for s in table.shape[:-1])
@@ -302,9 +419,21 @@ class Lagrange(ScalarFiatElement):
         super(Lagrange, self).__init__(FIAT.Lagrange(cell, degree))
 
 
+class KongMulderVeldhuizen(ScalarFiatElement):
+    def __init__(self, cell, degree):
+        super(KongMulderVeldhuizen, self).__init__(FIAT.KongMulderVeldhuizen(cell, degree))
+        if Citations is not None:
+            Citations().register("Chin1999higher")
+            Citations().register("Geevers2018new")
+
+
 class DiscontinuousLagrange(ScalarFiatElement):
     def __init__(self, cell, degree):
         super(DiscontinuousLagrange, self).__init__(FIAT.DiscontinuousLagrange(cell, degree))
+
+
+class Real(DiscontinuousLagrange):
+    ...
 
 
 class Serendipity(ScalarFiatElement):
