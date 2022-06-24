@@ -3,8 +3,8 @@ from .fiat_elements import Bubble, CrouzeixRaviart, DiscontinuousTaylor  # noqa:
 from .fiat_elements import Lagrange, DiscontinuousLagrange, Real  # noqa: F401
 from .fiat_elements import DPC, Serendipity  # noqa: F401
 from .fiat_elements import TrimmedSerendipityFace, TrimmedSerendipityEdge  # noqa: F401
-from .fiat_elements import TrimmedSerendipityDiv  #noqa: F401
-from .fiat_elements import TrimmedSerendipityCurl #noqa: F401
+from .fiat_elements import TrimmedSerendipityDiv   # noqa: F401
+from .fiat_elements import TrimmedSerendipityCurl  # noqa: F401
 from .fiat_elements import BrezziDouglasMarini, BrezziDouglasFortinMarini  # noqa: F401
 from .fiat_elements import Nedelec, NedelecSecondKind, RaviartThomas  # noqa: F401
 from .fiat_elements import HellanHerrmannJohnson, Regge  # noqa: F401
