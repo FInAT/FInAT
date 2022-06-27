@@ -510,8 +510,8 @@ class BrezziDouglasFortinMarini(VectorFiatElement):
 
 
 class Nedelec(VectorFiatElement):
-    def __init__(self, cell, degree):
-        super(Nedelec, self).__init__(FIAT.Nedelec(cell, degree))
+    def __init__(self, cell, degree, variant):
+        super(Nedelec, self).__init__(FIAT.Nedelec(cell, degree, variant=variant))
 
 
 class NedelecSecondKind(VectorFiatElement):
