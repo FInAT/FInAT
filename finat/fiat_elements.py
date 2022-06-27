@@ -500,8 +500,7 @@ class TrimmedSerendipityCurl(VectorFiatElement):
 
 class BrezziDouglasMarini(VectorFiatElement):
     def __init__(self, cell, degree, variant=None):
-        # super(BrezziDouglasMarini, self).__init__(FIAT.BrezziDouglasMarini(cell, degree, variant=variant))
-        super(BrezziDouglasMarini, self).__init__(FIAT.BrezziDouglasMarini(cell, degree))
+        super(BrezziDouglasMarini, self).__init__(FIAT.BrezziDouglasMarini(cell, degree, variant=variant))
 
 
 class BrezziDouglasFortinMarini(VectorFiatElement):
@@ -510,7 +509,7 @@ class BrezziDouglasFortinMarini(VectorFiatElement):
 
 
 class Nedelec(VectorFiatElement):
-    def __init__(self, cell, degree, variant):
+    def __init__(self, cell, degree, variant=None):
         super(Nedelec, self).__init__(FIAT.Nedelec(cell, degree, variant=variant))
 
 
