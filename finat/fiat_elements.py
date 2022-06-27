@@ -462,6 +462,42 @@ class RaviartThomas(VectorFiatElement):
         super(RaviartThomas, self).__init__(FIAT.RaviartThomas(cell, degree, variant=variant))
 
 
+class TrimmedSerendipityFace(VectorFiatElement):
+    def __init__(self, cell, degree):
+        super(TrimmedSerendipityFace, self).__init__(FIAT.TrimmedSerendipityFace(cell, degree))
+
+    @property
+    def entity_permutations(self):
+        raise NotImplementedError(f"entity_permutations not yet implemented for {type(self)}")
+
+
+class TrimmedSerendipityDiv(VectorFiatElement):
+    def __init__(self, cell, degree):
+        super(TrimmedSerendipityDiv, self).__init__(FIAT.TrimmedSerendipityDiv(cell, degree))
+
+    @property
+    def entity_permutations(self):
+        raise NotImplementedError(f"entity_permutations not yet implemented for {type(self)}")
+
+
+class TrimmedSerendipityEdge(VectorFiatElement):
+    def __init__(self, cell, degree):
+        super(TrimmedSerendipityEdge, self).__init__(FIAT.TrimmedSerendipityEdge(cell, degree))
+
+    @property
+    def entity_permutations(self):
+        raise NotImplementedError(f"entity_permutations not yet implemented for {type(self)}")
+
+
+class TrimmedSerendipityCurl(VectorFiatElement):
+    def __init__(self, cell, degree):
+        super(TrimmedSerendipityCurl, self).__init__(FIAT.TrimmedSerendipityCurl(cell, degree))
+
+    @property
+    def entity_permutations(self):
+        raise NotImplementedError(f"entity_permutations not yet implemented for {type(self)}")
+
+
 class BrezziDouglasMarini(VectorFiatElement):
     def __init__(self, cell, degree, variant=None):
         super(BrezziDouglasMarini, self).__init__(FIAT.BrezziDouglasMarini(cell, degree, variant=variant))
