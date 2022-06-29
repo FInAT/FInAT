@@ -1663,6 +1663,56 @@ provides physical geometry callbacks (may be None).</p></li>
 <p>In the tensor case this is a tuple.</p>
 </dd></dl>
 
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.hdivcurl.WrapperElementBase.dual_basis">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">dual_basis</span></span><a class="headerlink" href="#finat.hdivcurl.WrapperElementBase.dual_basis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a dual evaluation gem weight tensor Q and point set x to dual
+evaluate a function fn at.</p>
+<p>The general dual evaluation is then Q * fn(x) (the contraction of Q
+with fn(x) along the the indices of x and any shape introduced by fn).</p>
+<p>If the dual weights are scalar then Q, for a general scalar FIAT
+element, is a matrix with dimensions</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>(num_nodes, num_points)
+</pre></div>
+</div>
+<p>If the dual weights are tensor valued then Q, for a general tensor
+valued FIAT element, is a tensor with dimensions</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>(num_nodes, num_points, dual_weight_shape[0], ..., dual_weight_shape[n])
+</pre></div>
+</div>
+<p>If the dual basis is of a tensor product or FlattenedDimensions element
+with N factors then Q in general is a tensor with dimensions</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>(num_nodes_factor1, ..., num_nodes_factorN,
+ num_points_factor1, ..., num_points_factorN,
+ dual_weight_shape[0], ..., dual_weight_shape[n])
+</pre></div>
+</div>
+<p>where num_points_factorX are made free indices that match the free
+indices of x (which is now a TensorPointSet).</p>
+<p>If the dual basis is of a tensor finite element with some shape
+(S1, S2, …, Sn) then the tensor element tQ is constructed from the
+base element’s Q by taking the outer product with appropriately sized
+identity matrices:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>tQ = Q ⊗ 𝟙ₛ₁ ⊗ 𝟙ₛ₂ ⊗ ... ⊗ 𝟙ₛₙ
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When Q is returned, the contraction indices of the point set are
+already free indices rather than being left in its shape (as either
+<code class="docutils literal notranslate"><span class="pre">num_points</span></code> or <code class="docutils literal notranslate"><span class="pre">num_points_factorX</span></code>). This is to avoid index
+labelling confusion when performing the dual evaluation
+contraction.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>FIAT element dual bases are built from their <code class="docutils literal notranslate"><span class="pre">Functional.pt_dict</span></code>
+properties. Therefore any FIAT dual bases with derivative nodes
+represented via a <code class="docutils literal notranslate"><span class="pre">Functional.deriv_dict</span></code> property does not
+currently have a FInAT dual basis.</p>
+</div>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="finat.hdivcurl.WrapperElementBase.entity_closure_dofs">
 <span class="sig-name descname"><span class="pre">entity_closure_dofs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/hdivcurl.html#WrapperElementBase.entity_closure_dofs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.hdivcurl.WrapperElementBase.entity_closure_dofs" title="Permalink to this definition">¶</a></dt>

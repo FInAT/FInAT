@@ -125,7 +125,20 @@
 
 <div class="viewcode-block" id="WrapperElementBase.point_evaluation"><a class="viewcode-back" href="../../finat.html#finat.hdivcurl.WrapperElementBase.point_evaluation">[docs]</a>    <span class="k">def</span> <span class="nf">point_evaluation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">refcoords</span><span class="p">,</span> <span class="n">entity</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">core_eval</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wrappee</span><span class="o">.</span><span class="n">point_evaluation</span><span class="p">(</span><span class="n">order</span><span class="p">,</span> <span class="n">refcoords</span><span class="p">,</span> <span class="n">entity</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transform_evaluation</span><span class="p">(</span><span class="n">core_eval</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transform_evaluation</span><span class="p">(</span><span class="n">core_eval</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">dual_basis</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wrappee</span><span class="o">.</span><span class="n">dual_basis</span>
+        <span class="n">beta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_indices</span><span class="p">()</span>
+        <span class="n">zeta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_value_indices</span><span class="p">()</span>
+        <span class="c1"># Index out the basis indices from wrapee&#39;s Q, to get</span>
+        <span class="c1"># something of wrappee.value_shape, then promote to new shape</span>
+        <span class="c1"># with the same transform as done for basis evaluation</span>
+        <span class="n">Q</span> <span class="o">=</span> <span class="n">gem</span><span class="o">.</span><span class="n">ListTensor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">gem</span><span class="o">.</span><span class="n">partial_indexed</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">beta</span><span class="p">)))</span>
+        <span class="c1"># Finally wrap up Q in shape again (now with some extra</span>
+        <span class="c1"># value_shape indices)</span>
+        <span class="k">return</span> <span class="n">gem</span><span class="o">.</span><span class="n">ComponentTensor</span><span class="p">(</span><span class="n">Q</span><span class="p">[</span><span class="n">zeta</span><span class="p">],</span> <span class="n">beta</span> <span class="o">+</span> <span class="n">zeta</span><span class="p">),</span> <span class="n">x</span></div>
 
 
 <div class="viewcode-block" id="HDivElement"><a class="viewcode-back" href="../../finat.html#finat.hdivcurl.HDivElement">[docs]</a><span class="k">class</span> <span class="nc">HDivElement</span><span class="p">(</span><span class="n">WrapperElementBase</span><span class="p">):</span>
