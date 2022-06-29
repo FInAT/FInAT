@@ -74,6 +74,19 @@ class WrapperElementBase(FiniteElementBase):
         core_eval = self.wrappee.point_evaluation(order, refcoords, entity)
         return self._transform_evaluation(core_eval)
 
+    @property
+    def dual_basis(self):
+        Q, x = self.wrappee.dual_basis
+        beta = self.get_indices()
+        zeta = self.get_value_indices()
+        # Index out the basis indices from wrapee's Q, to get
+        # something of wrappee.value_shape, then promote to new shape
+        # with the same transform as done for basis evaluation
+        Q = gem.ListTensor(self.transform(gem.partial_indexed(Q, beta)))
+        # Finally wrap up Q in shape again (now with some extra
+        # value_shape indices)
+        return gem.ComponentTensor(Q[zeta], beta + zeta), x
+
 
 class HDivElement(WrapperElementBase):
     """H(div) wrapper element for tensor product elements."""
