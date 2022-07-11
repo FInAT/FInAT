@@ -80,6 +80,14 @@ class FDMDiscontinuousLagrange(ScalarFiatElement):
         super(FDMDiscontinuousLagrange, self).__init__(fiat_element)
 
 
+class FDMQuadrature(ScalarFiatElement):
+    """1D CG element with FDM shape functions and orthogonalized vertex modes."""
+
+    def __init__(self, cell, degree):
+        fiat_element = FIAT.FDMQuadrature(cell, degree)
+        super(FDMQuadrature, self).__init__(fiat_element)
+
+
 class FDMBrokenH1(ScalarFiatElement):
     """1D Broken CG element with FDM shape functions."""
 
