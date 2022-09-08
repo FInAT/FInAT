@@ -136,7 +136,7 @@ class FiatElement(FiniteElementBase):
                 else:
                     # Make sure numerics satisfies theory
                     assert np.allclose(table, 0.0)
-                    exprs.append(gem.Zero(self.index_shape))
+                    exprs.append(gem.Literal(np.zeros(self.index_shape)))
             if self.value_shape:
                 # As above, this extent may be different from that
                 # advertised by the finat element.
