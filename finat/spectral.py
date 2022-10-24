@@ -64,6 +64,22 @@ class GaussLegendre(ScalarFiatElement):
         return result
 
 
+class Legendre(ScalarFiatElement):
+    """1D DG element with Legendre polynomials."""
+
+    def __init__(self, cell, degree):
+        fiat_element = FIAT.Legendre(cell, degree)
+        super(Legendre, self).__init__(fiat_element)
+
+
+class IntegratedLegendre(ScalarFiatElement):
+    """1D CG element with integrated Legendre polynomials."""
+
+    def __init__(self, cell, degree):
+        fiat_element = FIAT.IntegratedLegendre(cell, degree)
+        super(IntegratedLegendre, self).__init__(fiat_element)
+
+
 class FDMLagrange(ScalarFiatElement):
     """1D CG element with FDM shape functions and point evaluation BCs."""
 
