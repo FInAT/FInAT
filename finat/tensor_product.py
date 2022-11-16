@@ -369,7 +369,8 @@ def factor_point_set(product_cell, product_dim, point_set):
     point_dims = [cell.construct_subelement(dim).get_spatial_dimension()
                   for cell, dim in zip(product_cell.cells, product_dim)]
 
-    if isinstance(point_set, TensorPointSet):
+    if isinstance(point_set, TensorPointSet) and \
+       len(product_cell.cells) == len(point_set.factors):
         # Just give the factors asserting matching dimensions.
         assert len(point_set.factors) == len(point_dims)
         assert all(ps.dimension == dim
@@ -380,10 +381,9 @@ def factor_point_set(product_cell, product_dim, point_set):
     # required by the subelements.
     assert point_set.dimension == sum(point_dims)
     slices = TensorProductCell._split_slices(point_dims)
-
     if isinstance(point_set, PointSingleton):
         return [PointSingleton(point_set.point[s]) for s in slices]
-    elif isinstance(point_set, PointSet):
+    elif isinstance(point_set, (PointSet, TensorPointSet)):
         # Use the same point index for the new point sets.
         result = []
         for s in slices:
