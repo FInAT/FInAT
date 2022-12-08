@@ -13,6 +13,7 @@
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
 <!--[if lte IE 6]>
@@ -52,6 +53,7 @@
             
   <h1>Source code for finat.tensor_product</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">reduce</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
 <span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">chain</span><span class="p">,</span> <span class="n">product</span>
 <span class="kn">from</span> <span class="nn">operator</span> <span class="kn">import</span> <span class="n">methodcaller</span>
 
@@ -280,27 +282,130 @@
 <span class="sd">    :arg factors: element factors.</span>
 <span class="sd">    :returns: entity_permutation dict of the :class:`TensorProductElement` object</span>
 <span class="sd">        composed of factors.</span>
+
+<span class="sd">    For tensor-product elements, one needs to consider two kinds of orientations:</span>
+<span class="sd">    extrinsic orientations and intrinsic (&quot;material&quot;) orientations.</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">    UFCQuadrilateral := UFCInterval x UFCInterval</span>
+
+<span class="sd">    eo (extrinsic orientation): swap axes (X -&gt; y, Y-&gt; x)</span>
+<span class="sd">    io (intrinsic orientation): reflect component intervals</span>
+<span class="sd">    o (total orientation)     : (2 ** dim) * eo + io</span>
+
+<span class="sd">    eo\\io    0      1      2      3</span>
+
+<span class="sd">           1---3  0---2  3---1  2---0</span>
+<span class="sd">      0    |   |  |   |  |   |  |   |</span>
+<span class="sd">           0---2  1---3  2---0  3---1</span>
+
+<span class="sd">           2---3  3---2  0---1  1---0</span>
+<span class="sd">      1    |   |  |   |  |   |  |   |</span>
+<span class="sd">           0---1  1---0  2---3  3---2</span>
+
+<span class="sd">    .. code-block:: python3</span>
+
+<span class="sd">        import ufl</span>
+<span class="sd">        import FIAT</span>
+<span class="sd">        import finat</span>
+
+<span class="sd">        cell = FIAT.ufc_cell(ufl.interval)</span>
+<span class="sd">        elem = finat.DiscontinuousLagrange(cell, 1)</span>
+<span class="sd">        elem = finat.TensorProductElement([elem, elem])</span>
+<span class="sd">        print(elem.entity_permutations)</span>
+
+<span class="sd">    prints:</span>
+
+<span class="sd">    {(0, 0): {0: {(0, 0, 0): []},</span>
+<span class="sd">              1: {(0, 0, 0): []},</span>
+<span class="sd">              2: {(0, 0, 0): []},</span>
+<span class="sd">              3: {(0, 0, 0): []}},</span>
+<span class="sd">     (0, 1): {0: {(0, 0, 0): [],</span>
+<span class="sd">                  (0, 0, 1): []},</span>
+<span class="sd">              1: {(0, 0, 0): [],</span>
+<span class="sd">                  (0, 0, 1): []}},</span>
+<span class="sd">     (1, 0): {0: {(0, 0, 0): [],</span>
+<span class="sd">                  (0, 1, 0): []},</span>
+<span class="sd">              1: {(0, 0, 0): [],</span>
+<span class="sd">                  (0, 1, 0): []}},</span>
+<span class="sd">     (1, 1): {0: {(0, 0, 0): [0, 1, 2, 3],</span>
+<span class="sd">                  (0, 0, 1): [1, 0, 3, 2],</span>
+<span class="sd">                  (0, 1, 0): [2, 3, 0, 1],</span>
+<span class="sd">                  (0, 1, 1): [3, 2, 1, 0],</span>
+<span class="sd">                  (1, 0, 0): [0, 2, 1, 3],</span>
+<span class="sd">                  (1, 0, 1): [2, 0, 3, 1],</span>
+<span class="sd">                  (1, 1, 0): [1, 3, 0, 2],</span>
+<span class="sd">                  (1, 1, 1): [3, 1, 2, 0]}}}</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">nfactors</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">factors</span><span class="p">)</span>
     <span class="n">permutations</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">fe</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">get_topology</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
-                         <span class="k">for</span> <span class="n">fe</span> <span class="ow">in</span> <span class="n">factors</span><span class="p">]):</span>
+    <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">fe</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">get_topology</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">for</span> <span class="n">fe</span> <span class="ow">in</span> <span class="n">factors</span><span class="p">]):</span>
         <span class="n">dim_permutations</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">e_o_p_maps</span> <span class="o">=</span> <span class="p">[</span><span class="n">fe</span><span class="o">.</span><span class="n">entity_permutations</span><span class="p">[</span><span class="n">d</span><span class="p">]</span>
-                      <span class="k">for</span> <span class="n">fe</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">factors</span><span class="p">,</span> <span class="n">dim</span><span class="p">)]</span>
+        <span class="n">e_o_p_maps</span> <span class="o">=</span> <span class="p">[</span><span class="n">fe</span><span class="o">.</span><span class="n">entity_permutations</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="k">for</span> <span class="n">fe</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">factors</span><span class="p">,</span> <span class="n">dim</span><span class="p">)]</span>
         <span class="k">for</span> <span class="n">e_tuple</span> <span class="ow">in</span> <span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="nb">sorted</span><span class="p">(</span><span class="n">e_o_p_map</span><span class="p">)</span> <span class="k">for</span> <span class="n">e_o_p_map</span> <span class="ow">in</span> <span class="n">e_o_p_maps</span><span class="p">]):</span>
-            <span class="n">o_p_maps</span> <span class="o">=</span> <span class="p">[</span><span class="n">e_o_p_map</span><span class="p">[</span><span class="n">e</span><span class="p">]</span> <span class="k">for</span> <span class="n">e_o_p_map</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">e_o_p_maps</span><span class="p">,</span> <span class="n">e_tuple</span><span class="p">)]</span>
+            <span class="c1"># Handle extrinsic orientations.</span>
+            <span class="c1"># This is complex and we need to think to make this function more general.</span>
+            <span class="c1"># One interesting case is pyramid x pyramid. There are two types of facets</span>
+            <span class="c1"># in a pyramid cell, quad and triangle, and two types of intervals, ones</span>
+            <span class="c1"># attached to quad (Iq) and ones attached to triangles (It). When we take</span>
+            <span class="c1"># a tensor product of two pyramid cells, there are different kinds of tensor</span>
+            <span class="c1"># product of intervals, i.e., Iq x Iq, Iq x It, It x Iq, It x It, and we</span>
+            <span class="c1"># need a careful thought on how many possible extrinsic orientations we need</span>
+            <span class="c1"># to consider for each.</span>
+            <span class="c1"># For now we restrict ourselves to specific cases.</span>
+            <span class="n">cells</span> <span class="o">=</span> <span class="p">[</span><span class="n">fe</span><span class="o">.</span><span class="n">cell</span> <span class="k">for</span> <span class="n">fe</span> <span class="ow">in</span> <span class="n">factors</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">cells</span><span class="p">))</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">cells</span><span class="p">):</span>
+                <span class="c1"># All components have different cells.</span>
+                <span class="c1"># Example: triangle x interval.</span>
+                <span class="c1">#          dim == (2, 1) -&gt;</span>
+                <span class="c1">#          triangle x interval (1 possible extrinsic orientation).</span>
+                <span class="n">axis_perms</span> <span class="o">=</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">factors</span><span class="p">))),</span> <span class="p">)</span>  <span class="c1"># Identity: no permutations</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">cells</span><span class="p">))</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cells</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">FIAT</span><span class="o">.</span><span class="n">reference_element</span><span class="o">.</span><span class="n">UFCInterval</span><span class="p">):</span>
+                <span class="c1"># Tensor product of intervals.</span>
+                <span class="c1"># Example: interval x interval x interval x interval</span>
+                <span class="c1">#          dim == (0, 1, 1, 1) -&gt;</span>
+                <span class="c1">#          point x interval x interval x interval  (1! * 3! possible extrinsic orientations).</span>
+                <span class="n">axis_perms</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">permutations</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">factors</span><span class="p">))))</span>
+                <span class="k">for</span> <span class="n">idim</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dim</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">d</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="c1"># idim-th component does not contribute to the extrinsic orientation.</span>
+                        <span class="n">axis_perms</span> <span class="o">=</span> <span class="p">[</span><span class="n">ap</span> <span class="k">for</span> <span class="n">ap</span> <span class="ow">in</span> <span class="n">axis_perms</span> <span class="k">if</span> <span class="n">ap</span><span class="p">[</span><span class="n">idim</span><span class="p">]</span> <span class="o">==</span> <span class="n">idim</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># More general tensor product cells.</span>
+                <span class="c1"># Example: triangle x quad x triangle x triangle x interval x interval</span>
+                <span class="c1">#          dim == (2, 2, 2, 2, 1, 1) -&gt;</span>
+                <span class="c1">#          triangle x quad x triangle x triangle x interval x interval (3! * 1! * 2! possible extrinsic orientations).</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unable to compose permutations for </span><span class="si">{</span><span class="s1">&#39; x &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">fe</span><span class="p">)</span> <span class="k">for</span> <span class="n">fe</span> <span class="ow">in</span> <span class="n">factors</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">o_tuple_perm_map</span> <span class="o">=</span> <span class="p">{}</span>
-            <span class="k">for</span> <span class="n">o_tuple</span> <span class="ow">in</span> <span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">o_p_map</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">for</span> <span class="n">o_p_map</span> <span class="ow">in</span> <span class="n">o_p_maps</span><span class="p">]):</span>
-                <span class="n">ps</span> <span class="o">=</span> <span class="p">[</span><span class="n">o_p_map</span><span class="p">[</span><span class="n">o</span><span class="p">]</span> <span class="k">for</span> <span class="n">o_p_map</span><span class="p">,</span> <span class="n">o</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">o_p_maps</span><span class="p">,</span> <span class="n">o_tuple</span><span class="p">)]</span>
-                <span class="n">shape</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">ps</span><span class="p">)</span>
-                <span class="n">size</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="n">o_tuple_perm_map</span><span class="p">[</span><span class="n">o_tuple</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">a</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">size</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
-                    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ps</span><span class="p">):</span>
-                        <span class="n">a</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span><span class="p">)[</span><span class="n">p</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
-                    <span class="n">o_tuple_perm_map</span><span class="p">[</span><span class="n">o_tuple</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">eo</span><span class="p">,</span> <span class="n">ap</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">axis_perms</span><span class="p">):</span>
+                <span class="n">o_p_maps</span> <span class="o">=</span> <span class="p">[</span><span class="n">e_o_p_map</span><span class="p">[</span><span class="n">e</span><span class="p">]</span> <span class="k">for</span> <span class="n">e_o_p_map</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">e_o_p_maps</span><span class="p">,</span> <span class="n">e_tuple</span><span class="p">)]</span>
+                <span class="k">for</span> <span class="n">o_tuple</span> <span class="ow">in</span> <span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">o_p_map</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">for</span> <span class="n">o_p_map</span> <span class="ow">in</span> <span class="n">o_p_maps</span><span class="p">]):</span>
+                    <span class="n">ps</span> <span class="o">=</span> <span class="p">[</span><span class="n">o_p_map</span><span class="p">[</span><span class="n">o</span><span class="p">]</span> <span class="k">for</span> <span class="n">o_p_map</span><span class="p">,</span> <span class="n">o</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">o_p_maps</span><span class="p">,</span> <span class="n">o_tuple</span><span class="p">)]</span>
+                    <span class="n">shape</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">ps</span><span class="p">]</span>
+                    <span class="k">for</span> <span class="n">idim</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ap</span><span class="p">)):</span>
+                        <span class="n">shape</span><span class="p">[</span><span class="n">ap</span><span class="p">[</span><span class="n">idim</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ps</span><span class="p">[</span><span class="n">idim</span><span class="p">])</span>
+                    <span class="n">size</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">o_tuple_perm_map</span><span class="p">[(</span><span class="n">eo</span><span class="p">,</span> <span class="p">)</span> <span class="o">+</span> <span class="n">o_tuple</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">a</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">size</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+                        <span class="c1"># Tensorproduct elements on a tensorproduct cell of intervals:</span>
+                        <span class="c1"># When we map the reference element to the physical element, we fisrt apply</span>
+                        <span class="c1"># the extrinsic orientation and then the intrinsic orientation.</span>
+                        <span class="c1"># Thus, to make the a.reshape(-1) trick work in the below,</span>
+                        <span class="c1"># we apply the inverse operation on a; we first apply the inverse of the</span>
+                        <span class="c1"># intrinsic orientation and then the inverse of the extrinsic orienataion.</span>
+                        <span class="k">for</span> <span class="n">idim</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ps</span><span class="p">):</span>
+                            <span class="c1"># Note that p inverse = p for interval elements.</span>
+                            <span class="c1"># Do not use p inverse (just use p) for elements on simplices</span>
+                            <span class="c1"># as p already does what we want by construction.</span>
+                            <span class="n">a</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ap</span><span class="p">[</span><span class="n">idim</span><span class="p">])[</span><span class="n">p</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ap</span><span class="p">[</span><span class="n">idim</span><span class="p">])</span>
+                        <span class="n">apinv</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">nfactors</span><span class="p">))</span>
+                        <span class="k">for</span> <span class="n">idim</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ap</span><span class="p">)):</span>
+                            <span class="n">apinv</span><span class="p">[</span><span class="n">ap</span><span class="p">[</span><span class="n">idim</span><span class="p">]]</span> <span class="o">=</span> <span class="n">idim</span>
+                        <span class="n">a</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="n">nfactors</span><span class="p">),</span> <span class="n">apinv</span><span class="p">)</span>
+                        <span class="n">o_tuple_perm_map</span><span class="p">[(</span><span class="n">eo</span><span class="p">,</span> <span class="p">)</span> <span class="o">+</span> <span class="n">o_tuple</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
             <span class="n">dim_permutations</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">e_tuple</span><span class="p">,</span> <span class="n">o_tuple_perm_map</span><span class="p">))</span>
         <span class="n">permutations</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">dim_permutations</span><span class="p">)))</span>
     <span class="k">return</span> <span class="n">permutations</span></div>
@@ -318,7 +423,8 @@
     <span class="n">point_dims</span> <span class="o">=</span> <span class="p">[</span><span class="n">cell</span><span class="o">.</span><span class="n">construct_subelement</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span><span class="o">.</span><span class="n">get_spatial_dimension</span><span class="p">()</span>
                   <span class="k">for</span> <span class="n">cell</span><span class="p">,</span> <span class="n">dim</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">product_cell</span><span class="o">.</span><span class="n">cells</span><span class="p">,</span> <span class="n">product_dim</span><span class="p">)]</span>
 
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">point_set</span><span class="p">,</span> <span class="n">TensorPointSet</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">point_set</span><span class="p">,</span> <span class="n">TensorPointSet</span><span class="p">)</span> <span class="ow">and</span> \
+       <span class="nb">len</span><span class="p">(</span><span class="n">product_cell</span><span class="o">.</span><span class="n">cells</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">point_set</span><span class="o">.</span><span class="n">factors</span><span class="p">):</span>
         <span class="c1"># Just give the factors asserting matching dimensions.</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">point_set</span><span class="o">.</span><span class="n">factors</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">point_dims</span><span class="p">)</span>
         <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="n">ps</span><span class="o">.</span><span class="n">dimension</span> <span class="o">==</span> <span class="n">dim</span>
@@ -329,10 +435,9 @@
     <span class="c1"># required by the subelements.</span>
     <span class="k">assert</span> <span class="n">point_set</span><span class="o">.</span><span class="n">dimension</span> <span class="o">==</span> <span class="nb">sum</span><span class="p">(</span><span class="n">point_dims</span><span class="p">)</span>
     <span class="n">slices</span> <span class="o">=</span> <span class="n">TensorProductCell</span><span class="o">.</span><span class="n">_split_slices</span><span class="p">(</span><span class="n">point_dims</span><span class="p">)</span>
-
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">point_set</span><span class="p">,</span> <span class="n">PointSingleton</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">PointSingleton</span><span class="p">(</span><span class="n">point_set</span><span class="o">.</span><span class="n">point</span><span class="p">[</span><span class="n">s</span><span class="p">])</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">slices</span><span class="p">]</span>
-    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">point_set</span><span class="p">,</span> <span class="n">PointSet</span><span class="p">):</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">point_set</span><span class="p">,</span> <span class="p">(</span><span class="n">PointSet</span><span class="p">,</span> <span class="n">TensorPointSet</span><span class="p">)):</span>
         <span class="c1"># Use the same point index for the new point sets.</span>
         <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">slices</span><span class="p">:</span>
@@ -352,7 +457,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2014--2020, David A. Ham, Robert C. Kirby and others.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.1.1.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
     </div>
   </body>
 </html>

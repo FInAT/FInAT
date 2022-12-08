@@ -14,6 +14,7 @@
     <script src="_static/underscore.js"></script>
     <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -873,7 +874,7 @@ composed of elements.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="finat.enriched.tree_map">
 <span class="sig-prename descclassname"><span class="pre">finat.enriched.</span></span><span class="sig-name descname"><span class="pre">tree_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/enriched.html#tree_map"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.enriched.tree_map" title="Permalink to this definition">¶</a></dt>
-<dd><p>Like the built-in <a class="reference external" href="https://docs.python.org/3/library/functions.html#map" title="(in Python v3.10)"><code class="xref py py-func docutils literal notranslate"><span class="pre">map()</span></code></a>, but applies to a tuple tree.</p>
+<dd><p>Like the built-in <a class="reference external" href="https://docs.python.org/3/library/functions.html#map" title="(in Python v3.11)"><code class="xref py py-func docutils literal notranslate"><span class="pre">map()</span></code></a>, but applies to a tuple tree.</p>
 </dd></dl>
 
 </section>
@@ -1331,7 +1332,7 @@ intervals.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="finat.finiteelementbase.FiniteElementBase">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">finat.finiteelementbase.</span></span><span class="sig-name descname"><span class="pre">FiniteElementBase</span></span><a class="reference internal" href="_modules/finat/finiteelementbase.html#FiniteElementBase"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.finiteelementbase.FiniteElementBase" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="finat.finiteelementbase.FiniteElementBase.basis_evaluation">
 <em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">basis_evaluation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">order</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">entity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_mapping</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/finiteelementbase.html#FiniteElementBase.basis_evaluation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.finiteelementbase.FiniteElementBase.basis_evaluation" title="Permalink to this definition">¶</a></dt>
@@ -2067,7 +2068,7 @@ serendipity that bypass a coordinate mapping.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="finat.physically_mapped.NeedsCoordinateMappingElement">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">finat.physically_mapped.</span></span><span class="sig-name descname"><span class="pre">NeedsCoordinateMappingElement</span></span><a class="reference internal" href="_modules/finat/physically_mapped.html#NeedsCoordinateMappingElement"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.physically_mapped.NeedsCoordinateMappingElement" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Abstract class for elements that require physical information
 either to map or construct their basis functions.</p>
 </dd></dl>
@@ -2075,7 +2076,7 @@ either to map or construct their basis functions.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="finat.physically_mapped.PhysicalGeometry">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">finat.physically_mapped.</span></span><span class="sig-name descname"><span class="pre">PhysicalGeometry</span></span><a class="reference internal" href="_modules/finat/physically_mapped.html#PhysicalGeometry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.physically_mapped.PhysicalGeometry" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="finat.physically_mapped.PhysicalGeometry.cell_size">
 <em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cell_size</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/physically_mapped.html#PhysicalGeometry.cell_size"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.physically_mapped.PhysicalGeometry.cell_size" title="Permalink to this definition">¶</a></dt>
@@ -2238,7 +2239,7 @@ basis functions.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="finat.point_set.AbstractPointSet">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">finat.point_set.</span></span><span class="sig-name descname"><span class="pre">AbstractPointSet</span></span><a class="reference internal" href="_modules/finat/point_set.html#AbstractPointSet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.point_set.AbstractPointSet" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>A way of specifying a known set of points, perhaps with some
 (tensor) structure.</p>
 <p>Points, when stored, have shape point_set_shape + (point_dimension,)
@@ -2436,7 +2437,7 @@ name should begin with ‘<a href="#id3"><span class="problematic" id="id4">rt_<
 <dl class="py class">
 <dt class="sig sig-object py" id="finat.point_set.UnknownPointsArray">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">finat.point_set.</span></span><span class="sig-name descname"><span class="pre">UnknownPointsArray</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/point_set.html#UnknownPointsArray"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.point_set.UnknownPointsArray" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>A placeholder for a set of unknown points with appropriate length
 and size but without indexable values. For use with
 :class:<a href="#id1"><span class="problematic" id="id2">`</span></a>AbstractPointSet`s whose points are not known at compile
@@ -2455,7 +2456,7 @@ time.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="finat.quadrature.AbstractQuadratureRule">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">finat.quadrature.</span></span><span class="sig-name descname"><span class="pre">AbstractQuadratureRule</span></span><a class="reference internal" href="_modules/finat/quadrature.html#AbstractQuadratureRule"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.quadrature.AbstractQuadratureRule" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Abstract class representing a quadrature rule as point set and a
 corresponding set of weights.</p>
 <dl class="py property">
@@ -2799,9 +2800,9 @@ Ignored for “interior” domain.</p></li>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#NotImplementedError" title="(in Python v3.10)"><strong>NotImplementedError</strong></a> – If we don’t know how to restrict this
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#NotImplementedError" title="(in Python v3.11)"><strong>NotImplementedError</strong></a> – If we don’t know how to restrict this
 element.</p></li>
-<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.10)"><strong>ValueError</strong></a> – If the restricted element is empty.</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.11)"><strong>ValueError</strong></a> – If the restricted element is empty.</p></li>
 </ul>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -3073,13 +3074,13 @@ reference element.</p>
 <dt class="sig sig-object py">
 <span class="sig-prename descclassname"><span class="pre">finat.sympy2gem.</span></span><span class="sig-name descname"><span class="pre">sympy2gem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Pow</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span></dt>
 <dt class="sig sig-object py">
-<span class="sig-prename descclassname"><span class="pre">finat.sympy2gem.</span></span><span class="sig-name descname"><span class="pre">sympy2gem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span></dt>
+<span class="sig-prename descclassname"><span class="pre">finat.sympy2gem.</span></span><span class="sig-name descname"><span class="pre">sympy2gem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span></dt>
 <dt class="sig sig-object py">
 <span class="sig-prename descclassname"><span class="pre">finat.sympy2gem.</span></span><span class="sig-name descname"><span class="pre">sympy2gem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Integer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span></dt>
 <dt class="sig sig-object py">
 <span class="sig-prename descclassname"><span class="pre">finat.sympy2gem.</span></span><span class="sig-name descname"><span class="pre">sympy2gem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Integer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span></dt>
 <dt class="sig sig-object py">
-<span class="sig-prename descclassname"><span class="pre">finat.sympy2gem.</span></span><span class="sig-name descname"><span class="pre">sympy2gem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span></dt>
+<span class="sig-prename descclassname"><span class="pre">finat.sympy2gem.</span></span><span class="sig-name descname"><span class="pre">sympy2gem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span></dt>
 <dt class="sig sig-object py">
 <span class="sig-prename descclassname"><span class="pre">finat.sympy2gem.</span></span><span class="sig-name descname"><span class="pre">sympy2gem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span></dt>
 <dt class="sig sig-object py">
@@ -3304,6 +3305,71 @@ entity orientation combination, the DoF permutation list.</p>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>entity_permutation dict of the <a class="reference internal" href="#finat.tensor_product.TensorProductElement" title="finat.tensor_product.TensorProductElement"><code class="xref py py-class docutils literal notranslate"><span class="pre">TensorProductElement</span></code></a> object
 composed of factors.</p>
+</dd>
+</dl>
+<p>For tensor-product elements, one needs to consider two kinds of orientations:
+extrinsic orientations and intrinsic (“material”) orientations.</p>
+<p>Example:</p>
+<p>UFCQuadrilateral := UFCInterval x UFCInterval</p>
+<p>eo (extrinsic orientation): swap axes (X -&gt; y, Y-&gt; x)
+io (intrinsic orientation): reflect component intervals
+o (total orientation)     : (2 ** dim) * eo + io</p>
+<p>eoio    0      1      2      3</p>
+<blockquote>
+<div><blockquote>
+<div><p>1—3  0—2  3—1  2—0</p>
+</div></blockquote>
+<dl>
+<dt>0    |   |  |   |  |   |  |   |</dt><dd><p>0—2  1—3  2—0  3—1</p>
+<p>2—3  3—2  0—1  1—0</p>
+</dd>
+<dt>1    |   |  |   |  |   |  |   |</dt><dd><p>0—1  1—0  2—3  3—2</p>
+</dd>
+</dl>
+</div></blockquote>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">ufl</span>
+<span class="kn">import</span> <span class="nn">FIAT</span>
+<span class="kn">import</span> <span class="nn">finat</span>
+
+<span class="n">cell</span> <span class="o">=</span> <span class="n">FIAT</span><span class="o">.</span><span class="n">ufc_cell</span><span class="p">(</span><span class="n">ufl</span><span class="o">.</span><span class="n">interval</span><span class="p">)</span>
+<span class="n">elem</span> <span class="o">=</span> <span class="n">finat</span><span class="o">.</span><span class="n">DiscontinuousLagrange</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">elem</span> <span class="o">=</span> <span class="n">finat</span><span class="o">.</span><span class="n">TensorProductElement</span><span class="p">([</span><span class="n">elem</span><span class="p">,</span> <span class="n">elem</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">elem</span><span class="o">.</span><span class="n">entity_permutations</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>prints:</p>
+<dl>
+<dt>{(0, 0): {0: {(0, 0, 0): []},</dt><dd><blockquote>
+<div><p>1: {(0, 0, 0): []},
+2: {(0, 0, 0): []},
+3: {(0, 0, 0): []}},</p>
+</div></blockquote>
+<dl>
+<dt>(0, 1): {0: {(0, 0, 0): [],</dt><dd><blockquote>
+<div><p>(0, 0, 1): []},</p>
+</div></blockquote>
+<dl class="simple">
+<dt>1: {(0, 0, 0): [],</dt><dd><p>(0, 0, 1): []}},</p>
+</dd>
+</dl>
+</dd>
+<dt>(1, 0): {0: {(0, 0, 0): [],</dt><dd><blockquote>
+<div><p>(0, 1, 0): []},</p>
+</div></blockquote>
+<dl class="simple">
+<dt>1: {(0, 0, 0): [],</dt><dd><p>(0, 1, 0): []}},</p>
+</dd>
+</dl>
+</dd>
+<dt>(1, 1): {0: {(0, 0, 0): [0, 1, 2, 3],</dt><dd><p>(0, 0, 1): [1, 0, 3, 2],
+(0, 1, 0): [2, 3, 0, 1],
+(0, 1, 1): [3, 2, 1, 0],
+(1, 0, 0): [0, 2, 1, 3],
+(1, 0, 1): [2, 0, 3, 1],
+(1, 1, 0): [1, 3, 0, 2],
+(1, 1, 1): [3, 1, 2, 0]}}}</p>
+</dd>
+</dl>
 </dd>
 </dl>
 </dd></dl>
@@ -3560,7 +3626,7 @@ free indices are arbitrary.</p></li>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2014--2020, David A. Ham, Robert C. Kirby and others.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.1.1.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
     </div>
   </body>
 </html>
