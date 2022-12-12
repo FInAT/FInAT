@@ -1,4 +1,5 @@
 from functools import reduce
+import itertools
 from itertools import chain, product
 from operator import methodcaller
 
@@ -227,27 +228,130 @@ def compose_permutations(factors):
     :arg factors: element factors.
     :returns: entity_permutation dict of the :class:`TensorProductElement` object
         composed of factors.
+
+    For tensor-product elements, one needs to consider two kinds of orientations:
+    extrinsic orientations and intrinsic ("material") orientations.
+
+    Example:
+
+    UFCQuadrilateral := UFCInterval x UFCInterval
+
+    eo (extrinsic orientation): swap axes (X -> y, Y-> x)
+    io (intrinsic orientation): reflect component intervals
+    o (total orientation)     : (2 ** dim) * eo + io
+
+    eo\\io    0      1      2      3
+
+           1---3  0---2  3---1  2---0
+      0    |   |  |   |  |   |  |   |
+           0---2  1---3  2---0  3---1
+
+           2---3  3---2  0---1  1---0
+      1    |   |  |   |  |   |  |   |
+           0---1  1---0  2---3  3---2
+
+    .. code-block:: python3
+
+        import ufl
+        import FIAT
+        import finat
+
+        cell = FIAT.ufc_cell(ufl.interval)
+        elem = finat.DiscontinuousLagrange(cell, 1)
+        elem = finat.TensorProductElement([elem, elem])
+        print(elem.entity_permutations)
+
+    prints:
+
+    {(0, 0): {0: {(0, 0, 0): []},
+              1: {(0, 0, 0): []},
+              2: {(0, 0, 0): []},
+              3: {(0, 0, 0): []}},
+     (0, 1): {0: {(0, 0, 0): [],
+                  (0, 0, 1): []},
+              1: {(0, 0, 0): [],
+                  (0, 0, 1): []}},
+     (1, 0): {0: {(0, 0, 0): [],
+                  (0, 1, 0): []},
+              1: {(0, 0, 0): [],
+                  (0, 1, 0): []}},
+     (1, 1): {0: {(0, 0, 0): [0, 1, 2, 3],
+                  (0, 0, 1): [1, 0, 3, 2],
+                  (0, 1, 0): [2, 3, 0, 1],
+                  (0, 1, 1): [3, 2, 1, 0],
+                  (1, 0, 0): [0, 2, 1, 3],
+                  (1, 0, 1): [2, 0, 3, 1],
+                  (1, 1, 0): [1, 3, 0, 2],
+                  (1, 1, 1): [3, 1, 2, 0]}}}
     """
+    nfactors = len(factors)
     permutations = {}
-    for dim in product(*[fe.cell.get_topology().keys()
-                         for fe in factors]):
+    for dim in product(*[fe.cell.get_topology().keys() for fe in factors]):
         dim_permutations = []
-        e_o_p_maps = [fe.entity_permutations[d]
-                      for fe, d in zip(factors, dim)]
+        e_o_p_maps = [fe.entity_permutations[d] for fe, d in zip(factors, dim)]
         for e_tuple in product(*[sorted(e_o_p_map) for e_o_p_map in e_o_p_maps]):
-            o_p_maps = [e_o_p_map[e] for e_o_p_map, e in zip(e_o_p_maps, e_tuple)]
+            # Handle extrinsic orientations.
+            # This is complex and we need to think to make this function more general.
+            # One interesting case is pyramid x pyramid. There are two types of facets
+            # in a pyramid cell, quad and triangle, and two types of intervals, ones
+            # attached to quad (Iq) and ones attached to triangles (It). When we take
+            # a tensor product of two pyramid cells, there are different kinds of tensor
+            # product of intervals, i.e., Iq x Iq, Iq x It, It x Iq, It x It, and we
+            # need a careful thought on how many possible extrinsic orientations we need
+            # to consider for each.
+            # For now we restrict ourselves to specific cases.
+            cells = [fe.cell for fe in factors]
+            if len(set(cells)) == len(cells):
+                # All components have different cells.
+                # Example: triangle x interval.
+                #          dim == (2, 1) ->
+                #          triangle x interval (1 possible extrinsic orientation).
+                axis_perms = (tuple(range(len(factors))), )  # Identity: no permutations
+            elif len(set(cells)) == 1 and isinstance(cells[0], FIAT.reference_element.UFCInterval):
+                # Tensor product of intervals.
+                # Example: interval x interval x interval x interval
+                #          dim == (0, 1, 1, 1) ->
+                #          point x interval x interval x interval  (1! * 3! possible extrinsic orientations).
+                axis_perms = sorted(itertools.permutations(range(len(factors))))
+                for idim, d in enumerate(dim):
+                    if d == 0:
+                        # idim-th component does not contribute to the extrinsic orientation.
+                        axis_perms = [ap for ap in axis_perms if ap[idim] == idim]
+            else:
+                # More general tensor product cells.
+                # Example: triangle x quad x triangle x triangle x interval x interval
+                #          dim == (2, 2, 2, 2, 1, 1) ->
+                #          triangle x quad x triangle x triangle x interval x interval (3! * 1! * 2! possible extrinsic orientations).
+                raise NotImplementedError(f"Unable to compose permutations for {' x '.join([str(fe) for fe in factors])}")
             o_tuple_perm_map = {}
-            for o_tuple in product(*[o_p_map.keys() for o_p_map in o_p_maps]):
-                ps = [o_p_map[o] for o_p_map, o in zip(o_p_maps, o_tuple)]
-                shape = tuple(len(p) for p in ps)
-                size = numpy.prod(shape)
-                if size == 0:
-                    o_tuple_perm_map[o_tuple] = []
-                else:
-                    a = numpy.arange(size).reshape(shape)
-                    for i, p in enumerate(ps):
-                        a = a.swapaxes(0, i)[p, :].swapaxes(0, i)
-                    o_tuple_perm_map[o_tuple] = a.reshape(-1).tolist()
+            for eo, ap in enumerate(axis_perms):
+                o_p_maps = [e_o_p_map[e] for e_o_p_map, e in zip(e_o_p_maps, e_tuple)]
+                for o_tuple in product(*[o_p_map.keys() for o_p_map in o_p_maps]):
+                    ps = [o_p_map[o] for o_p_map, o in zip(o_p_maps, o_tuple)]
+                    shape = [len(p) for p in ps]
+                    for idim in range(len(ap)):
+                        shape[ap[idim]] = len(ps[idim])
+                    size = numpy.prod(shape)
+                    if size == 0:
+                        o_tuple_perm_map[(eo, ) + o_tuple] = []
+                    else:
+                        a = numpy.arange(size).reshape(shape)
+                        # Tensorproduct elements on a tensorproduct cell of intervals:
+                        # When we map the reference element to the physical element, we fisrt apply
+                        # the extrinsic orientation and then the intrinsic orientation.
+                        # Thus, to make the a.reshape(-1) trick work in the below,
+                        # we apply the inverse operation on a; we first apply the inverse of the
+                        # intrinsic orientation and then the inverse of the extrinsic orienataion.
+                        for idim, p in enumerate(ps):
+                            # Note that p inverse = p for interval elements.
+                            # Do not use p inverse (just use p) for elements on simplices
+                            # as p already does what we want by construction.
+                            a = a.swapaxes(0, ap[idim])[p, :].swapaxes(0, ap[idim])
+                        apinv = list(range(nfactors))
+                        for idim in range(len(ap)):
+                            apinv[ap[idim]] = idim
+                        a = numpy.moveaxis(a, range(nfactors), apinv)
+                        o_tuple_perm_map[(eo, ) + o_tuple] = a.reshape(-1).tolist()
             dim_permutations.append((e_tuple, o_tuple_perm_map))
         permutations[dim] = dict(enumerate(v for k, v in sorted(dim_permutations)))
     return permutations
@@ -265,7 +369,8 @@ def factor_point_set(product_cell, product_dim, point_set):
     point_dims = [cell.construct_subelement(dim).get_spatial_dimension()
                   for cell, dim in zip(product_cell.cells, product_dim)]
 
-    if isinstance(point_set, TensorPointSet):
+    if isinstance(point_set, TensorPointSet) and \
+       len(product_cell.cells) == len(point_set.factors):
         # Just give the factors asserting matching dimensions.
         assert len(point_set.factors) == len(point_dims)
         assert all(ps.dimension == dim
@@ -276,10 +381,9 @@ def factor_point_set(product_cell, product_dim, point_set):
     # required by the subelements.
     assert point_set.dimension == sum(point_dims)
     slices = TensorProductCell._split_slices(point_dims)
-
     if isinstance(point_set, PointSingleton):
         return [PointSingleton(point_set.point[s]) for s in slices]
-    elif isinstance(point_set, PointSet):
+    elif isinstance(point_set, (PointSet, TensorPointSet)):
         # Use the same point index for the new point sets.
         result = []
         for s in slices:
