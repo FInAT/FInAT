@@ -9,9 +9,6 @@
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/fenics.css" />
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <script src="../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -62,7 +59,7 @@
 
 
 <div class="viewcode-block" id="AbstractPointSet"><a class="viewcode-back" href="../../finat.html#finat.point_set.AbstractPointSet">[docs]</a><span class="k">class</span> <span class="nc">AbstractPointSet</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">ABCMeta</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A way of specifying a known set of points, perhaps with some</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A way of specifying a known set of points, perhaps with some</span>
 <span class="sd">    (tensor) structure.</span>
 
 <span class="sd">    Points, when stored, have shape point_set_shape + (point_dimension,)</span>
@@ -72,33 +69,33 @@
 
     <span class="nd">@abstractproperty</span>
     <span class="k">def</span> <span class="nf">points</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;A flattened numpy array of points or ``UnknownPointsArray``</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A flattened numpy array of points or ``UnknownPointsArray``</span>
 <span class="sd">        object with shape (# of points, point dimension).&quot;&quot;&quot;</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">dimension</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Point dimension.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Point dimension.&quot;&quot;&quot;</span>
         <span class="n">_</span><span class="p">,</span> <span class="n">dim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">shape</span>
         <span class="k">return</span> <span class="n">dim</span>
 
     <span class="nd">@abstractproperty</span>
     <span class="k">def</span> <span class="nf">indices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;GEM indices with matching shape and extent to the structure of the</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;GEM indices with matching shape and extent to the structure of the</span>
 <span class="sd">        point set.&quot;&quot;&quot;</span>
 
     <span class="nd">@abstractproperty</span>
     <span class="k">def</span> <span class="nf">expression</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;GEM expression describing the points, with free indices</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;GEM expression describing the points, with free indices</span>
 <span class="sd">        ``self.indices`` and shape (point dimension,).&quot;&quot;&quot;</span></div>
 
 
 <div class="viewcode-block" id="PointSingleton"><a class="viewcode-back" href="../../finat.html#finat.point_set.PointSingleton">[docs]</a><span class="k">class</span> <span class="nc">PointSingleton</span><span class="p">(</span><span class="n">AbstractPointSet</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A point set representing a single point.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A point set representing a single point.</span>
 
 <span class="sd">    These have a ``gem.Literal`` expression and no indices.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Build a PointSingleton from a single point.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build a PointSingleton from a single point.</span>
 
 <span class="sd">        :arg point: A single point of shape (D,) where D is the dimension of</span>
 <span class="sd">            the point.&quot;&quot;&quot;</span>
@@ -121,12 +118,12 @@
 
 
 <div class="viewcode-block" id="UnknownPointsArray"><a class="viewcode-back" href="../../finat.html#finat.point_set.UnknownPointsArray">[docs]</a><span class="k">class</span> <span class="nc">UnknownPointsArray</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;A placeholder for a set of unknown points with appropriate length</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A placeholder for a set of unknown points with appropriate length</span>
 <span class="sd">    and size but without indexable values. For use with</span>
 <span class="sd">    :class:`AbstractPointSet`s whose points are not known at compile</span>
 <span class="sd">    time.&quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :arg shape: The shape of the unknown set of N points of shape</span>
 <span class="sd">            (N, D) where D is the dimension of each point.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -138,7 +135,7 @@
 
 
 <div class="viewcode-block" id="UnknownPointSet"><a class="viewcode-back" href="../../finat.html#finat.point_set.UnknownPointSet">[docs]</a><span class="k">class</span> <span class="nc">UnknownPointSet</span><span class="p">(</span><span class="n">AbstractPointSet</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A point set representing a vector of points with unknown</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A point set representing a vector of points with unknown</span>
 <span class="sd">    locations but known ``gem.Variable`` expression.</span>
 
 <span class="sd">    The ``.points`` property is an `UnknownPointsArray` object with</span>
@@ -149,7 +146,7 @@
 <span class="sd">    shape (D,) and free indices for the points N.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points_expr</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Build a PointSingleton from a gem expression for a single point.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build a PointSingleton from a gem expression for a single point.</span>
 
 <span class="sd">        :arg points_expr: A ``gem.Variable`` expression representing a</span>
 <span class="sd">            vector of N points in D dimensions. Should have shape (N, D)</span>
@@ -175,11 +172,11 @@
 
 
 <div class="viewcode-block" id="PointSet"><a class="viewcode-back" href="../../finat.html#finat.point_set.PointSet">[docs]</a><span class="k">class</span> <span class="nc">PointSet</span><span class="p">(</span><span class="n">AbstractPointSet</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A basic point set with no internal structure representing a vector of</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A basic point set with no internal structure representing a vector of</span>
 <span class="sd">    points.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Build a PointSet from a vector of points</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build a PointSet from a vector of points</span>
 
 <span class="sd">        :arg points: A vector of N points of shape (N, D) where D is the</span>
 <span class="sd">            dimension of each point.&quot;&quot;&quot;</span>
@@ -200,14 +197,14 @@
         <span class="k">return</span> <span class="n">gem</span><span class="o">.</span><span class="n">partial_indexed</span><span class="p">(</span><span class="n">gem</span><span class="o">.</span><span class="n">Literal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="PointSet.almost_equal"><a class="viewcode-back" href="../../finat.html#finat.point_set.PointSet.almost_equal">[docs]</a>    <span class="k">def</span> <span class="nf">almost_equal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-12</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Approximate numerical equality of point sets&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Approximate numerical equality of point sets&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="ow">and</span> \
             <span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">shape</span> <span class="ow">and</span> \
             <span class="n">numpy</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">points</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">tolerance</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="GaussLegendrePointSet"><a class="viewcode-back" href="../../finat.html#finat.point_set.GaussLegendrePointSet">[docs]</a><span class="k">class</span> <span class="nc">GaussLegendrePointSet</span><span class="p">(</span><span class="n">PointSet</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Gauss-Legendre quadrature points on the interval.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Gauss-Legendre quadrature points on the interval.</span>
 
 <span class="sd">    This facilitates implementing discontinuous spectral elements.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -217,7 +214,7 @@
 
 
 <div class="viewcode-block" id="GaussLobattoLegendrePointSet"><a class="viewcode-back" href="../../finat.html#finat.point_set.GaussLobattoLegendrePointSet">[docs]</a><span class="k">class</span> <span class="nc">GaussLobattoLegendrePointSet</span><span class="p">(</span><span class="n">PointSet</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Gauss-Lobatto-Legendre quadrature points on the interval.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Gauss-Lobatto-Legendre quadrature points on the interval.</span>
 
 <span class="sd">    This facilitates implementing continuous spectral elements.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -250,7 +247,7 @@
         <span class="k">return</span> <span class="n">gem</span><span class="o">.</span><span class="n">ListTensor</span><span class="p">(</span><span class="n">result</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="TensorPointSet.almost_equal"><a class="viewcode-back" href="../../finat.html#finat.point_set.TensorPointSet.almost_equal">[docs]</a>    <span class="k">def</span> <span class="nf">almost_equal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-12</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Approximate numerical equality of point sets&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Approximate numerical equality of point sets&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="ow">and</span> \
             <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">factors</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">factors</span><span class="p">)</span> <span class="ow">and</span> \
             <span class="nb">all</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">almost_equal</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="n">tolerance</span><span class="p">)</span>
@@ -265,7 +262,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2014--2020, David A. Ham, Robert C. Kirby and others.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.3.
     </div>
   </body>
 </html>

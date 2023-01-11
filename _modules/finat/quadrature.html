@@ -9,9 +9,6 @@
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/fenics.css" />
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <script src="../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -68,7 +65,7 @@
 
 
 <div class="viewcode-block" id="make_quadrature"><a class="viewcode-back" href="../../finat.html#finat.quadrature.make_quadrature">[docs]</a><span class="k">def</span> <span class="nf">make_quadrature</span><span class="p">(</span><span class="n">ref_el</span><span class="p">,</span> <span class="n">degree</span><span class="p">,</span> <span class="n">scheme</span><span class="o">=</span><span class="s2">&quot;default&quot;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generate quadrature rule for given reference element</span>
 <span class="sd">    that will integrate an polynomial of order &#39;degree&#39; exactly.</span>
 
@@ -113,21 +110,21 @@
 
 
 <div class="viewcode-block" id="AbstractQuadratureRule"><a class="viewcode-back" href="../../finat.html#finat.quadrature.AbstractQuadratureRule">[docs]</a><span class="k">class</span> <span class="nc">AbstractQuadratureRule</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">ABCMeta</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Abstract class representing a quadrature rule as point set and a</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Abstract class representing a quadrature rule as point set and a</span>
 <span class="sd">    corresponding set of weights.&quot;&quot;&quot;</span>
 
     <span class="nd">@abstractproperty</span>
     <span class="k">def</span> <span class="nf">point_set</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Point set object representing the quadrature points.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Point set object representing the quadrature points.&quot;&quot;&quot;</span>
 
     <span class="nd">@abstractproperty</span>
     <span class="k">def</span> <span class="nf">weight_expression</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;GEM expression describing the weights, with the same free indices</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;GEM expression describing the weights, with the same free indices</span>
 <span class="sd">        as the point set.&quot;&quot;&quot;</span></div>
 
 
 <div class="viewcode-block" id="QuadratureRule"><a class="viewcode-back" href="../../finat.html#finat.quadrature.QuadratureRule">[docs]</a><span class="k">class</span> <span class="nc">QuadratureRule</span><span class="p">(</span><span class="n">AbstractQuadratureRule</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Generic quadrature rule with no internal structure.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generic quadrature rule with no internal structure.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point_set</span><span class="p">,</span> <span class="n">weights</span><span class="p">):</span>
         <span class="n">weights</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
@@ -146,7 +143,7 @@
 
 
 <div class="viewcode-block" id="TensorProductQuadratureRule"><a class="viewcode-back" href="../../finat.html#finat.quadrature.TensorProductQuadratureRule">[docs]</a><span class="k">class</span> <span class="nc">TensorProductQuadratureRule</span><span class="p">(</span><span class="n">AbstractQuadratureRule</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Quadrature rule which is a tensor product of other rules.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Quadrature rule which is a tensor product of other rules.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">factors</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">factors</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">factors</span><span class="p">)</span>
@@ -168,7 +165,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2014--2020, David A. Ham, Robert C. Kirby and others.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.3.
     </div>
   </body>
 </html>

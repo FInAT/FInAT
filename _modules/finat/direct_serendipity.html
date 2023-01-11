@@ -9,9 +9,6 @@
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/fenics.css" />
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <script src="../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -137,7 +134,7 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_deriv_cache</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">dphi</span><span class="p">)</span>
 
 <div class="viewcode-block" id="DirectSerendipity.basis_evaluation"><a class="viewcode-back" href="../../finat.html#finat.direct_serendipity.DirectSerendipity.basis_evaluation">[docs]</a>    <span class="k">def</span> <span class="nf">basis_evaluation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">ps</span><span class="p">,</span> <span class="n">entity</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">coordinate_mapping</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39;Return code for evaluating the element at known points on the</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;Return code for evaluating the element at known points on the</span>
 <span class="sd">        reference element.</span>
 
 <span class="sd">        :param order: return derivatives up to this order.</span>
@@ -184,7 +181,7 @@
 
 
 <div class="viewcode-block" id="ds1_sym"><a class="viewcode-back" href="../../finat.html#finat.direct_serendipity.ds1_sym">[docs]</a><span class="k">def</span> <span class="nf">ds1_sym</span><span class="p">(</span><span class="n">ct</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">vs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sp</span><span class="o">=</span><span class="n">symbolics</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Constructs lowest-order case of Arbogast&#39;s directly defined C^0 serendipity</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Constructs lowest-order case of Arbogast&#39;s directly defined C^0 serendipity</span>
 <span class="sd">    elements, which are a special case.</span>
 <span class="sd">    :param ct: The cell topology of the reference quadrilateral.</span>
 <span class="sd">    :param vs: (Optional) coordinates of cell on which to construct the basis.</span>
@@ -264,7 +261,7 @@
 
 
 <div class="viewcode-block" id="newton_dd"><a class="viewcode-back" href="../../finat.html#finat.direct_serendipity.newton_dd">[docs]</a><span class="k">def</span> <span class="nf">newton_dd</span><span class="p">(</span><span class="n">nds</span><span class="p">,</span> <span class="n">fs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Constructs Newton&#39;s divided differences for the input arrays,</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Constructs Newton&#39;s divided differences for the input arrays,</span>
 <span class="sd">    which may include symbolic values.&quot;&quot;&quot;</span>
     <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nds</span><span class="p">)</span>
     <span class="n">mat</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
@@ -276,7 +273,7 @@
 
 
 <div class="viewcode-block" id="newton_poly"><a class="viewcode-back" href="../../finat.html#finat.direct_serendipity.newton_poly">[docs]</a><span class="k">def</span> <span class="nf">newton_poly</span><span class="p">(</span><span class="n">nds</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">xsym</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Constructs  Lagrange interpolating polynomial passing through</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Constructs  Lagrange interpolating polynomial passing through</span>
 <span class="sd">    x values nds and y values fs.  Returns a a symbolic object in terms</span>
 <span class="sd">    of independent variable xsym.&quot;&quot;&quot;</span>
     <span class="n">coeffs</span> <span class="o">=</span> <span class="n">newton_dd</span><span class="p">(</span><span class="n">nds</span><span class="p">,</span> <span class="n">fs</span><span class="p">)</span>
@@ -288,7 +285,7 @@
 
 
 <div class="viewcode-block" id="diff"><a class="viewcode-back" href="../../finat.html#finat.direct_serendipity.diff">[docs]</a><span class="k">def</span> <span class="nf">diff</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">xx</span><span class="p">,</span> <span class="n">alpha</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Differentiate expr with respect to xx.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Differentiate expr with respect to xx.</span>
 
 <span class="sd">    :arg expr: symengine/symengine Expression to differentiate.</span>
 <span class="sd">    :arg xx: iterable of coordinates to differentiate with respect to.</span>
@@ -302,7 +299,7 @@
 
 
 <div class="viewcode-block" id="dsr_sym"><a class="viewcode-back" href="../../finat.html#finat.direct_serendipity.dsr_sym">[docs]</a><span class="k">def</span> <span class="nf">dsr_sym</span><span class="p">(</span><span class="n">ct</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">vs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sp</span><span class="o">=</span><span class="n">symbolics</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Constructs higher-order (&gt;= 2) case of Arbogast&#39;s directly defined C^0 serendipity</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Constructs higher-order (&gt;= 2) case of Arbogast&#39;s directly defined C^0 serendipity</span>
 <span class="sd">    elements, which include all polynomials of degree r plus a couple of rational</span>
 <span class="sd">    functions.</span>
 <span class="sd">    :param ct: The cell topology of the reference quadrilateral.</span>
@@ -525,7 +522,7 @@
 
 
 <div class="viewcode-block" id="ds_sym"><a class="viewcode-back" href="../../finat.html#finat.direct_serendipity.ds_sym">[docs]</a><span class="k">def</span> <span class="nf">ds_sym</span><span class="p">(</span><span class="n">ct</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">vs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sp</span><span class="o">=</span><span class="n">symbolics</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Symbolically Constructs Arbogast&#39;s directly defined C^0 serendipity elements,</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Symbolically Constructs Arbogast&#39;s directly defined C^0 serendipity elements,</span>
 <span class="sd">    which include all polynomials of degree r plus a couple of rational functions.</span>
 <span class="sd">    :param ct: The cell topology of the reference quadrilateral.</span>
 <span class="sd">    :param vs: (Optional) coordinates of cell on which to construct the basis.</span>
@@ -548,7 +545,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2014--2020, David A. Ham, Robert C. Kirby and others.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.3.
     </div>
   </body>
 </html>

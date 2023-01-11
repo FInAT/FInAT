@@ -9,9 +9,6 @@
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/fenics.css" />
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <script src="../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -62,17 +59,17 @@
 
 
 <div class="viewcode-block" id="WrapperElementBase"><a class="viewcode-back" href="../../finat.html#finat.hdivcurl.WrapperElementBase">[docs]</a><span class="k">class</span> <span class="nc">WrapperElementBase</span><span class="p">(</span><span class="n">FiniteElementBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Common base class for H(div) and H(curl) element wrappers.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Common base class for H(div) and H(curl) element wrappers.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wrappee</span><span class="p">,</span> <span class="n">transform</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">WrapperElementBase</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">wrappee</span> <span class="o">=</span> <span class="n">wrappee</span>
-        <span class="sd">&quot;&quot;&quot;An appropriate tensor product FInAT element whose basis</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;An appropriate tensor product FInAT element whose basis</span>
 <span class="sd">        functions are mapped to produce an H(div) or H(curl)</span>
 <span class="sd">        conforming element.&quot;&quot;&quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">transform</span>
-        <span class="sd">&quot;&quot;&quot;A transformation applied on the scalar/vector values of the</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A transformation applied on the scalar/vector values of the</span>
 <span class="sd">        wrapped element to produce an H(div) or H(curl) conforming</span>
 <span class="sd">        element.&quot;&quot;&quot;</span>
 
@@ -143,7 +140,7 @@
 
 
 <div class="viewcode-block" id="HDivElement"><a class="viewcode-back" href="../../finat.html#finat.hdivcurl.HDivElement">[docs]</a><span class="k">class</span> <span class="nc">HDivElement</span><span class="p">(</span><span class="n">WrapperElementBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;H(div) wrapper element for tensor product elements.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;H(div) wrapper element for tensor product elements.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wrappee</span><span class="p">):</span>
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">wrappee</span><span class="p">,</span> <span class="n">TensorProductElement</span><span class="p">)</span>
@@ -171,7 +168,7 @@
 
 
 <div class="viewcode-block" id="HCurlElement"><a class="viewcode-back" href="../../finat.html#finat.hdivcurl.HCurlElement">[docs]</a><span class="k">class</span> <span class="nc">HCurlElement</span><span class="p">(</span><span class="n">WrapperElementBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;H(curl) wrapper element for tensor product elements.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;H(curl) wrapper element for tensor product elements.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wrappee</span><span class="p">):</span>
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">wrappee</span><span class="p">,</span> <span class="n">TensorProductElement</span><span class="p">)</span>
@@ -283,7 +280,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2014--2020, David A. Ham, Robert C. Kirby and others.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.3.
     </div>
   </body>
 </html>

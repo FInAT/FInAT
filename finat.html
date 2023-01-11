@@ -4,15 +4,12 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <title>finat package &#8212; FInAT 0.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/fenics.css" />
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
     <script src="_static/sphinx_highlight.js"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -488,7 +485,7 @@ indicating how many derivatives in that direction.</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="finat.direct_serendipity.ds1_sym">
-<span class="sig-prename descclassname"><span class="pre">finat.direct_serendipity.</span></span><span class="sig-name descname"><span class="pre">ds1_sym</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ct</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vs=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sp=&lt;module</span> <span class="pre">'symengine'</span> <span class="pre">from</span> <span class="pre">'/opt/hostedtoolcache/Python/3.6.15/x64/lib/python3.6/site-packages/symengine/__init__.py'&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/direct_serendipity.html#ds1_sym"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.direct_serendipity.ds1_sym" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">finat.direct_serendipity.</span></span><span class="sig-name descname"><span class="pre">ds1_sym</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ct</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vs=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sp=&lt;module</span> <span class="pre">'symengine'</span> <span class="pre">from</span> <span class="pre">'/opt/hostedtoolcache/Python/3.8.15/x64/lib/python3.8/site-packages/symengine/__init__.py'&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/direct_serendipity.html#ds1_sym"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.direct_serendipity.ds1_sym" title="Permalink to this definition">¶</a></dt>
 <dd><p>Constructs lowest-order case of Arbogast’s directly defined C^0 serendipity
 elements, which are a special case.
 :param ct: The cell topology of the reference quadrilateral.
@@ -507,7 +504,7 @@ of the four basis functions.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="finat.direct_serendipity.ds_sym">
-<span class="sig-prename descclassname"><span class="pre">finat.direct_serendipity.</span></span><span class="sig-name descname"><span class="pre">ds_sym</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ct</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vs=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sp=&lt;module</span> <span class="pre">'symengine'</span> <span class="pre">from</span> <span class="pre">'/opt/hostedtoolcache/Python/3.6.15/x64/lib/python3.6/site-packages/symengine/__init__.py'&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/direct_serendipity.html#ds_sym"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.direct_serendipity.ds_sym" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">finat.direct_serendipity.</span></span><span class="sig-name descname"><span class="pre">ds_sym</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ct</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vs=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sp=&lt;module</span> <span class="pre">'symengine'</span> <span class="pre">from</span> <span class="pre">'/opt/hostedtoolcache/Python/3.8.15/x64/lib/python3.8/site-packages/symengine/__init__.py'&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/direct_serendipity.html#ds_sym"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.direct_serendipity.ds_sym" title="Permalink to this definition">¶</a></dt>
 <dd><p>Symbolically Constructs Arbogast’s directly defined C^0 serendipity elements,
 which include all polynomials of degree r plus a couple of rational functions.
 :param ct: The cell topology of the reference quadrilateral.
@@ -526,7 +523,7 @@ of the four basis functions.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="finat.direct_serendipity.dsr_sym">
-<span class="sig-prename descclassname"><span class="pre">finat.direct_serendipity.</span></span><span class="sig-name descname"><span class="pre">dsr_sym</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ct</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vs=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sp=&lt;module</span> <span class="pre">'symengine'</span> <span class="pre">from</span> <span class="pre">'/opt/hostedtoolcache/Python/3.6.15/x64/lib/python3.6/site-packages/symengine/__init__.py'&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/direct_serendipity.html#dsr_sym"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.direct_serendipity.dsr_sym" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">finat.direct_serendipity.</span></span><span class="sig-name descname"><span class="pre">dsr_sym</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ct</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vs=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sp=&lt;module</span> <span class="pre">'symengine'</span> <span class="pre">from</span> <span class="pre">'/opt/hostedtoolcache/Python/3.8.15/x64/lib/python3.8/site-packages/symengine/__init__.py'&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/direct_serendipity.html#dsr_sym"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.direct_serendipity.dsr_sym" title="Permalink to this definition">¶</a></dt>
 <dd><p>Constructs higher-order (&gt;= 2) case of Arbogast’s directly defined C^0 serendipity
 elements, which include all polynomials of degree r plus a couple of rational
 functions.
@@ -3626,7 +3623,7 @@ free indices are arbitrary.</p></li>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2014--2020, David A. Ham, Robert C. Kirby and others.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.3.
     </div>
   </body>
 </html>

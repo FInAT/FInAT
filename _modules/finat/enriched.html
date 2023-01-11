@@ -9,9 +9,6 @@
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/fenics.css" />
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <script src="../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -66,7 +63,7 @@
 
 
 <div class="viewcode-block" id="EnrichedElement"><a class="viewcode-back" href="../../finat.html#finat.enriched.EnrichedElement">[docs]</a><span class="k">class</span> <span class="nc">EnrichedElement</span><span class="p">(</span><span class="n">FiniteElementBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A finite element whose basis functions are the union of the</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A finite element whose basis functions are the union of the</span>
 <span class="sd">    basis functions of several other finite elements.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">elements</span><span class="p">):</span>
@@ -96,14 +93,14 @@
             <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">ks</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="EnrichedElement.entity_dofs"><a class="viewcode-back" href="../../finat.html#finat.enriched.EnrichedElement.entity_dofs">[docs]</a>    <span class="k">def</span> <span class="nf">entity_dofs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39;Return the map of topological entities to degrees of</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;Return the map of topological entities to degrees of</span>
 <span class="sd">        freedom for the finite element.&#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="n">concatenate_entity_dofs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cell</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">,</span>
                                        <span class="n">methodcaller</span><span class="p">(</span><span class="s2">&quot;entity_dofs&quot;</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="EnrichedElement.entity_permutations"><a class="viewcode-back" href="../../finat.html#finat.enriched.EnrichedElement.entity_permutations">[docs]</a>    <span class="nd">@cached_property</span>
     <span class="k">def</span> <span class="nf">entity_permutations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39;Return the map of topological entities to the map of</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;Return the map of topological entities to the map of</span>
 <span class="sd">        orientations to permutation lists for the finite element&#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="n">concatenate_entity_permutations</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span></div>
 
@@ -113,7 +110,7 @@
                                        <span class="n">methodcaller</span><span class="p">(</span><span class="s2">&quot;entity_support_dofs&quot;</span><span class="p">))</span>
 
 <div class="viewcode-block" id="EnrichedElement.space_dimension"><a class="viewcode-back" href="../../finat.html#finat.enriched.EnrichedElement.space_dimension">[docs]</a>    <span class="k">def</span> <span class="nf">space_dimension</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39;Return the dimension of the finite element space.&#39;&#39;&#39;</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;Return the dimension of the finite element space.&#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">elem</span><span class="o">.</span><span class="n">space_dimension</span><span class="p">()</span> <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="EnrichedElement.index_shape"><a class="viewcode-back" href="../../finat.html#finat.enriched.EnrichedElement.index_shape">[docs]</a>    <span class="nd">@cached_property</span>
@@ -122,7 +119,7 @@
 
 <div class="viewcode-block" id="EnrichedElement.value_shape"><a class="viewcode-back" href="../../finat.html#finat.enriched.EnrichedElement.value_shape">[docs]</a>    <span class="nd">@cached_property</span>
     <span class="k">def</span> <span class="nf">value_shape</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39;A tuple indicating the shape of the element.&#39;&#39;&#39;</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;A tuple indicating the shape of the element.&#39;&#39;&#39;</span>
         <span class="n">shape</span><span class="p">,</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">elem</span><span class="o">.</span><span class="n">value_shape</span> <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">shape</span></div>
 
@@ -165,7 +162,7 @@
                 <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">}</span>
 
 <div class="viewcode-block" id="EnrichedElement.basis_evaluation"><a class="viewcode-back" href="../../finat.html#finat.enriched.EnrichedElement.basis_evaluation">[docs]</a>    <span class="k">def</span> <span class="nf">basis_evaluation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">ps</span><span class="p">,</span> <span class="n">entity</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">coordinate_mapping</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39;Return code for evaluating the element at known points on the</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;Return code for evaluating the element at known points on the</span>
 <span class="sd">        reference element.</span>
 
 <span class="sd">        :param order: return derivatives up to this order.</span>
@@ -177,7 +174,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compose_evaluations</span><span class="p">(</span><span class="n">results</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="EnrichedElement.point_evaluation"><a class="viewcode-back" href="../../finat.html#finat.enriched.EnrichedElement.point_evaluation">[docs]</a>    <span class="k">def</span> <span class="nf">point_evaluation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">refcoords</span><span class="p">,</span> <span class="n">entity</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39;Return code for evaluating the element at an arbitrary points on</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;Return code for evaluating the element at an arbitrary points on</span>
 <span class="sd">        the reference element.</span>
 
 <span class="sd">        :param order: return derivatives up to this order.</span>
@@ -202,7 +199,7 @@
 
 
 <div class="viewcode-block" id="tree_map"><a class="viewcode-back" href="../../finat.html#finat.enriched.tree_map">[docs]</a><span class="k">def</span> <span class="nf">tree_map</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Like the built-in :py:func:`map`, but applies to a tuple tree.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Like the built-in :py:func:`map`, but applies to a tuple tree.&quot;&quot;&quot;</span>
     <span class="n">nonleaf</span><span class="p">,</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">args</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">nonleaf</span><span class="p">:</span>
         <span class="n">ndim</span><span class="p">,</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span>  <span class="c1"># asserts equal arity of all args</span>
@@ -212,7 +209,7 @@
 
 
 <div class="viewcode-block" id="concatenate_entity_dofs"><a class="viewcode-back" href="../../finat.html#finat.enriched.concatenate_entity_dofs">[docs]</a><span class="k">def</span> <span class="nf">concatenate_entity_dofs</span><span class="p">(</span><span class="n">ref_el</span><span class="p">,</span> <span class="n">elements</span><span class="p">,</span> <span class="n">method</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Combine the entity DoFs from a list of elements into a combined</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Combine the entity DoFs from a list of elements into a combined</span>
 <span class="sd">    dict containing the information for the concatenated DoFs of all</span>
 <span class="sd">    the elements.</span>
 
@@ -233,7 +230,7 @@
 
 
 <div class="viewcode-block" id="concatenate_entity_permutations"><a class="viewcode-back" href="../../finat.html#finat.enriched.concatenate_entity_permutations">[docs]</a><span class="k">def</span> <span class="nf">concatenate_entity_permutations</span><span class="p">(</span><span class="n">elements</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;For each dimension, for each entity, and for each possible</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;For each dimension, for each entity, and for each possible</span>
 <span class="sd">    entity orientation, collect the DoF permutation lists from</span>
 <span class="sd">    entity_permutations dicts of elements and concatenate them.</span>
 
@@ -262,7 +259,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2014--2020, David A. Ham, Robert C. Kirby and others.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.3.
     </div>
   </body>
 </html>

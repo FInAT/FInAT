@@ -9,9 +9,6 @@
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/fenics.css" />
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <script src="../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -250,7 +247,7 @@
 
 
 <div class="viewcode-block" id="productise"><a class="viewcode-back" href="../../finat.html#finat.tensor_product.productise">[docs]</a><span class="k">def</span> <span class="nf">productise</span><span class="p">(</span><span class="n">factors</span><span class="p">,</span> <span class="n">method</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;Tensor product the dict mapping topological entities to dofs across factors.</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Tensor product the dict mapping topological entities to dofs across factors.</span>
 
 <span class="sd">    :arg factors: element factors.</span>
 <span class="sd">    :arg method: instance method to call on each factor to get dofs.&#39;&#39;&#39;</span>
@@ -275,7 +272,7 @@
 
 
 <div class="viewcode-block" id="compose_permutations"><a class="viewcode-back" href="../../finat.html#finat.tensor_product.compose_permutations">[docs]</a><span class="k">def</span> <span class="nf">compose_permutations</span><span class="p">(</span><span class="n">factors</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;For the :class:`TensorProductElement` object composed of factors,</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;For the :class:`TensorProductElement` object composed of factors,</span>
 <span class="sd">    construct, for each dimension tuple, for each entity, and for each possible</span>
 <span class="sd">    entity orientation combination, the DoF permutation list.</span>
 
@@ -376,7 +373,7 @@
                 <span class="c1"># Example: triangle x quad x triangle x triangle x interval x interval</span>
                 <span class="c1">#          dim == (2, 2, 2, 2, 1, 1) -&gt;</span>
                 <span class="c1">#          triangle x quad x triangle x triangle x interval x interval (3! * 1! * 2! possible extrinsic orientations).</span>
-                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unable to compose permutations for </span><span class="si">{</span><span class="s1">&#39; x &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">fe</span><span class="p">)</span> <span class="k">for</span> <span class="n">fe</span> <span class="ow">in</span> <span class="n">factors</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unable to compose permutations for </span><span class="si">{</span><span class="s1">&#39; x &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">fe</span><span class="p">)</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">fe</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">factors</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">o_tuple_perm_map</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="k">for</span> <span class="n">eo</span><span class="p">,</span> <span class="n">ap</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">axis_perms</span><span class="p">):</span>
                 <span class="n">o_p_maps</span> <span class="o">=</span> <span class="p">[</span><span class="n">e_o_p_map</span><span class="p">[</span><span class="n">e</span><span class="p">]</span> <span class="k">for</span> <span class="n">e_o_p_map</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">e_o_p_maps</span><span class="p">,</span> <span class="n">e_tuple</span><span class="p">)]</span>
@@ -412,7 +409,7 @@
 
 
 <div class="viewcode-block" id="factor_point_set"><a class="viewcode-back" href="../../finat.html#finat.tensor_product.factor_point_set">[docs]</a><span class="k">def</span> <span class="nf">factor_point_set</span><span class="p">(</span><span class="n">product_cell</span><span class="p">,</span> <span class="n">product_dim</span><span class="p">,</span> <span class="n">point_set</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Factors a point set for the product element into a point sets for</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Factors a point set for the product element into a point sets for</span>
 <span class="sd">    each subelement.</span>
 
 <span class="sd">    :arg product_cell: a TensorProductCell</span>
@@ -457,7 +454,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2014--2020, David A. Ham, Robert C. Kirby and others.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.3.
     </div>
   </body>
 </html>
