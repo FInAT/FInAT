@@ -1,5 +1,6 @@
 from functools import partial
 from operator import add, methodcaller
+from itertools import chain
 
 import numpy
 
@@ -16,7 +17,7 @@ class EnrichedElement(FiniteElementBase):
     basis functions of several other finite elements."""
 
     def __new__(cls, elements):
-        elements = tuple(sum([e.elements if isinstance(e, EnrichedElement) else (e,) for e in elements], tuple()))
+        elements = tuple(chain.from_iterable(e.elements if isinstance(e, EnrichedElement) else (e,) for e in elements))
         if len(elements) == 1:
             return elements[0]
         else:
