@@ -16,7 +16,7 @@ class EnrichedElement(FiniteElementBase):
     basis functions of several other finite elements."""
 
     def __new__(cls, elements):
-        elements = tuple(sum([e.elements if isinstance(e, EnrichedElement) else )e for e in elements], tuple()))
+        elements = tuple(sum([e.elements if isinstance(e, EnrichedElement) else (e,) for e in elements], tuple()))
         if len(elements) == 1:
             return elements[0]
         else:
