@@ -145,9 +145,11 @@ class HCurlElement(WrapperElementBase):
 
 
 def select_hdiv_transformer(element):
-    # Assume: something x interval
-    assert len(element.factors) == 2
-    assert element.factors[1].cell.get_shape() == LINE
+    if len(element.factors) == 2:
+        # Assume: something x interval
+        assert element.factors[1].cell.get_shape() == LINE
+    else:
+        assert all([f.cell.get_shape() == LINE for f in element.factors])
 
     # Globally consistent edge orientations of the reference
     # quadrilateral: rightward horizontally, upward vertically.
@@ -181,13 +183,18 @@ def select_hdiv_transformer(element):
         else:
             assert False, "Unexpected original mapping!"
     else:
-        assert False, "Unexpected form degree combination!"
+        assert set(ks) <= {0, 1}, "Unexpected form degree combination!"
+        # TODO handle orientation for unstructured hexahedral case
+        d = ks.index(0)
+        return lambda v: d * [gem.Zero()] + [v] + (dim - 1 - d) * [gem.Zero()]
 
 
 def select_hcurl_transformer(element):
-    # Assume: something x interval
-    assert len(element.factors) == 2
-    assert element.factors[1].cell.get_shape() == LINE
+    if len(element.factors) == 2:
+        # Assume: something x interval
+        assert element.factors[1].cell.get_shape() == LINE
+    else:
+        assert all([f.cell.get_shape() == LINE for f in element.factors])
 
     # Globally consistent edge orientations of the reference
     # quadrilateral: rightward horizontally, upward vertically.
@@ -204,7 +211,10 @@ def select_hcurl_transformer(element):
             # upward-pointing tangential.
             return lambda v: [gem.Zero()] * (dim - 1) + [v]
         else:
-            assert False
+            assert set(ks) <= {0, 1}, "Unexpected form degree combination!"
+            # TODO handle orientation for unstructured hexahedral case
+            d = ks.index(1)
+            return lambda v: d * [gem.Zero()] + [v] + (dim - 1 - d) * [gem.Zero()]
     elif element.mapping == "covariant piola":
         # Second factor must be continuous interval.  Just padding.
         return lambda v: [gem.Indexed(v, (0,)),
