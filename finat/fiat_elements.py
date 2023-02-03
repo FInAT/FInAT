@@ -517,6 +517,6 @@ class NedelecSecondKind(VectorFiatElement):
     def __init__(self, cell, degree, variant=None):
         super(NedelecSecondKind, self).__init__(FIAT.NedelecSecondKind(cell, degree, variant=variant))
 
-class Provide_Basis(ScalarFiatElement):
+class DirectDefinition(ScalarFiatElement):
     def __init__(self, cell, degree, basis=None):
-        super(Provide_Basis, self).__init__(FIAT.Provide_Basis(cell, degree, basis))
+        super(DirectDefinition, self).__init__(FIAT.DirectDefinition(cell, degree, basis))
