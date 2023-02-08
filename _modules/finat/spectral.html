@@ -115,16 +115,64 @@
         <span class="k">return</span> <span class="n">result</span></div></div>
 
 
+<div class="viewcode-block" id="Legendre"><a class="viewcode-back" href="../../finat.html#finat.spectral.Legendre">[docs]</a><span class="k">class</span> <span class="nc">Legendre</span><span class="p">(</span><span class="n">ScalarFiatElement</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;1D DG element with Legendre polynomials.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cell</span><span class="p">,</span> <span class="n">degree</span><span class="p">):</span>
+        <span class="n">fiat_element</span> <span class="o">=</span> <span class="n">FIAT</span><span class="o">.</span><span class="n">Legendre</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span> <span class="n">degree</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Legendre</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">fiat_element</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="IntegratedLegendre"><a class="viewcode-back" href="../../finat.html#finat.spectral.IntegratedLegendre">[docs]</a><span class="k">class</span> <span class="nc">IntegratedLegendre</span><span class="p">(</span><span class="n">ScalarFiatElement</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;1D CG element with integrated Legendre polynomials.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cell</span><span class="p">,</span> <span class="n">degree</span><span class="p">):</span>
+        <span class="n">fiat_element</span> <span class="o">=</span> <span class="n">FIAT</span><span class="o">.</span><span class="n">IntegratedLegendre</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span> <span class="n">degree</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">IntegratedLegendre</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">fiat_element</span><span class="p">)</span></div>
+
+
 <div class="viewcode-block" id="FDMLagrange"><a class="viewcode-back" href="../../finat.html#finat.spectral.FDMLagrange">[docs]</a><span class="k">class</span> <span class="nc">FDMLagrange</span><span class="p">(</span><span class="n">ScalarFiatElement</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;1D CG element with FDM shape functions.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;1D CG element with FDM shape functions and point evaluation BCs.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cell</span><span class="p">,</span> <span class="n">degree</span><span class="p">):</span>
         <span class="n">fiat_element</span> <span class="o">=</span> <span class="n">FIAT</span><span class="o">.</span><span class="n">FDMLagrange</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span> <span class="n">degree</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">FDMLagrange</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">fiat_element</span><span class="p">)</span></div>
 
 
+<div class="viewcode-block" id="FDMDiscontinuousLagrange"><a class="viewcode-back" href="../../finat.html#finat.spectral.FDMDiscontinuousLagrange">[docs]</a><span class="k">class</span> <span class="nc">FDMDiscontinuousLagrange</span><span class="p">(</span><span class="n">ScalarFiatElement</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;1D DG element with derivatives of FDM shape functions with point evaluation Bcs.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cell</span><span class="p">,</span> <span class="n">degree</span><span class="p">):</span>
+        <span class="n">fiat_element</span> <span class="o">=</span> <span class="n">FIAT</span><span class="o">.</span><span class="n">FDMDiscontinuousLagrange</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span> <span class="n">degree</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">FDMDiscontinuousLagrange</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">fiat_element</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="FDMQuadrature"><a class="viewcode-back" href="../../finat.html#finat.spectral.FDMQuadrature">[docs]</a><span class="k">class</span> <span class="nc">FDMQuadrature</span><span class="p">(</span><span class="n">ScalarFiatElement</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;1D CG element with FDM shape functions and orthogonalized vertex modes.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cell</span><span class="p">,</span> <span class="n">degree</span><span class="p">):</span>
+        <span class="n">fiat_element</span> <span class="o">=</span> <span class="n">FIAT</span><span class="o">.</span><span class="n">FDMQuadrature</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span> <span class="n">degree</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">FDMQuadrature</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">fiat_element</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="FDMBrokenH1"><a class="viewcode-back" href="../../finat.html#finat.spectral.FDMBrokenH1">[docs]</a><span class="k">class</span> <span class="nc">FDMBrokenH1</span><span class="p">(</span><span class="n">ScalarFiatElement</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;1D Broken CG element with FDM shape functions.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cell</span><span class="p">,</span> <span class="n">degree</span><span class="p">):</span>
+        <span class="n">fiat_element</span> <span class="o">=</span> <span class="n">FIAT</span><span class="o">.</span><span class="n">FDMBrokenH1</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span> <span class="n">degree</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">FDMBrokenH1</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">fiat_element</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="FDMBrokenL2"><a class="viewcode-back" href="../../finat.html#finat.spectral.FDMBrokenL2">[docs]</a><span class="k">class</span> <span class="nc">FDMBrokenL2</span><span class="p">(</span><span class="n">ScalarFiatElement</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;1D DG element with derivatives of FDM shape functions.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cell</span><span class="p">,</span> <span class="n">degree</span><span class="p">):</span>
+        <span class="n">fiat_element</span> <span class="o">=</span> <span class="n">FIAT</span><span class="o">.</span><span class="n">FDMBrokenL2</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span> <span class="n">degree</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">FDMBrokenL2</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">fiat_element</span><span class="p">)</span></div>
+
+
 <div class="viewcode-block" id="FDMHermite"><a class="viewcode-back" href="../../finat.html#finat.spectral.FDMHermite">[docs]</a><span class="k">class</span> <span class="nc">FDMHermite</span><span class="p">(</span><span class="n">ScalarFiatElement</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;1D CG element with FDM shape functions.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;1D CG element with FDM shape functions, point evaluation BCs and derivative BCs.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cell</span><span class="p">,</span> <span class="n">degree</span><span class="p">):</span>
         <span class="n">fiat_element</span> <span class="o">=</span> <span class="n">FIAT</span><span class="o">.</span><span class="n">FDMHermite</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span> <span class="n">degree</span><span class="p">)</span>
