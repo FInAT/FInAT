@@ -64,16 +64,64 @@ class GaussLegendre(ScalarFiatElement):
         return result
 
 
+class Legendre(ScalarFiatElement):
+    """1D DG element with Legendre polynomials."""
+
+    def __init__(self, cell, degree):
+        fiat_element = FIAT.Legendre(cell, degree)
+        super(Legendre, self).__init__(fiat_element)
+
+
+class IntegratedLegendre(ScalarFiatElement):
+    """1D CG element with integrated Legendre polynomials."""
+
+    def __init__(self, cell, degree):
+        fiat_element = FIAT.IntegratedLegendre(cell, degree)
+        super(IntegratedLegendre, self).__init__(fiat_element)
+
+
 class FDMLagrange(ScalarFiatElement):
-    """1D CG element with FDM shape functions."""
+    """1D CG element with FDM shape functions and point evaluation BCs."""
 
     def __init__(self, cell, degree):
         fiat_element = FIAT.FDMLagrange(cell, degree)
         super(FDMLagrange, self).__init__(fiat_element)
 
 
+class FDMDiscontinuousLagrange(ScalarFiatElement):
+    """1D DG element with derivatives of FDM shape functions with point evaluation Bcs."""
+
+    def __init__(self, cell, degree):
+        fiat_element = FIAT.FDMDiscontinuousLagrange(cell, degree)
+        super(FDMDiscontinuousLagrange, self).__init__(fiat_element)
+
+
+class FDMQuadrature(ScalarFiatElement):
+    """1D CG element with FDM shape functions and orthogonalized vertex modes."""
+
+    def __init__(self, cell, degree):
+        fiat_element = FIAT.FDMQuadrature(cell, degree)
+        super(FDMQuadrature, self).__init__(fiat_element)
+
+
+class FDMBrokenH1(ScalarFiatElement):
+    """1D Broken CG element with FDM shape functions."""
+
+    def __init__(self, cell, degree):
+        fiat_element = FIAT.FDMBrokenH1(cell, degree)
+        super(FDMBrokenH1, self).__init__(fiat_element)
+
+
+class FDMBrokenL2(ScalarFiatElement):
+    """1D DG element with derivatives of FDM shape functions."""
+
+    def __init__(self, cell, degree):
+        fiat_element = FIAT.FDMBrokenL2(cell, degree)
+        super(FDMBrokenL2, self).__init__(fiat_element)
+
+
 class FDMHermite(ScalarFiatElement):
-    """1D CG element with FDM shape functions."""
+    """1D CG element with FDM shape functions, point evaluation BCs and derivative BCs."""
 
     def __init__(self, cell, degree):
         fiat_element = FIAT.FDMHermite(cell, degree)
