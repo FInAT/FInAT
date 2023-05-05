@@ -419,9 +419,9 @@ class Lagrange(ScalarFiatElement):
         super(Lagrange, self).__init__(FIAT.Lagrange(cell, degree))
 
 
-class KongMulderVeldhuizen(ScalarFiatElement):
+class MassLumpedTriangular(ScalarFiatElement):
     def __init__(self, cell, degree):
-        super(KongMulderVeldhuizen, self).__init__(FIAT.KongMulderVeldhuizen(cell, degree))
+        super(MassLumpedTriangular, self).__init__(FIAT.MassLumpedTriangular(cell, degree))
         if Citations is not None:
             Citations().register("Chin1999higher")
             Citations().register("Geevers2018new")
