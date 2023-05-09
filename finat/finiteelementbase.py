@@ -28,7 +28,7 @@ class FiniteElementBase(_UFLFiniteElementBase):
         super().__init__(family, cellname, self.degree, None, self.value_shape, self.value_shape)
 
     def sobolev_space(self):
-        return "identity"
+        return "L2"
 
     @abstractproperty
     def cell(self):
