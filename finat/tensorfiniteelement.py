@@ -203,11 +203,8 @@ class TensorFiniteElement(FiniteElementBase):
     @property
     def mapping(self):
         return MappingStr(self._base_element.mapping)
-   
+
     def __repr__(self):
-        self._base_element = element
-        self._shape = shape
-        self._transpose = transpose
         return f"{type(self).__name__}"\
             f"{(self.base_element, self._shape, self._transpose)!r}"
 
@@ -237,7 +234,7 @@ class VectorFiniteElement(TensorFiniteElement):
                           basis function indices when transpose=True.
 
         :math:`\boldsymbol\phi_{i\alpha}` is, of course, vector-valued. If
-        we subscript the vector-value with :math:`\gamma\epsilon` then we can 
+        we subscript the vector-value with :math:`\gamma\epsilon` then we can
         write:
 
         .. math::

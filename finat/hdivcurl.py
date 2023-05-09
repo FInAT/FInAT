@@ -11,7 +11,6 @@ class WrapperElementBase(FiniteElementBase):
     """Common base class for H(div) and H(curl) element wrappers."""
 
     def __init__(self, wrappee, transform):
-        super(WrapperElementBase, self).__init__()
         self.wrappee = wrappee
         """An appropriate tensor product FInAT element whose basis
         functions are mapped to produce an H(div) or H(curl)
@@ -21,6 +20,10 @@ class WrapperElementBase(FiniteElementBase):
         """A transformation applied on the scalar/vector values of the
         wrapped element to produce an H(div) or H(curl) conforming
         element."""
+        super(WrapperElementBase, self).__init__()
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.wrappee!r},{self.transform!r})"
 
     @property
     def cell(self):
@@ -101,7 +104,7 @@ class HDivElement(WrapperElementBase):
             raise ValueError("H(div) requires (n-1)-form element!")
 
         transform = select_hdiv_transformer(wrappee)
-        super(HDivElement, self).__init__(wrappee, transform)
+        super().__init__(wrappee, transform)
 
     @property
     def formdegree(self):

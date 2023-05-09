@@ -271,7 +271,7 @@ class FiatElement(FiniteElementBase):
         else:
             result, = mappings
             return MappingStr(result)
-    
+
 
 @singledispatch
 def point_evaluation(fiat_element, order, refcoords, entity):

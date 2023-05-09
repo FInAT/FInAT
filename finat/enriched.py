@@ -25,6 +25,12 @@ class EnrichedElement(FiniteElementBase):
             self.elements = elements
             return self
 
+    def __init__(self, elements):
+        super().__init__()
+
+    def __repr__(self):
+        return f"EnrichedElement({self.elements!r})"
+
     @cached_property
     def cell(self):
         result, = set(elem.cell for elem in self.elements)

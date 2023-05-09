@@ -9,11 +9,11 @@ class DiscontinuousElement(FiniteElementBase):
     """Element wrapper that makes a FInAT element discontinuous."""
 
     def __init__(self, element):
-        super(DiscontinuousElement, self).__init__()
         self.element = element
+        super(DiscontinuousElement, self).__init__()
 
     def __repr__(self):
-        return f"DiscontinuousElement({repr(self.element)})"
+        return f"DiscontinuousElement({self.element!r})"
 
     @property
     def cell(self):
