@@ -16,13 +16,19 @@ class FiniteElementBase(_UFLFiniteElementBase):
 
     def __init__(self):
         family = "Lagrange"
-        super().__init__(family, self.cell, self.degree, None, self.value_shape, self.value_shape)
+        cellname = {
+                0: "point",
+                1: "interval",
+                2: "triangle",
+                3: "tetrahedron",
+                11: "quadrilateral",
+                111: "hexahedron",
+                99: "tensorproduct", # FIXME: not sure what UFL does in this case
+            }[self.cell.get_shape()]
+        super().__init__(family, cellname, self.degree, None, self.value_shape, self.value_shape)
 
     def sobolev_space(self):
         return "identity"
-
-    def __repr__(self):
-        return str(self)
 
     @abstractproperty
     def cell(self):
