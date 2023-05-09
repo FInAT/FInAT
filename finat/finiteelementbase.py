@@ -28,7 +28,8 @@ class FiniteElementBase(_UFLFiniteElementBase):
         super().__init__(family, cellname, self.degree, None, self.value_shape, self.value_shape)
 
     def sobolev_space(self):
-        return "L2"
+        # TODO: remove this hard coding and make it correct for non Lagrange
+        return "H1"
 
     @abstractproperty
     def cell(self):
