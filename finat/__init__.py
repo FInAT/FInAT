@@ -20,9 +20,9 @@ from .aw import ArnoldWintherNC         # noqa: F401
 from .trace import HDivTrace  # noqa: F401
 from .direct_serendipity import DirectSerendipity  # noqa: F401
 from .spectral import GaussLobattoLegendre, GaussLegendre, Legendre, IntegratedLegendre, FDMLagrange, FDMQuadrature, FDMDiscontinuousLagrange, FDMBrokenH1, FDMBrokenL2, FDMHermite  # noqa: F401
-from .tensorfiniteelement import TensorFiniteElement  # noqa: F401
-from .tensor_product import TensorProductElement, VectorElement, \
+from .tensorfiniteelement import TensorFiniteElement, VectorElement, \
     TensorElement  # noqa: F401
+from .tensor_product import TensorProductElement  # noqa: F401
 from .cube import FlattenedDimensions  # noqa: F401
 from .discontinuous import DiscontinuousElement  # noqa: F401
 from .enriched import EnrichedElement  # noqa: F401

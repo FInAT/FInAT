@@ -275,3 +275,6 @@ class VectorFiniteElement(TensorFiniteElement):
         This form enables the simplification of the loop nests which
         will eventually be created, so it is the form we employ here."""
         super().__init__(element, (dim,), transpose)
+
+
+VectorElement = TensorElement
