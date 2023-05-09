@@ -43,10 +43,10 @@ class TensorFiniteElement(FiniteElementBase):
 
         This form enables the simplification of the loop nests which
         will eventually be created, so it is the form we employ here."""
-        super(TensorFiniteElement, self).__init__()
         self._base_element = element
         self._shape = shape
         self._transpose = transpose
+        super(TensorFiniteElement, self).__init__()
 
     @property
     def base_element(self):
@@ -203,42 +203,13 @@ class TensorFiniteElement(FiniteElementBase):
     @property
     def mapping(self):
         return MappingStr(self._base_element.mapping)
-
-
-TensorElement = TensorFiniteElement
-
-
-class VectorFiniteElement(TensorFiniteElement):
-    def __init__(self, element, dim, transpose=False):
-        r"""A Finite element whose basis functions have the form:
-
-        .. math::
-
-            \boldsymbol\phi_{i \alpha} = \mathbf{e}_{\alpha} \phi_i
-
-        Where :math:`\{\mathbf{e}_\alpha,\, \alpha=0\ldots\mathrm{shape[0]}\}`
-        is the basis for :math:`\mathbb{R}^{d}`; and
-        :math:`\{\phi_i\}` is the basis for the corresponding scalar
-        finite element space.
-
-        :param element: The scalar finite element.
-        :param dim: The geometric dimension (:math:`d`).
-        :param transpose: Changes the DoF ordering from the
-                          Firedrake-style XYZ XYZ XYZ XYZ to the
-                          FEniCS-style XXXX YYYY ZZZZ.  That is,
-                          tensor shape indices come before the scalar
-                          basis function indices when transpose=True.
-
-        :math:`\boldsymbol\phi_{i\alpha}` is, of course, vector-valued. If
-        we subscript the vector-value with :math:`\gamma\epsilon` then we can 
-        write:
-
-        .. math::
-           \boldsymbol\phi_{\gamma(i\alpha)} = \delta_{\gamma\alpha}\phi_i
-
-        This form enables the simplification of the loop nests which
-        will eventually be created, so it is the form we employ here."""
-        super().__init__(element, (dim,), transpose)
+   
+    def __repr__(self):
+        self._base_element = element
+        self._shape = shape
+        self._transpose = transpose
+        return f"{type(self).__name__}"\
+            f"{(self.base_element, self._shape, self._transpose)!r}"
 
 
 TensorElement = TensorFiniteElement
