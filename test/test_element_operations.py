@@ -15,19 +15,20 @@ def test_enriched_elem(cell):
 
     S = finat.Lagrange(cell, 1)
     V = finat.VectorElement(S, 1)
-    T = finat.TensorFiniteElement(S, (2,2))
+    T = finat.TensorFiniteElement(S, (2, 2))
 
     M = T * S
-    assert(isinstance(M, finat.EnrichedElement))
+    assert (isinstance(M, finat.EnrichedElement))
 
     M = V * (S * T)
-    assert(isinstance(M, finat.EnrichedElement))
+    assert (isinstance(M, finat.EnrichedElement))
 
     M = S + S
-    assert(isinstance(M, finat.EnrichedElement))
+    assert (isinstance(M, finat.EnrichedElement))
 
     M = T + T
-    assert(isinstance(M, finat.EnrichedElement))
+    assert (isinstance(M, finat.EnrichedElement))
+
 
 def test_restricted_elem(cell):
     # Test restriction completes
@@ -35,7 +36,8 @@ def test_restricted_elem(cell):
 
     M = S['interior']
     from finat.fiat_elements import FiatElement
-    assert(isinstance(M, FiatElement))
+    assert (isinstance(M, FiatElement))
+
 
 if __name__ == '__main__':
     import os

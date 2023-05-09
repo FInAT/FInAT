@@ -20,6 +20,7 @@ def test_lagrange_mapping_call(cell, degree):
     assert isinstance(dis_cont.mapping(), str)
     assert isinstance(dis_cont.mapping, str)
 
+
 @pytest.mark.parametrize('degree', [1, 2])
 def test_enriched_mapping_call(cell, degree):
     element = finat.Lagrange(cell, degree)
@@ -32,6 +33,7 @@ def test_hermite_mapping_call(cell):
     element = finat.Hermite(cell, 3)
     assert isinstance(element.mapping(), str)
     assert isinstance(element.mapping, str)
+
 
 if __name__ == '__main__':
     import os

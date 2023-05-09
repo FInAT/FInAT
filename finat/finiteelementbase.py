@@ -298,7 +298,6 @@ class FiniteElementBase(_UFLFiniteElementBase):
         '''Appropriate mapping from the reference cell to a physical cell for
         all basis functions of the finite element.'''
 
-    
     def __add__(self, other):
         "Add two elements, creating an enriched element"
         if not isinstance(other, FiniteElementBase):
@@ -319,7 +318,6 @@ class FiniteElementBase(_UFLFiniteElementBase):
             from finat.restricted import RestrictedElement
             return RestrictedElement(self, index)
         return NotImplemented
-
 
 
 class MappingStr(str):
