@@ -2,7 +2,7 @@ import numpy
 
 import gem
 
-from finat.finiteelementbase import FiniteElementBase
+from finat.finiteelementbase import FiniteElementBase, MappingStr
 from finat.enriched import EnrichedElement
 
 
@@ -93,4 +93,4 @@ class MixedSubElement(FiniteElementBase):
 
     @property
     def mapping(self):
-        return self.element.mapping
+        return MappingStr(self.element.mapping)

@@ -4,7 +4,7 @@ from FIAT.reference_element import LINE
 import gem
 from gem.utils import cached_property
 
-from finat.finiteelementbase import FiniteElementBase
+from finat.finiteelementbase import FiniteElementBase, MappingStr
 
 
 class RuntimeTabulated(FiniteElementBase):
@@ -107,4 +107,4 @@ class RuntimeTabulated(FiniteElementBase):
 
     @property
     def mapping(self):
-        return "affine"
+        return MappingStr("affine")

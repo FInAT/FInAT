@@ -9,7 +9,7 @@ import gem
 from gem.interpreter import evaluate
 from gem.utils import cached_property
 
-from finat.finiteelementbase import FiniteElementBase
+from finat.finiteelementbase import FiniteElementBase, MappingStr
 from finat.quadrature import make_quadrature, AbstractQuadratureRule
 
 
@@ -136,4 +136,4 @@ class QuadratureElement(FiniteElementBase):
 
     @property
     def mapping(self):
-        return "affine"
+        return MappingStr("affine")

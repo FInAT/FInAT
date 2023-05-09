@@ -276,6 +276,10 @@ class FiniteElementBase(metaclass=ABCMeta):
         all basis functions of the finite element.'''
 
 
+class MappingStr(str):
+    def __call__(self):
+        return self.__str__()
+    
 def entity_support_dofs(elem, entity_dim):
     '''Return the map of entity id to the degrees of freedom for which
     the corresponding basis functions take non-zero values.

@@ -7,7 +7,7 @@ import gem
 from gem.optimise import delta_elimination, sum_factorise, traverse_product
 from gem.utils import cached_property
 
-from finat.finiteelementbase import FiniteElementBase
+from finat.finiteelementbase import FiniteElementBase, MappingStr
 
 
 class TensorFiniteElement(FiniteElementBase):
@@ -202,4 +202,4 @@ class TensorFiniteElement(FiniteElementBase):
 
     @property
     def mapping(self):
-        return self._base_element.mapping
+        return MappingStr(self._base_element.mapping)

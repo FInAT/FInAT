@@ -9,7 +9,7 @@ import FIAT
 import gem
 from gem.utils import cached_property
 
-from finat.finiteelementbase import FiniteElementBase
+from finat.finiteelementbase import FiniteElementBase, MappingStr
 
 
 class EnrichedElement(FiniteElementBase):
@@ -145,7 +145,7 @@ class EnrichedElement(FiniteElementBase):
             return None
         else:
             result, = mappings
-            return result
+            return MappingStr(result)
 
 
 def tree_map(f, *args):

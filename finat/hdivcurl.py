@@ -3,7 +3,7 @@ from FIAT.reference_element import LINE
 
 import gem
 from gem.utils import cached_property
-from finat.finiteelementbase import FiniteElementBase
+from finat.finiteelementbase import FiniteElementBase, MappingStr
 from finat.tensor_product import TensorProductElement
 
 
@@ -113,7 +113,7 @@ class HDivElement(WrapperElementBase):
 
     @property
     def mapping(self):
-        return "contravariant piola"
+        return MappingStr("contravariant piola")
 
 
 class HCurlElement(WrapperElementBase):

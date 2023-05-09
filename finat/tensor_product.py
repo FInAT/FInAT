@@ -12,7 +12,7 @@ from FIAT.orientation_utils import make_entity_permutations_tensorproduct
 import gem
 from gem.utils import cached_property
 
-from finat.finiteelementbase import FiniteElementBase
+from finat.finiteelementbase import FiniteElementBase, MappingStr
 from finat.point_set import PointSingleton, PointSet, TensorPointSet
 
 
@@ -188,9 +188,9 @@ class TensorProductElement(FiniteElementBase):
     def mapping(self):
         mappings = [fe.mapping for fe in self.factors if fe.mapping != "affine"]
         if len(mappings) == 0:
-            return "affine"
+            return MappingStr("affine")
         elif len(mappings) == 1:
-            return mappings[0]
+            return MappingStr(mappings[0])
         else:
             return None
 
