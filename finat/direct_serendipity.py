@@ -29,6 +29,9 @@ class DirectSerendipity(DirectlyDefinedElement, FiniteElementBase):
         self._degree = degree
         self._deriv_cache = {}
 
+    def __repr__(self):
+        return f"DirectSerendipity({self._cell},{self._degree})"
+
     @property
     def cell(self):
         return self._cell

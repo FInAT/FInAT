@@ -12,6 +12,9 @@ class DiscontinuousElement(FiniteElementBase):
         super(DiscontinuousElement, self).__init__()
         self.element = element
 
+    def __repr__(self):
+        return f"DiscontinuousElement({repr(self.element)})"
+
     @property
     def cell(self):
         return self.element.cell

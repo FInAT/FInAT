@@ -19,7 +19,6 @@ from finat.point_set import PointSingleton, PointSet, TensorPointSet
 class TensorProductElement(FiniteElementBase):
 
     def __init__(self, factors):
-        super(TensorProductElement, self).__init__()
         self.factors = tuple(factors)
 
         shapes = [fe.value_shape for fe in self.factors if fe.value_shape != ()]
@@ -29,6 +28,10 @@ class TensorProductElement(FiniteElementBase):
             self._value_shape = shapes[0]
         else:
             raise NotImplementedError("Only one nonscalar factor permitted!")
+        super(TensorProductElement, self).__init__()
+
+    def __repr__(self):
+        return f"TensorProductElement(" + ",".join(i.repr for i in self.factors) + ")"
 
     @cached_property
     def cell(self):
