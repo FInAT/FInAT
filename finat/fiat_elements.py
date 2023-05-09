@@ -48,8 +48,12 @@ class FiatElement(FiniteElementBase):
     """Base class for finite elements for which the tabulation is provided
     by FIAT."""
     def __init__(self, fiat_element):
-        super(FiatElement, self).__init__()
         self._element = fiat_element
+        super(FiatElement, self).__init__()
+
+    def __repr__(self):
+        # TODO: is this ok?
+        return repr(self._element)
 
     @property
     def cell(self):

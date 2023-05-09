@@ -9,9 +9,27 @@ from gem.optimise import delta_elimination, sum_factorise, traverse_product
 from gem.utils import cached_property
 
 from finat.quadrature import make_quadrature
+from ufl.finiteelement import FiniteElementBase as _UFLFiniteElementBase
 
 
-class FiniteElementBase(metaclass=ABCMeta):
+class FiniteElementBase(_UFLFiniteElementBase):
+
+    def __init__(self):
+        family = "Lagrange"
+        cellname = {
+                0: "point",
+                1: "interval",
+                2: "triangle",
+                3: "tetrahedron",
+                11: "quadrilateral",
+                111: "hexahedron",
+                99: "tensorproduct", # FIXME: not sure what UFL does in this case
+            }[self.cell.get_shape()]
+        super().__init__(family, cellname, self.degree, None, self.value_shape, self.value_shape)
+
+    def sobolev_space(self):
+        # TODO: remove this hard coding and make it correct for non Lagrange
+        return "H1"
 
     @abstractproperty
     def cell(self):
