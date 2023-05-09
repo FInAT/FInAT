@@ -9,9 +9,20 @@ from gem.optimise import delta_elimination, sum_factorise, traverse_product
 from gem.utils import cached_property
 
 from finat.quadrature import make_quadrature
+from ufl.finiteelement import FiniteElementBase as _UFLFiniteElementBase
 
 
-class FiniteElementBase(metaclass=ABCMeta):
+class FiniteElementBase(_UFLFiniteElementBase):
+
+    def __init__(self):
+        family = "Lagrange"
+        super().__init__(family, self.cell, self.degree, None, self.value_shape, self.value_shape)
+
+    def sobolev_space(self):
+        return "identity"
+
+    def __repr__(self):
+        return str(self)
 
     @abstractproperty
     def cell(self):
