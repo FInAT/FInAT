@@ -29,7 +29,7 @@ class EnrichedElement(FiniteElementBase):
         super().__init__()
 
     def __repr__(self):
-        return f"EnrichedElement(" + ",".join(repr(i) for i in self.elements) + ")" 
+        return f"EnrichedElement({self.elements!r})"
 
     @cached_property
     def cell(self):

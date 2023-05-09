@@ -20,7 +20,7 @@ class FlattenedDimensions(FiniteElementBase):
         super(FlattenedDimensions, self).__init__()
 
     def __repr__(self):
-        return f"FlattenedDimensions({repr(self.product)})"
+        return f"FlattenedDimensions({self.product!r})"
 
     @cached_property
     def cell(self):

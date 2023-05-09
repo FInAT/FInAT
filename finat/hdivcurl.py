@@ -23,7 +23,7 @@ class WrapperElementBase(FiniteElementBase):
         super(WrapperElementBase, self).__init__()
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({repr(self.wrappee)},{repr(self.transform)})"
+        return f"{self.__class__.__name__}({self.wrappee!r},{self.transform!r})"
 
     @property
     def cell(self):
