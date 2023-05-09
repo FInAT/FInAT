@@ -277,4 +277,6 @@ class VectorFiniteElement(TensorFiniteElement):
         super().__init__(element, (dim,), transpose)
 
 
-VectorElement = TensorElement
+# UFL compatibility names
+TensorElement = TensorFiniteElement
+VectorElement = VectorFiniteElement
