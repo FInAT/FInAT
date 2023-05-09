@@ -205,9 +205,6 @@ class TensorFiniteElement(FiniteElementBase):
         return MappingStr(self._base_element.mapping)
    
     def __repr__(self):
-        self._base_element = element
-        self._shape = shape
-        self._transpose = transpose
         return f"{type(self).__name__}"\
             f"{(self.base_element, self._shape, self._transpose)!r}"
 
