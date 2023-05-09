@@ -8,7 +8,7 @@ from FIAT.polynomial_set import mis, form_matrix_product
 import gem
 from gem.utils import cached_property
 
-from finat.finiteelementbase import FiniteElementBase
+from finat.finiteelementbase import FiniteElementBase, MappingStr
 from finat.point_set import PointSet
 from finat.sympy2gem import sympy2gem
 
@@ -270,8 +270,8 @@ class FiatElement(FiniteElementBase):
             return None
         else:
             result, = mappings
-            return result
-
+            return MappingStr(result)
+    
 
 @singledispatch
 def point_evaluation(fiat_element, order, refcoords, entity):

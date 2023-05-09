@@ -6,7 +6,7 @@ from FIAT.tensor_product import FlattenedDimensions as FIAT_FlattenedDimensions
 
 from gem.utils import cached_property
 
-from finat.finiteelementbase import FiniteElementBase
+from finat.finiteelementbase import FiniteElementBase, MappingStr
 
 
 class FlattenedDimensions(FiniteElementBase):
@@ -93,4 +93,4 @@ class FlattenedDimensions(FiniteElementBase):
 
     @property
     def mapping(self):
-        return self.product.mapping
+        return mappingStr(self.product.mapping)

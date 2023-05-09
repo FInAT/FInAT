@@ -12,7 +12,7 @@ from FIAT.polynomial_set import mis
 from FIAT.reference_element import UFCQuadrilateral
 from gem.utils import cached_property
 
-from finat.finiteelementbase import FiniteElementBase
+from finat.finiteelementbase import FiniteElementBase, MappingStr
 from finat.physically_mapped import Citations, DirectlyDefinedElement
 from finat.sympy2gem import sympy2gem
 
@@ -122,7 +122,7 @@ class DirectSerendipity(DirectlyDefinedElement, FiniteElementBase):
         raise NotImplementedError("Not done yet, sorry!")
 
     def mapping(self):
-        return "physical"
+        return MappingStr("physical")
 
 
 def xysub(x, y):
