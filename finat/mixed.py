@@ -33,6 +33,9 @@ class MixedSubElement(FiniteElementBase):
         self.size = size
         self.offset = offset
 
+    def __repr__(self):
+        return f"{self._element.__class__.__name__} ( {self.element!r} )"
+
     @property
     def cell(self):
         return self.element.cell
