@@ -53,7 +53,8 @@ class FiatElement(FiniteElementBase):
 
     def __repr__(self):
         # TODO: is this ok?
-        return repr(self._element)
+        return (f"{self._element.__class__.__name__}("
+                f"{self.cell.get_shape()}, {self._element.degree()})")
 
     @property
     def cell(self):
