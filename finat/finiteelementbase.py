@@ -25,6 +25,11 @@ class FiniteElementBase(_UFLFiniteElementBase):
                 111: "hexahedron",
                 99: "tensorproduct", # FIXME: not sure what UFL does in this case
             }[self.cell.get_shape()]
+        if cellname == "tensorproduct":
+            if len(self.cell.get_dimension()) == 2:
+                cellname = "quadrilateral"
+            elif len(self.cell.get_dimension()) == 3:
+                cellname = "hexahedron"
         super().__init__(family, cellname, self.degree, None, self.value_shape, self.value_shape)
 
     def sobolev_space(self):
@@ -297,7 +302,7 @@ class FiniteElementBase(_UFLFiniteElementBase):
 class MappingStr(str):
     def __call__(self):
         return self.__str__()
-    
+
 def entity_support_dofs(elem, entity_dim):
     '''Return the map of entity id to the degrees of freedom for which
     the corresponding basis functions take non-zero values.

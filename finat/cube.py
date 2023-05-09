@@ -15,9 +15,12 @@ class FlattenedDimensions(FiniteElementBase):
     dimensions."""
 
     def __init__(self, element):
-        super(FlattenedDimensions, self).__init__()
         self.product = element
         self._unflatten = compute_unflattening_map(element.cell.get_topology())
+        super(FlattenedDimensions, self).__init__()
+
+    def __repr__(self):
+        return f"FlattenedDimensions({repr(self.product)})"
 
     @cached_property
     def cell(self):
