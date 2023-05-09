@@ -298,6 +298,29 @@ class FiniteElementBase(_UFLFiniteElementBase):
         '''Appropriate mapping from the reference cell to a physical cell for
         all basis functions of the finite element.'''
 
+    
+    def __add__(self, other):
+        "Add two elements, creating an enriched element"
+        if not isinstance(other, FiniteElementBase):
+            raise ValueError(f"Can't add element and {other.__class__}.")
+        from finat.enriched import EnrichedElement
+        return EnrichedElement([self, other])
+
+    def __mul__(self, other):
+        "Multiply two elements, creating a mixed element"
+        if not isinstance(other, FiniteElementBase):
+            raise ValueError("Can't multiply element and {other.__class__}.")
+        from finat.mixed import MixedElement
+        return MixedElement([self, other])
+
+    def __getitem__(self, index):
+        "Restrict finite element to a subdomain, subcomponent or topology (cell)."
+        if index in ("facet", "interior"):
+            from finat.restricted import RestrictedElement
+            return RestrictedElement(self, index)
+        return NotImplemented
+
+
 
 class MappingStr(str):
     def __call__(self):
