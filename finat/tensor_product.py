@@ -31,7 +31,7 @@ class TensorProductElement(FiniteElementBase):
         super(TensorProductElement, self).__init__()
 
     def __repr__(self):
-        return f"TensorProductElement(" + ",".join(repr(i) for i in self.factors) + ")"
+        return f"TensorProductElement({self.factors!r})"
 
     @cached_property
     def cell(self):
