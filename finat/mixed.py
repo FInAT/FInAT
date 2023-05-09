@@ -28,13 +28,13 @@ class MixedSubElement(FiniteElementBase):
         assert 0 <= offset <= size
         assert offset + numpy.prod(element.value_shape, dtype=int) <= size
 
-        super(MixedSubElement, self).__init__()
         self.element = element
         self.size = size
         self.offset = offset
+        super(MixedSubElement, self).__init__()
 
     def __repr__(self):
-        return f"{self._element.__class__.__name__} ( {self.element!r} )"
+        return f"{self.__class__.__name__} ( {self.element!r} )"
 
     @property
     def cell(self):
