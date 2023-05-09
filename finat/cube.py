@@ -96,4 +96,4 @@ class FlattenedDimensions(FiniteElementBase):
 
     @property
     def mapping(self):
-        return mappingStr(self.product.mapping)
+        return MappingStr(self.product.mapping)
