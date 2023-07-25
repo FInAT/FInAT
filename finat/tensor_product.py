@@ -7,6 +7,7 @@ import numpy
 import FIAT
 from FIAT.polynomial_set import mis
 from FIAT.reference_element import TensorProductCell
+from FIAT.orientation_utils import make_entity_permutations_tensorproduct
 
 import gem
 from gem.utils import cached_property
@@ -54,6 +55,10 @@ class TensorProductElement(FiniteElementBase):
 
     def entity_dofs(self):
         return self._entity_dofs
+
+    @cached_property
+    def entity_permutations(self):
+        return compose_permutations(self.factors)
 
     def space_dimension(self):
         return numpy.prod([fe.space_dimension() for fe in self.factors])
@@ -162,6 +167,23 @@ class TensorProductElement(FiniteElementBase):
 
         return self._merge_evaluations(factor_results)
 
+    @property
+    def dual_basis(self):
+        # Outer product the dual bases of the factors
+        qs, pss = zip(*(factor.dual_basis for factor in self.factors))
+        ps = TensorPointSet(pss)
+        # Naming as _merge_evaluations above
+        alphas = [factor.get_indices() for factor in self.factors]
+        zetas = [factor.get_value_indices() for factor in self.factors]
+        # Index the factors by so that we can reshape into index-shape
+        # followed by value-shape
+        qis = [q[alpha + zeta] for q, alpha, zeta in zip(qs, alphas, zetas)]
+        Q = gem.ComponentTensor(
+            reduce(gem.Product, qis),
+            tuple(chain(*(alphas + zetas)))
+        )
+        return Q, ps
+
     @cached_property
     def mapping(self):
         mappings = [fe.mapping for fe in self.factors if fe.mapping != "affine"]
@@ -198,6 +220,83 @@ def productise(factors, method):
     return dofs
 
 
+def compose_permutations(factors):
+    """For the :class:`TensorProductElement` object composed of factors,
+    construct, for each dimension tuple, for each entity, and for each possible
+    entity orientation combination, the DoF permutation list.
+
+    :arg factors: element factors.
+    :returns: entity_permutation dict of the :class:`TensorProductElement` object
+        composed of factors.
+
+    For tensor-product elements, one needs to consider two kinds of orientations:
+    extrinsic orientations and intrinsic ("material") orientations.
+
+    Example:
+
+    UFCQuadrilateral := UFCInterval x UFCInterval
+
+    eo (extrinsic orientation): swap axes (X -> y, Y-> x)
+    io (intrinsic orientation): reflect component intervals
+    o (total orientation)     : (2 ** dim) * eo + io
+
+    eo\\io    0      1      2      3
+
+           1---3  0---2  3---1  2---0
+      0    |   |  |   |  |   |  |   |
+           0---2  1---3  2---0  3---1
+
+           2---3  3---2  0---1  1---0
+      1    |   |  |   |  |   |  |   |
+           0---1  1---0  2---3  3---2
+
+    .. code-block:: python3
+
+        import ufl
+        import FIAT
+        import finat
+
+        cell = FIAT.ufc_cell(ufl.interval)
+        elem = finat.DiscontinuousLagrange(cell, 1)
+        elem = finat.TensorProductElement([elem, elem])
+        print(elem.entity_permutations)
+
+    prints:
+
+    {(0, 0): {0: {(0, 0, 0): []},
+              1: {(0, 0, 0): []},
+              2: {(0, 0, 0): []},
+              3: {(0, 0, 0): []}},
+     (0, 1): {0: {(0, 0, 0): [],
+                  (0, 0, 1): []},
+              1: {(0, 0, 0): [],
+                  (0, 0, 1): []}},
+     (1, 0): {0: {(0, 0, 0): [],
+                  (0, 1, 0): []},
+              1: {(0, 0, 0): [],
+                  (0, 1, 0): []}},
+     (1, 1): {0: {(0, 0, 0): [0, 1, 2, 3],
+                  (0, 0, 1): [1, 0, 3, 2],
+                  (0, 1, 0): [2, 3, 0, 1],
+                  (0, 1, 1): [3, 2, 1, 0],
+                  (1, 0, 0): [0, 2, 1, 3],
+                  (1, 0, 1): [2, 0, 3, 1],
+                  (1, 1, 0): [1, 3, 0, 2],
+                  (1, 1, 1): [3, 1, 2, 0]}}}
+    """
+    permutations = {}
+    cells = [fe.cell for fe in factors]
+    for dim in product(*[cell.get_topology().keys() for cell in cells]):
+        dim_permutations = []
+        e_o_p_maps = [fe.entity_permutations[d] for fe, d in zip(factors, dim)]
+        for e_tuple in product(*[sorted(e_o_p_map) for e_o_p_map in e_o_p_maps]):
+            o_p_maps = [e_o_p_map[e] for e_o_p_map, e in zip(e_o_p_maps, e_tuple)]
+            o_tuple_perm_map = make_entity_permutations_tensorproduct(cells, dim, o_p_maps)
+            dim_permutations.append((e_tuple, o_tuple_perm_map))
+        permutations[dim] = dict(enumerate(v for k, v in sorted(dim_permutations)))
+    return permutations
+
+
 def factor_point_set(product_cell, product_dim, point_set):
     """Factors a point set for the product element into a point sets for
     each subelement.
@@ -210,7 +309,8 @@ def factor_point_set(product_cell, product_dim, point_set):
     point_dims = [cell.construct_subelement(dim).get_spatial_dimension()
                   for cell, dim in zip(product_cell.cells, product_dim)]
 
-    if isinstance(point_set, TensorPointSet):
+    if isinstance(point_set, TensorPointSet) and \
+       len(product_cell.cells) == len(point_set.factors):
         # Just give the factors asserting matching dimensions.
         assert len(point_set.factors) == len(point_dims)
         assert all(ps.dimension == dim
@@ -221,10 +321,9 @@ def factor_point_set(product_cell, product_dim, point_set):
     # required by the subelements.
     assert point_set.dimension == sum(point_dims)
     slices = TensorProductCell._split_slices(point_dims)
-
     if isinstance(point_set, PointSingleton):
         return [PointSingleton(point_set.point[s]) for s in slices]
-    elif isinstance(point_set, PointSet):
+    elif isinstance(point_set, (PointSet, TensorPointSet)):
         # Use the same point index for the new point sets.
         result = []
         for s in slices:
