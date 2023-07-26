@@ -511,6 +511,7 @@ class BrezziDouglasMariniCubeEdge(VectorFiatElement):
     def entity_permutations(self):
         raise NotImplementedError(f"entity_permutations not yet implemented for {type(self)}")
 
+
 class BrezziDouglasMariniCubeFace(VectorFiatElement):
     def __init__(self, cell, degree):
         super(BrezziDouglasMariniCubeFace, self).__init__(FIAT.BrezziDouglasMariniCubeFace(cell, degree))
