@@ -64,6 +64,14 @@ class GaussLegendre(ScalarFiatElement):
         return result
 
 
+class Histopolation(ScalarFiatElement):
+    """1D DG element with integral DOFs on GLL subgrid."""
+
+    def __init__(self, cell, degree):
+        fiat_element = FIAT.Histopolation(cell, degree)
+        super(Histopolation, self).__init__(fiat_element)
+
+
 class Legendre(ScalarFiatElement):
     """1D DG element with Legendre polynomials."""
 
