@@ -13,7 +13,7 @@ setup(name="FInAT",
       author_email="david.ham@imperial.ac.uk",
       url="https://github.com/FInAT/FInAT",
       license="MIT",
-      packages=["finat", "final.ufl"],
+      packages=["finat", "finat.ufl"],
       # symengine is optional, but faster than sympy.
       extras_require={'full': ['symengine']},
       install_requires=[
