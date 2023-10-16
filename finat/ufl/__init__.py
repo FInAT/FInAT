@@ -11,13 +11,11 @@
 # Modified by Lawrence Mitchell 2014
 # Modified by Matthew Scroggs, 2023
 
-import warnings as _warnings
-
-from finat.ufl.brokenelement import BrokenElement
-from finat.ufl.enrichedelement import EnrichedElement, NodalEnrichedElement
-from finat.ufl.finiteelement import FiniteElement
-from finat.ufl.finiteelementbase import FiniteElementBase
-from finat.ufl.hdivcurl import HCurlElement, HDivElement, WithMapping
-from finat.ufl.mixedelement import MixedElement, TensorElement, VectorElement
-from finat.ufl.restrictedelement import RestrictedElement
-from finat.ufl.tensorproductelement import TensorProductElement
+from finat.ufl.brokenelement import BrokenElement  # noqa: F401
+from finat.ufl.enrichedelement import EnrichedElement, NodalEnrichedElement  # noqa: F401
+from finat.ufl.finiteelement import FiniteElement  # noqa: F401
+from finat.ufl.finiteelementbase import FiniteElementBase  # noqa: F401
+from finat.ufl.hdivcurl import HCurlElement, HDivElement, WithMapping  # noqa: F401
+from finat.ufl.mixedelement import MixedElement, TensorElement, VectorElement  # noqa: F401
+from finat.ufl.restrictedelement import RestrictedElement  # noqa: F401
+from finat.ufl.tensorproductelement import TensorProductElement  # noqa: F401
