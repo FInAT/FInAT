@@ -9,7 +9,9 @@
 # Modified by Matthew Scroggs, 2023
 
 from finat.ufl.finiteelementbase import FiniteElementBase
-from ufl.sobolevspace import L2, HCurl, HDiv
+from ufl.sobolevspace import L2
+from ufl.sobolevspace import HCurl as HCurlSobolevSpace
+from ufl.sobolevspace import HDiv as HDivSobolevSpace
 
 
 class HDivElement(FiniteElementBase):
@@ -42,7 +44,7 @@ class HDivElement(FiniteElementBase):
     @property
     def sobolev_space(self):
         """Return the underlying Sobolev space."""
-        return HDiv
+        return HDivSobolevSpace
 
     def reconstruct(self, **kwargs):
         """Doc."""
@@ -102,7 +104,7 @@ class HCurlElement(FiniteElementBase):
     @property
     def sobolev_space(self):
         """Return the underlying Sobolev space."""
-        return HCurl
+        return HCurlSobolevSpace
 
     def reconstruct(self, **kwargs):
         """Doc."""
