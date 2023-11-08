@@ -9,9 +9,30 @@
 # Modified by Matthew Scroggs, 2023
 
 from finat.ufl.finiteelementbase import FiniteElementBase
-from ufl.sobolevspace import L2
+from ufl.sobolevspace import L2, SobolevSpace
 from ufl.sobolevspace import HCurl as HCurlSobolevSpace
 from ufl.sobolevspace import HDiv as HDivSobolevSpace
+
+
+class CallableSobolevSpace(SobolevSpace):
+    """A Sobolev space that can be called to create HDiv and HCurl elements."""
+
+    def __init__(self, name, parents=None):
+        super().__init__(name, parents)
+
+    def __call__(self, element):
+        """Syntax shortcut to create a HDivElement or HCurlElement."""
+        if self.name == "HDiv":
+            return HDivElement(element)
+        elif self.name == "HCurl":
+            return HCurlElement(element)
+        raise NotImplementedError(
+            "SobolevSpace has no call operator (only the specific HDiv and HCurl instances)."
+        )
+
+
+HCurl = CallableSobolevSpace(HCurlSobolevSpace.name, HCurlSobolevSpace.parents)
+HDiv = CallableSobolevSpace(HDivSobolevSpace.name, HDivSobolevSpace.parents)
 
 
 class HDivElement(FiniteElementBase):
@@ -214,11 +235,3 @@ class WithMapping(FiniteElementBase):
     def embedded_superdegree(self):
         """Return embedded superdegree."""
         return self._element.embedded_superdegree
-
-
-def HDiv(element):
-    return HDivElement(element)
-
-
-def HCurl(element):
-    return HDivElement(element)
