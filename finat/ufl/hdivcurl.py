@@ -212,3 +212,11 @@ class WithMapping(FiniteElementBase):
     def embedded_superdegree(self):
         """Return embedded superdegree."""
         return self._element.embedded_superdegree
+
+
+def HDiv(element):
+    return HDivElement(element)
+
+
+def HCurl(element):
+    return HDivElement(element)
