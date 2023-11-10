@@ -11,7 +11,7 @@ class GaussLobattoLegendre(Lagrange):
 
     def __init__(self, cell, degree):
         fiat_element = FIAT.GaussLobattoLegendre(cell, degree)
-        super(GaussLobattoLegendre, self).__init__(fiat_element)
+        super(Lagrange, self).__init__(fiat_element)
 
     def basis_evaluation(self, order, ps, entity=None, coordinate_mapping=None):
         '''Return code for evaluating the element at known points on the
@@ -40,7 +40,7 @@ class GaussLegendre(DiscontinuousLagrange):
 
     def __init__(self, cell, degree):
         fiat_element = FIAT.GaussLegendre(cell, degree)
-        super(GaussLegendre, self).__init__(fiat_element)
+        super(DiscontinuousLagrange, self).__init__(fiat_element)
 
     def basis_evaluation(self, order, ps, entity=None, coordinate_mapping=None):
         '''Return code for evaluating the element at known points on the
