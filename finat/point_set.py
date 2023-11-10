@@ -197,7 +197,7 @@ class TensorPointSet(AbstractPointSet):
 
     def almost_equal(self, other, tolerance=1e-12):
         """Approximate numerical equality of point sets"""
-        return type(self) == type(other) and \
+        return type(self) is type(other) and \
             len(self.factors) == len(other.factors) and \
             all(s.almost_equal(o, tolerance=tolerance)
                 for s, o in zip(self.factors, other.factors))
