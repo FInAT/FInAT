@@ -147,7 +147,7 @@ class PointSet(AbstractPointSet):
 
     def almost_equal(self, other, tolerance=1e-12):
         """Approximate numerical equality of point sets"""
-        return type(self) == type(other) and \
+        return type(self) is type(other) and \
             self.points.shape == other.points.shape and \
             numpy.allclose(self.points, other.points, rtol=0, atol=tolerance)
 
