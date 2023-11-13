@@ -2,16 +2,16 @@ import FIAT
 
 import gem
 
-from finat.fiat_elements import ScalarFiatElement
+from finat.fiat_elements import ScalarFiatElement, Lagrange, DiscontinuousLagrange
 from finat.point_set import GaussLobattoLegendrePointSet, GaussLegendrePointSet
 
 
-class GaussLobattoLegendre(ScalarFiatElement):
+class GaussLobattoLegendre(Lagrange):
     """1D continuous element with nodes at the Gauss-Lobatto points."""
 
     def __init__(self, cell, degree):
         fiat_element = FIAT.GaussLobattoLegendre(cell, degree)
-        super(GaussLobattoLegendre, self).__init__(fiat_element)
+        super(Lagrange, self).__init__(fiat_element)
 
     def basis_evaluation(self, order, ps, entity=None, coordinate_mapping=None):
         '''Return code for evaluating the element at known points on the
@@ -35,12 +35,12 @@ class GaussLobattoLegendre(ScalarFiatElement):
         return result
 
 
-class GaussLegendre(ScalarFiatElement):
+class GaussLegendre(DiscontinuousLagrange):
     """1D discontinuous element with nodes at the Gauss-Legendre points."""
 
     def __init__(self, cell, degree):
         fiat_element = FIAT.GaussLegendre(cell, degree)
-        super(GaussLegendre, self).__init__(fiat_element)
+        super(DiscontinuousLagrange, self).__init__(fiat_element)
 
     def basis_evaluation(self, order, ps, entity=None, coordinate_mapping=None):
         '''Return code for evaluating the element at known points on the
