@@ -302,11 +302,10 @@
 
 <span class="sd">    .. code-block:: python3</span>
 
-<span class="sd">        import ufl</span>
 <span class="sd">        import FIAT</span>
 <span class="sd">        import finat</span>
 
-<span class="sd">        cell = FIAT.ufc_cell(ufl.interval)</span>
+<span class="sd">        cell = FIAT.ufc_cell(&quot;interval&quot;)</span>
 <span class="sd">        elem = finat.DiscontinuousLagrange(cell, 1)</span>
 <span class="sd">        elem = finat.TensorProductElement([elem, elem])</span>
 <span class="sd">        print(elem.entity_permutations)</span>

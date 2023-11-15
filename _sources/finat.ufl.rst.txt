@@ -1,0 +1,85 @@
+finat.ufl package
+=================
+
+Submodules
+----------
+
+finat.ufl.brokenelement module
+------------------------------
+
+.. automodule:: finat.ufl.brokenelement
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+finat.ufl.elementlist module
+----------------------------
+
+.. automodule:: finat.ufl.elementlist
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+finat.ufl.enrichedelement module
+--------------------------------
+
+.. automodule:: finat.ufl.enrichedelement
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+finat.ufl.finiteelement module
+------------------------------
+
+.. automodule:: finat.ufl.finiteelement
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+finat.ufl.finiteelementbase module
+----------------------------------
+
+.. automodule:: finat.ufl.finiteelementbase
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+finat.ufl.hdivcurl module
+-------------------------
+
+.. automodule:: finat.ufl.hdivcurl
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+finat.ufl.mixedelement module
+-----------------------------
+
+.. automodule:: finat.ufl.mixedelement
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+finat.ufl.restrictedelement module
+----------------------------------
+
+.. automodule:: finat.ufl.restrictedelement
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+finat.ufl.tensorproductelement module
+-------------------------------------
+
+.. automodule:: finat.ufl.tensorproductelement
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: finat.ufl
+   :members:
+   :undoc-members:
+   :show-inheritance:

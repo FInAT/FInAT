@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>finat.ufl package &#8212; FInAT 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/fenics.css?v=9da67524" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=e031e9a9"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="finat package" href="finat.html" />
+<!--[if lte IE 6]>
+<link rel="stylesheet" href="_static/ie6.css" type="text/css" media="screen" charset="utf-8" />
+<![endif]-->
+
+<link rel="stylesheet" href="_static/featured.css">
+
+
+<link rel="shortcut icon" href="_static/icon.ico" />
+
+
+  </head><body>
+<div class="wrapper">
+  <a href="index.html"><img src="_static/banner.png" width="900px" alt="FInAT Project Banner" /></a>
+  <div id="access">
+    <div class="menu">
+      <ul>
+          <li class="page_item"><a href="https://github.com/FInAT/finat" title="GitHub">GitHub</a></li>
+<!--          <li class="page_item"><a href="documentation.html" title="Documentation for FInAT">Documentation</a></li>
+          <li class="page_item"><a href="download.html" title="Obtain the FInAT code">Download</a></li>
+          <li class="page_item"><a href="team.html" title="The guilty parties">Team</a></li>
+          <li class="page_item"><a href="publications.html" title="Publications">Publications</a></li>
+          <li class="page_item"><a href="funding.html" title="Our financial supporters">Funding</a></li>
+          <li class="page_item"><a href="contact.html" title="Getting in touch">Contact</a></li>
+          <li class="page_item"><a href="http://buildbot-ocean.ese.ic.ac.uk:8080/builders/FInAT-trunk" title="Buildbot">Buildbot</a></li>-->
+      </ul>
+    </div><!-- .menu -->
+  </div><!-- #access -->
+</div><!-- #wrapper -->
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="finat-ufl-package">
+<h1>finat.ufl package<a class="headerlink" href="#finat-ufl-package" title="Permalink to this heading">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading">¶</a></h2>
+</section>
+<section id="module-finat.ufl.brokenelement">
+<span id="finat-ufl-brokenelement-module"></span><h2>finat.ufl.brokenelement module<a class="headerlink" href="#module-finat.ufl.brokenelement" title="Permalink to this heading">¶</a></h2>
+<p>Element.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="finat.ufl.brokenelement.BrokenElement">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">finat.ufl.brokenelement.</span></span><span class="sig-name descname"><span class="pre">BrokenElement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">element</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/brokenelement.html#BrokenElement"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.brokenelement.BrokenElement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#finat.ufl.finiteelementbase.FiniteElementBase" title="finat.ufl.finiteelementbase.FiniteElementBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">FiniteElementBase</span></code></a></p>
+<p>The discontinuous version of an existing Finite Element space.</p>
+<p>Init.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.brokenelement.BrokenElement.mapping">
+<span class="sig-name descname"><span class="pre">mapping</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/brokenelement.html#BrokenElement.mapping"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.brokenelement.BrokenElement.mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Doc.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.brokenelement.BrokenElement.reconstruct">
+<span class="sig-name descname"><span class="pre">reconstruct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/brokenelement.html#BrokenElement.reconstruct"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.brokenelement.BrokenElement.reconstruct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Doc.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.brokenelement.BrokenElement.shortstr">
+<span class="sig-name descname"><span class="pre">shortstr</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/brokenelement.html#BrokenElement.shortstr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.brokenelement.BrokenElement.shortstr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Format as string for pretty printing.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.ufl.brokenelement.BrokenElement.sobolev_space">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sobolev_space</span></span><a class="headerlink" href="#finat.ufl.brokenelement.BrokenElement.sobolev_space" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the underlying Sobolev space.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-finat.ufl.elementlist">
+<span id="finat-ufl-elementlist-module"></span><h2>finat.ufl.elementlist module<a class="headerlink" href="#module-finat.ufl.elementlist" title="Permalink to this heading">¶</a></h2>
+<p>Element.</p>
+<p>This module provides an extensive list of predefined finite element
+families. Users or, more likely, form compilers, may register new
+elements by calling the function register_element.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="finat.ufl.elementlist.canonical_element_description">
+<span class="sig-prename descclassname"><span class="pre">finat.ufl.elementlist.</span></span><span class="sig-name descname"><span class="pre">canonical_element_description</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">family</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">form_degree</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/elementlist.html#canonical_element_description"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.elementlist.canonical_element_description" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given basic element information, return corresponding element information on canonical form.</p>
+<p>Input: family, cell, (polynomial) order, form_degree
+Output: family (canonical), short_name (for printing), order, value shape,
+reference value shape, sobolev_space.</p>
+<p>This is used by the FiniteElement constructor to ved input
+data against the element list and aliases defined in ufl.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="finat.ufl.elementlist.feec_element">
+<span class="sig-prename descclassname"><span class="pre">finat.ufl.elementlist.</span></span><span class="sig-name descname"><span class="pre">feec_element</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">family</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/elementlist.html#feec_element"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.elementlist.feec_element" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finite element exterior calculus notation.</p>
+<p>n = topological dimension of domain
+r = polynomial order
+k = form_degree</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="finat.ufl.elementlist.feec_element_l2">
+<span class="sig-prename descclassname"><span class="pre">finat.ufl.elementlist.</span></span><span class="sig-name descname"><span class="pre">feec_element_l2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">family</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/elementlist.html#feec_element_l2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.elementlist.feec_element_l2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finite element exterior calculus notation.</p>
+<p>n = topological dimension of domain
+r = polynomial order
+k = form_degree</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="finat.ufl.elementlist.register_alias">
+<span class="sig-prename descclassname"><span class="pre">finat.ufl.elementlist.</span></span><span class="sig-name descname"><span class="pre">register_alias</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alias</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/elementlist.html#register_alias"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.elementlist.register_alias" title="Permalink to this definition">¶</a></dt>
+<dd><p>Doc.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="finat.ufl.elementlist.register_element">
+<span class="sig-prename descclassname"><span class="pre">finat.ufl.elementlist.</span></span><span class="sig-name descname"><span class="pre">register_element</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">family</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">short_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_rank</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sobolev_space</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mapping</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degree_range</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cellnames</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/elementlist.html#register_element"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.elementlist.register_element" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register new finite element family.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="finat.ufl.elementlist.show_elements">
+<span class="sig-prename descclassname"><span class="pre">finat.ufl.elementlist.</span></span><span class="sig-name descname"><span class="pre">show_elements</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/elementlist.html#show_elements"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.elementlist.show_elements" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shows all registered elements.</p>
+</dd></dl>
+
+</section>
+<section id="module-finat.ufl.enrichedelement">
+<span id="finat-ufl-enrichedelement-module"></span><h2>finat.ufl.enrichedelement module<a class="headerlink" href="#module-finat.ufl.enrichedelement" title="Permalink to this heading">¶</a></h2>
+<p>This module defines the UFL finite element classes.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="finat.ufl.enrichedelement.EnrichedElement">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">finat.ufl.enrichedelement.</span></span><span class="sig-name descname"><span class="pre">EnrichedElement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">elements</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/enrichedelement.html#EnrichedElement"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.enrichedelement.EnrichedElement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#finat.ufl.enrichedelement.EnrichedElementBase" title="finat.ufl.enrichedelement.EnrichedElementBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">EnrichedElementBase</span></code></a></p>
+<p>The vector sum of several finite element spaces.</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\\textrm{EnrichedElement}(V, Q) = \\{v + q | v \\in V, q \\in Q\\}.\end{split}\]</div>
+<p>Dual basis is a concatenation of subelements dual bases;
+primal basis is a concatenation of subelements primal bases;
+resulting element is not nodal even when subelements are.
+Structured basis may be exploited in form compilers.</p>
+<p>Doc.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.enrichedelement.EnrichedElement.is_cellwise_constant">
+<span class="sig-name descname"><span class="pre">is_cellwise_constant</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/enrichedelement.html#EnrichedElement.is_cellwise_constant"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.enrichedelement.EnrichedElement.is_cellwise_constant" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether the basis functions of this element is spatially constant over each cell.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.enrichedelement.EnrichedElement.shortstr">
+<span class="sig-name descname"><span class="pre">shortstr</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/enrichedelement.html#EnrichedElement.shortstr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.enrichedelement.EnrichedElement.shortstr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Format as string for pretty printing.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="finat.ufl.enrichedelement.EnrichedElementBase">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">finat.ufl.enrichedelement.</span></span><span class="sig-name descname"><span class="pre">EnrichedElementBase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">elements</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/enrichedelement.html#EnrichedElementBase"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.enrichedelement.EnrichedElementBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#finat.ufl.finiteelementbase.FiniteElementBase" title="finat.ufl.finiteelementbase.FiniteElementBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">FiniteElementBase</span></code></a></p>
+<p>The vector sum of several finite element spaces.</p>
+<p>Doc.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.ufl.enrichedelement.EnrichedElementBase.embedded_subdegree">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">embedded_subdegree</span></span><a class="headerlink" href="#finat.ufl.enrichedelement.EnrichedElementBase.embedded_subdegree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return embedded subdegree.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.ufl.enrichedelement.EnrichedElementBase.embedded_superdegree">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">embedded_superdegree</span></span><a class="headerlink" href="#finat.ufl.enrichedelement.EnrichedElementBase.embedded_superdegree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return embedded superdegree.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.enrichedelement.EnrichedElementBase.mapping">
+<span class="sig-name descname"><span class="pre">mapping</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/enrichedelement.html#EnrichedElementBase.mapping"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.enrichedelement.EnrichedElementBase.mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Doc.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.enrichedelement.EnrichedElementBase.reconstruct">
+<span class="sig-name descname"><span class="pre">reconstruct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/enrichedelement.html#EnrichedElementBase.reconstruct"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.enrichedelement.EnrichedElementBase.reconstruct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Doc.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.ufl.enrichedelement.EnrichedElementBase.sobolev_space">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sobolev_space</span></span><a class="headerlink" href="#finat.ufl.enrichedelement.EnrichedElementBase.sobolev_space" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the underlying Sobolev space.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.enrichedelement.EnrichedElementBase.variant">
+<span class="sig-name descname"><span class="pre">variant</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/enrichedelement.html#EnrichedElementBase.variant"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.enrichedelement.EnrichedElementBase.variant" title="Permalink to this definition">¶</a></dt>
+<dd><p>Doc.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="finat.ufl.enrichedelement.NodalEnrichedElement">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">finat.ufl.enrichedelement.</span></span><span class="sig-name descname"><span class="pre">NodalEnrichedElement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">elements</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/enrichedelement.html#NodalEnrichedElement"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.enrichedelement.NodalEnrichedElement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#finat.ufl.enrichedelement.EnrichedElementBase" title="finat.ufl.enrichedelement.EnrichedElementBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">EnrichedElementBase</span></code></a></p>
+<p>The vector sum of several finite element spaces.</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\\textrm{EnrichedElement}(V, Q) = \\{v + q | v \\in V, q \\in Q\\}.\end{split}\]</div>
+<p>Primal basis is reorthogonalized to dual basis which is
+a concatenation of subelements dual bases; resulting
+element is nodal.</p>
+<p>Doc.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.enrichedelement.NodalEnrichedElement.is_cellwise_constant">
+<span class="sig-name descname"><span class="pre">is_cellwise_constant</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/enrichedelement.html#NodalEnrichedElement.is_cellwise_constant"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.enrichedelement.NodalEnrichedElement.is_cellwise_constant" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether the basis functions of this element is spatially constant over each cell.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.enrichedelement.NodalEnrichedElement.shortstr">
+<span class="sig-name descname"><span class="pre">shortstr</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/enrichedelement.html#NodalEnrichedElement.shortstr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.enrichedelement.NodalEnrichedElement.shortstr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Format as string for pretty printing.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-finat.ufl.finiteelement">
+<span id="finat-ufl-finiteelement-module"></span><h2>finat.ufl.finiteelement module<a class="headerlink" href="#module-finat.ufl.finiteelement" title="Permalink to this heading">¶</a></h2>
+<p>This module defines the UFL finite element classes.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="finat.ufl.finiteelement.FiniteElement">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">finat.ufl.finiteelement.</span></span><span class="sig-name descname"><span class="pre">FiniteElement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">family</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degree</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">form_degree</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quad_scheme</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/finiteelement.html#FiniteElement"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.finiteelement.FiniteElement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#finat.ufl.finiteelementbase.FiniteElementBase" title="finat.ufl.finiteelementbase.FiniteElementBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">FiniteElementBase</span></code></a></p>
+<p>The basic finite element class for all simple finite elements.</p>
+<p>Create finite element.</p>
+<dl>
+<dt>Args:</dt><dd><p>family: The finite element family
+cell: The geometric cell
+degree: The polynomial degree (optional)
+form_degree: The form degree (FEEC notation, used when field is</p>
+<blockquote>
+<div><p>viewed as k-form)</p>
+</div></blockquote>
+<p>quad_scheme: The quadrature scheme (optional)
+variant: Hint for the local basis function variant (optional)</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.finiteelement.FiniteElement.mapping">
+<span class="sig-name descname"><span class="pre">mapping</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/finiteelement.html#FiniteElement.mapping"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.finiteelement.FiniteElement.mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the mapping type for this element .</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.finiteelement.FiniteElement.reconstruct">
+<span class="sig-name descname"><span class="pre">reconstruct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">family</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degree</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quad_scheme</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/finiteelement.html#FiniteElement.reconstruct"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.finiteelement.FiniteElement.reconstruct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a new FiniteElement object with some properties replaced with new values.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.finiteelement.FiniteElement.shortstr">
+<span class="sig-name descname"><span class="pre">shortstr</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/finiteelement.html#FiniteElement.shortstr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.finiteelement.FiniteElement.shortstr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Format as string for pretty printing.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.ufl.finiteelement.FiniteElement.sobolev_space">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sobolev_space</span></span><a class="headerlink" href="#finat.ufl.finiteelement.FiniteElement.sobolev_space" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the underlying Sobolev space.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.finiteelement.FiniteElement.variant">
+<span class="sig-name descname"><span class="pre">variant</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/finiteelement.html#FiniteElement.variant"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.finiteelement.FiniteElement.variant" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the variant used to initialise the element.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-finat.ufl.finiteelementbase">
+<span id="finat-ufl-finiteelementbase-module"></span><h2>finat.ufl.finiteelementbase module<a class="headerlink" href="#module-finat.ufl.finiteelementbase" title="Permalink to this heading">¶</a></h2>
+<p>This module defines the UFL finite element classes.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="finat.ufl.finiteelementbase.FiniteElementBase">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">finat.ufl.finiteelementbase.</span></span><span class="sig-name descname"><span class="pre">FiniteElementBase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">family</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degree</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quad_scheme</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reference_value_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/finiteelementbase.html#FiniteElementBase"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.finiteelementbase.FiniteElementBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractFiniteElement</span></code></p>
+<p>Base class for all finite elements.</p>
+<p>Initialize basic finite element data.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.ufl.finiteelementbase.FiniteElementBase.cell">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cell</span></span><a class="headerlink" href="#finat.ufl.finiteelementbase.FiniteElementBase.cell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return cell of finite element.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.finiteelementbase.FiniteElementBase.degree">
+<span class="sig-name descname"><span class="pre">degree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/finiteelementbase.html#FiniteElementBase.degree"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.finiteelementbase.FiniteElementBase.degree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return polynomial degree of finite element.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.ufl.finiteelementbase.FiniteElementBase.embedded_subdegree">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">embedded_subdegree</span></span><a class="headerlink" href="#finat.ufl.finiteelementbase.FiniteElementBase.embedded_subdegree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Doc.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.ufl.finiteelementbase.FiniteElementBase.embedded_superdegree">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">embedded_superdegree</span></span><a class="headerlink" href="#finat.ufl.finiteelementbase.FiniteElementBase.embedded_superdegree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Doc.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.finiteelementbase.FiniteElementBase.extract_component">
+<span class="sig-name descname"><span class="pre">extract_component</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/finiteelementbase.html#FiniteElementBase.extract_component"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.finiteelementbase.FiniteElementBase.extract_component" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recursively extract component index relative to a (simple) element.</p>
+<p>and that element for given value component index.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.finiteelementbase.FiniteElementBase.extract_reference_component">
+<span class="sig-name descname"><span class="pre">extract_reference_component</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/finiteelementbase.html#FiniteElementBase.extract_reference_component"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.finiteelementbase.FiniteElementBase.extract_reference_component" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recursively extract reference component index relative to a (simple) element.</p>
+<p>and that element for given reference value component index.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.finiteelementbase.FiniteElementBase.extract_subelement_component">
+<span class="sig-name descname"><span class="pre">extract_subelement_component</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/finiteelementbase.html#FiniteElementBase.extract_subelement_component"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.finiteelementbase.FiniteElementBase.extract_subelement_component" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract direct subelement index and subelement relative component index for a given component index.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.finiteelementbase.FiniteElementBase.extract_subelement_reference_component">
+<span class="sig-name descname"><span class="pre">extract_subelement_reference_component</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/finiteelementbase.html#FiniteElementBase.extract_subelement_reference_component"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.finiteelementbase.FiniteElementBase.extract_subelement_reference_component" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract direct subelement index and subelement relative.</p>
+<p>reference component index for a given reference component index.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.finiteelementbase.FiniteElementBase.family">
+<span class="sig-name descname"><span class="pre">family</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/finiteelementbase.html#FiniteElementBase.family"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.finiteelementbase.FiniteElementBase.family" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return finite element family.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.finiteelementbase.FiniteElementBase.is_cellwise_constant">
+<span class="sig-name descname"><span class="pre">is_cellwise_constant</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/finiteelementbase.html#FiniteElementBase.is_cellwise_constant"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.finiteelementbase.FiniteElementBase.is_cellwise_constant" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether the basis functions of this element is spatially constant over each cell.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.finiteelementbase.FiniteElementBase.mapping">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">mapping</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/finiteelementbase.html#FiniteElementBase.mapping"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.finiteelementbase.FiniteElementBase.mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the mapping type for this element.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.ufl.finiteelementbase.FiniteElementBase.num_sub_elements">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">num_sub_elements</span></span><a class="headerlink" href="#finat.ufl.finiteelementbase.FiniteElementBase.num_sub_elements" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return number of sub-elements.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.ufl.finiteelementbase.FiniteElementBase.pullback">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">pullback</span></span><a class="headerlink" href="#finat.ufl.finiteelementbase.FiniteElementBase.pullback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the pull back.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.finiteelementbase.FiniteElementBase.quadrature_scheme">
+<span class="sig-name descname"><span class="pre">quadrature_scheme</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/finiteelementbase.html#FiniteElementBase.quadrature_scheme"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.finiteelementbase.FiniteElementBase.quadrature_scheme" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return quadrature scheme of finite element.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.ufl.finiteelementbase.FiniteElementBase.reference_value_shape">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">reference_value_shape</span></span><a class="headerlink" href="#finat.ufl.finiteelementbase.FiniteElementBase.reference_value_shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the shape of the value space on the reference cell.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.ufl.finiteelementbase.FiniteElementBase.reference_value_size">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">reference_value_size</span></span><a class="headerlink" href="#finat.ufl.finiteelementbase.FiniteElementBase.reference_value_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the integer product of the reference value shape.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.ufl.finiteelementbase.FiniteElementBase.sobolev_space">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sobolev_space</span></span><a class="headerlink" href="#finat.ufl.finiteelementbase.FiniteElementBase.sobolev_space" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the underlying Sobolev space.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.ufl.finiteelementbase.FiniteElementBase.sub_elements">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sub_elements</span></span><a class="headerlink" href="#finat.ufl.finiteelementbase.FiniteElementBase.sub_elements" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return list of sub-elements.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.finiteelementbase.FiniteElementBase.symmetry">
+<span class="sig-name descname"><span class="pre">symmetry</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/finiteelementbase.html#FiniteElementBase.symmetry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.finiteelementbase.FiniteElementBase.symmetry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the symmetry dict.</p>
+<p>This is a mapping <span class="math notranslate nohighlight">\(c_0 \\to c_1\)</span>
+meaning that component <span class="math notranslate nohighlight">\(c_0\)</span> is represented by component
+<span class="math notranslate nohighlight">\(c_1\)</span>.
+A component is a tuple of one or more ints.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.ufl.finiteelementbase.FiniteElementBase.value_shape">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">value_shape</span></span><a class="headerlink" href="#finat.ufl.finiteelementbase.FiniteElementBase.value_shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the shape of the value space on the global domain.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.ufl.finiteelementbase.FiniteElementBase.value_size">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">value_size</span></span><a class="headerlink" href="#finat.ufl.finiteelementbase.FiniteElementBase.value_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the integer product of the value shape.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.finiteelementbase.FiniteElementBase.variant">
+<span class="sig-name descname"><span class="pre">variant</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/finiteelementbase.html#FiniteElementBase.variant"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.finiteelementbase.FiniteElementBase.variant" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the variant used to initialise the element.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-finat.ufl.hdivcurl">
+<span id="finat-ufl-hdivcurl-module"></span><h2>finat.ufl.hdivcurl module<a class="headerlink" href="#module-finat.ufl.hdivcurl" title="Permalink to this heading">¶</a></h2>
+<p>Doc.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="finat.ufl.hdivcurl.CallableSobolevSpace">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">finat.ufl.hdivcurl.</span></span><span class="sig-name descname"><span class="pre">CallableSobolevSpace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parents</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/hdivcurl.html#CallableSobolevSpace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.hdivcurl.CallableSobolevSpace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">SobolevSpace</span></code></p>
+<p>A Sobolev space that can be called to create HDiv and HCurl elements.</p>
+<p>Instantiate a SobolevSpace object.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>name: The name of this space,
+parents: A set of Sobolev spaces of which this
+space is a subspace.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="finat.ufl.hdivcurl.HCurlElement">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">finat.ufl.hdivcurl.</span></span><span class="sig-name descname"><span class="pre">HCurlElement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">element</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/hdivcurl.html#HCurlElement"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.hdivcurl.HCurlElement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#finat.ufl.finiteelementbase.FiniteElementBase" title="finat.ufl.finiteelementbase.FiniteElementBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">FiniteElementBase</span></code></a></p>
+<p>A curl-conforming version of an outer product element, assuming this makes mathematical sense.</p>
+<p>Doc.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.hdivcurl.HCurlElement.mapping">
+<span class="sig-name descname"><span class="pre">mapping</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/hdivcurl.html#HCurlElement.mapping"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.hdivcurl.HCurlElement.mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Doc.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.hdivcurl.HCurlElement.reconstruct">
+<span class="sig-name descname"><span class="pre">reconstruct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/hdivcurl.html#HCurlElement.reconstruct"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.hdivcurl.HCurlElement.reconstruct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Doc.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.hdivcurl.HCurlElement.shortstr">
+<span class="sig-name descname"><span class="pre">shortstr</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/hdivcurl.html#HCurlElement.shortstr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.hdivcurl.HCurlElement.shortstr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Format as string for pretty printing.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.ufl.hdivcurl.HCurlElement.sobolev_space">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sobolev_space</span></span><a class="headerlink" href="#finat.ufl.hdivcurl.HCurlElement.sobolev_space" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the underlying Sobolev space.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.hdivcurl.HCurlElement.variant">
+<span class="sig-name descname"><span class="pre">variant</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/hdivcurl.html#HCurlElement.variant"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.hdivcurl.HCurlElement.variant" title="Permalink to this definition">¶</a></dt>
+<dd><p>Doc.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="finat.ufl.hdivcurl.HDivElement">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">finat.ufl.hdivcurl.</span></span><span class="sig-name descname"><span class="pre">HDivElement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">element</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/hdivcurl.html#HDivElement"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.hdivcurl.HDivElement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#finat.ufl.finiteelementbase.FiniteElementBase" title="finat.ufl.finiteelementbase.FiniteElementBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">FiniteElementBase</span></code></a></p>
+<p>A div-conforming version of an outer product element, assuming this makes mathematical sense.</p>
+<p>Doc.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.ufl.hdivcurl.HDivElement.embedded_subdegree">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">embedded_subdegree</span></span><a class="headerlink" href="#finat.ufl.hdivcurl.HDivElement.embedded_subdegree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return embedded subdegree.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.ufl.hdivcurl.HDivElement.embedded_superdegree">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">embedded_superdegree</span></span><a class="headerlink" href="#finat.ufl.hdivcurl.HDivElement.embedded_superdegree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return embedded superdegree.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.hdivcurl.HDivElement.mapping">
+<span class="sig-name descname"><span class="pre">mapping</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/hdivcurl.html#HDivElement.mapping"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.hdivcurl.HDivElement.mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Doc.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.hdivcurl.HDivElement.reconstruct">
+<span class="sig-name descname"><span class="pre">reconstruct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/hdivcurl.html#HDivElement.reconstruct"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.hdivcurl.HDivElement.reconstruct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Doc.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.hdivcurl.HDivElement.shortstr">
+<span class="sig-name descname"><span class="pre">shortstr</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/hdivcurl.html#HDivElement.shortstr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.hdivcurl.HDivElement.shortstr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Format as string for pretty printing.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.ufl.hdivcurl.HDivElement.sobolev_space">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sobolev_space</span></span><a class="headerlink" href="#finat.ufl.hdivcurl.HDivElement.sobolev_space" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the underlying Sobolev space.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.hdivcurl.HDivElement.variant">
+<span class="sig-name descname"><span class="pre">variant</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/hdivcurl.html#HDivElement.variant"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.hdivcurl.HDivElement.variant" title="Permalink to this definition">¶</a></dt>
+<dd><p>Doc.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="finat.ufl.hdivcurl.WithMapping">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">finat.ufl.hdivcurl.</span></span><span class="sig-name descname"><span class="pre">WithMapping</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wrapee</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mapping</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/hdivcurl.html#WithMapping"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.hdivcurl.WithMapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#finat.ufl.finiteelementbase.FiniteElementBase" title="finat.ufl.finiteelementbase.FiniteElementBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">FiniteElementBase</span></code></a></p>
+<p>Specify an alternative mapping for the wrappee.</p>
+<p>For example,
+to use identity mapping instead of Piola map with an element E,
+write
+remapped = WithMapping(E, “identity”)</p>
+<p>Doc.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.ufl.hdivcurl.WithMapping.embedded_subdegree">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">embedded_subdegree</span></span><a class="headerlink" href="#finat.ufl.hdivcurl.WithMapping.embedded_subdegree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return embedded subdegree.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.ufl.hdivcurl.WithMapping.embedded_superdegree">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">embedded_superdegree</span></span><a class="headerlink" href="#finat.ufl.hdivcurl.WithMapping.embedded_superdegree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return embedded superdegree.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.hdivcurl.WithMapping.mapping">
+<span class="sig-name descname"><span class="pre">mapping</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/hdivcurl.html#WithMapping.mapping"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.hdivcurl.WithMapping.mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Doc.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.hdivcurl.WithMapping.reconstruct">
+<span class="sig-name descname"><span class="pre">reconstruct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/hdivcurl.html#WithMapping.reconstruct"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.hdivcurl.WithMapping.reconstruct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Doc.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.ufl.hdivcurl.WithMapping.reference_value_shape">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">reference_value_shape</span></span><a class="headerlink" href="#finat.ufl.hdivcurl.WithMapping.reference_value_shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Doc.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.hdivcurl.WithMapping.shortstr">
+<span class="sig-name descname"><span class="pre">shortstr</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/hdivcurl.html#WithMapping.shortstr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.hdivcurl.WithMapping.shortstr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Doc.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.ufl.hdivcurl.WithMapping.sobolev_space">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sobolev_space</span></span><a class="headerlink" href="#finat.ufl.hdivcurl.WithMapping.sobolev_space" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the underlying Sobolev space.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.ufl.hdivcurl.WithMapping.value_shape">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">value_shape</span></span><a class="headerlink" href="#finat.ufl.hdivcurl.WithMapping.value_shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Doc.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.hdivcurl.WithMapping.variant">
+<span class="sig-name descname"><span class="pre">variant</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/hdivcurl.html#WithMapping.variant"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.hdivcurl.WithMapping.variant" title="Permalink to this definition">¶</a></dt>
+<dd><p>Doc.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-finat.ufl.mixedelement">
+<span id="finat-ufl-mixedelement-module"></span><h2>finat.ufl.mixedelement module<a class="headerlink" href="#module-finat.ufl.mixedelement" title="Permalink to this heading">¶</a></h2>
+<p>This module defines the UFL finite element classes.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="finat.ufl.mixedelement.MixedElement">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">finat.ufl.mixedelement.</span></span><span class="sig-name descname"><span class="pre">MixedElement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">elements</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/mixedelement.html#MixedElement"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.mixedelement.MixedElement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#finat.ufl.finiteelementbase.FiniteElementBase" title="finat.ufl.finiteelementbase.FiniteElementBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">FiniteElementBase</span></code></a></p>
+<p>A finite element composed of a nested hierarchy of mixed or simple elements.</p>
+<p>Create mixed finite element from given list of elements.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.mixedelement.MixedElement.degree">
+<span class="sig-name descname"><span class="pre">degree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/mixedelement.html#MixedElement.degree"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.mixedelement.MixedElement.degree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return polynomial degree of finite element.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.ufl.mixedelement.MixedElement.embedded_subdegree">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">embedded_subdegree</span></span><a class="headerlink" href="#finat.ufl.mixedelement.MixedElement.embedded_subdegree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return embedded subdegree.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.ufl.mixedelement.MixedElement.embedded_superdegree">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">embedded_superdegree</span></span><a class="headerlink" href="#finat.ufl.mixedelement.MixedElement.embedded_superdegree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return embedded superdegree.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.mixedelement.MixedElement.extract_component">
+<span class="sig-name descname"><span class="pre">extract_component</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/mixedelement.html#MixedElement.extract_component"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.mixedelement.MixedElement.extract_component" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recursively extract component index relative to a (simple) element.</p>
+<p>and that element for given value component index.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.mixedelement.MixedElement.extract_reference_component">
+<span class="sig-name descname"><span class="pre">extract_reference_component</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/mixedelement.html#MixedElement.extract_reference_component"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.mixedelement.MixedElement.extract_reference_component" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recursively extract reference_component index relative to a (simple) element.</p>
+<p>and that element for given value reference_component index.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.mixedelement.MixedElement.extract_subelement_component">
+<span class="sig-name descname"><span class="pre">extract_subelement_component</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/mixedelement.html#MixedElement.extract_subelement_component"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.mixedelement.MixedElement.extract_subelement_component" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract direct subelement index and subelement relative.</p>
+<p>component index for a given component index.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.mixedelement.MixedElement.extract_subelement_reference_component">
+<span class="sig-name descname"><span class="pre">extract_subelement_reference_component</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/mixedelement.html#MixedElement.extract_subelement_reference_component"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.mixedelement.MixedElement.extract_subelement_reference_component" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract direct subelement index and subelement relative.</p>
+<p>reference_component index for a given reference_component index.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.mixedelement.MixedElement.is_cellwise_constant">
+<span class="sig-name descname"><span class="pre">is_cellwise_constant</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/mixedelement.html#MixedElement.is_cellwise_constant"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.mixedelement.MixedElement.is_cellwise_constant" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether the basis functions of this element is spatially constant over each cell.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.mixedelement.MixedElement.mapping">
+<span class="sig-name descname"><span class="pre">mapping</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/mixedelement.html#MixedElement.mapping"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.mixedelement.MixedElement.mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Doc.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.ufl.mixedelement.MixedElement.num_sub_elements">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">num_sub_elements</span></span><a class="headerlink" href="#finat.ufl.mixedelement.MixedElement.num_sub_elements" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return number of sub elements.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.ufl.mixedelement.MixedElement.pullback">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">pullback</span></span><a class="headerlink" href="#finat.ufl.mixedelement.MixedElement.pullback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the pull back.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.mixedelement.MixedElement.reconstruct">
+<span class="sig-name descname"><span class="pre">reconstruct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/mixedelement.html#MixedElement.reconstruct"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.mixedelement.MixedElement.reconstruct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Doc.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.mixedelement.MixedElement.reconstruct_from_elements">
+<span class="sig-name descname"><span class="pre">reconstruct_from_elements</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">elements</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/mixedelement.html#MixedElement.reconstruct_from_elements"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.mixedelement.MixedElement.reconstruct_from_elements" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reconstruct a mixed element from new subelements.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.mixedelement.MixedElement.shortstr">
+<span class="sig-name descname"><span class="pre">shortstr</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/mixedelement.html#MixedElement.shortstr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.mixedelement.MixedElement.shortstr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Format as string for pretty printing.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.ufl.mixedelement.MixedElement.sobolev_space">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sobolev_space</span></span><a class="headerlink" href="#finat.ufl.mixedelement.MixedElement.sobolev_space" title="Permalink to this definition">¶</a></dt>
+<dd><p>Doc.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.ufl.mixedelement.MixedElement.sub_elements">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sub_elements</span></span><a class="headerlink" href="#finat.ufl.mixedelement.MixedElement.sub_elements" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return list of sub elements.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.mixedelement.MixedElement.symmetry">
+<span class="sig-name descname"><span class="pre">symmetry</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/mixedelement.html#MixedElement.symmetry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.mixedelement.MixedElement.symmetry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the symmetry dict, which is a mapping <span class="math notranslate nohighlight">\(c_0 \\to c_1\)</span>.</p>
+<p>meaning that component <span class="math notranslate nohighlight">\(c_0\)</span> is represented by component
+<span class="math notranslate nohighlight">\(c_1\)</span>.
+A component is a tuple of one or more ints.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.mixedelement.MixedElement.variant">
+<span class="sig-name descname"><span class="pre">variant</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/mixedelement.html#MixedElement.variant"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.mixedelement.MixedElement.variant" title="Permalink to this definition">¶</a></dt>
+<dd><p>Doc.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="finat.ufl.mixedelement.TensorElement">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">finat.ufl.mixedelement.</span></span><span class="sig-name descname"><span class="pre">TensorElement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">family</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degree</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symmetry</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quad_scheme</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/mixedelement.html#TensorElement"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.mixedelement.TensorElement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#finat.ufl.mixedelement.MixedElement" title="finat.ufl.mixedelement.MixedElement"><code class="xref py py-class docutils literal notranslate"><span class="pre">MixedElement</span></code></a></p>
+<p>A special case of a mixed finite element where all elements are equal.</p>
+<p>Create tensor element (repeated mixed element with optional symmetries).</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.mixedelement.TensorElement.extract_subelement_component">
+<span class="sig-name descname"><span class="pre">extract_subelement_component</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/mixedelement.html#TensorElement.extract_subelement_component"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.mixedelement.TensorElement.extract_subelement_component" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract direct subelement index and subelement relative.</p>
+<p>component index for a given component index.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.mixedelement.TensorElement.flattened_sub_element_mapping">
+<span class="sig-name descname"><span class="pre">flattened_sub_element_mapping</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/mixedelement.html#TensorElement.flattened_sub_element_mapping"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.mixedelement.TensorElement.flattened_sub_element_mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Doc.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.mixedelement.TensorElement.mapping">
+<span class="sig-name descname"><span class="pre">mapping</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/mixedelement.html#TensorElement.mapping"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.mixedelement.TensorElement.mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Doc.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.ufl.mixedelement.TensorElement.pullback">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">pullback</span></span><a class="headerlink" href="#finat.ufl.mixedelement.TensorElement.pullback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get pull back.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.mixedelement.TensorElement.reconstruct">
+<span class="sig-name descname"><span class="pre">reconstruct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/mixedelement.html#TensorElement.reconstruct"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.mixedelement.TensorElement.reconstruct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Doc.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.mixedelement.TensorElement.shortstr">
+<span class="sig-name descname"><span class="pre">shortstr</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/mixedelement.html#TensorElement.shortstr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.mixedelement.TensorElement.shortstr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Format as string for pretty printing.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.mixedelement.TensorElement.symmetry">
+<span class="sig-name descname"><span class="pre">symmetry</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/mixedelement.html#TensorElement.symmetry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.mixedelement.TensorElement.symmetry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the symmetry dict, which is a mapping <span class="math notranslate nohighlight">\(c_0 \\to c_1\)</span>.</p>
+<p>meaning that component <span class="math notranslate nohighlight">\(c_0\)</span> is represented by component
+<span class="math notranslate nohighlight">\(c_1\)</span>.
+A component is a tuple of one or more ints.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.mixedelement.TensorElement.variant">
+<span class="sig-name descname"><span class="pre">variant</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/mixedelement.html#TensorElement.variant"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.mixedelement.TensorElement.variant" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the variant used to initialise the element.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="finat.ufl.mixedelement.VectorElement">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">finat.ufl.mixedelement.</span></span><span class="sig-name descname"><span class="pre">VectorElement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">family</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degree</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">form_degree</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quad_scheme</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/mixedelement.html#VectorElement"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.mixedelement.VectorElement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#finat.ufl.mixedelement.MixedElement" title="finat.ufl.mixedelement.MixedElement"><code class="xref py py-class docutils literal notranslate"><span class="pre">MixedElement</span></code></a></p>
+<p>A special case of a mixed finite element where all elements are equal.</p>
+<p>Create vector element (repeated mixed element).</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.mixedelement.VectorElement.mapping">
+<span class="sig-name descname"><span class="pre">mapping</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/mixedelement.html#VectorElement.mapping"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.mixedelement.VectorElement.mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Doc.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.mixedelement.VectorElement.reconstruct">
+<span class="sig-name descname"><span class="pre">reconstruct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/mixedelement.html#VectorElement.reconstruct"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.mixedelement.VectorElement.reconstruct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Doc.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.mixedelement.VectorElement.shortstr">
+<span class="sig-name descname"><span class="pre">shortstr</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/mixedelement.html#VectorElement.shortstr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.mixedelement.VectorElement.shortstr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Format as string for pretty printing.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.mixedelement.VectorElement.variant">
+<span class="sig-name descname"><span class="pre">variant</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/mixedelement.html#VectorElement.variant"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.mixedelement.VectorElement.variant" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the variant used to initialise the element.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-finat.ufl.restrictedelement">
+<span id="finat-ufl-restrictedelement-module"></span><h2>finat.ufl.restrictedelement module<a class="headerlink" href="#module-finat.ufl.restrictedelement" title="Permalink to this heading">¶</a></h2>
+<p>This module defines the UFL finite element classes.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="finat.ufl.restrictedelement.RestrictedElement">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">finat.ufl.restrictedelement.</span></span><span class="sig-name descname"><span class="pre">RestrictedElement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">element</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">restriction_domain</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/restrictedelement.html#RestrictedElement"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.restrictedelement.RestrictedElement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#finat.ufl.finiteelementbase.FiniteElementBase" title="finat.ufl.finiteelementbase.FiniteElementBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">FiniteElementBase</span></code></a></p>
+<p>Represents the restriction of a finite element to a type of cell entity.</p>
+<p>Doc.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.restrictedelement.RestrictedElement.is_cellwise_constant">
+<span class="sig-name descname"><span class="pre">is_cellwise_constant</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/restrictedelement.html#RestrictedElement.is_cellwise_constant"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.restrictedelement.RestrictedElement.is_cellwise_constant" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether the basis functions of this element is spatially constant over each cell.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.restrictedelement.RestrictedElement.mapping">
+<span class="sig-name descname"><span class="pre">mapping</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/restrictedelement.html#RestrictedElement.mapping"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.restrictedelement.RestrictedElement.mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Doc.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.restrictedelement.RestrictedElement.num_restricted_sub_elements">
+<span class="sig-name descname"><span class="pre">num_restricted_sub_elements</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/restrictedelement.html#RestrictedElement.num_restricted_sub_elements"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.restrictedelement.RestrictedElement.num_restricted_sub_elements" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return number of restricted sub elements.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.ufl.restrictedelement.RestrictedElement.num_sub_elements">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">num_sub_elements</span></span><a class="headerlink" href="#finat.ufl.restrictedelement.RestrictedElement.num_sub_elements" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return number of sub elements.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.restrictedelement.RestrictedElement.reconstruct">
+<span class="sig-name descname"><span class="pre">reconstruct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/restrictedelement.html#RestrictedElement.reconstruct"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.restrictedelement.RestrictedElement.reconstruct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Doc.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.restrictedelement.RestrictedElement.restricted_sub_elements">
+<span class="sig-name descname"><span class="pre">restricted_sub_elements</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/restrictedelement.html#RestrictedElement.restricted_sub_elements"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.restrictedelement.RestrictedElement.restricted_sub_elements" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return list of restricted sub elements.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.restrictedelement.RestrictedElement.restriction_domain">
+<span class="sig-name descname"><span class="pre">restriction_domain</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/restrictedelement.html#RestrictedElement.restriction_domain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.restrictedelement.RestrictedElement.restriction_domain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the domain onto which the element is restricted.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.restrictedelement.RestrictedElement.shortstr">
+<span class="sig-name descname"><span class="pre">shortstr</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/restrictedelement.html#RestrictedElement.shortstr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.restrictedelement.RestrictedElement.shortstr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Format as string for pretty printing.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.ufl.restrictedelement.RestrictedElement.sobolev_space">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sobolev_space</span></span><a class="headerlink" href="#finat.ufl.restrictedelement.RestrictedElement.sobolev_space" title="Permalink to this definition">¶</a></dt>
+<dd><p>Doc.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.restrictedelement.RestrictedElement.sub_element">
+<span class="sig-name descname"><span class="pre">sub_element</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/restrictedelement.html#RestrictedElement.sub_element"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.restrictedelement.RestrictedElement.sub_element" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the element which is restricted.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.ufl.restrictedelement.RestrictedElement.sub_elements">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sub_elements</span></span><a class="headerlink" href="#finat.ufl.restrictedelement.RestrictedElement.sub_elements" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return list of sub elements.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.restrictedelement.RestrictedElement.symmetry">
+<span class="sig-name descname"><span class="pre">symmetry</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/restrictedelement.html#RestrictedElement.symmetry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.restrictedelement.RestrictedElement.symmetry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the symmetry dict, which is a mapping <span class="math notranslate nohighlight">\(c_0 \\to c_1\)</span>.</p>
+<p>meaning that component <span class="math notranslate nohighlight">\(c_0\)</span> is represented by component
+<span class="math notranslate nohighlight">\(c_1\)</span>.  A component is a tuple of one or more ints.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.restrictedelement.RestrictedElement.variant">
+<span class="sig-name descname"><span class="pre">variant</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/restrictedelement.html#RestrictedElement.variant"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.restrictedelement.RestrictedElement.variant" title="Permalink to this definition">¶</a></dt>
+<dd><p>Doc.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-finat.ufl.tensorproductelement">
+<span id="finat-ufl-tensorproductelement-module"></span><h2>finat.ufl.tensorproductelement module<a class="headerlink" href="#module-finat.ufl.tensorproductelement" title="Permalink to this heading">¶</a></h2>
+<p>This module defines the UFL finite element classes.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="finat.ufl.tensorproductelement.TensorProductElement">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">finat.ufl.tensorproductelement.</span></span><span class="sig-name descname"><span class="pre">TensorProductElement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">elements</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/tensorproductelement.html#TensorProductElement"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.tensorproductelement.TensorProductElement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#finat.ufl.finiteelementbase.FiniteElementBase" title="finat.ufl.finiteelementbase.FiniteElementBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">FiniteElementBase</span></code></a></p>
+<p>The tensor product of <span class="math notranslate nohighlight">\(d\)</span> element spaces.</p>
+<div class="math notranslate nohighlight">
+\[V = V_1 \otimes V_2 \otimes ...  \otimes V_d\]</div>
+<p>Given bases <span class="math notranslate nohighlight">\(\{\phi_{j_i}\}\)</span> of the spaces <span class="math notranslate nohighlight">\(V_i\)</span> for <span class="math notranslate nohighlight">\(i = 1, ...., d\)</span>,
+<span class="math notranslate nohighlight">\(\{ \phi_{j_1} \otimes \phi_{j_2} \otimes \cdots \otimes \phi_{j_d}
+\}\)</span> forms a basis for <span class="math notranslate nohighlight">\(V\)</span>.</p>
+<p>Create TensorProductElement from a given list of elements.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.ufl.tensorproductelement.TensorProductElement.embedded_subdegree">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">embedded_subdegree</span></span><a class="headerlink" href="#finat.ufl.tensorproductelement.TensorProductElement.embedded_subdegree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Doc.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.ufl.tensorproductelement.TensorProductElement.embedded_superdegree">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">embedded_superdegree</span></span><a class="headerlink" href="#finat.ufl.tensorproductelement.TensorProductElement.embedded_superdegree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Doc.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.tensorproductelement.TensorProductElement.mapping">
+<span class="sig-name descname"><span class="pre">mapping</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/tensorproductelement.html#TensorProductElement.mapping"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.tensorproductelement.TensorProductElement.mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Doc.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.ufl.tensorproductelement.TensorProductElement.num_sub_elements">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">num_sub_elements</span></span><a class="headerlink" href="#finat.ufl.tensorproductelement.TensorProductElement.num_sub_elements" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return number of subelements.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.tensorproductelement.TensorProductElement.reconstruct">
+<span class="sig-name descname"><span class="pre">reconstruct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/tensorproductelement.html#TensorProductElement.reconstruct"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.tensorproductelement.TensorProductElement.reconstruct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Doc.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.tensorproductelement.TensorProductElement.shortstr">
+<span class="sig-name descname"><span class="pre">shortstr</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/tensorproductelement.html#TensorProductElement.shortstr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.tensorproductelement.TensorProductElement.shortstr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Short pretty-print.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.ufl.tensorproductelement.TensorProductElement.sobolev_space">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sobolev_space</span></span><a class="headerlink" href="#finat.ufl.tensorproductelement.TensorProductElement.sobolev_space" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the underlying Sobolev space of the TensorProductElement.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.ufl.tensorproductelement.TensorProductElement.sub_elements">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sub_elements</span></span><a class="headerlink" href="#finat.ufl.tensorproductelement.TensorProductElement.sub_elements" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return subelements (factors).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.ufl.tensorproductelement.TensorProductElement.variant">
+<span class="sig-name descname"><span class="pre">variant</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/ufl/tensorproductelement.html#TensorProductElement.variant"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.ufl.tensorproductelement.TensorProductElement.variant" title="Permalink to this definition">¶</a></dt>
+<dd><p>Doc.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-finat.ufl">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-finat.ufl" title="Permalink to this heading">¶</a></h2>
+<p>Legacy UFL features.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2014--2020, David A. Ham, Robert C. Kirby and others.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.1.2.
+    </div>
+  </body>
+</html>

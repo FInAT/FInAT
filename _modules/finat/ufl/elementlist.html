@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>finat.ufl.elementlist &#8212; FInAT 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/fenics.css?v=9da67524" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=e031e9a9"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+<!--[if lte IE 6]>
+<link rel="stylesheet" href="../../../_static/ie6.css" type="text/css" media="screen" charset="utf-8" />
+<![endif]-->
+
+<link rel="stylesheet" href="../../../_static/featured.css">
+
+
+<link rel="shortcut icon" href="../../../_static/icon.ico" />
+
+
+  </head><body>
+<div class="wrapper">
+  <a href="../../../index.html"><img src="../../../_static/banner.png" width="900px" alt="FInAT Project Banner" /></a>
+  <div id="access">
+    <div class="menu">
+      <ul>
+          <li class="page_item"><a href="https://github.com/FInAT/finat" title="GitHub">GitHub</a></li>
+<!--          <li class="page_item"><a href="../../../documentation.html" title="Documentation for FInAT">Documentation</a></li>
+          <li class="page_item"><a href="../../../download.html" title="Obtain the FInAT code">Download</a></li>
+          <li class="page_item"><a href="../../../team.html" title="The guilty parties">Team</a></li>
+          <li class="page_item"><a href="../../../publications.html" title="Publications">Publications</a></li>
+          <li class="page_item"><a href="../../../funding.html" title="Our financial supporters">Funding</a></li>
+          <li class="page_item"><a href="../../../contact.html" title="Getting in touch">Contact</a></li>
+          <li class="page_item"><a href="http://buildbot-ocean.ese.ic.ac.uk:8080/builders/FInAT-trunk" title="Buildbot">Buildbot</a></li>-->
+      </ul>
+    </div><!-- .menu -->
+  </div><!-- #access -->
+</div><!-- #wrapper -->
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for finat.ufl.elementlist</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Element.</span>
+
+<span class="sd">This module provides an extensive list of predefined finite element</span>
+<span class="sd">families. Users or, more likely, form compilers, may register new</span>
+<span class="sd">elements by calling the function register_element.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># Copyright (C) 2008-2016 Martin Sandve Alnæs and Anders Logg</span>
+<span class="c1">#</span>
+<span class="c1"># This file was originally part of UFL (https://www.fenicsproject.org)</span>
+<span class="c1">#</span>
+<span class="c1"># SPDX-License-Identifier:    LGPL-3.0-or-later</span>
+<span class="c1">#</span>
+<span class="c1"># Modified by Marie E. Rognes &lt;meg@simula.no&gt;, 2010</span>
+<span class="c1"># Modified by Lizao Li &lt;lzlarryli@gmail.com&gt;, 2015, 2016</span>
+<span class="c1"># Modified by Massimiliano Leoni, 2016</span>
+<span class="c1"># Modified by Robert Kloefkorn, 2022</span>
+<span class="c1"># Modified by Matthew Scroggs, 2023</span>
+
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">asarray</span>
+
+<span class="kn">from</span> <span class="nn">ufl.cell</span> <span class="kn">import</span> <span class="n">Cell</span><span class="p">,</span> <span class="n">TensorProductCell</span>
+<span class="kn">from</span> <span class="nn">ufl.sobolevspace</span> <span class="kn">import</span> <span class="n">H1</span><span class="p">,</span> <span class="n">H2</span><span class="p">,</span> <span class="n">L2</span><span class="p">,</span> <span class="n">HCurl</span><span class="p">,</span> <span class="n">HDiv</span><span class="p">,</span> <span class="n">HDivDiv</span><span class="p">,</span> <span class="n">HEin</span><span class="p">,</span> <span class="n">HInf</span>
+<span class="kn">from</span> <span class="nn">ufl.utils.formatting</span> <span class="kn">import</span> <span class="n">istr</span>
+
+<span class="c1"># List of valid elements</span>
+<span class="n">ufl_elements</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="c1"># Aliases: aliases[name] (...) -&gt; (standard_name, ...)</span>
+<span class="n">aliases</span> <span class="o">=</span> <span class="p">{}</span>
+
+
+<span class="c1"># Function for registering new elements</span>
+<div class="viewcode-block" id="register_element"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.elementlist.register_element">[docs]</a><span class="k">def</span> <span class="nf">register_element</span><span class="p">(</span><span class="n">family</span><span class="p">,</span> <span class="n">short_name</span><span class="p">,</span> <span class="n">value_rank</span><span class="p">,</span> <span class="n">sobolev_space</span><span class="p">,</span> <span class="n">mapping</span><span class="p">,</span>
+                     <span class="n">degree_range</span><span class="p">,</span> <span class="n">cellnames</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Register new finite element family.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">family</span> <span class="ow">in</span> <span class="n">ufl_elements</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Finite element &#39;</span><span class="si">{</span><span class="n">family</span><span class="si">}</span><span class="s2">%s&#39; has already been registered.&quot;</span><span class="p">)</span>
+    <span class="n">ufl_elements</span><span class="p">[</span><span class="n">family</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">family</span><span class="p">,</span> <span class="n">short_name</span><span class="p">,</span> <span class="n">value_rank</span><span class="p">,</span> <span class="n">sobolev_space</span><span class="p">,</span>
+                            <span class="n">mapping</span><span class="p">,</span> <span class="n">degree_range</span><span class="p">,</span> <span class="n">cellnames</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">short_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ufl_elements</span><span class="p">[</span><span class="n">short_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">family</span><span class="p">,</span> <span class="n">short_name</span><span class="p">,</span> <span class="n">value_rank</span><span class="p">,</span> <span class="n">sobolev_space</span><span class="p">,</span>
+                                    <span class="n">mapping</span><span class="p">,</span> <span class="n">degree_range</span><span class="p">,</span> <span class="n">cellnames</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="register_alias"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.elementlist.register_alias">[docs]</a><span class="k">def</span> <span class="nf">register_alias</span><span class="p">(</span><span class="n">alias</span><span class="p">,</span> <span class="n">to</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Doc.&quot;&quot;&quot;</span>
+    <span class="n">aliases</span><span class="p">[</span><span class="n">alias</span><span class="p">]</span> <span class="o">=</span> <span class="n">to</span></div>
+
+
+<div class="viewcode-block" id="show_elements"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.elementlist.show_elements">[docs]</a><span class="k">def</span> <span class="nf">show_elements</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Shows all registered elements.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Showing all registered elements:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;================================&quot;</span><span class="p">)</span>
+    <span class="n">shown</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ufl_elements</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">ufl_elements</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">shown</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">shown</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">family</span><span class="p">,</span> <span class="n">short_name</span><span class="p">,</span> <span class="n">value_rank</span><span class="p">,</span> <span class="n">sobolev_space</span><span class="p">,</span> <span class="n">mapping</span><span class="p">,</span> <span class="n">degree_range</span><span class="p">,</span> <span class="n">cellnames</span><span class="p">)</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Finite element family: &#39;</span><span class="si">{</span><span class="n">family</span><span class="si">}</span><span class="s2">&#39;, &#39;</span><span class="si">{</span><span class="n">short_name</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sobolev space: </span><span class="si">{</span><span class="n">sobolev_space</span><span class="si">}</span><span class="s2">%s&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Mapping: </span><span class="si">{</span><span class="n">mapping</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Degree range: </span><span class="si">{</span><span class="n">degree_range</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Value rank: </span><span class="si">{</span><span class="n">value_rank</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Defined on cellnames: </span><span class="si">{</span><span class="n">cellnames</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">()</span></div>
+
+
+<span class="c1"># FIXME: Consider cleanup of element names. Use notation from periodic</span>
+<span class="c1"># table as the main, keep old names as compatibility aliases.</span>
+
+<span class="c1"># NOTE: Any element with polynomial degree 0 will be considered L2,</span>
+<span class="c1"># independent of the space passed to register_element.</span>
+
+<span class="c1"># NOTE: The mapping of the element basis functions</span>
+<span class="c1">#       from reference to physical representation is</span>
+<span class="c1">#       chosen based on the sobolev space:</span>
+<span class="c1">#       HDiv = contravariant Piola,</span>
+<span class="c1">#       HCurl = covariant Piola,</span>
+<span class="c1">#       H1/L2 = no mapping.</span>
+
+<span class="c1"># TODO: If determining mapping from sobolev_space isn&#39;t sufficient in</span>
+<span class="c1">#       the future, add mapping name as another element property.</span>
+
+<span class="c1"># Cell groups</span>
+<span class="n">simplices</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;interval&quot;</span><span class="p">,</span> <span class="s2">&quot;triangle&quot;</span><span class="p">,</span> <span class="s2">&quot;tetrahedron&quot;</span><span class="p">,</span> <span class="s2">&quot;pentatope&quot;</span><span class="p">)</span>
+<span class="n">cubes</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;interval&quot;</span><span class="p">,</span> <span class="s2">&quot;quadrilateral&quot;</span><span class="p">,</span> <span class="s2">&quot;hexahedron&quot;</span><span class="p">,</span> <span class="s2">&quot;tesseract&quot;</span><span class="p">)</span>
+<span class="n">any_cell</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;vertex&quot;</span><span class="p">,</span> <span class="s2">&quot;interval&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;triangle&quot;</span><span class="p">,</span> <span class="s2">&quot;tetrahedron&quot;</span><span class="p">,</span> <span class="s2">&quot;prism&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;pyramid&quot;</span><span class="p">,</span> <span class="s2">&quot;quadrilateral&quot;</span><span class="p">,</span> <span class="s2">&quot;hexahedron&quot;</span><span class="p">,</span> <span class="s2">&quot;pentatope&quot;</span><span class="p">,</span> <span class="s2">&quot;tesseract&quot;</span><span class="p">)</span>
+
+<span class="c1"># Elements in the periodic table # TODO: Register these as aliases of</span>
+<span class="c1"># periodic table element description instead of the other way around</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;Lagrange&quot;</span><span class="p">,</span> <span class="s2">&quot;CG&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">H1</span><span class="p">,</span> <span class="s2">&quot;identity&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                 <span class="n">any_cell</span><span class="p">)</span>  <span class="c1"># &quot;P&quot;</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;Brezzi-Douglas-Marini&quot;</span><span class="p">,</span> <span class="s2">&quot;BDM&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">HDiv</span><span class="p">,</span>
+                 <span class="s2">&quot;contravariant Piola&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">simplices</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>  <span class="c1"># &quot;BDMF&quot; (2d), &quot;N2F&quot; (3d)</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;Discontinuous Lagrange&quot;</span><span class="p">,</span> <span class="s2">&quot;DG&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">L2</span><span class="p">,</span> <span class="s2">&quot;identity&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                 <span class="n">any_cell</span><span class="p">)</span>  <span class="c1"># &quot;DP&quot;</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;Discontinuous Taylor&quot;</span><span class="p">,</span> <span class="s2">&quot;TDG&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">L2</span><span class="p">,</span> <span class="s2">&quot;identity&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">simplices</span><span class="p">)</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;Nedelec 1st kind H(curl)&quot;</span><span class="p">,</span> <span class="s2">&quot;N1curl&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">HCurl</span><span class="p">,</span>
+                 <span class="s2">&quot;covariant Piola&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">simplices</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>  <span class="c1"># &quot;RTE&quot;  (2d), &quot;N1E&quot; (3d)</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;Nedelec 2nd kind H(curl)&quot;</span><span class="p">,</span> <span class="s2">&quot;N2curl&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">HCurl</span><span class="p">,</span>
+                 <span class="s2">&quot;covariant Piola&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">simplices</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>  <span class="c1"># &quot;BDME&quot; (2d), &quot;N2E&quot; (3d)</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;Raviart-Thomas&quot;</span><span class="p">,</span> <span class="s2">&quot;RT&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">HDiv</span><span class="p">,</span> <span class="s2">&quot;contravariant Piola&quot;</span><span class="p">,</span>
+                 <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">simplices</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>   <span class="c1"># &quot;RTF&quot;  (2d), &quot;N1F&quot; (3d)</span>
+
+<span class="c1"># Elements not in the periodic table</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;Argyris&quot;</span><span class="p">,</span> <span class="s2">&quot;ARG&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">H2</span><span class="p">,</span> <span class="s2">&quot;custom&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;triangle&quot;</span><span class="p">,))</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;Bell&quot;</span><span class="p">,</span> <span class="s2">&quot;BELL&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">H2</span><span class="p">,</span> <span class="s2">&quot;custom&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;triangle&quot;</span><span class="p">,))</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;Brezzi-Douglas-Fortin-Marini&quot;</span><span class="p">,</span> <span class="s2">&quot;BDFM&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">HDiv</span><span class="p">,</span>
+                 <span class="s2">&quot;contravariant Piola&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">simplices</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;Crouzeix-Raviart&quot;</span><span class="p">,</span> <span class="s2">&quot;CR&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">L2</span><span class="p">,</span> <span class="s2">&quot;identity&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+                 <span class="n">simplices</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+<span class="c1"># TODO: Implement generic Tear operator for elements instead of this:</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;Discontinuous Raviart-Thomas&quot;</span><span class="p">,</span> <span class="s2">&quot;DRT&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">L2</span><span class="p">,</span>
+                 <span class="s2">&quot;contravariant Piola&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">simplices</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;Hermite&quot;</span><span class="p">,</span> <span class="s2">&quot;HER&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">H1</span><span class="p">,</span> <span class="s2">&quot;custom&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">simplices</span><span class="p">)</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;Kong-Mulder-Veldhuizen&quot;</span><span class="p">,</span> <span class="s2">&quot;KMV&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">H1</span><span class="p">,</span> <span class="s2">&quot;identity&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                 <span class="n">simplices</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;Mardal-Tai-Winther&quot;</span><span class="p">,</span> <span class="s2">&quot;MTW&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">H1</span><span class="p">,</span> <span class="s2">&quot;contravariant Piola&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s2">&quot;triangle&quot;</span><span class="p">,))</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;Morley&quot;</span><span class="p">,</span> <span class="s2">&quot;MOR&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">H2</span><span class="p">,</span> <span class="s2">&quot;custom&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;triangle&quot;</span><span class="p">,))</span>
+
+<span class="c1"># Special elements</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;Boundary Quadrature&quot;</span><span class="p">,</span> <span class="s2">&quot;BQ&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">L2</span><span class="p">,</span> <span class="s2">&quot;identity&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                 <span class="n">any_cell</span><span class="p">)</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;Bubble&quot;</span><span class="p">,</span> <span class="s2">&quot;B&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">H1</span><span class="p">,</span> <span class="s2">&quot;identity&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">simplices</span><span class="p">)</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;FacetBubble&quot;</span><span class="p">,</span> <span class="s2">&quot;FB&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">H1</span><span class="p">,</span> <span class="s2">&quot;identity&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">simplices</span><span class="p">)</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;Quadrature&quot;</span><span class="p">,</span> <span class="s2">&quot;Quadrature&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">L2</span><span class="p">,</span> <span class="s2">&quot;identity&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                 <span class="n">any_cell</span><span class="p">)</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;Real&quot;</span><span class="p">,</span> <span class="s2">&quot;R&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">HInf</span><span class="p">,</span> <span class="s2">&quot;identity&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+                 <span class="n">any_cell</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;TensorProductCell&quot;</span><span class="p">,))</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;Undefined&quot;</span><span class="p">,</span> <span class="s2">&quot;U&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">L2</span><span class="p">,</span> <span class="s2">&quot;identity&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">any_cell</span><span class="p">)</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;Radau&quot;</span><span class="p">,</span> <span class="s2">&quot;Rad&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">L2</span><span class="p">,</span> <span class="s2">&quot;identity&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;interval&quot;</span><span class="p">,))</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;Regge&quot;</span><span class="p">,</span> <span class="s2">&quot;Regge&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">HEin</span><span class="p">,</span> <span class="s2">&quot;double covariant Piola&quot;</span><span class="p">,</span>
+                 <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">simplices</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;HDiv Trace&quot;</span><span class="p">,</span> <span class="s2">&quot;HDivT&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">L2</span><span class="p">,</span> <span class="s2">&quot;identity&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">any_cell</span><span class="p">)</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;Hellan-Herrmann-Johnson&quot;</span><span class="p">,</span> <span class="s2">&quot;HHJ&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">HDivDiv</span><span class="p">,</span>
+                 <span class="s2">&quot;double contravariant Piola&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;triangle&quot;</span><span class="p">,))</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;Nonconforming Arnold-Winther&quot;</span><span class="p">,</span> <span class="s2">&quot;AWnc&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">HDivDiv</span><span class="p">,</span>
+                 <span class="s2">&quot;double contravariant Piola&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;triangle&quot;</span><span class="p">,</span> <span class="s2">&quot;tetrahedron&quot;</span><span class="p">))</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;Conforming Arnold-Winther&quot;</span><span class="p">,</span> <span class="s2">&quot;AWc&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">HDivDiv</span><span class="p">,</span>
+                 <span class="s2">&quot;double contravariant Piola&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;triangle&quot;</span><span class="p">,</span> <span class="s2">&quot;tetrahedron&quot;</span><span class="p">))</span>
+<span class="c1"># Spectral elements.</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;Gauss-Legendre&quot;</span><span class="p">,</span> <span class="s2">&quot;GL&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">L2</span><span class="p">,</span> <span class="s2">&quot;identity&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s2">&quot;interval&quot;</span><span class="p">,))</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;Gauss-Lobatto-Legendre&quot;</span><span class="p">,</span> <span class="s2">&quot;GLL&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">H1</span><span class="p">,</span> <span class="s2">&quot;identity&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s2">&quot;interval&quot;</span><span class="p">,))</span>
+<span class="n">register_alias</span><span class="p">(</span><span class="s2">&quot;Lobatto&quot;</span><span class="p">,</span>
+               <span class="k">lambda</span> <span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">degree</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;Gauss-Lobatto-Legendre&quot;</span><span class="p">,</span> <span class="n">order</span><span class="p">))</span>
+<span class="n">register_alias</span><span class="p">(</span><span class="s2">&quot;Lob&quot;</span><span class="p">,</span>
+               <span class="k">lambda</span> <span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">degree</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;Gauss-Lobatto-Legendre&quot;</span><span class="p">,</span> <span class="n">order</span><span class="p">))</span>
+
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;Bernstein&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">H1</span><span class="p">,</span> <span class="s2">&quot;identity&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">simplices</span><span class="p">)</span>
+
+
+<span class="c1"># Let Nedelec H(div) elements be aliases to BDMs/RTs</span>
+<span class="n">register_alias</span><span class="p">(</span><span class="s2">&quot;Nedelec 1st kind H(div)&quot;</span><span class="p">,</span>
+               <span class="k">lambda</span> <span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">degree</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;Raviart-Thomas&quot;</span><span class="p">,</span> <span class="n">order</span><span class="p">))</span>
+<span class="n">register_alias</span><span class="p">(</span><span class="s2">&quot;N1div&quot;</span><span class="p">,</span>
+               <span class="k">lambda</span> <span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">degree</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;Raviart-Thomas&quot;</span><span class="p">,</span> <span class="n">order</span><span class="p">))</span>
+
+<span class="n">register_alias</span><span class="p">(</span><span class="s2">&quot;Nedelec 2nd kind H(div)&quot;</span><span class="p">,</span>
+               <span class="k">lambda</span> <span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">degree</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;Brezzi-Douglas-Marini&quot;</span><span class="p">,</span>
+                                                   <span class="n">order</span><span class="p">))</span>
+<span class="n">register_alias</span><span class="p">(</span><span class="s2">&quot;N2div&quot;</span><span class="p">,</span>
+               <span class="k">lambda</span> <span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">degree</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;Brezzi-Douglas-Marini&quot;</span><span class="p">,</span>
+                                                   <span class="n">order</span><span class="p">))</span>
+
+<span class="c1"># Let Discontinuous Lagrange Trace element be alias to HDiv Trace</span>
+<span class="n">register_alias</span><span class="p">(</span><span class="s2">&quot;Discontinuous Lagrange Trace&quot;</span><span class="p">,</span>
+               <span class="k">lambda</span> <span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">degree</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;HDiv Trace&quot;</span><span class="p">,</span> <span class="n">order</span><span class="p">))</span>
+<span class="n">register_alias</span><span class="p">(</span><span class="s2">&quot;DGT&quot;</span><span class="p">,</span>
+               <span class="k">lambda</span> <span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">degree</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;HDiv Trace&quot;</span><span class="p">,</span> <span class="n">order</span><span class="p">))</span>
+
+<span class="c1"># New elements introduced for the periodic table 2014</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;Q&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">H1</span><span class="p">,</span> <span class="s2">&quot;identity&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">cubes</span><span class="p">)</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;DQ&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">L2</span><span class="p">,</span> <span class="s2">&quot;identity&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">cubes</span><span class="p">)</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;RTCE&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">HCurl</span><span class="p">,</span> <span class="s2">&quot;covariant Piola&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s2">&quot;quadrilateral&quot;</span><span class="p">,))</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;RTCF&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">HDiv</span><span class="p">,</span> <span class="s2">&quot;contravariant Piola&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s2">&quot;quadrilateral&quot;</span><span class="p">,))</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;NCE&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">HCurl</span><span class="p">,</span> <span class="s2">&quot;covariant Piola&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s2">&quot;hexahedron&quot;</span><span class="p">,))</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;NCF&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">HDiv</span><span class="p">,</span> <span class="s2">&quot;contravariant Piola&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s2">&quot;hexahedron&quot;</span><span class="p">,))</span>
+
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;S&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">H1</span><span class="p">,</span> <span class="s2">&quot;identity&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">cubes</span><span class="p">)</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;DPC&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">L2</span><span class="p">,</span> <span class="s2">&quot;identity&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">cubes</span><span class="p">)</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;BDMCE&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">HCurl</span><span class="p">,</span> <span class="s2">&quot;covariant Piola&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s2">&quot;quadrilateral&quot;</span><span class="p">,))</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;BDMCF&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">HDiv</span><span class="p">,</span> <span class="s2">&quot;contravariant Piola&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s2">&quot;quadrilateral&quot;</span><span class="p">,))</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;SminusE&quot;</span><span class="p">,</span> <span class="s2">&quot;SminusE&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">HCurl</span><span class="p">,</span> <span class="s2">&quot;covariant Piola&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">cubes</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">])</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;SminusF&quot;</span><span class="p">,</span> <span class="s2">&quot;SminusF&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">HDiv</span><span class="p">,</span> <span class="s2">&quot;contravariant Piola&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">cubes</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">])</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;SminusDiv&quot;</span><span class="p">,</span> <span class="s2">&quot;SminusDiv&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">HDiv</span><span class="p">,</span> <span class="s2">&quot;contravariant Piola&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">cubes</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">])</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;SminusCurl&quot;</span><span class="p">,</span> <span class="s2">&quot;SminusCurl&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">HCurl</span><span class="p">,</span> <span class="s2">&quot;covariant Piola&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">cubes</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">])</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;AAE&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">HCurl</span><span class="p">,</span> <span class="s2">&quot;covariant Piola&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s2">&quot;hexahedron&quot;</span><span class="p">,))</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;AAF&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">HDiv</span><span class="p">,</span> <span class="s2">&quot;contravariant Piola&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s2">&quot;hexahedron&quot;</span><span class="p">,))</span>
+
+<span class="c1"># New aliases introduced for the periodic table 2014</span>
+<span class="n">register_alias</span><span class="p">(</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">degree</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;Lagrange&quot;</span><span class="p">,</span> <span class="n">order</span><span class="p">))</span>
+<span class="n">register_alias</span><span class="p">(</span><span class="s2">&quot;DP&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span>
+               <span class="n">degree</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;Discontinuous Lagrange&quot;</span><span class="p">,</span> <span class="n">order</span><span class="p">))</span>
+<span class="n">register_alias</span><span class="p">(</span><span class="s2">&quot;RTE&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span>
+               <span class="n">degree</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;Nedelec 1st kind H(curl)&quot;</span><span class="p">,</span> <span class="n">order</span><span class="p">))</span>
+<span class="n">register_alias</span><span class="p">(</span><span class="s2">&quot;RTF&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span>
+               <span class="n">degree</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;Raviart-Thomas&quot;</span><span class="p">,</span> <span class="n">order</span><span class="p">))</span>
+<span class="n">register_alias</span><span class="p">(</span><span class="s2">&quot;N1E&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span>
+               <span class="n">degree</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;Nedelec 1st kind H(curl)&quot;</span><span class="p">,</span> <span class="n">order</span><span class="p">))</span>
+<span class="n">register_alias</span><span class="p">(</span><span class="s2">&quot;N1F&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">degree</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;Raviart-Thomas&quot;</span><span class="p">,</span>
+                                                          <span class="n">order</span><span class="p">))</span>
+
+<span class="n">register_alias</span><span class="p">(</span><span class="s2">&quot;BDME&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span>
+               <span class="n">degree</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;Nedelec 2nd kind H(curl)&quot;</span><span class="p">,</span> <span class="n">order</span><span class="p">))</span>
+<span class="n">register_alias</span><span class="p">(</span><span class="s2">&quot;BDMF&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span>
+               <span class="n">degree</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;Brezzi-Douglas-Marini&quot;</span><span class="p">,</span> <span class="n">order</span><span class="p">))</span>
+<span class="n">register_alias</span><span class="p">(</span><span class="s2">&quot;N2E&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span>
+               <span class="n">degree</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;Nedelec 2nd kind H(curl)&quot;</span><span class="p">,</span> <span class="n">order</span><span class="p">))</span>
+<span class="n">register_alias</span><span class="p">(</span><span class="s2">&quot;N2F&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span>
+               <span class="n">degree</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;Brezzi-Douglas-Marini&quot;</span><span class="p">,</span> <span class="n">order</span><span class="p">))</span>
+
+<span class="c1"># discontinuous elements using l2 pullbacks</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;DPC L2&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">L2</span><span class="p">,</span> <span class="s2">&quot;L2 Piola&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">cubes</span><span class="p">)</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;DQ L2&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">L2</span><span class="p">,</span> <span class="s2">&quot;L2 Piola&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">cubes</span><span class="p">)</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;Gauss-Legendre L2&quot;</span><span class="p">,</span> <span class="s2">&quot;GL L2&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">L2</span><span class="p">,</span> <span class="s2">&quot;L2 Piola&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s2">&quot;interval&quot;</span><span class="p">,))</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;Discontinuous Lagrange L2&quot;</span><span class="p">,</span> <span class="s2">&quot;DG L2&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">L2</span><span class="p">,</span> <span class="s2">&quot;L2 Piola&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                 <span class="n">any_cell</span><span class="p">)</span>  <span class="c1"># &quot;DP&quot;</span>
+
+<span class="n">register_alias</span><span class="p">(</span><span class="s2">&quot;DP L2&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span>
+               <span class="n">degree</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;Discontinuous Lagrange L2&quot;</span><span class="p">,</span> <span class="n">order</span><span class="p">))</span>
+
+<span class="n">register_alias</span><span class="p">(</span><span class="s2">&quot;P- Lambda L2&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span>
+               <span class="n">degree</span><span class="p">:</span> <span class="n">feec_element_l2</span><span class="p">(</span><span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">degree</span><span class="p">))</span>
+<span class="n">register_alias</span><span class="p">(</span><span class="s2">&quot;P Lambda L2&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span>
+               <span class="n">degree</span><span class="p">:</span> <span class="n">feec_element_l2</span><span class="p">(</span><span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">degree</span><span class="p">))</span>
+<span class="n">register_alias</span><span class="p">(</span><span class="s2">&quot;Q- Lambda L2&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span>
+               <span class="n">degree</span><span class="p">:</span> <span class="n">feec_element_l2</span><span class="p">(</span><span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">degree</span><span class="p">))</span>
+<span class="n">register_alias</span><span class="p">(</span><span class="s2">&quot;S Lambda L2&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span>
+               <span class="n">degree</span><span class="p">:</span> <span class="n">feec_element_l2</span><span class="p">(</span><span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">degree</span><span class="p">))</span>
+
+<span class="n">register_alias</span><span class="p">(</span><span class="s2">&quot;P- L2&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span>
+               <span class="n">degree</span><span class="p">:</span> <span class="n">feec_element_l2</span><span class="p">(</span><span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">degree</span><span class="p">))</span>
+<span class="n">register_alias</span><span class="p">(</span><span class="s2">&quot;Q- L2&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span>
+               <span class="n">degree</span><span class="p">:</span> <span class="n">feec_element_l2</span><span class="p">(</span><span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">degree</span><span class="p">))</span>
+
+<span class="c1"># mimetic spectral elements - primal and dual complexs</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;Extended-Gauss-Legendre&quot;</span><span class="p">,</span> <span class="s2">&quot;EGL&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">H1</span><span class="p">,</span> <span class="s2">&quot;identity&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s2">&quot;interval&quot;</span><span class="p">,))</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;Extended-Gauss-Legendre Edge&quot;</span><span class="p">,</span> <span class="s2">&quot;EGL-Edge&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">L2</span><span class="p">,</span> <span class="s2">&quot;identity&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s2">&quot;interval&quot;</span><span class="p">,))</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;Extended-Gauss-Legendre Edge L2&quot;</span><span class="p">,</span> <span class="s2">&quot;EGL-Edge L2&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">L2</span><span class="p">,</span> <span class="s2">&quot;L2 Piola&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s2">&quot;interval&quot;</span><span class="p">,))</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;Gauss-Lobatto-Legendre Edge&quot;</span><span class="p">,</span> <span class="s2">&quot;GLL-Edge&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">L2</span><span class="p">,</span> <span class="s2">&quot;identity&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s2">&quot;interval&quot;</span><span class="p">,))</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;Gauss-Lobatto-Legendre Edge L2&quot;</span><span class="p">,</span> <span class="s2">&quot;GLL-Edge L2&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">L2</span><span class="p">,</span> <span class="s2">&quot;L2 Piola&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s2">&quot;interval&quot;</span><span class="p">,))</span>
+
+<span class="c1"># directly-defined serendipity elements ala Arbogast</span>
+<span class="c1"># currently the theory is only really worked out for quads.</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;Direct Serendipity&quot;</span><span class="p">,</span> <span class="s2">&quot;Sdirect&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">H1</span><span class="p">,</span> <span class="s2">&quot;physical&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s2">&quot;quadrilateral&quot;</span><span class="p">,))</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;Direct Serendipity Full H(div)&quot;</span><span class="p">,</span> <span class="s2">&quot;Sdirect H(div)&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">HDiv</span><span class="p">,</span> <span class="s2">&quot;physical&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s2">&quot;quadrilateral&quot;</span><span class="p">,))</span>
+<span class="n">register_element</span><span class="p">(</span><span class="s2">&quot;Direct Serendipity Reduced H(div)&quot;</span><span class="p">,</span> <span class="s2">&quot;Sdirect H(div) red&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">HDiv</span><span class="p">,</span> <span class="s2">&quot;physical&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s2">&quot;quadrilateral&quot;</span><span class="p">,))</span>
+
+
+<span class="c1"># NOTE- the edge elements for primal mimetic spectral elements are accessed by using</span>
+<span class="c1"># variant=&#39;mse&#39; in the appropriate places</span>
+
+<div class="viewcode-block" id="feec_element"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.elementlist.feec_element">[docs]</a><span class="k">def</span> <span class="nf">feec_element</span><span class="p">(</span><span class="n">family</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Finite element exterior calculus notation.</span>
+
+<span class="sd">    n = topological dimension of domain</span>
+<span class="sd">    r = polynomial order</span>
+<span class="sd">    k = form_degree</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Note: We always map to edge elements in 2D, don&#39;t know how to</span>
+    <span class="c1"># differentiate otherwise?</span>
+
+    <span class="c1"># Mapping from (feec name, domain dimension, form degree) to</span>
+    <span class="c1"># (family name, polynomial order)</span>
+    <span class="n">_feec_elements</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;P- Lambda&quot;</span><span class="p">:</span> <span class="p">(</span>
+            <span class="p">((</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;DP&quot;</span><span class="p">,</span> <span class="n">r</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)),</span>
+            <span class="p">((</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;RTE&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;DP&quot;</span><span class="p">,</span> <span class="n">r</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)),</span>
+            <span class="p">((</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;N1E&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;N1F&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;DP&quot;</span><span class="p">,</span> <span class="n">r</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)),</span>
+        <span class="p">),</span>
+        <span class="s2">&quot;P Lambda&quot;</span><span class="p">:</span> <span class="p">(</span>
+            <span class="p">((</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;DP&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">)),</span>
+            <span class="p">((</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;BDME&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;DP&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">)),</span>
+            <span class="p">((</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;N2E&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;N2F&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;DP&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">)),</span>
+        <span class="p">),</span>
+        <span class="s2">&quot;Q- Lambda&quot;</span><span class="p">:</span> <span class="p">(</span>
+            <span class="p">((</span><span class="s2">&quot;Q&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;DQ&quot;</span><span class="p">,</span> <span class="n">r</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)),</span>
+            <span class="p">((</span><span class="s2">&quot;Q&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;RTCE&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;DQ&quot;</span><span class="p">,</span> <span class="n">r</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)),</span>
+            <span class="p">((</span><span class="s2">&quot;Q&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;NCE&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;NCF&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;DQ&quot;</span><span class="p">,</span> <span class="n">r</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)),</span>
+        <span class="p">),</span>
+        <span class="s2">&quot;S Lambda&quot;</span><span class="p">:</span> <span class="p">(</span>
+            <span class="p">((</span><span class="s2">&quot;S&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;DPC&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">)),</span>
+            <span class="p">((</span><span class="s2">&quot;S&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;BDMCE&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;DPC&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">)),</span>
+            <span class="p">((</span><span class="s2">&quot;S&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;AAE&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;AAF&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;DPC&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">)),</span>
+        <span class="p">),</span>
+    <span class="p">}</span>
+
+    <span class="c1"># New notation, old verbose notation (including &quot;Lambda&quot;) might be</span>
+    <span class="c1"># removed</span>
+    <span class="n">_feec_elements</span><span class="p">[</span><span class="s2">&quot;P-&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_feec_elements</span><span class="p">[</span><span class="s2">&quot;P- Lambda&quot;</span><span class="p">]</span>
+    <span class="n">_feec_elements</span><span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_feec_elements</span><span class="p">[</span><span class="s2">&quot;P Lambda&quot;</span><span class="p">]</span>
+    <span class="n">_feec_elements</span><span class="p">[</span><span class="s2">&quot;Q-&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_feec_elements</span><span class="p">[</span><span class="s2">&quot;Q- Lambda&quot;</span><span class="p">]</span>
+    <span class="n">_feec_elements</span><span class="p">[</span><span class="s2">&quot;S&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_feec_elements</span><span class="p">[</span><span class="s2">&quot;S Lambda&quot;</span><span class="p">]</span>
+
+    <span class="n">family</span><span class="p">,</span> <span class="n">r</span> <span class="o">=</span> <span class="n">_feec_elements</span><span class="p">[</span><span class="n">family</span><span class="p">][</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="n">k</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">family</span><span class="p">,</span> <span class="n">r</span></div>
+
+
+<div class="viewcode-block" id="feec_element_l2"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.elementlist.feec_element_l2">[docs]</a><span class="k">def</span> <span class="nf">feec_element_l2</span><span class="p">(</span><span class="n">family</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Finite element exterior calculus notation.</span>
+
+<span class="sd">    n = topological dimension of domain</span>
+<span class="sd">    r = polynomial order</span>
+<span class="sd">    k = form_degree</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Note: We always map to edge elements in 2D, don&#39;t know how to</span>
+    <span class="c1"># differentiate otherwise?</span>
+
+    <span class="c1"># Mapping from (feec name, domain dimension, form degree) to</span>
+    <span class="c1"># (family name, polynomial order)</span>
+    <span class="n">_feec_elements</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;P- Lambda L2&quot;</span><span class="p">:</span> <span class="p">(</span>
+            <span class="p">((</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;DP L2&quot;</span><span class="p">,</span> <span class="n">r</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)),</span>
+            <span class="p">((</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;RTE&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;DP L2&quot;</span><span class="p">,</span> <span class="n">r</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)),</span>
+            <span class="p">((</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;N1E&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;N1F&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;DP L2&quot;</span><span class="p">,</span> <span class="n">r</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)),</span>
+        <span class="p">),</span>
+        <span class="s2">&quot;P Lambda L2&quot;</span><span class="p">:</span> <span class="p">(</span>
+            <span class="p">((</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;DP L2&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">)),</span>
+            <span class="p">((</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;BDME&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;DP L2&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">)),</span>
+            <span class="p">((</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;N2E&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;N2F&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;DP L2&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">)),</span>
+        <span class="p">),</span>
+        <span class="s2">&quot;Q- Lambda L2&quot;</span><span class="p">:</span> <span class="p">(</span>
+            <span class="p">((</span><span class="s2">&quot;Q&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;DQ L2&quot;</span><span class="p">,</span> <span class="n">r</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)),</span>
+            <span class="p">((</span><span class="s2">&quot;Q&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;RTCE&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;DQ L2&quot;</span><span class="p">,</span> <span class="n">r</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)),</span>
+            <span class="p">((</span><span class="s2">&quot;Q&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;NCE&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;NCF&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;DQ L2&quot;</span><span class="p">,</span> <span class="n">r</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)),</span>
+        <span class="p">),</span>
+        <span class="s2">&quot;S Lambda L2&quot;</span><span class="p">:</span> <span class="p">(</span>
+            <span class="p">((</span><span class="s2">&quot;S&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;DPC L2&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">)),</span>
+            <span class="p">((</span><span class="s2">&quot;S&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;BDMCE&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;DPC L2&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">)),</span>
+            <span class="p">((</span><span class="s2">&quot;S&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;AAE&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;AAF&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;DPC L2&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">)),</span>
+        <span class="p">),</span>
+    <span class="p">}</span>
+
+    <span class="c1"># New notation, old verbose notation (including &quot;Lambda&quot;) might be</span>
+    <span class="c1"># removed</span>
+    <span class="n">_feec_elements</span><span class="p">[</span><span class="s2">&quot;P- L2&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_feec_elements</span><span class="p">[</span><span class="s2">&quot;P- Lambda L2&quot;</span><span class="p">]</span>
+    <span class="n">_feec_elements</span><span class="p">[</span><span class="s2">&quot;P L2&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_feec_elements</span><span class="p">[</span><span class="s2">&quot;P Lambda L2&quot;</span><span class="p">]</span>
+    <span class="n">_feec_elements</span><span class="p">[</span><span class="s2">&quot;Q- L2&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_feec_elements</span><span class="p">[</span><span class="s2">&quot;Q- Lambda L2&quot;</span><span class="p">]</span>
+    <span class="n">_feec_elements</span><span class="p">[</span><span class="s2">&quot;S L2&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_feec_elements</span><span class="p">[</span><span class="s2">&quot;S Lambda L2&quot;</span><span class="p">]</span>
+
+    <span class="n">family</span><span class="p">,</span> <span class="n">r</span> <span class="o">=</span> <span class="n">_feec_elements</span><span class="p">[</span><span class="n">family</span><span class="p">][</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="n">k</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">family</span><span class="p">,</span> <span class="n">r</span></div>
+
+
+<span class="c1"># General FEEC notation, old verbose (can be removed)</span>
+<span class="n">register_alias</span><span class="p">(</span><span class="s2">&quot;P- Lambda&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span>
+               <span class="n">degree</span><span class="p">:</span> <span class="n">feec_element</span><span class="p">(</span><span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">degree</span><span class="p">))</span>
+<span class="n">register_alias</span><span class="p">(</span><span class="s2">&quot;P Lambda&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span>
+               <span class="n">degree</span><span class="p">:</span> <span class="n">feec_element</span><span class="p">(</span><span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">degree</span><span class="p">))</span>
+<span class="n">register_alias</span><span class="p">(</span><span class="s2">&quot;Q- Lambda&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span>
+               <span class="n">degree</span><span class="p">:</span> <span class="n">feec_element</span><span class="p">(</span><span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">degree</span><span class="p">))</span>
+<span class="n">register_alias</span><span class="p">(</span><span class="s2">&quot;S Lambda&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span>
+               <span class="n">degree</span><span class="p">:</span> <span class="n">feec_element</span><span class="p">(</span><span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">degree</span><span class="p">))</span>
+
+<span class="c1"># General FEEC notation, new compact notation</span>
+<span class="n">register_alias</span><span class="p">(</span><span class="s2">&quot;P-&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span>
+               <span class="n">degree</span><span class="p">:</span> <span class="n">feec_element</span><span class="p">(</span><span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">degree</span><span class="p">))</span>
+<span class="n">register_alias</span><span class="p">(</span><span class="s2">&quot;Q-&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span>
+               <span class="n">degree</span><span class="p">:</span> <span class="n">feec_element</span><span class="p">(</span><span class="n">family</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">degree</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="canonical_element_description"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.elementlist.canonical_element_description">[docs]</a><span class="k">def</span> <span class="nf">canonical_element_description</span><span class="p">(</span><span class="n">family</span><span class="p">,</span> <span class="n">cell</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">form_degree</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Given basic element information, return corresponding element information on canonical form.</span>
+
+<span class="sd">    Input: family, cell, (polynomial) order, form_degree</span>
+<span class="sd">    Output: family (canonical), short_name (for printing), order, value shape,</span>
+<span class="sd">    reference value shape, sobolev_space.</span>
+
+<span class="sd">    This is used by the FiniteElement constructor to ved input</span>
+<span class="sd">    data against the element list and aliases defined in ufl.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Get domain dimensions</span>
+    <span class="k">if</span> <span class="n">cell</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">tdim</span> <span class="o">=</span> <span class="n">cell</span><span class="o">.</span><span class="n">topological_dimension</span><span class="p">()</span>
+        <span class="n">gdim</span> <span class="o">=</span> <span class="n">cell</span><span class="o">.</span><span class="n">geometric_dimension</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span> <span class="n">Cell</span><span class="p">):</span>
+            <span class="n">cellname</span> <span class="o">=</span> <span class="n">cell</span><span class="o">.</span><span class="n">cellname</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cellname</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">tdim</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">gdim</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">cellname</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># Catch general FEEC notation &quot;P&quot; and &quot;S&quot;</span>
+    <span class="k">if</span> <span class="n">form_degree</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">family</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;S&quot;</span><span class="p">):</span>
+        <span class="n">family</span><span class="p">,</span> <span class="n">order</span> <span class="o">=</span> <span class="n">feec_element</span><span class="p">(</span><span class="n">family</span><span class="p">,</span> <span class="n">tdim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">form_degree</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">form_degree</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">family</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;P L2&quot;</span><span class="p">,</span> <span class="s2">&quot;S L2&quot;</span><span class="p">):</span>
+        <span class="n">family</span><span class="p">,</span> <span class="n">order</span> <span class="o">=</span> <span class="n">feec_element_l2</span><span class="p">(</span><span class="n">family</span><span class="p">,</span> <span class="n">tdim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">form_degree</span><span class="p">)</span>
+
+    <span class="c1"># Check whether this family is an alias for something else</span>
+    <span class="k">while</span> <span class="n">family</span> <span class="ow">in</span> <span class="n">aliases</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">tdim</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Need dimension to handle element aliases.&quot;</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">family</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span> <span class="o">=</span> <span class="n">aliases</span><span class="p">[</span><span class="n">family</span><span class="p">](</span><span class="n">family</span><span class="p">,</span> <span class="n">tdim</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">form_degree</span><span class="p">)</span>
+
+    <span class="c1"># Check that the element family exists</span>
+    <span class="k">if</span> <span class="n">family</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ufl_elements</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown finite element &#39;</span><span class="si">{</span><span class="n">family</span><span class="si">}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check that element data is valid (and also get common family</span>
+    <span class="c1"># name)</span>
+    <span class="p">(</span><span class="n">family</span><span class="p">,</span> <span class="n">short_name</span><span class="p">,</span> <span class="n">value_rank</span><span class="p">,</span> <span class="n">sobolev_space</span><span class="p">,</span> <span class="n">mapping</span><span class="p">,</span> <span class="n">krange</span><span class="p">,</span> <span class="n">cellnames</span><span class="p">)</span> <span class="o">=</span> <span class="n">ufl_elements</span><span class="p">[</span><span class="n">family</span><span class="p">]</span>
+
+    <span class="c1"># Accept CG/DG on all kind of cells, but use Q/DQ on &quot;product&quot; cells</span>
+    <span class="k">if</span> <span class="n">cellname</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">cubes</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">simplices</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span> <span class="n">TensorProductCell</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">family</span> <span class="o">==</span> <span class="s2">&quot;Lagrange&quot;</span><span class="p">:</span>
+            <span class="n">family</span> <span class="o">=</span> <span class="s2">&quot;Q&quot;</span>
+        <span class="k">elif</span> <span class="n">family</span> <span class="o">==</span> <span class="s2">&quot;Discontinuous Lagrange&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">order</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Discontinuous Lagrange element requested on </span><span class="si">%s</span><span class="s2">, creating DQ element.&quot;</span> <span class="o">%</span> <span class="n">cell</span><span class="o">.</span><span class="n">cellname</span><span class="p">())</span>
+            <span class="n">family</span> <span class="o">=</span> <span class="s2">&quot;DQ&quot;</span>
+        <span class="k">elif</span> <span class="n">family</span> <span class="o">==</span> <span class="s2">&quot;Discontinuous Lagrange L2&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">order</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Discontinuous Lagrange L2 element requested on </span><span class="si">{</span><span class="n">cell</span><span class="o">.</span><span class="n">cellname</span><span class="p">()</span><span class="si">}</span><span class="s2">, &quot;</span>
+                              <span class="s2">&quot;creating DQ L2 element.&quot;</span><span class="p">)</span>
+            <span class="n">family</span> <span class="o">=</span> <span class="s2">&quot;DQ L2&quot;</span>
+
+    <span class="c1"># Validate cellname if a valid cell is specified</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">cellname</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">cellname</span> <span class="ow">in</span> <span class="n">cellnames</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cellname &#39;</span><span class="si">{</span><span class="n">cellname</span><span class="si">}</span><span class="s2">&#39; invalid for &#39;</span><span class="si">{</span><span class="n">family</span><span class="si">}</span><span class="s2">&#39; finite element.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Validate order if specified</span>
+    <span class="k">if</span> <span class="n">order</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">krange</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Order </span><span class="si">{</span><span class="n">order</span><span class="si">}</span><span class="s2"> invalid for &#39;</span><span class="si">{</span><span class="n">family</span><span class="si">}</span><span class="s2">&#39; finite element, should be None.&quot;</span><span class="p">)</span>
+        <span class="n">kmin</span><span class="p">,</span> <span class="n">kmax</span> <span class="o">=</span> <span class="n">krange</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">kmin</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="p">(</span><span class="n">asarray</span><span class="p">(</span><span class="n">order</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">kmin</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Order </span><span class="si">{</span><span class="n">order</span><span class="si">}</span><span class="s2"> invalid for &#39;</span><span class="si">{</span><span class="n">family</span><span class="si">}</span><span class="s2">&#39; finite element.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">kmax</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="p">(</span><span class="n">asarray</span><span class="p">(</span><span class="n">order</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">kmax</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Order </span><span class="si">{</span><span class="n">istr</span><span class="p">(</span><span class="n">order</span><span class="p">)</span><span class="si">}</span><span class="s2"> invalid for &#39;</span><span class="si">{</span><span class="n">family</span><span class="si">}</span><span class="s2">&#39; finite element.&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">value_rank</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="c1"># Tensor valued fundamental elements in HEin have this shape</span>
+        <span class="k">if</span> <span class="n">gdim</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">tdim</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot infer shape of element without topological and geometric dimensions.&quot;</span><span class="p">)</span>
+        <span class="n">reference_value_shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">tdim</span><span class="p">,</span> <span class="n">tdim</span><span class="p">)</span>
+        <span class="n">value_shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">gdim</span><span class="p">,</span> <span class="n">gdim</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">value_rank</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="c1"># Vector valued fundamental elements in HDiv and HCurl have a shape</span>
+        <span class="k">if</span> <span class="n">gdim</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">tdim</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot infer shape of element without topological and geometric dimensions.&quot;</span><span class="p">)</span>
+        <span class="n">reference_value_shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">tdim</span><span class="p">,)</span>
+        <span class="n">value_shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">gdim</span><span class="p">,)</span>
+    <span class="k">elif</span> <span class="n">value_rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c1"># All other elements are scalar values</span>
+        <span class="n">reference_value_shape</span> <span class="o">=</span> <span class="p">()</span>
+        <span class="n">value_shape</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid value rank </span><span class="si">{</span><span class="n">value_rank</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">family</span><span class="p">,</span> <span class="n">short_name</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">value_shape</span><span class="p">,</span> <span class="n">reference_value_shape</span><span class="p">,</span> <span class="n">sobolev_space</span><span class="p">,</span> <span class="n">mapping</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2014--2020, David A. Ham, Robert C. Kirby and others.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.1.2.
+    </div>
+  </body>
+</html>

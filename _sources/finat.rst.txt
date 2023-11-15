@@ -1,6 +1,14 @@
 finat package
 =============
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   finat.ufl
+
 Submodules
 ----------
 

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>finat.ufl.tensorproductelement &#8212; FInAT 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/fenics.css?v=9da67524" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=e031e9a9"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+<!--[if lte IE 6]>
+<link rel="stylesheet" href="../../../_static/ie6.css" type="text/css" media="screen" charset="utf-8" />
+<![endif]-->
+
+<link rel="stylesheet" href="../../../_static/featured.css">
+
+
+<link rel="shortcut icon" href="../../../_static/icon.ico" />
+
+
+  </head><body>
+<div class="wrapper">
+  <a href="../../../index.html"><img src="../../../_static/banner.png" width="900px" alt="FInAT Project Banner" /></a>
+  <div id="access">
+    <div class="menu">
+      <ul>
+          <li class="page_item"><a href="https://github.com/FInAT/finat" title="GitHub">GitHub</a></li>
+<!--          <li class="page_item"><a href="../../../documentation.html" title="Documentation for FInAT">Documentation</a></li>
+          <li class="page_item"><a href="../../../download.html" title="Obtain the FInAT code">Download</a></li>
+          <li class="page_item"><a href="../../../team.html" title="The guilty parties">Team</a></li>
+          <li class="page_item"><a href="../../../publications.html" title="Publications">Publications</a></li>
+          <li class="page_item"><a href="../../../funding.html" title="Our financial supporters">Funding</a></li>
+          <li class="page_item"><a href="../../../contact.html" title="Getting in touch">Contact</a></li>
+          <li class="page_item"><a href="http://buildbot-ocean.ese.ic.ac.uk:8080/builders/FInAT-trunk" title="Buildbot">Buildbot</a></li>-->
+      </ul>
+    </div><!-- .menu -->
+  </div><!-- #access -->
+</div><!-- #wrapper -->
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for finat.ufl.tensorproductelement</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;This module defines the UFL finite element classes.&quot;&quot;&quot;</span>
+
+<span class="c1"># Copyright (C) 2008-2016 Martin Sandve Alnæs</span>
+<span class="c1">#</span>
+<span class="c1"># This file was originally part of UFL (https://www.fenicsproject.org)</span>
+<span class="c1">#</span>
+<span class="c1"># SPDX-License-Identifier:    LGPL-3.0-or-later</span>
+<span class="c1">#</span>
+<span class="c1"># Modified by Kristian B. Oelgaard</span>
+<span class="c1"># Modified by Marie E. Rognes 2010, 2012</span>
+<span class="c1"># Modified by Massimiliano Leoni, 2016</span>
+<span class="c1"># Modified by Matthew Scroggs, 2023</span>
+
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">chain</span>
+
+<span class="kn">from</span> <span class="nn">ufl.cell</span> <span class="kn">import</span> <span class="n">TensorProductCell</span><span class="p">,</span> <span class="n">as_cell</span>
+<span class="kn">from</span> <span class="nn">finat.ufl.finiteelementbase</span> <span class="kn">import</span> <span class="n">FiniteElementBase</span>
+<span class="kn">from</span> <span class="nn">ufl.sobolevspace</span> <span class="kn">import</span> <span class="n">DirectionalSobolevSpace</span>
+
+
+<div class="viewcode-block" id="TensorProductElement"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.tensorproductelement.TensorProductElement">[docs]</a><span class="k">class</span> <span class="nc">TensorProductElement</span><span class="p">(</span><span class="n">FiniteElementBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;The tensor product of :math:`d` element spaces.</span>
+
+<span class="sd">    .. math:: V = V_1 \otimes V_2 \otimes ...  \otimes V_d</span>
+
+<span class="sd">    Given bases :math:`\{\phi_{j_i}\}` of the spaces :math:`V_i` for :math:`i = 1, ...., d`,</span>
+<span class="sd">    :math:`\{ \phi_{j_1} \otimes \phi_{j_2} \otimes \cdots \otimes \phi_{j_d}</span>
+<span class="sd">    \}` forms a basis for :math:`V`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;_sub_elements&quot;</span><span class="p">,</span> <span class="s2">&quot;_cell&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">elements</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create TensorProductElement from a given list of elements.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">elements</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot create TensorProductElement from empty list.&quot;</span><span class="p">)</span>
+
+        <span class="n">keywords</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">keywords</span> <span class="ow">and</span> <span class="n">keywords</span> <span class="o">!=</span> <span class="p">[</span><span class="s2">&quot;cell&quot;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;TensorProductElement got an unexpected keyword argument &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">keywords</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">cell</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;cell&quot;</span><span class="p">)</span>
+
+        <span class="n">family</span> <span class="o">=</span> <span class="s2">&quot;TensorProductElement&quot;</span>
+
+        <span class="k">if</span> <span class="n">cell</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Define cell as the product of each elements cell</span>
+            <span class="n">cell</span> <span class="o">=</span> <span class="n">TensorProductCell</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">cell</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cell</span> <span class="o">=</span> <span class="n">as_cell</span><span class="p">(</span><span class="n">cell</span><span class="p">)</span>
+
+        <span class="c1"># Define polynomial degree as a tuple of sub-degrees</span>
+        <span class="n">degree</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">degree</span><span class="p">()</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">)</span>
+
+        <span class="c1"># No quadrature scheme defined</span>
+        <span class="n">quad_scheme</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># match FIAT implementation</span>
+        <span class="n">value_shape</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">chain</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">value_shape</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">]))</span>
+        <span class="n">reference_value_shape</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">chain</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">reference_value_shape</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">value_shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Product of vector-valued elements not supported&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">reference_value_shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Product of vector-valued elements not supported&quot;</span><span class="p">)</span>
+
+        <span class="n">FiniteElementBase</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">family</span><span class="p">,</span> <span class="n">cell</span><span class="p">,</span> <span class="n">degree</span><span class="p">,</span>
+                                   <span class="n">quad_scheme</span><span class="p">,</span> <span class="n">value_shape</span><span class="p">,</span>
+                                   <span class="n">reference_value_shape</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sub_elements</span> <span class="o">=</span> <span class="n">elements</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cell</span> <span class="o">=</span> <span class="n">cell</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Doc.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;TensorProductElement(&quot;</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_elements</span><span class="p">)</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;, cell=</span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cell</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span>
+
+<div class="viewcode-block" id="TensorProductElement.mapping"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.tensorproductelement.TensorProductElement.mapping">[docs]</a>    <span class="k">def</span> <span class="nf">mapping</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Doc.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">mapping</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;identity&quot;</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_elements</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s2">&quot;identity&quot;</span>
+        <span class="k">elif</span> <span class="nb">all</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">mapping</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;L2 Piola&quot;</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_elements</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s2">&quot;L2 Piola&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;undefined&quot;</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">sobolev_space</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the underlying Sobolev space of the TensorProductElement.&quot;&quot;&quot;</span>
+        <span class="n">elements</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_elements</span>
+        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">sobolev_space</span> <span class="o">==</span> <span class="n">elements</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">sobolev_space</span>
+               <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">elements</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">sobolev_space</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Generate a DirectionalSobolevSpace which contains</span>
+            <span class="c1"># continuity information parametrized by spatial index</span>
+            <span class="n">orders</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">:</span>
+                <span class="n">e_dim</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">geometric_dimension</span><span class="p">()</span>
+                <span class="n">e_order</span> <span class="o">=</span> <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">sobolev_space</span><span class="o">.</span><span class="n">_order</span><span class="p">,)</span> <span class="o">*</span> <span class="n">e_dim</span>
+                <span class="n">orders</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">e_order</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">DirectionalSobolevSpace</span><span class="p">(</span><span class="n">orders</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">num_sub_elements</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return number of subelements.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sub_elements</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">sub_elements</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return subelements (factors).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_elements</span>
+
+<div class="viewcode-block" id="TensorProductElement.reconstruct"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.tensorproductelement.TensorProductElement.reconstruct">[docs]</a>    <span class="k">def</span> <span class="nf">reconstruct</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Doc.&quot;&quot;&quot;</span>
+        <span class="n">cell</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;cell&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">TensorProductElement</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">reconstruct</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sub_elements</span><span class="p">],</span> <span class="n">cell</span><span class="o">=</span><span class="n">cell</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TensorProductElement.variant"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.tensorproductelement.TensorProductElement.variant">[docs]</a>    <span class="k">def</span> <span class="nf">variant</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Doc.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">variant</span><span class="p">,</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="o">.</span><span class="n">variant</span><span class="p">()</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sub_elements</span><span class="p">}</span>
+            <span class="k">return</span> <span class="n">variant</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pretty-print.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;TensorProductElement(</span><span class="si">%s</span><span class="s2">, cell=</span><span class="si">%s</span><span class="s2">)&quot;</span> \
+            <span class="o">%</span> <span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_elements</span><span class="p">]),</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cell</span><span class="p">))</span>
+
+<div class="viewcode-block" id="TensorProductElement.shortstr"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.tensorproductelement.TensorProductElement.shortstr">[docs]</a>    <span class="k">def</span> <span class="nf">shortstr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Short pretty-print.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;TensorProductElement(</span><span class="si">%s</span><span class="s2">, cell=</span><span class="si">%s</span><span class="s2">)&quot;</span> \
+            <span class="o">%</span> <span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">e</span><span class="o">.</span><span class="n">shortstr</span><span class="p">()</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_elements</span><span class="p">]),</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cell</span><span class="p">))</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">embedded_superdegree</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Doc.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">degree</span><span class="p">())</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">embedded_subdegree</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Doc.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">degree</span><span class="p">())</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2014--2020, David A. Ham, Robert C. Kirby and others.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.1.2.
+    </div>
+  </body>
+</html>

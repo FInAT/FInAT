@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>finat.ufl.mixedelement &#8212; FInAT 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/fenics.css?v=9da67524" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=e031e9a9"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+<!--[if lte IE 6]>
+<link rel="stylesheet" href="../../../_static/ie6.css" type="text/css" media="screen" charset="utf-8" />
+<![endif]-->
+
+<link rel="stylesheet" href="../../../_static/featured.css">
+
+
+<link rel="shortcut icon" href="../../../_static/icon.ico" />
+
+
+  </head><body>
+<div class="wrapper">
+  <a href="../../../index.html"><img src="../../../_static/banner.png" width="900px" alt="FInAT Project Banner" /></a>
+  <div id="access">
+    <div class="menu">
+      <ul>
+          <li class="page_item"><a href="https://github.com/FInAT/finat" title="GitHub">GitHub</a></li>
+<!--          <li class="page_item"><a href="../../../documentation.html" title="Documentation for FInAT">Documentation</a></li>
+          <li class="page_item"><a href="../../../download.html" title="Obtain the FInAT code">Download</a></li>
+          <li class="page_item"><a href="../../../team.html" title="The guilty parties">Team</a></li>
+          <li class="page_item"><a href="../../../publications.html" title="Publications">Publications</a></li>
+          <li class="page_item"><a href="../../../funding.html" title="Our financial supporters">Funding</a></li>
+          <li class="page_item"><a href="../../../contact.html" title="Getting in touch">Contact</a></li>
+          <li class="page_item"><a href="http://buildbot-ocean.ese.ic.ac.uk:8080/builders/FInAT-trunk" title="Buildbot">Buildbot</a></li>-->
+      </ul>
+    </div><!-- .menu -->
+  </div><!-- #access -->
+</div><!-- #wrapper -->
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for finat.ufl.mixedelement</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;This module defines the UFL finite element classes.&quot;&quot;&quot;</span>
+<span class="c1"># Copyright (C) 2008-2016 Martin Sandve Alnæs</span>
+<span class="c1">#</span>
+<span class="c1"># This file was originally part of UFL (https://www.fenicsproject.org)</span>
+<span class="c1">#</span>
+<span class="c1"># SPDX-License-Identifier:    LGPL-3.0-or-later</span>
+<span class="c1">#</span>
+<span class="c1"># Modified by Kristian B. Oelgaard</span>
+<span class="c1"># Modified by Marie E. Rognes 2010, 2012</span>
+<span class="c1"># Modified by Anders Logg 2014</span>
+<span class="c1"># Modified by Massimiliano Leoni, 2016</span>
+<span class="c1"># Modified by Matthew Scroggs, 2023</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">ufl.cell</span> <span class="kn">import</span> <span class="n">as_cell</span>
+<span class="kn">from</span> <span class="nn">finat.ufl.finiteelement</span> <span class="kn">import</span> <span class="n">FiniteElement</span>
+<span class="kn">from</span> <span class="nn">finat.ufl.finiteelementbase</span> <span class="kn">import</span> <span class="n">FiniteElementBase</span>
+<span class="kn">from</span> <span class="nn">ufl.permutation</span> <span class="kn">import</span> <span class="n">compute_indices</span>
+<span class="kn">from</span> <span class="nn">ufl.pullback</span> <span class="kn">import</span> <span class="n">IdentityPullback</span><span class="p">,</span> <span class="n">MixedPullback</span><span class="p">,</span> <span class="n">SymmetricPullback</span>
+<span class="kn">from</span> <span class="nn">ufl.utils.indexflattening</span> <span class="kn">import</span> <span class="n">flatten_multiindex</span><span class="p">,</span> <span class="n">shape_to_strides</span><span class="p">,</span> <span class="n">unflatten_index</span>
+<span class="kn">from</span> <span class="nn">ufl.utils.sequences</span> <span class="kn">import</span> <span class="n">max_degree</span><span class="p">,</span> <span class="n">product</span>
+
+
+<div class="viewcode-block" id="MixedElement"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.mixedelement.MixedElement">[docs]</a><span class="k">class</span> <span class="nc">MixedElement</span><span class="p">(</span><span class="n">FiniteElementBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A finite element composed of a nested hierarchy of mixed or simple elements.&quot;&quot;&quot;</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;_sub_elements&quot;</span><span class="p">,</span> <span class="s2">&quot;_cells&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">elements</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create mixed finite element from given list of elements.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="ow">is</span> <span class="n">MixedElement</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Not expecting keyword arguments to MixedElement constructor.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Un-nest arguments if we get a single argument with a list of elements</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">elements</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elements</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span>
+            <span class="n">elements</span> <span class="o">=</span> <span class="n">elements</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c1"># Interpret nested tuples as sub-mixedelements recursively</span>
+        <span class="n">elements</span> <span class="o">=</span> <span class="p">[</span><span class="n">MixedElement</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">))</span> <span class="k">else</span> <span class="n">e</span>
+                    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sub_elements</span> <span class="o">=</span> <span class="n">elements</span>
+
+        <span class="c1"># Pick the first cell, for now all should be equal</span>
+        <span class="n">cells</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">cell</span> <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">([</span><span class="kc">None</span><span class="p">])))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cells</span> <span class="o">=</span> <span class="n">cells</span>
+        <span class="k">if</span> <span class="n">cells</span><span class="p">:</span>
+            <span class="n">cell</span> <span class="o">=</span> <span class="n">cells</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="c1"># Require that all elements are defined on the same cell</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">c</span> <span class="o">==</span> <span class="n">cell</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cells</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Sub elements must live on the same cell.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cell</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Check that all elements use the same quadrature scheme TODO:</span>
+        <span class="c1"># We can allow the scheme not to be defined.</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">elements</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">quad_scheme</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">quad_scheme</span> <span class="o">=</span> <span class="n">elements</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">quadrature_scheme</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">quadrature_scheme</span><span class="p">()</span> <span class="o">==</span> <span class="n">quad_scheme</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Quadrature scheme mismatch for sub elements of mixed element.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Compute value sizes in global and reference configurations</span>
+        <span class="n">value_size_sum</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">product</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">value_shape</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_elements</span><span class="p">)</span>
+        <span class="n">reference_value_size_sum</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">product</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">reference_value_shape</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_elements</span><span class="p">)</span>
+
+        <span class="c1"># Default value shape: Treated simply as all subelement values</span>
+        <span class="c1"># unpacked in a vector.</span>
+        <span class="n">value_shape</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;value_shape&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">value_size_sum</span><span class="p">,))</span>
+
+        <span class="c1"># Default reference value shape: Treated simply as all</span>
+        <span class="c1"># subelement reference values unpacked in a vector.</span>
+        <span class="n">reference_value_shape</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;reference_value_shape&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">reference_value_size_sum</span><span class="p">,))</span>
+
+        <span class="c1"># Validate value_shape (deliberately not for subclasses</span>
+        <span class="c1"># VectorElement and TensorElement)</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="ow">is</span> <span class="n">MixedElement</span><span class="p">:</span>
+            <span class="c1"># This is not valid for tensor elements with symmetries,</span>
+            <span class="c1"># assume subclasses deal with their own validation</span>
+            <span class="k">if</span> <span class="n">product</span><span class="p">(</span><span class="n">value_shape</span><span class="p">)</span> <span class="o">!=</span> <span class="n">value_size_sum</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Provided value_shape doesn&#39;t match the &quot;</span>
+                                 <span class="s2">&quot;total value size of all subelements.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Initialize element data</span>
+        <span class="n">degrees</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="o">.</span><span class="n">degree</span><span class="p">()</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_elements</span><span class="p">}</span> <span class="o">-</span> <span class="p">{</span><span class="kc">None</span><span class="p">}</span>
+        <span class="n">degree</span> <span class="o">=</span> <span class="n">max_degree</span><span class="p">(</span><span class="n">degrees</span><span class="p">)</span> <span class="k">if</span> <span class="n">degrees</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">FiniteElementBase</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Mixed&quot;</span><span class="p">,</span> <span class="n">cell</span><span class="p">,</span> <span class="n">degree</span><span class="p">,</span> <span class="n">quad_scheme</span><span class="p">,</span>
+                                   <span class="n">value_shape</span><span class="p">,</span> <span class="n">reference_value_shape</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Doc.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;MixedElement(&quot;</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_elements</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_is_linear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Doc.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">_is_linear</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_elements</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MixedElement.reconstruct_from_elements"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.mixedelement.MixedElement.reconstruct_from_elements">[docs]</a>    <span class="k">def</span> <span class="nf">reconstruct_from_elements</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">elements</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reconstruct a mixed element from new subelements.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">a</span> <span class="o">==</span> <span class="n">b</span> <span class="k">for</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_elements</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="n">MixedElement</span><span class="p">(</span><span class="o">*</span><span class="n">elements</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MixedElement.symmetry"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.mixedelement.MixedElement.symmetry">[docs]</a>    <span class="k">def</span> <span class="nf">symmetry</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Return the symmetry dict, which is a mapping :math:`c_0 \\to c_1`.</span>
+
+<span class="sd">        meaning that component :math:`c_0` is represented by component</span>
+<span class="sd">        :math:`c_1`.</span>
+<span class="sd">        A component is a tuple of one or more ints.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Build symmetry map from symmetries of subelements</span>
+        <span class="n">sm</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c1"># Base index of the current subelement into mixed value</span>
+        <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_elements</span><span class="p">:</span>
+            <span class="n">sh</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">value_shape</span>
+            <span class="n">st</span> <span class="o">=</span> <span class="n">shape_to_strides</span><span class="p">(</span><span class="n">sh</span><span class="p">)</span>
+            <span class="c1"># Map symmetries of subelement into index space of this</span>
+            <span class="c1"># element</span>
+            <span class="k">for</span> <span class="n">c0</span><span class="p">,</span> <span class="n">c1</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">symmetry</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">j0</span> <span class="o">=</span> <span class="n">flatten_multiindex</span><span class="p">(</span><span class="n">c0</span><span class="p">,</span> <span class="n">st</span><span class="p">)</span> <span class="o">+</span> <span class="n">j</span>
+                <span class="n">j1</span> <span class="o">=</span> <span class="n">flatten_multiindex</span><span class="p">(</span><span class="n">c1</span><span class="p">,</span> <span class="n">st</span><span class="p">)</span> <span class="o">+</span> <span class="n">j</span>
+                <span class="n">sm</span><span class="p">[(</span><span class="n">j0</span><span class="p">,)]</span> <span class="o">=</span> <span class="p">(</span><span class="n">j1</span><span class="p">,)</span>
+            <span class="c1"># Update base index for next element</span>
+            <span class="n">j</span> <span class="o">+=</span> <span class="n">product</span><span class="p">(</span><span class="n">sh</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">j</span> <span class="o">!=</span> <span class="n">product</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value_shape</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Size mismatch in symmetry algorithm.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sm</span> <span class="ow">or</span> <span class="p">{}</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">sobolev_space</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Doc.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">sobolev_space</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_elements</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MixedElement.mapping"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.mixedelement.MixedElement.mapping">[docs]</a>    <span class="k">def</span> <span class="nf">mapping</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Doc.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">mapping</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;identity&quot;</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_elements</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s2">&quot;identity&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;undefined&quot;</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">num_sub_elements</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return number of sub elements.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sub_elements</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">sub_elements</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return list of sub elements.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_elements</span>
+
+<div class="viewcode-block" id="MixedElement.extract_subelement_component"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.mixedelement.MixedElement.extract_subelement_component">[docs]</a>    <span class="k">def</span> <span class="nf">extract_subelement_component</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Extract direct subelement index and subelement relative.</span>
+
+<span class="sd">        component index for a given component index.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="p">(</span><span class="n">i</span><span class="p">,)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_component</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+        <span class="c1"># Select between indexing modes</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value_shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># Indexing into a long vector of flattened subelement</span>
+            <span class="c1"># shapes</span>
+            <span class="n">j</span><span class="p">,</span> <span class="o">=</span> <span class="n">i</span>
+
+            <span class="c1"># Find subelement for this index</span>
+            <span class="k">for</span> <span class="n">sub_element_index</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sub_elements</span><span class="p">):</span>
+                <span class="n">sh</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">value_shape</span>
+                <span class="n">si</span> <span class="o">=</span> <span class="n">product</span><span class="p">(</span><span class="n">sh</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">si</span><span class="p">:</span>
+                    <span class="k">break</span>
+                <span class="n">j</span> <span class="o">-=</span> <span class="n">si</span>
+            <span class="k">if</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Moved past last value component!&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Convert index into a shape tuple</span>
+            <span class="n">st</span> <span class="o">=</span> <span class="n">shape_to_strides</span><span class="p">(</span><span class="n">sh</span><span class="p">)</span>
+            <span class="n">component</span> <span class="o">=</span> <span class="n">unflatten_index</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">st</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Indexing into a multidimensional tensor where subelement</span>
+            <span class="c1"># index is first axis</span>
+            <span class="n">sub_element_index</span> <span class="o">=</span> <span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">sub_element_index</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sub_elements</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Illegal component index (dimension </span><span class="si">{</span><span class="n">sub_element_index</span><span class="si">}</span><span class="s2">).&quot;</span><span class="p">)</span>
+            <span class="n">component</span> <span class="o">=</span> <span class="n">i</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">sub_element_index</span><span class="p">,</span> <span class="n">component</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MixedElement.extract_component"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.mixedelement.MixedElement.extract_component">[docs]</a>    <span class="k">def</span> <span class="nf">extract_component</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Recursively extract component index relative to a (simple) element.</span>
+
+<span class="sd">        and that element for given value component index.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sub_element_index</span><span class="p">,</span> <span class="n">component</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract_subelement_component</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_elements</span><span class="p">[</span><span class="n">sub_element_index</span><span class="p">]</span><span class="o">.</span><span class="n">extract_component</span><span class="p">(</span><span class="n">component</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MixedElement.extract_subelement_reference_component"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.mixedelement.MixedElement.extract_subelement_reference_component">[docs]</a>    <span class="k">def</span> <span class="nf">extract_subelement_reference_component</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Extract direct subelement index and subelement relative.</span>
+
+<span class="sd">        reference_component index for a given reference_component index.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="p">(</span><span class="n">i</span><span class="p">,)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_reference_component</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+        <span class="c1"># Select between indexing modes</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reference_value_shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="c1"># Indexing into a long vector of flattened subelement shapes</span>
+        <span class="n">j</span><span class="p">,</span> <span class="o">=</span> <span class="n">i</span>
+
+        <span class="c1"># Find subelement for this index</span>
+        <span class="k">for</span> <span class="n">sub_element_index</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sub_elements</span><span class="p">):</span>
+            <span class="n">sh</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">reference_value_shape</span>
+            <span class="n">si</span> <span class="o">=</span> <span class="n">product</span><span class="p">(</span><span class="n">sh</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">si</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="n">j</span> <span class="o">-=</span> <span class="n">si</span>
+        <span class="k">if</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Moved past last value reference_component!&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Convert index into a shape tuple</span>
+        <span class="n">st</span> <span class="o">=</span> <span class="n">shape_to_strides</span><span class="p">(</span><span class="n">sh</span><span class="p">)</span>
+        <span class="n">reference_component</span> <span class="o">=</span> <span class="n">unflatten_index</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">st</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">sub_element_index</span><span class="p">,</span> <span class="n">reference_component</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MixedElement.extract_reference_component"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.mixedelement.MixedElement.extract_reference_component">[docs]</a>    <span class="k">def</span> <span class="nf">extract_reference_component</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Recursively extract reference_component index relative to a (simple) element.</span>
+
+<span class="sd">        and that element for given value reference_component index.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sub_element_index</span><span class="p">,</span> <span class="n">reference_component</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract_subelement_reference_component</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_elements</span><span class="p">[</span><span class="n">sub_element_index</span><span class="p">]</span><span class="o">.</span><span class="n">extract_reference_component</span><span class="p">(</span><span class="n">reference_component</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MixedElement.is_cellwise_constant"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.mixedelement.MixedElement.is_cellwise_constant">[docs]</a>    <span class="k">def</span> <span class="nf">is_cellwise_constant</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return whether the basis functions of this element is spatially constant over each cell.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">component</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">is_cellwise_constant</span><span class="p">()</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sub_elements</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">i</span><span class="p">,</span> <span class="n">e</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract_component</span><span class="p">(</span><span class="n">component</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">e</span><span class="o">.</span><span class="n">is_cellwise_constant</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="MixedElement.degree"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.mixedelement.MixedElement.degree">[docs]</a>    <span class="k">def</span> <span class="nf">degree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return polynomial degree of finite element.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">component</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_degree</span>  <span class="c1"># from FiniteElementBase, computed as max of subelements in __init__</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">i</span><span class="p">,</span> <span class="n">e</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract_component</span><span class="p">(</span><span class="n">component</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">e</span><span class="o">.</span><span class="n">degree</span><span class="p">()</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">embedded_subdegree</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return embedded subdegree.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_degree</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_degree</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">embedded_subdegree</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sub_elements</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">embedded_superdegree</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return embedded superdegree.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_degree</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_degree</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">embedded_superdegree</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sub_elements</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MixedElement.reconstruct"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.mixedelement.MixedElement.reconstruct">[docs]</a>    <span class="k">def</span> <span class="nf">reconstruct</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Doc.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">MixedElement</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">reconstruct</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sub_elements</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="MixedElement.variant"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.mixedelement.MixedElement.variant">[docs]</a>    <span class="k">def</span> <span class="nf">variant</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Doc.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">variant</span><span class="p">,</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="o">.</span><span class="n">variant</span><span class="p">()</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sub_elements</span><span class="p">}</span>
+            <span class="k">return</span> <span class="n">variant</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format as string for pretty printing.&quot;&quot;&quot;</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">element</span><span class="p">)</span> <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_elements</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;&lt;Mixed element: (&quot;</span> <span class="o">+</span> <span class="n">tmp</span> <span class="o">+</span> <span class="s2">&quot;)&gt;&quot;</span>
+
+<div class="viewcode-block" id="MixedElement.shortstr"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.mixedelement.MixedElement.shortstr">[docs]</a>    <span class="k">def</span> <span class="nf">shortstr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format as string for pretty printing.&quot;&quot;&quot;</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">shortstr</span><span class="p">()</span> <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_elements</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;Mixed&lt;&quot;</span> <span class="o">+</span> <span class="n">tmp</span> <span class="o">+</span> <span class="s2">&quot;&gt;&quot;</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">pullback</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the pull back.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sub_elements</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">pullback</span><span class="p">,</span> <span class="n">IdentityPullback</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">MixedPullback</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">IdentityPullback</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="VectorElement"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.mixedelement.VectorElement">[docs]</a><span class="k">class</span> <span class="nc">VectorElement</span><span class="p">(</span><span class="n">MixedElement</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A special case of a mixed finite element where all elements are equal.&quot;&quot;&quot;</span>
+
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;_repr&quot;</span><span class="p">,</span> <span class="s2">&quot;_mapping&quot;</span><span class="p">,</span> <span class="s2">&quot;_sub_element&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">family</span><span class="p">,</span> <span class="n">cell</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">degree</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">form_degree</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">quad_scheme</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">variant</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create vector element (repeated mixed element).&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">family</span><span class="p">,</span> <span class="n">FiniteElementBase</span><span class="p">):</span>
+            <span class="n">sub_element</span> <span class="o">=</span> <span class="n">family</span>
+            <span class="n">cell</span> <span class="o">=</span> <span class="n">sub_element</span><span class="o">.</span><span class="n">cell</span>
+            <span class="n">variant</span> <span class="o">=</span> <span class="n">sub_element</span><span class="o">.</span><span class="n">variant</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">cell</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">cell</span> <span class="o">=</span> <span class="n">as_cell</span><span class="p">(</span><span class="n">cell</span><span class="p">)</span>
+            <span class="c1"># Create sub element</span>
+            <span class="n">sub_element</span> <span class="o">=</span> <span class="n">FiniteElement</span><span class="p">(</span><span class="n">family</span><span class="p">,</span> <span class="n">cell</span><span class="p">,</span> <span class="n">degree</span><span class="p">,</span>
+                                        <span class="n">form_degree</span><span class="o">=</span><span class="n">form_degree</span><span class="p">,</span>
+                                        <span class="n">quad_scheme</span><span class="o">=</span><span class="n">quad_scheme</span><span class="p">,</span>
+                                        <span class="n">variant</span><span class="o">=</span><span class="n">variant</span><span class="p">)</span>
+
+        <span class="c1"># Set default size if not specified</span>
+        <span class="k">if</span> <span class="n">dim</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">cell</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot infer vector dimension without a cell.&quot;</span><span class="p">)</span>
+            <span class="n">dim</span> <span class="o">=</span> <span class="n">cell</span><span class="o">.</span><span class="n">geometric_dimension</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mapping</span> <span class="o">=</span> <span class="n">sub_element</span><span class="o">.</span><span class="n">mapping</span><span class="p">()</span>
+        <span class="c1"># Create list of sub elements for mixed element constructor</span>
+        <span class="n">sub_elements</span> <span class="o">=</span> <span class="p">[</span><span class="n">sub_element</span><span class="p">]</span> <span class="o">*</span> <span class="n">dim</span>
+
+        <span class="c1"># Compute value shapes</span>
+        <span class="n">value_shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">dim</span><span class="p">,)</span> <span class="o">+</span> <span class="n">sub_element</span><span class="o">.</span><span class="n">value_shape</span>
+        <span class="n">reference_value_shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">dim</span><span class="p">,)</span> <span class="o">+</span> <span class="n">sub_element</span><span class="o">.</span><span class="n">reference_value_shape</span>
+
+        <span class="c1"># Initialize element data</span>
+        <span class="n">MixedElement</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sub_elements</span><span class="p">,</span> <span class="n">value_shape</span><span class="o">=</span><span class="n">value_shape</span><span class="p">,</span>
+                              <span class="n">reference_value_shape</span><span class="o">=</span><span class="n">reference_value_shape</span><span class="p">)</span>
+
+        <span class="n">FiniteElementBase</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sub_element</span><span class="o">.</span><span class="n">family</span><span class="p">(),</span> <span class="n">sub_element</span><span class="o">.</span><span class="n">cell</span><span class="p">,</span> <span class="n">sub_element</span><span class="o">.</span><span class="n">degree</span><span class="p">(),</span>
+                                   <span class="n">sub_element</span><span class="o">.</span><span class="n">quadrature_scheme</span><span class="p">(),</span> <span class="n">value_shape</span><span class="p">,</span> <span class="n">reference_value_shape</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sub_element</span> <span class="o">=</span> <span class="n">sub_element</span>
+
+        <span class="k">if</span> <span class="n">variant</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">var_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">var_str</span> <span class="o">=</span> <span class="s2">&quot;, variant=&#39;&quot;</span> <span class="o">+</span> <span class="n">variant</span> <span class="o">+</span> <span class="s2">&quot;&#39;&quot;</span>
+
+        <span class="c1"># Cache repr string</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_repr</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;VectorElement(</span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="n">sub_element</span><span class="p">)</span><span class="si">}</span><span class="s2">, dim=</span><span class="si">{</span><span class="n">dim</span><span class="si">}{</span><span class="n">var_str</span><span class="si">}</span><span class="s2">)&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Doc.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_repr</span>
+
+<div class="viewcode-block" id="VectorElement.reconstruct"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.mixedelement.VectorElement.reconstruct">[docs]</a>    <span class="k">def</span> <span class="nf">reconstruct</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Doc.&quot;&quot;&quot;</span>
+        <span class="n">sub_element</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_element</span><span class="o">.</span><span class="n">reconstruct</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">VectorElement</span><span class="p">(</span><span class="n">sub_element</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sub_elements</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="VectorElement.variant"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.mixedelement.VectorElement.variant">[docs]</a>    <span class="k">def</span> <span class="nf">variant</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the variant used to initialise the element.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_element</span><span class="o">.</span><span class="n">variant</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="VectorElement.mapping"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.mixedelement.VectorElement.mapping">[docs]</a>    <span class="k">def</span> <span class="nf">mapping</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Doc.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mapping</span></div>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format as string for pretty printing.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="s2">&quot;&lt;vector element with </span><span class="si">%d</span><span class="s2"> components of </span><span class="si">%s</span><span class="s2">&gt;&quot;</span> <span class="o">%</span>
+                <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sub_elements</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_element</span><span class="p">))</span>
+
+<div class="viewcode-block" id="VectorElement.shortstr"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.mixedelement.VectorElement.shortstr">[docs]</a>    <span class="k">def</span> <span class="nf">shortstr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format as string for pretty printing.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;Vector&lt;</span><span class="si">%d</span><span class="s2"> x </span><span class="si">%s</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sub_elements</span><span class="p">),</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">_sub_element</span><span class="o">.</span><span class="n">shortstr</span><span class="p">())</span></div></div>
+
+
+<div class="viewcode-block" id="TensorElement"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.mixedelement.TensorElement">[docs]</a><span class="k">class</span> <span class="nc">TensorElement</span><span class="p">(</span><span class="n">MixedElement</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A special case of a mixed finite element where all elements are equal.&quot;&quot;&quot;</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;_sub_element&quot;</span><span class="p">,</span> <span class="s2">&quot;_shape&quot;</span><span class="p">,</span> <span class="s2">&quot;_symmetry&quot;</span><span class="p">,</span>
+                 <span class="s2">&quot;_sub_element_mapping&quot;</span><span class="p">,</span>
+                 <span class="s2">&quot;_flattened_sub_element_mapping&quot;</span><span class="p">,</span>
+                 <span class="s2">&quot;_mapping&quot;</span><span class="p">,</span> <span class="s2">&quot;_repr&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">family</span><span class="p">,</span> <span class="n">cell</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">degree</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">symmetry</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">quad_scheme</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">variant</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create tensor element (repeated mixed element with optional symmetries).&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">family</span><span class="p">,</span> <span class="n">FiniteElementBase</span><span class="p">):</span>
+            <span class="n">sub_element</span> <span class="o">=</span> <span class="n">family</span>
+            <span class="n">cell</span> <span class="o">=</span> <span class="n">sub_element</span><span class="o">.</span><span class="n">cell</span>
+            <span class="n">variant</span> <span class="o">=</span> <span class="n">sub_element</span><span class="o">.</span><span class="n">variant</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">cell</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">cell</span> <span class="o">=</span> <span class="n">as_cell</span><span class="p">(</span><span class="n">cell</span><span class="p">)</span>
+            <span class="c1"># Create scalar sub element</span>
+            <span class="n">sub_element</span> <span class="o">=</span> <span class="n">FiniteElement</span><span class="p">(</span><span class="n">family</span><span class="p">,</span> <span class="n">cell</span><span class="p">,</span> <span class="n">degree</span><span class="p">,</span> <span class="n">quad_scheme</span><span class="o">=</span><span class="n">quad_scheme</span><span class="p">,</span>
+                                        <span class="n">variant</span><span class="o">=</span><span class="n">variant</span><span class="p">)</span>
+
+        <span class="c1"># Set default shape if not specified</span>
+        <span class="k">if</span> <span class="n">shape</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">cell</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot infer tensor shape without a cell.&quot;</span><span class="p">)</span>
+            <span class="n">dim</span> <span class="o">=</span> <span class="n">cell</span><span class="o">.</span><span class="n">geometric_dimension</span><span class="p">()</span>
+            <span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">symmetry</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">symmetry</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">elif</span> <span class="n">symmetry</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="c1"># Construct default symmetry dict for matrix elements</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot set automatic symmetry for non-square tensor.&quot;</span><span class="p">)</span>
+            <span class="n">symmetry</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(((</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">),</span> <span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="n">j</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">symmetry</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Expecting symmetry to be None (unset), True, or dict.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Validate indices in symmetry dict</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">symmetry</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">j</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Non-matching length of symmetry index tuples.&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">i</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">j</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">i</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">shape</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="ow">and</span> <span class="n">j</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">shape</span><span class="p">[</span><span class="n">k</span><span class="p">]):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Symmetry dimensions out of bounds.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Compute all index combinations for given shape</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="n">compute_indices</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="c1"># Compute mapping from indices to sub element number,</span>
+        <span class="c1"># accounting for symmetry</span>
+        <span class="n">sub_elements</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">sub_element_mapping</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">symmetry</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">sub_element_mapping</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sub_elements</span><span class="p">)</span>
+            <span class="n">sub_elements</span> <span class="o">+=</span> <span class="p">[</span><span class="n">sub_element</span><span class="p">]</span>
+
+        <span class="c1"># Update mapping for symmetry</span>
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">symmetry</span><span class="p">:</span>
+                <span class="n">sub_element_mapping</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">sub_element_mapping</span><span class="p">[</span><span class="n">symmetry</span><span class="p">[</span><span class="n">index</span><span class="p">]]</span>
+        <span class="n">flattened_sub_element_mapping</span> <span class="o">=</span> <span class="p">[</span><span class="n">sub_element_mapping</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span>
+                                         <span class="n">index</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">indices</span><span class="p">)]</span>
+
+        <span class="c1"># Compute value shape</span>
+        <span class="n">value_shape</span> <span class="o">=</span> <span class="n">shape</span>
+
+        <span class="c1"># Compute reference value shape based on symmetries</span>
+        <span class="k">if</span> <span class="n">symmetry</span><span class="p">:</span>
+            <span class="n">reference_value_shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">product</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">symmetry</span><span class="p">),)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_mapping</span> <span class="o">=</span> <span class="s2">&quot;symmetries&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">reference_value_shape</span> <span class="o">=</span> <span class="n">shape</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_mapping</span> <span class="o">=</span> <span class="n">sub_element</span><span class="o">.</span><span class="n">mapping</span><span class="p">()</span>
+
+        <span class="n">value_shape</span> <span class="o">=</span> <span class="n">value_shape</span> <span class="o">+</span> <span class="n">sub_element</span><span class="o">.</span><span class="n">value_shape</span>
+        <span class="n">reference_value_shape</span> <span class="o">=</span> <span class="n">reference_value_shape</span> <span class="o">+</span> <span class="n">sub_element</span><span class="o">.</span><span class="n">reference_value_shape</span>
+        <span class="c1"># Initialize element data</span>
+        <span class="n">MixedElement</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sub_elements</span><span class="p">,</span> <span class="n">value_shape</span><span class="o">=</span><span class="n">value_shape</span><span class="p">,</span>
+                              <span class="n">reference_value_shape</span><span class="o">=</span><span class="n">reference_value_shape</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_family</span> <span class="o">=</span> <span class="n">sub_element</span><span class="o">.</span><span class="n">family</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_degree</span> <span class="o">=</span> <span class="n">sub_element</span><span class="o">.</span><span class="n">degree</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sub_element</span> <span class="o">=</span> <span class="n">sub_element</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_shape</span> <span class="o">=</span> <span class="n">shape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_symmetry</span> <span class="o">=</span> <span class="n">symmetry</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sub_element_mapping</span> <span class="o">=</span> <span class="n">sub_element_mapping</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_flattened_sub_element_mapping</span> <span class="o">=</span> <span class="n">flattened_sub_element_mapping</span>
+
+        <span class="k">if</span> <span class="n">variant</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">var_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">var_str</span> <span class="o">=</span> <span class="s2">&quot;, variant=&#39;&quot;</span> <span class="o">+</span> <span class="n">variant</span> <span class="o">+</span> <span class="s2">&quot;&#39;&quot;</span>
+
+        <span class="c1"># Cache repr string</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_repr</span> <span class="o">=</span> <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;TensorElement(</span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="n">sub_element</span><span class="p">)</span><span class="si">}</span><span class="s2">, shape=</span><span class="si">{</span><span class="n">shape</span><span class="si">}</span><span class="s2">, &quot;</span>
+                      <span class="sa">f</span><span class="s2">&quot;symmetry=</span><span class="si">{</span><span class="n">symmetry</span><span class="si">}{</span><span class="n">var_str</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">pullback</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get pull back.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_symmetry</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">sub_element_value_shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sub_elements</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value_shape</span>
+            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sub_elements</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">value_shape</span> <span class="o">!=</span> <span class="n">sub_element_value_shape</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Sub-elements must all have the same value size&quot;</span><span class="p">)</span>
+            <span class="n">symmetry</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">ndindex</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value_shape</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value_shape</span><span class="p">)</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">sub_element_value_shape</span><span class="p">)]):</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_symmetry</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_symmetry</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">in</span> <span class="n">symmetry</span><span class="p">:</span>
+                    <span class="n">symmetry</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">symmetry</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_symmetry</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">symmetry</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">n</span>
+                    <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">return</span> <span class="n">SymmetricPullback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symmetry</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">pullback</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Doc.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_repr</span>
+
+<div class="viewcode-block" id="TensorElement.variant"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.mixedelement.TensorElement.variant">[docs]</a>    <span class="k">def</span> <span class="nf">variant</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the variant used to initialise the element.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_element</span><span class="o">.</span><span class="n">variant</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="TensorElement.mapping"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.mixedelement.TensorElement.mapping">[docs]</a>    <span class="k">def</span> <span class="nf">mapping</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Doc.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mapping</span></div>
+
+<div class="viewcode-block" id="TensorElement.flattened_sub_element_mapping"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.mixedelement.TensorElement.flattened_sub_element_mapping">[docs]</a>    <span class="k">def</span> <span class="nf">flattened_sub_element_mapping</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Doc.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flattened_sub_element_mapping</span></div>
+
+<div class="viewcode-block" id="TensorElement.extract_subelement_component"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.mixedelement.TensorElement.extract_subelement_component">[docs]</a>    <span class="k">def</span> <span class="nf">extract_subelement_component</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Extract direct subelement index and subelement relative.</span>
+
+<span class="sd">        component index for a given component index.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="p">(</span><span class="n">i</span><span class="p">,)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_component</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+        <span class="n">i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">symmetry</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+        <span class="n">l</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_shape</span><span class="p">)</span>  <span class="c1"># noqa: E741</span>
+        <span class="n">ii</span> <span class="o">=</span> <span class="n">i</span><span class="p">[:</span><span class="n">l</span><span class="p">]</span>
+        <span class="n">jj</span> <span class="o">=</span> <span class="n">i</span><span class="p">[</span><span class="n">l</span><span class="p">:]</span>
+        <span class="k">if</span> <span class="n">ii</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_element_mapping</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Illegal component index </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_element_mapping</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">jj</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TensorElement.symmetry"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.mixedelement.TensorElement.symmetry">[docs]</a>    <span class="k">def</span> <span class="nf">symmetry</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Return the symmetry dict, which is a mapping :math:`c_0 \\to c_1`.</span>
+
+<span class="sd">        meaning that component :math:`c_0` is represented by component</span>
+<span class="sd">        :math:`c_1`.</span>
+<span class="sd">        A component is a tuple of one or more ints.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_symmetry</span></div>
+
+<div class="viewcode-block" id="TensorElement.reconstruct"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.mixedelement.TensorElement.reconstruct">[docs]</a>    <span class="k">def</span> <span class="nf">reconstruct</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Doc.&quot;&quot;&quot;</span>
+        <span class="n">sub_element</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_element</span><span class="o">.</span><span class="n">reconstruct</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">TensorElement</span><span class="p">(</span><span class="n">sub_element</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_shape</span><span class="p">,</span> <span class="n">symmetry</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_symmetry</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format as string for pretty printing.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_symmetry</span><span class="p">:</span>
+            <span class="n">tmp</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> -&gt; </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_symmetry</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+            <span class="n">sym</span> <span class="o">=</span> <span class="s2">&quot; with symmetries (</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="n">tmp</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sym</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="s2">&quot;&lt;tensor element with shape </span><span class="si">%s</span><span class="s2"> of </span><span class="si">%s%s</span><span class="s2">&gt;&quot;</span> <span class="o">%</span>
+                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value_shape</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_element</span><span class="p">,</span> <span class="n">sym</span><span class="p">))</span>
+
+<div class="viewcode-block" id="TensorElement.shortstr"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.mixedelement.TensorElement.shortstr">[docs]</a>    <span class="k">def</span> <span class="nf">shortstr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format as string for pretty printing.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_symmetry</span><span class="p">:</span>
+            <span class="n">tmp</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> -&gt; </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_symmetry</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+            <span class="n">sym</span> <span class="o">=</span> <span class="s2">&quot; with symmetries (</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="n">tmp</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sym</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;Tensor&lt;</span><span class="si">%s</span><span class="s2"> x </span><span class="si">%s%s</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value_shape</span><span class="p">,</span>
+                                      <span class="bp">self</span><span class="o">.</span><span class="n">_sub_element</span><span class="o">.</span><span class="n">shortstr</span><span class="p">(),</span> <span class="n">sym</span><span class="p">)</span></div></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2014--2020, David A. Ham, Robert C. Kirby and others.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.1.2.
+    </div>
+  </body>
+</html>

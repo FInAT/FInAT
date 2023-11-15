@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>finat.ufl.restrictedelement &#8212; FInAT 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/fenics.css?v=9da67524" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=e031e9a9"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+<!--[if lte IE 6]>
+<link rel="stylesheet" href="../../../_static/ie6.css" type="text/css" media="screen" charset="utf-8" />
+<![endif]-->
+
+<link rel="stylesheet" href="../../../_static/featured.css">
+
+
+<link rel="shortcut icon" href="../../../_static/icon.ico" />
+
+
+  </head><body>
+<div class="wrapper">
+  <a href="../../../index.html"><img src="../../../_static/banner.png" width="900px" alt="FInAT Project Banner" /></a>
+  <div id="access">
+    <div class="menu">
+      <ul>
+          <li class="page_item"><a href="https://github.com/FInAT/finat" title="GitHub">GitHub</a></li>
+<!--          <li class="page_item"><a href="../../../documentation.html" title="Documentation for FInAT">Documentation</a></li>
+          <li class="page_item"><a href="../../../download.html" title="Obtain the FInAT code">Download</a></li>
+          <li class="page_item"><a href="../../../team.html" title="The guilty parties">Team</a></li>
+          <li class="page_item"><a href="../../../publications.html" title="Publications">Publications</a></li>
+          <li class="page_item"><a href="../../../funding.html" title="Our financial supporters">Funding</a></li>
+          <li class="page_item"><a href="../../../contact.html" title="Getting in touch">Contact</a></li>
+          <li class="page_item"><a href="http://buildbot-ocean.ese.ic.ac.uk:8080/builders/FInAT-trunk" title="Buildbot">Buildbot</a></li>-->
+      </ul>
+    </div><!-- .menu -->
+  </div><!-- #access -->
+</div><!-- #wrapper -->
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for finat.ufl.restrictedelement</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;This module defines the UFL finite element classes.&quot;&quot;&quot;</span>
+
+<span class="c1"># Copyright (C) 2008-2016 Martin Sandve Alnæs</span>
+<span class="c1">#</span>
+<span class="c1"># This file was originally part of UFL (https://www.fenicsproject.org)</span>
+<span class="c1">#</span>
+<span class="c1"># SPDX-License-Identifier:    LGPL-3.0-or-later</span>
+<span class="c1">#</span>
+<span class="c1"># Modified by Kristian B. Oelgaard</span>
+<span class="c1"># Modified by Marie E. Rognes 2010, 2012</span>
+<span class="c1"># Modified by Massimiliano Leoni, 2016</span>
+<span class="c1"># Modified by Matthew Scroggs, 2023</span>
+
+<span class="kn">from</span> <span class="nn">finat.ufl.finiteelementbase</span> <span class="kn">import</span> <span class="n">FiniteElementBase</span>
+<span class="kn">from</span> <span class="nn">ufl.sobolevspace</span> <span class="kn">import</span> <span class="n">L2</span>
+
+<span class="n">valid_restriction_domains</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;interior&quot;</span><span class="p">,</span> <span class="s2">&quot;facet&quot;</span><span class="p">,</span> <span class="s2">&quot;face&quot;</span><span class="p">,</span> <span class="s2">&quot;edge&quot;</span><span class="p">,</span> <span class="s2">&quot;vertex&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="RestrictedElement"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.restrictedelement.RestrictedElement">[docs]</a><span class="k">class</span> <span class="nc">RestrictedElement</span><span class="p">(</span><span class="n">FiniteElementBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Represents the restriction of a finite element to a type of cell entity.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">restriction_domain</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Doc.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">FiniteElementBase</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Expecting a finite element instance.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">restriction_domain</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">valid_restriction_domains</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Expecting one of the strings: </span><span class="si">{</span><span class="n">valid_restriction_domains</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">FiniteElementBase</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;RestrictedElement&quot;</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">cell</span><span class="p">,</span>
+                                   <span class="n">element</span><span class="o">.</span><span class="n">degree</span><span class="p">(),</span>
+                                   <span class="n">element</span><span class="o">.</span><span class="n">quadrature_scheme</span><span class="p">(),</span>
+                                   <span class="n">element</span><span class="o">.</span><span class="n">value_shape</span><span class="p">,</span>
+                                   <span class="n">element</span><span class="o">.</span><span class="n">reference_value_shape</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_element</span> <span class="o">=</span> <span class="n">element</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_restriction_domain</span> <span class="o">=</span> <span class="n">restriction_domain</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Doc.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;RestrictedElement(</span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_element</span><span class="p">)</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_restriction_domain</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">sobolev_space</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Doc.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_restriction_domain</span> <span class="o">==</span> <span class="s2">&quot;interior&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">L2</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_element</span><span class="o">.</span><span class="n">sobolev_space</span>
+
+<div class="viewcode-block" id="RestrictedElement.is_cellwise_constant"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.restrictedelement.RestrictedElement.is_cellwise_constant">[docs]</a>    <span class="k">def</span> <span class="nf">is_cellwise_constant</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return whether the basis functions of this element is spatially constant over each cell.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_element</span><span class="o">.</span><span class="n">is_cellwise_constant</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">_is_linear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Doc.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_element</span><span class="o">.</span><span class="n">_is_linear</span><span class="p">()</span>
+
+<div class="viewcode-block" id="RestrictedElement.sub_element"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.restrictedelement.RestrictedElement.sub_element">[docs]</a>    <span class="k">def</span> <span class="nf">sub_element</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the element which is restricted.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_element</span></div>
+
+<div class="viewcode-block" id="RestrictedElement.mapping"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.restrictedelement.RestrictedElement.mapping">[docs]</a>    <span class="k">def</span> <span class="nf">mapping</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Doc.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_element</span><span class="o">.</span><span class="n">mapping</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="RestrictedElement.restriction_domain"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.restrictedelement.RestrictedElement.restriction_domain">[docs]</a>    <span class="k">def</span> <span class="nf">restriction_domain</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the domain onto which the element is restricted.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_restriction_domain</span></div>
+
+<div class="viewcode-block" id="RestrictedElement.reconstruct"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.restrictedelement.RestrictedElement.reconstruct">[docs]</a>    <span class="k">def</span> <span class="nf">reconstruct</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Doc.&quot;&quot;&quot;</span>
+        <span class="n">element</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_element</span><span class="o">.</span><span class="n">reconstruct</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">RestrictedElement</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_restriction_domain</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format as string for pretty printing.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;&lt;</span><span class="si">%s</span><span class="s2">&gt;|_{</span><span class="si">%s</span><span class="s2">}&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_element</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_restriction_domain</span><span class="p">)</span>
+
+<div class="viewcode-block" id="RestrictedElement.shortstr"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.restrictedelement.RestrictedElement.shortstr">[docs]</a>    <span class="k">def</span> <span class="nf">shortstr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format as string for pretty printing.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;&lt;</span><span class="si">%s</span><span class="s2">&gt;|_{</span><span class="si">%s</span><span class="s2">}&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_element</span><span class="o">.</span><span class="n">shortstr</span><span class="p">(),</span>
+                               <span class="bp">self</span><span class="o">.</span><span class="n">_restriction_domain</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RestrictedElement.symmetry"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.restrictedelement.RestrictedElement.symmetry">[docs]</a>    <span class="k">def</span> <span class="nf">symmetry</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Return the symmetry dict, which is a mapping :math:`c_0 \\to c_1`.</span>
+
+<span class="sd">        meaning that component :math:`c_0` is represented by component</span>
+<span class="sd">        :math:`c_1`.  A component is a tuple of one or more ints.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_element</span><span class="o">.</span><span class="n">symmetry</span><span class="p">()</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">num_sub_elements</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return number of sub elements.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_element</span><span class="o">.</span><span class="n">num_sub_elements</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">sub_elements</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return list of sub elements.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_element</span><span class="o">.</span><span class="n">sub_elements</span>
+
+<div class="viewcode-block" id="RestrictedElement.num_restricted_sub_elements"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.restrictedelement.RestrictedElement.num_restricted_sub_elements">[docs]</a>    <span class="k">def</span> <span class="nf">num_restricted_sub_elements</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return number of restricted sub elements.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mi">1</span></div>
+
+<div class="viewcode-block" id="RestrictedElement.restricted_sub_elements"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.restrictedelement.RestrictedElement.restricted_sub_elements">[docs]</a>    <span class="k">def</span> <span class="nf">restricted_sub_elements</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return list of restricted sub elements.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_element</span><span class="p">,)</span></div>
+
+<div class="viewcode-block" id="RestrictedElement.variant"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.restrictedelement.RestrictedElement.variant">[docs]</a>    <span class="k">def</span> <span class="nf">variant</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Doc.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_element</span><span class="o">.</span><span class="n">variant</span><span class="p">()</span></div></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2014--2020, David A. Ham, Robert C. Kirby and others.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.1.2.
+    </div>
+  </body>
+</html>
