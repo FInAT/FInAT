@@ -52,3 +52,13 @@ class BrokenElement(FiniteElementBase):
     def shortstr(self):
         """Format as string for pretty printing."""
         return f"BrokenElement({repr(self._element)})"
+
+    @property
+    def embedded_subdegree(self):
+        """Return embedded subdegree."""
+        return self._element.embedded_subdegree
+
+    @property
+    def embedded_superdegree(self):
+        """Return embedded superdegree."""
+        return self._element.embedded_superdegree

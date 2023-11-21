@@ -143,6 +143,16 @@ class HCurlElement(FiniteElementBase):
         """Format as string for pretty printing."""
         return f"HCurlElement({self._element.shortstr()})"
 
+    @property
+    def embedded_subdegree(self):
+        """Return embedded subdegree."""
+        return self._element.embedded_subdegree
+
+    @property
+    def embedded_superdegree(self):
+        """Return embedded superdegree."""
+        return self._element.embedded_superdegree
+
 
 class WithMapping(FiniteElementBase):
     """Specify an alternative mapping for the wrappee.
