@@ -191,7 +191,17 @@
 
 <div class="viewcode-block" id="HCurlElement.shortstr"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.hdivcurl.HCurlElement.shortstr">[docs]</a>    <span class="k">def</span> <span class="nf">shortstr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Format as string for pretty printing.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;HCurlElement(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_element</span><span class="o">.</span><span class="n">shortstr</span><span class="p">()</span><span class="si">}</span><span class="s2">)&quot;</span></div></div>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;HCurlElement(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_element</span><span class="o">.</span><span class="n">shortstr</span><span class="p">()</span><span class="si">}</span><span class="s2">)&quot;</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">embedded_subdegree</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return embedded subdegree.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_element</span><span class="o">.</span><span class="n">embedded_subdegree</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">embedded_superdegree</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return embedded superdegree.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_element</span><span class="o">.</span><span class="n">embedded_superdegree</span></div>
 
 
 <div class="viewcode-block" id="WithMapping"><a class="viewcode-back" href="../../../finat.ufl.html#finat.ufl.hdivcurl.WithMapping">[docs]</a><span class="k">class</span> <span class="nc">WithMapping</span><span class="p">(</span><span class="n">FiniteElementBase</span><span class="p">):</span>
