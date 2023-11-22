@@ -1,6 +1,5 @@
 import numpy as np
 import sympy as sp
-from functools import singledispatch
 
 import FIAT
 
@@ -175,7 +174,6 @@ class FiatElement(FiniteElementBase):
         esd = self.cell.construct_subelement(entity_dim).get_spatial_dimension()
         assert isinstance(refcoords, gem.Node) and refcoords.shape == (esd,)
 
-        # Dispatch on FIAT element class
         return point_evaluation(self._element, order, refcoords, (entity_dim, entity_i))
 
     @cached_property
@@ -267,13 +265,7 @@ class FiatElement(FiniteElementBase):
             return result
 
 
-@singledispatch
 def point_evaluation(fiat_element, order, refcoords, entity):
-    raise AssertionError("FIAT element expected!")
-
-
-@point_evaluation.register(FIAT.FiniteElement)
-def point_evaluation_generic(fiat_element, order, refcoords, entity):
     # Coordinates on the reference entity (SymPy)
     esd, = refcoords.shape
     Xi = sp.symbols('X Y Z')[:esd]
