@@ -234,3 +234,19 @@ class FiniteElement(FiniteElementBase):
                 None,
                 self.quadrature_scheme(),
                 self.variant())
+
+    @property
+    def embedded_subdegree(self):
+        """Return embedded subdegree."""
+        if isinstance(self.degree(), int):
+            return self.degree()
+        else:
+            return min(self.degree())
+
+    @property
+    def embedded_superdegree(self):
+        """Return embedded superdegree."""
+        if isinstance(self.degree(), int):
+            return self.degree()
+        else:
+            return max(self.degree())
