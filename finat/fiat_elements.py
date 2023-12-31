@@ -346,8 +346,8 @@ class CrouzeixRaviart(ScalarFiatElement):
 
 
 class Lagrange(ScalarFiatElement):
-    def __init__(self, cell, degree):
-        super(Lagrange, self).__init__(FIAT.Lagrange(cell, degree))
+    def __init__(self, cell, degree, variant=None):
+        super(Lagrange, self).__init__(FIAT.Lagrange(cell, degree, variant=variant))
 
 
 class KongMulderVeldhuizen(ScalarFiatElement):
