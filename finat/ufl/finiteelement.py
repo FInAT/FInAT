@@ -15,6 +15,19 @@ from ufl.cell import TensorProductCell, as_cell
 from finat.ufl.elementlist import canonical_element_description, simplices
 from finat.ufl.finiteelementbase import FiniteElementBase
 from ufl.utils.formatting import istr
+from ufl.pullback import AbstractPullback
+
+
+class MorleyPullback(AbstractPullback):
+    def __repr__(self) -> str:
+        return "MorleyPullBack()"
+
+    def physical_value_shape(self, element, domain) -> typing.Tuple[int, ...]:
+        return (domain.geometric_dimension(), )
+
+    @property
+    def is_identity(self) -> bool:
+        return False
 
 
 class FiniteElement(FiniteElementBase):
@@ -189,6 +202,13 @@ class FiniteElement(FiniteElementBase):
     def mapping(self):
         """Return the mapping type for this element ."""
         return self._mapping
+
+    @property
+    def pullback(self):
+        """Return the pullback for this element."""
+        if self.family == "Morley":
+            return MorleyPullback()
+        return super().pullback
 
     @property
     def sobolev_space(self):
