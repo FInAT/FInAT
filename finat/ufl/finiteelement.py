@@ -22,7 +22,7 @@ class MorleyPullback(AbstractPullback):
     def __repr__(self) -> str:
         return "MorleyPullBack()"
 
-    def physical_value_shape(self, element, domain) -> typing.Tuple[int, ...]:
+    def physical_value_shape(self, element, domain):
         return (domain.geometric_dimension(), )
 
     @property
