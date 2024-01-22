@@ -305,7 +305,8 @@ class VectorElement(MixedElement):
         if dim is None:
             if cell is None:
                 raise ValueError("Cannot infer vector dimension without a cell.")
-            dim = cell.geometric_dimension()
+            # TODO: is this the right default
+            dim = cell.topological_dimension()
 
         self._mapping = sub_element.mapping()
         # Create list of sub elements for mixed element constructor
@@ -384,7 +385,8 @@ class TensorElement(MixedElement):
         if shape is None:
             if cell is None:
                 raise ValueError("Cannot infer tensor shape without a cell.")
-            dim = cell.geometric_dimension()
+            # TODO: is this the right default
+            dim = cell.topological_dimension()
             shape = (dim, dim)
 
         if symmetry is None:

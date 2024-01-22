@@ -88,7 +88,8 @@ class TensorProductElement(FiniteElementBase):
             # continuity information parametrized by spatial index
             orders = []
             for e in elements:
-                e_dim = e.cell.geometric_dimension()
+                # TODO: is this the right value for e_dim
+                e_dim = e.cell.topological_dimension()
                 e_order = (e.sobolev_space._order,) * e_dim
                 orders.extend(e_order)
             return DirectionalSobolevSpace(orders)
