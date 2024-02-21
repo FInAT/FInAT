@@ -23,16 +23,18 @@ def make_quadrature(ref_el, degree, scheme="default"):
     For low-degree polynomials on triangles (<=25) and tetrahedra (<=15), this
     uses hard-coded rules from Xiao and Gimbutas, otherwise it falls back to a
     collapsed Gauss scheme on simplices.  On tensor-product cells, it is a
-    tensor-product quadrature rule of the subcells.
+    tensor-product Gauss-Lobatto quadrature rule of the subcells.
 
     :arg ref_el: The FIAT cell to create the quadrature for.
     :arg degree: The degree of polynomial that the rule should
-        integrate exactly.
+        integrate exactly. For under-integrated schemes this is
+        the degree of the integrand of the lumped mass matrix,
+        degree=2*k gives a diagonal mass matrix for CG_k.
     :arg scheme: The quadrature scheme. Choose from
         'default' FIAT chooses the scheme as described above,
         'canonical' for the collapsed Gauss scheme,
-        'GLL' for under-integrated spectral collocation mass-lumping (tensor-product cells only),
-        'KMV' for under-integrated Kong-Mulder-Veldhuizen mass-lumping (simplex cells only).
+        'GLL' for under-integrated Gauss-Lobatto-Legendre mass-lumping (tensor-product cells only),
+        'KMV' for under-integrated Kong-Mulder-Veldhuizen mass-lumping (simplices only).
     """
     if ref_el.get_shape() == TENSORPRODUCT:
         try:
