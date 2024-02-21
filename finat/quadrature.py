@@ -26,15 +26,13 @@ def make_quadrature(ref_el, degree, scheme="default"):
     tensor-product Gauss-Lobatto quadrature rule of the subcells.
 
     :arg ref_el: The FIAT cell to create the quadrature for.
-    :arg degree: The degree of polynomial that the rule should
-        integrate exactly. For under-integrated schemes this is
-        the degree of the integrand of the lumped mass matrix,
-        degree=2*k gives a diagonal mass matrix for CG_k.
+    :arg degree: The degree of polynomial that the rule should integrate exactly.
     :arg scheme: The quadrature scheme. Choose from
         'default' FIAT chooses the scheme as described above,
         'canonical' for the collapsed Gauss scheme,
-        'GLL' for under-integrated Gauss-Lobatto-Legendre mass-lumping (tensor-product cells only),
-        'KMV' for under-integrated Kong-Mulder-Veldhuizen mass-lumping (simplices only).
+        'GLL' for the Gauss-Lobatto-Legendre scheme (tensor-product cells only),
+            degree=2*k-1 gives a diagonal mass matrix for CG_k,
+        'KMV' for the Kong-Mulder-Veldhuizen scheme (simplices only).
     """
     if ref_el.get_shape() == TENSORPRODUCT:
         try:
@@ -54,10 +52,8 @@ def make_quadrature(ref_el, degree, scheme="default"):
         raise ValueError("Need positive degree, not %d" % degree)
 
     if ref_el.get_shape() == LINE:
-        num_points = (degree + 1 + 1) // 2  # exact integration (GL only)
         if scheme.lower() == "gll":
-            # GLL under-integration / Mass-lumping
-            num_points = max(num_points, 2)  # GLL rule only valid for >= 2 points
+            num_points = 1 + (degree + 1 + 1) // 2
             make_fiat_rule = GaussLobattoLegendreQuadratureLineRule
             make_point_set = GaussLobattoLegendrePointSet
         elif scheme.lower() in ["gl", "default", "canonical"]:
@@ -65,6 +61,7 @@ def make_quadrature(ref_el, degree, scheme="default"):
             # symbolically label it as such, we wish not to risk attaching
             # the wrong label in case FIAT changes.  So we explicitly ask
             # for Gauss-Legendre line quadature.
+            num_points = (degree + 1 + 1) // 2
             make_fiat_rule = GaussLegendreQuadratureLineRule
             make_point_set = GaussLegendrePointSet
         else:
