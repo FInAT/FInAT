@@ -20,19 +20,19 @@ def make_quadrature(ref_el, degree, scheme="default"):
     Generate quadrature rule for given reference element
     that will integrate an polynomial of order 'degree' exactly.
 
-    For low-degree (<=6) polynomials on triangles and tetrahedra, this
-    uses hard-coded rules, otherwise it falls back to a collapsed
-    Gauss scheme on simplices.  On tensor-product cells, it is a
+    For low-degree polynomials on triangles (<=25) and tetrahedra (<=15), this
+    uses hard-coded rules from Xiao and Gimbutas, otherwise it falls back to a
+    collapsed Gauss scheme on simplices.  On tensor-product cells, it is a
     tensor-product quadrature rule of the subcells.
 
     :arg ref_el: The FIAT cell to create the quadrature for.
     :arg degree: The degree of polynomial that the rule should
         integrate exactly.
     :arg scheme: The quadrature scheme. Choose from
-        'default' FIAT chooses an optimal rule,
-        'canonical' for the Stroud conical product rule (simplex cells only),
-        'GLL' for spectral collocation mass-lumping (tensor-product cells only),
-        'KMV' for mass-lumping (simplex cells only).
+        'default' FIAT chooses the scheme as described above,
+        'canonical' for the collapsed Gauss scheme,
+        'GLL' for under-integrated spectral collocation mass-lumping (tensor-product cells only),
+        'KMV' for under-integrated Kong-Mulder-Veldhuizen mass-lumping (simplex cells only).
     """
     if ref_el.get_shape() == TENSORPRODUCT:
         try:
