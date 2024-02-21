@@ -31,7 +31,7 @@ def make_quadrature(ref_el, degree, scheme="default"):
         'default' FIAT chooses the scheme as described above,
         'canonical' for the collapsed Gauss scheme,
         'GLL' for the Gauss-Lobatto-Legendre scheme (tensor-product cells only),
-            degree=2*k-1 gives a diagonal mass matrix for CG_k,
+            for CG_k, degree=2*k gets the mass matrix exact, 2*k-1 lumps it,
         'KMV' for the Kong-Mulder-Veldhuizen scheme (simplices only).
     """
     if ref_el.get_shape() == TENSORPRODUCT:
