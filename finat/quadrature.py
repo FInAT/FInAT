@@ -7,10 +7,12 @@ import gem
 from gem.utils import cached_property
 
 from FIAT.reference_element import LINE, QUADRILATERAL, TENSORPRODUCT
-from FIAT.quadrature import GaussLegendreQuadratureLineRule
+from FIAT.quadrature import (GaussLegendreQuadratureLineRule,
+                             GaussLobattoLegendreQuadratureLineRule)
 from FIAT.quadrature_schemes import create_quadrature as fiat_scheme
 
-from finat.point_set import PointSet, GaussLegendrePointSet, TensorPointSet
+from finat.point_set import (GaussLegendrePointSet, GaussLobattoLegendrePointSet,
+                             PointSet, TensorPointSet)
 
 
 def make_quadrature(ref_el, degree, scheme="default"):
@@ -18,14 +20,19 @@ def make_quadrature(ref_el, degree, scheme="default"):
     Generate quadrature rule for given reference element
     that will integrate an polynomial of order 'degree' exactly.
 
-    For low-degree (<=6) polynomials on triangles and tetrahedra, this
-    uses hard-coded rules, otherwise it falls back to a collapsed
-    Gauss scheme on simplices.  On tensor-product cells, it is a
-    tensor-product quadrature rule of the subcells.
+    For low-degree polynomials on triangles (<=25) and tetrahedra (<=15), this
+    uses hard-coded rules from Xiao and Gimbutas, otherwise it falls back to a
+    collapsed Gauss scheme on simplices.  On tensor-product cells, it is a
+    tensor-product Gauss-Lobatto quadrature rule of the subcells.
 
     :arg ref_el: The FIAT cell to create the quadrature for.
-    :arg degree: The degree of polynomial that the rule should
-        integrate exactly.
+    :arg degree: The degree of polynomial that the rule should integrate exactly.
+    :arg scheme: The quadrature scheme. Choose from
+        'default' FIAT chooses the scheme as described above,
+        'canonical' for the collapsed Gauss scheme,
+        'GLL' for the Gauss-Lobatto-Legendre scheme (tensor-product cells only),
+            for CG_k, degree=2*k gets the mass matrix exact, 2*k-1 lumps it,
+        'KMV' for the Kong-Mulder-Veldhuizen scheme (simplices only).
     """
     if ref_el.get_shape() == TENSORPRODUCT:
         try:
@@ -45,13 +52,23 @@ def make_quadrature(ref_el, degree, scheme="default"):
         raise ValueError("Need positive degree, not %d" % degree)
 
     if ref_el.get_shape() == LINE:
-        # FIAT uses Gauss-Legendre line quadature, however, since we
-        # symbolically label it as such, we wish not to risk attaching
-        # the wrong label in case FIAT changes.  So we explicitly ask
-        # for Gauss-Legendre line quadature.
-        num_points = (degree + 1 + 1) // 2  # exact integration
-        fiat_rule = GaussLegendreQuadratureLineRule(ref_el, num_points)
-        point_set = GaussLegendrePointSet(fiat_rule.get_points())
+        if scheme.lower() == "gll":
+            num_points = 1 + (degree + 1 + 1) // 2
+            make_fiat_rule = GaussLobattoLegendreQuadratureLineRule
+            make_point_set = GaussLobattoLegendrePointSet
+        elif scheme.lower() in ["gl", "default", "canonical"]:
+            # FIAT uses Gauss-Legendre line quadature, however, since we
+            # symbolically label it as such, we wish not to risk attaching
+            # the wrong label in case FIAT changes.  So we explicitly ask
+            # for Gauss-Legendre line quadature.
+            num_points = (degree + 1 + 1) // 2
+            make_fiat_rule = GaussLegendreQuadratureLineRule
+            make_point_set = GaussLegendrePointSet
+        else:
+            raise ValueError(f"Invalid quadrature scheme {scheme}.")
+
+        fiat_rule = make_fiat_rule(ref_el, num_points)
+        point_set = make_point_set(fiat_rule.get_points())
         return QuadratureRule(point_set, fiat_rule.get_weights())
 
     fiat_rule = fiat_scheme(ref_el, degree, scheme)
