@@ -233,7 +233,10 @@ class FiatElement(FiniteElementBase):
             # significantly by building Q in a COO format rather than DOK (i.e.
             # storing coords and associated data in (nonzeros, entries) shaped
             # numpy arrays) to take advantage of numpy multiindexing
-            Qshape = tuple(s + 1 for s in map(max, *Q))
+            if len(Q) == 1:
+                Qshape = tuple(s + 1 for s in tuple(Q)[0])
+            else:
+                Qshape = tuple(s + 1 for s in map(max, *Q))
             Qdense = np.zeros(Qshape, dtype=np.float64)
             for idx, value in Q.items():
                 Qdense[idx] = value
@@ -346,8 +349,8 @@ class CrouzeixRaviart(ScalarFiatElement):
 
 
 class Lagrange(ScalarFiatElement):
-    def __init__(self, cell, degree):
-        super(Lagrange, self).__init__(FIAT.Lagrange(cell, degree))
+    def __init__(self, cell, degree, variant=None):
+        super(Lagrange, self).__init__(FIAT.Lagrange(cell, degree, variant=variant))
 
 
 class KongMulderVeldhuizen(ScalarFiatElement):
