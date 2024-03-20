@@ -17,6 +17,7 @@ from .mtw import MardalTaiWinther       # noqa: F401
 from .morley import Morley              # noqa: F401
 from .aw import ArnoldWinther           # noqa: F401
 from .aw import ArnoldWintherNC         # noqa: F401
+from .hz import HuZhang                 # noqa: F401
 from .trace import HDivTrace  # noqa: F401
 from .direct_serendipity import DirectSerendipity  # noqa: F401
 from .spectral import GaussLobattoLegendre, GaussLegendre, Legendre, IntegratedLegendre, FDMLagrange, FDMQuadrature, FDMDiscontinuousLagrange, FDMBrokenH1, FDMBrokenL2, FDMHermite  # noqa: F401
