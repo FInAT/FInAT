@@ -81,13 +81,11 @@ class HuZhang(PhysicallyMappedElement, FiatElement):
         # internal DOFs
         detJ = coordinate_mapping.detJ_at([1/3, 1/3])
         #V[21:24, 21:24] = W / detJ
-        ########## Can be done right later.
+        ########## Can be done right later. Putting this as a temporary thing, which presumably gives better conditioning than having diagonal 1s in this block.
         #V[9 + 6*(degree - 1):round(3*(degree + 2)*(degree + 1)/2), 9 + 6*(degree - 1):round(3*(degree + 2)*(degree + 1)/2)] = W / detJ
-        #for basisfn in range():
-        #    V[9 + 6*(degree - 1):round(3*(degree + 2)*(degree + 1)/2), 9 + 6*(degree - 1):round(3*(degree + 2)*(degree + 1)/2)] = W / detJ
-        #for hack in range(round(3*degree*(degree - 1)/2)):
-        #    V[9 + 6*(degree - 1) + hack, 9 + 6*(degree - 1) + hack] = 1.0
-        #V[9 + 6*(degree - 1):round(3*(degree + 2)*(degree + 1)/2), 9 + 6*(degree - 1):round(3*(degree + 2)*(degree + 1)/2)] = 
+        num_interior_dofs = round(3*degree*(degree - 1)/2)
+        for j in range(num_interior_dofs):
+            V[9 + 6*(degree - 1) + 3*j:9 + 6*(degree - 1) + 3*j + 3, 9 + 6*(degree - 1) + 3*j:9 + 6*(degree - 1) + 3*j + 3] = W / detJ
 
 #        # RESCALING FOR CONDITIONING
 #        h = coordinate_mapping.cell_size()
