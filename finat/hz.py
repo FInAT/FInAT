@@ -83,8 +83,9 @@ class HuZhang(PhysicallyMappedElement, FiatElement):
         #V[21:24, 21:24] = W / detJ
         ########## Can be done right later. Putting this as a temporary thing, which presumably gives better conditioning than having diagonal 1s in this block.
         #V[9 + 6*(degree - 1):round(3*(degree + 2)*(degree + 1)/2), 9 + 6*(degree - 1):round(3*(degree + 2)*(degree + 1)/2)] = W / detJ
-        num_interior_dofs = round(3*degree*(degree - 1)/2)
-        for j in range(num_interior_dofs):
+        num_interior_dof_triples = round(degree*(degree - 1)/2) # NOTE divided by 3 since the DOFs come in 3s below
+        for j in range(num_interior_dof_triples):
+            #print(j)
             V[9 + 6*(degree - 1) + 3*j:9 + 6*(degree - 1) + 3*j + 3, 9 + 6*(degree - 1) + 3*j:9 + 6*(degree - 1) + 3*j + 3] = W / detJ
 
 #        # RESCALING FOR CONDITIONING
