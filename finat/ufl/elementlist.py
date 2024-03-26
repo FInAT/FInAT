@@ -146,6 +146,8 @@ register_element("Nonconforming Arnold-Winther", "AWnc", 2, HDivDiv,
                  "double contravariant Piola", (2, 2), ("triangle", "tetrahedron"))
 register_element("Conforming Arnold-Winther", "AWc", 2, HDivDiv,
                  "double contravariant Piola", (3, None), ("triangle", "tetrahedron"))
+register_element("Hu-Zhang", "HZ", 2, HDivDiv,
+                 "double contravariant Piola", (3, 3), ("triangle"))
 # Spectral elements.
 register_element("Gauss-Legendre", "GL", 0, L2, "identity", (0, None),
                  ("interval",))
