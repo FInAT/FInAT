@@ -252,11 +252,10 @@ def compose_permutations(factors):
 
     .. code-block:: python3
 
-        import ufl
         import FIAT
         import finat
 
-        cell = FIAT.ufc_cell(ufl.interval)
+        cell = FIAT.ufc_cell("interval")
         elem = finat.DiscontinuousLagrange(cell, 1)
         elem = finat.TensorProductElement([elem, elem])
         print(elem.entity_permutations)
