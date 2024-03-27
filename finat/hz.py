@@ -6,13 +6,14 @@ from finat.fiat_elements import FiatElement
 from finat.physically_mapped import PhysicallyMappedElement, Citations
 
 def _edge_transform(T, coordinate_mapping):
-    degree = 3 # DELETE
-    Vsub = numpy.zeros((6*(degree - 1), 6*(degree - 1)), dtype = object)
+    #degree = p # Obtain this somehow
+    p = 3 # DELETE
+    Vsub = numpy.zeros((6*(p - 1), 6*(p - 1)), dtype = object)
 
     for multiindex in numpy.ndindex(Vsub.shape):
         Vsub[multiindex] = Literal(Vsub[multiindex])
 
-    for i in range(0, 6*(degree - 1), 2):
+    for i in range(0, 6*(p - 1), 2):
         Vsub[i, i] = Literal(1)
 
     # This bypasses the GEM wrapper.
@@ -31,7 +32,7 @@ def _edge_transform(T, coordinate_mapping):
 
         (alpha, beta) = Ghat_T @ JTJ @ that[e, :] / detJ
         # Stuff into the right rows and columns.
-        (idx1, idx2) = (2*(degree - 1)*e + 1, 2*(degree - 1)*e + 3)
+        (idx1, idx2) = (2*(p - 1)*e + 1, 2*(p - 1)*e + 3)
         Vsub[idx1, idx1 - 1] = Literal(-1) * alpha / beta
         Vsub[idx1, idx1] = Literal(1) / beta
         Vsub[idx2, idx2 - 1] = Literal(-1) * alpha / beta
@@ -62,7 +63,8 @@ class HuZhang(PhysicallyMappedElement, FiatElement):
         super(HuZhang, self).__init__(FIAT.HuZhang(cell, degree))
 
     def basis_transformation(self, coordinate_mapping):
-        degree = 3 # DELETE
+        #p = degree # Obtain this somehow
+        p = 3 # DELETE
         #V = numpy.zeros((space_dimension(self), space_dimension(self)), dtype = object)
         #V = numpy.zeros((30, 30), dtype = object)
         V = numpy.ones((30, 30), dtype = object)
@@ -76,17 +78,17 @@ class HuZhang(PhysicallyMappedElement, FiatElement):
         V[0:3, 0:3] = V[3:6, 3:6] = V[6:9, 6:9] = W
 
         #V[9:21, 9:21] = _edge_transform(self.cell, coordinate_mapping)
-        V[9:9 + 6*(degree - 1), 9:9 + 6*(degree - 1)] = _edge_transform(self.cell, coordinate_mapping)
+        V[9:9 + 6*(p - 1), 9:9 + 6*(p - 1)] = _edge_transform(self.cell, coordinate_mapping)
 
         # internal DOFs
         detJ = coordinate_mapping.detJ_at([1/3, 1/3])
         #V[21:24, 21:24] = W / detJ
         ########## Can be done right later. Putting this as a temporary thing, which presumably gives better conditioning than having diagonal 1s in this block.
-        #V[9 + 6*(degree - 1):round(3*(degree + 2)*(degree + 1)/2), 9 + 6*(degree - 1):round(3*(degree + 2)*(degree + 1)/2)] = W / detJ
-        num_interior_dof_triples = round(degree*(degree - 1)/2) # NOTE divided by 3 since the DOFs come in 3s below
+        #V[9 + 6*(p - 1):round(3*(p + 2)*(p + 1)/2), 9 + 6*(p - 1):round(3*(p + 2)*(p + 1)/2)] = W / detJ
+        num_interior_dof_triples = round(p*(p - 1)/2) # NOTE divided by 3 since the DOFs come in 3s below
         for j in range(num_interior_dof_triples):
             #print(j)
-            V[9 + 6*(degree - 1) + 3*j:9 + 6*(degree - 1) + 3*j + 3, 9 + 6*(degree - 1) + 3*j:9 + 6*(degree - 1) + 3*j + 3] = W / detJ
+            V[9 + 6*(p - 1) + 3*j:9 + 6*(p - 1) + 3*j + 3, 9 + 6*(p - 1) + 3*j:9 + 6*(p - 1) + 3*j + 3] = W / detJ
 
 #        # RESCALING FOR CONDITIONING
 #        h = coordinate_mapping.cell_size()
@@ -105,14 +107,14 @@ class HuZhang(PhysicallyMappedElement, FiatElement):
         return ListTensor(V.T)
 
     def entity_dofs(self):
-        degree = self.degree
+        p = self.degree
         return {0: {0: [0, 1, 2],
                     1: [3, 4, 5],
                     2: [6, 7, 8]},
-                1: {0: [9 + j for j in range(2*(degree - 1))],#[9, 10, 11, 12], 
-                    1: [9 + 2*(degree - 1) + j for j in range(2*(degree - 1))],#[13, 14, 15, 16], 
-                    2: [9 + 4*(degree - 1) + j for j in range(2*(degree - 1))]},#[17, 18, 19, 20]},
-                2: {0: [9 + 6*(degree - 1) + j for j in range(round(3*degree*(degree - 1)/2))]#[21, 22, 23]
+                1: {0: [9 + j for j in range(2*(p - 1))],#[9, 10, 11, 12], 
+                    1: [9 + 2*(p - 1) + j for j in range(2*(p - 1))],#[13, 14, 15, 16], 
+                    2: [9 + 4*(p - 1) + j for j in range(2*(p - 1))]},#[17, 18, 19, 20]},
+                2: {0: [9 + 6*(p - 1) + j for j in range(round(3*p*(p - 1)/2))]#[21, 22, 23]
                     }}
 
 #    # need to overload since we're cutting out some dofs from the FIAT element.
@@ -132,9 +134,9 @@ class HuZhang(PhysicallyMappedElement, FiatElement):
 
     @property
     def index_shape(self):
-        degree = self.degree
-        return (round(3*(degree + 2)*(degree + 1)/2),)
+        p = self.degree
+        return (round(3*(p + 2)*(p + 1)/2),)
 
     def space_dimension(self):
-        degree = self.degree
-        return round(3*(degree + 2)*(degree + 1)/2)
+        p = self.degree
+        return round(3*(p + 2)*(p + 1)/2)
