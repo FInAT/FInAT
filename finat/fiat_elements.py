@@ -362,8 +362,8 @@ class KongMulderVeldhuizen(ScalarFiatElement):
 
 
 class DiscontinuousLagrange(ScalarFiatElement):
-    def __init__(self, cell, degree):
-        super(DiscontinuousLagrange, self).__init__(FIAT.DiscontinuousLagrange(cell, degree))
+    def __init__(self, cell, degree, variant=None):
+        super(DiscontinuousLagrange, self).__init__(FIAT.DiscontinuousLagrange(cell, degree, variant=variant))
 
 
 class Real(DiscontinuousLagrange):
