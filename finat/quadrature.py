@@ -44,7 +44,7 @@ def make_quadrature(ref_el, degree, scheme="default"):
     if degree < 0:
         raise ValueError("Need positive degree, not %d" % degree)
 
-    if ref_el.get_shape() == LINE:
+    if ref_el.get_shape() == LINE and not ref_el.is_macrocell():
         # FIAT uses Gauss-Legendre line quadature, however, since we
         # symbolically label it as such, we wish not to risk attaching
         # the wrong label in case FIAT changes.  So we explicitly ask

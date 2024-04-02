@@ -54,6 +54,10 @@ class FiatElement(FiniteElementBase):
         return self._element.get_reference_element()
 
     @property
+    def complex(self):
+        return self._element.get_reference_complex()
+
+    @property
     def degree(self):
         # Requires FIAT.CiarletElement
         return self._element.degree()
@@ -120,7 +124,15 @@ class FiatElement(FiniteElementBase):
 
             exprs = []
             for table in table_roll:
-                if derivative < self.degree:
+                if derivative == self.degree and not self.complex.is_macrocell():
+                    # Make sure numerics satisfies theory
+                    assert np.allclose(table, table[0])
+                    exprs.append(gem.Literal(table[0]))
+                elif derivative > self.degree:
+                    # Make sure numerics satisfies theory
+                    assert np.allclose(table, 0.0)
+                    exprs.append(gem.Literal(np.zeros(self.index_shape)))
+                else:
                     point_indices = ps.indices
                     point_shape = tuple(index.extent for index in point_indices)
 
@@ -128,13 +140,6 @@ class FiatElement(FiniteElementBase):
                         gem.Literal(table.reshape(point_shape + index_shape)),
                         point_indices
                     ))
-                elif derivative == self.degree:
-                    # Make sure numerics satisfies theory
-                    exprs.append(gem.Literal(table[0]))
-                else:
-                    # Make sure numerics satisfies theory
-                    assert np.allclose(table, 0.0)
-                    exprs.append(gem.Literal(np.zeros(self.index_shape)))
             if self.value_shape:
                 # As above, this extent may be different from that
                 # advertised by the finat element.
