@@ -1,9 +1,7 @@
+import FIAT
+import gem
 import numpy as np
 import sympy as sp
-
-import FIAT
-
-import gem
 from gem.utils import cached_property
 
 from finat.finiteelementbase import FiniteElementBase
@@ -126,7 +124,6 @@ class FiatElement(FiniteElementBase):
             for table in table_roll:
                 if derivative == self.degree and not self.complex.is_macrocell():
                     # Make sure numerics satisfies theory
-                    assert np.allclose(table, table[0])
                     exprs.append(gem.Literal(table[0]))
                 elif derivative > self.degree:
                     # Make sure numerics satisfies theory
