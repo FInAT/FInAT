@@ -1,5 +1,4 @@
 from abc import ABCMeta, abstractproperty
-from collections.abc import Iterable
 from functools import reduce
 
 import gem
@@ -12,7 +11,7 @@ from gem.utils import cached_property
 from finat.point_set import GaussLegendrePointSet, PointSet, TensorPointSet
 
 
-def make_quadrature(ref_el, degree, dim=None, scheme="default"):
+def make_quadrature(ref_el, degree, scheme="default"):
     """
     Generate quadrature rule for given reference element
     that will integrate an polynomial of order 'degree' exactly.
@@ -22,26 +21,10 @@ def make_quadrature(ref_el, degree, dim=None, scheme="default"):
     Gauss scheme on simplices.  On tensor-product cells, it is a
     tensor-product quadrature rule of the subcells.
 
-    :arg ref_el: The FIAT cell or iterable thereof (to support macro elements)
-        to create the quadrature for.  This will only work if all the cells
-        are well-ordered under refinement.
+    :arg ref_el: The FIAT cell to create the quadrature for.
     :arg degree: The degree of polynomial that the rule should
         integrate exactly.
-    :kwarg dim: The dimension of facets over which to integrate.
-
-    :returns: A quadrature rule
     """
-    if isinstance(ref_el, Iterable):
-        print(ref_el)
-        max_cell = max(ref_el)
-        if all(max_cell >= b for b in ref_el):
-            ref_el = max_cell
-            print(f"Reference cell: {ref_el}")
-        else:
-            raise ValueError("Can't find a maximal complex")
-
-    print(f"Quadrature degree: {degree}")
-
     if ref_el.get_shape() == TENSORPRODUCT:
         try:
             degree = tuple(degree)
