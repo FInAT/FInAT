@@ -31,6 +31,10 @@ class EnrichedElement(FiniteElementBase):
         return result
 
     @cached_property
+    def complex(self):
+        return max(elem.complex for elem in self.elements)
+
+    @cached_property
     def degree(self):
         return tree_map(max, *[elem.degree for elem in self.elements])
 
