@@ -1,9 +1,8 @@
-from abc import ABCMeta, abstractproperty, abstractmethod
+from abc import ABCMeta, abstractmethod, abstractproperty
 from itertools import chain
 
-import numpy
-
 import gem
+import numpy
 from gem.interpreter import evaluate
 from gem.optimise import delta_elimination, sum_factorise, traverse_product
 from gem.utils import cached_property
@@ -16,6 +15,12 @@ class FiniteElementBase(metaclass=ABCMeta):
     @abstractproperty
     def cell(self):
         '''The reference cell on which the element is defined.'''
+
+    @property
+    def complex(self):
+        '''The reference cell complex over which bases are defined.
+           Can be different than self.cell in the case of macro elements.'''
+        return self.cell
 
     @abstractproperty
     def degree(self):
