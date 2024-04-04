@@ -20,7 +20,6 @@ class FiniteElementBase(metaclass=ABCMeta):
     def complex(self):
         '''The reference cell complex over which bases are defined.
            Can be different than self.cell in the case of macro elements.'''
-        return self.cell
 
     @abstractproperty
     def degree(self):
