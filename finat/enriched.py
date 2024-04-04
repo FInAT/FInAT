@@ -32,7 +32,8 @@ class EnrichedElement(FiniteElementBase):
 
     @cached_property
     def complex(self):
-        return max(elem.complex for elem in self.elements)
+        result, = set(elem.complex for elem in self.elements)
+        return result
 
     @cached_property
     def degree(self):
