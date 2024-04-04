@@ -30,6 +30,10 @@ class FlattenedDimensions(FiniteElementBase):
             raise NotImplementedError("Cannot guess cell for spatial dimension %s" % dim)
 
     @property
+    def complex(self):
+        return self.cell
+
+    @property
     def degree(self):
         unique_degree, = set(self.product.degree)
         return unique_degree
