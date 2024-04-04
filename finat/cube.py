@@ -1,6 +1,6 @@
 from __future__ import absolute_import, print_function, division
 
-from FIAT.reference_element import UFCHexahedron, UFCQuadrilateral
+from FIAT.reference_element import UFCHexahedron, UFCQuadrilateral, TensorProductCell
 from FIAT.reference_element import compute_unflattening_map, flatten_entities, flatten_permutations
 from FIAT.tensor_product import FlattenedDimensions as FIAT_FlattenedDimensions
 
@@ -28,6 +28,10 @@ class FlattenedDimensions(FiniteElementBase):
             return UFCHexahedron()
         else:
             raise NotImplementedError("Cannot guess cell for spatial dimension %s" % dim)
+
+    @property
+    def complex(self):
+        return self.product.complex
 
     @property
     def degree(self):
