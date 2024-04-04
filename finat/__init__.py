@@ -32,3 +32,4 @@ from .quadrature_element import QuadratureElement, make_quadrature_element  # no
 from .restricted import RestrictedElement          # noqa: F401
 from .runtime_tabulated import RuntimeTabulated  # noqa: F401
 from . import quadrature  # noqa: F401
+from . import cell_tools  # noqa: F401

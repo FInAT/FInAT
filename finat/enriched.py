@@ -1,12 +1,10 @@
 from functools import partial
-from operator import add, methodcaller
 from itertools import chain
-
-import numpy
+from operator import add, methodcaller
 
 import FIAT
-
 import gem
+import numpy
 from gem.utils import cached_property
 
 from finat.finiteelementbase import FiniteElementBase
@@ -32,7 +30,9 @@ class EnrichedElement(FiniteElementBase):
 
     @cached_property
     def complex(self):
-        result, = set(elem.complex for elem in self.elements)
+        result = FIAT.reference_element.max_complex(set(elem.complex for elem in self.elements))
+        if result is None:
+            raise NotImplementedError("Can't find max complex for these choices")
         return result
 
     @cached_property
