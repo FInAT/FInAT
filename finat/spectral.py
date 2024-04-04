@@ -67,8 +67,8 @@ class GaussLegendre(DiscontinuousLagrange):
 class Legendre(ScalarFiatElement):
     """DG element with Legendre polynomials."""
 
-    def __init__(self, cell, degree):
-        fiat_element = FIAT.Legendre(cell, degree)
+    def __init__(self, cell, degree, variant=None):
+        fiat_element = FIAT.Legendre(cell, degree, variant=variant)
         super(Legendre, self).__init__(fiat_element)
 
 
