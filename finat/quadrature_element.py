@@ -51,6 +51,10 @@ class QuadratureElement(FiniteElementBase):
         pass  # set at initialisation
 
     @property
+    def complex(self):
+        return self.cell
+
+    @property
     def degree(self):
         raise NotImplementedError("QuadratureElement does not represent a polynomial space.")
 
