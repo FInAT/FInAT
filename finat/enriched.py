@@ -30,10 +30,7 @@ class EnrichedElement(FiniteElementBase):
 
     @cached_property
     def complex(self):
-        result = FIAT.reference_element.max_complex(set(elem.complex for elem in self.elements))
-        if result is None:
-            raise NotImplementedError("Can't find max complex for these choices")
-        return result
+        return FIAT.reference_element.max_complex(set(elem.complex for elem in self.elements))
 
     @cached_property
     def degree(self):
