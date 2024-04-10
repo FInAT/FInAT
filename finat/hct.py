@@ -2,7 +2,7 @@ import numpy
 
 import FIAT
 
-from gem import Literal, ListTensor
+from gem import Literal, ListTensor, partial_indexed
 
 from finat.fiat_elements import ScalarFiatElement
 from finat.physically_mapped import PhysicallyMappedElement, Citations
@@ -21,6 +21,7 @@ class HsiehCloughTocher(PhysicallyMappedElement, ScalarFiatElement):
         J = coordinate_mapping.jacobian_at([1/3, 1/3])
 
         rns = coordinate_mapping.reference_normals()
+        pns = coordinate_mapping.physical_normals()
 
         pts = coordinate_mapping.physical_tangents()
 
@@ -28,8 +29,7 @@ class HsiehCloughTocher(PhysicallyMappedElement, ScalarFiatElement):
 
         d = self.cell.get_dimension()
         numbf = self.space_dimension()
-
-        V = numpy.eye(numbf, dtype=object)
+        V = numpy.zeros((numbf, numbf), dtype=object)
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
 
@@ -39,30 +39,31 @@ class HsiehCloughTocher(PhysicallyMappedElement, ScalarFiatElement):
             V[s, s] = Literal(1)
             for i in range(d):
                 for j in range(d):
-                    V[s+1+j, s+1+i] = J[j, i]
+                    V[s+1+i, s+1+j] = J[j, i]
 
         for e in range(3):
-            s = 3 * voffset + e
+            s = (d+1) * voffset + e
             v0id, v1id = [i * voffset for i in range(3) if i != e]
 
-            # nhat . J^{-T} . t
-            foo = (rns[e, 0]*(J[0, 0]*pts[e, 0] + J[1, 0]*pts[e, 1])
-                   + rns[e, 1]*(J[0, 1]*pts[e, 0] + J[1, 1]*pts[e, 1]))
+            t = partial_indexed(pts, (e, ))
+            n = partial_indexed(pns, (e, ))
+            nhat = partial_indexed(rns, (e, ))
 
-            # vertex points
-            V[v0id, s] = -1/21 * (foo / pel[e])
-            V[v1id, s] = 1/21 * (foo / pel[e])
+            Bn = nhat @ J.T
+            Bnn = Bn @ n
+            Bnt = (Bn @ t) / pel[e]
 
-            # vertex derivatives
-            for i in range(d):
-                V[v0id+1+i, s] = -1/42*foo*pts[e, i]
-                V[v1id+1+i, s] = V[v0id+1+i, s]
+            V[s, s] = Bnn
+            V[s, v0id] = Literal(-1) * Bnt
+            V[s, v1id] = Bnt
 
+        return ListTensor(V.T)
+
+        # TODO scaling
+        # Patch up conditioning
         h = coordinate_mapping.cell_size()
-
         for v in range(d+1):
             s = voffset * v
             for k in range(d):
-                V[s+1+k, :] /= h[v]
-
-        return ListTensor(V)
+                V[:, s+1+k] /= h[v]
+        return ListTensor(V.T)
