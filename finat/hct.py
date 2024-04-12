@@ -22,21 +22,19 @@ class HsiehCloughTocher(PhysicallyMappedElement, ScalarFiatElement):
 
         rns = coordinate_mapping.reference_normals()
         pns = coordinate_mapping.physical_normals()
-
         pts = coordinate_mapping.physical_tangents()
 
         pel = coordinate_mapping.physical_edge_lengths()
 
         d = self.cell.get_dimension()
         numbf = self.space_dimension()
-        V = numpy.zeros((numbf, numbf), dtype=object)
+        V = numpy.eye(numbf, dtype=object)
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
 
         voffset = d+1
         for v in range(d+1):
             s = voffset * v
-            V[s, s] = Literal(1)
             for i in range(d):
                 for j in range(d):
                     V[s+1+i, s+1+j] = J[j, i]
@@ -57,9 +55,6 @@ class HsiehCloughTocher(PhysicallyMappedElement, ScalarFiatElement):
             V[s, v0id] = Literal(-1) * Bnt
             V[s, v1id] = Bnt
 
-        return ListTensor(V.T)
-
-        # TODO scaling
         # Patch up conditioning
         h = coordinate_mapping.cell_size()
         for v in range(d+1):
