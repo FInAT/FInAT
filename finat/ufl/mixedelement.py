@@ -60,13 +60,8 @@ class MixedElement(FiniteElementBase):
             if not all(e.quadrature_scheme() == quad_scheme for e in elements):
                 raise ValueError("Quadrature scheme mismatch for sub elements of mixed element.")
 
-        # Compute value sizes in global and reference configurations
-        value_size_sum = sum(product(s.value_shape) for s in self._sub_elements)
+        # Compute value size
         reference_value_size_sum = sum(product(s.reference_value_shape) for s in self._sub_elements)
-
-        # Default value shape: Treated simply as all subelement values
-        # unpacked in a vector.
-        value_shape = kwargs.get('value_shape', (value_size_sum,))
 
         # Default reference value shape: Treated simply as all
         # subelement reference values unpacked in a vector.
@@ -85,7 +80,7 @@ class MixedElement(FiniteElementBase):
         degrees = {e.degree() for e in self._sub_elements} - {None}
         degree = max_degree(degrees) if degrees else None
         FiniteElementBase.__init__(self, "Mixed", cell, degree, quad_scheme,
-                                   value_shape, reference_value_shape)
+                                   reference_value_shape)
 
     def __repr__(self):
         """Doc."""
@@ -302,6 +297,10 @@ class VectorElement(MixedElement):
     def __init__(self, family, cell=None, degree=None, dim=None,
                  form_degree=None, quad_scheme=None, variant=None):
         """Create vector element (repeated mixed element)."""
+
+        if dim is None:
+            raise ValueError("Dimension must be supplied to VectorElement.")
+
         if isinstance(family, FiniteElementBase):
             sub_element = family
             cell = sub_element.cell
@@ -315,26 +314,19 @@ class VectorElement(MixedElement):
                                         quad_scheme=quad_scheme,
                                         variant=variant)
 
-        # Set default size if not specified
-        if dim is None:
-            if cell is None:
-                raise ValueError("Cannot infer vector dimension without a cell.")
-            dim = cell.geometric_dimension()
-
         self._mapping = sub_element.mapping()
         # Create list of sub elements for mixed element constructor
         sub_elements = [sub_element] * dim
-
-        # Compute value shapes
-        value_shape = (dim,) + sub_element.value_shape
+        
+        # Compute value shape
         reference_value_shape = (dim,) + sub_element.reference_value_shape
 
         # Initialize element data
-        MixedElement.__init__(self, sub_elements, value_shape=value_shape,
+        MixedElement.__init__(self, sub_elements,
                               reference_value_shape=reference_value_shape)
 
         FiniteElementBase.__init__(self, sub_element.family(), sub_element.cell, sub_element.degree(),
-                                   sub_element.quadrature_scheme(), value_shape, reference_value_shape)
+                                   sub_element.quadrature_scheme(), reference_value_shape)
 
         self._sub_element = sub_element
 
@@ -442,8 +434,6 @@ class TensorElement(MixedElement):
         flattened_sub_element_mapping = [sub_element_mapping[index] for i,
                                          index in enumerate(indices)]
 
-        # Compute value shape
-        value_shape = shape
 
         # Compute reference value shape based on symmetries
         if symmetry:
@@ -453,10 +443,9 @@ class TensorElement(MixedElement):
             reference_value_shape = shape
             self._mapping = sub_element.mapping()
 
-        value_shape = value_shape + sub_element.value_shape
         reference_value_shape = reference_value_shape + sub_element.reference_value_shape
         # Initialize element data
-        MixedElement.__init__(self, sub_elements, value_shape=value_shape,
+        MixedElement.__init__(self, sub_elements,
                               reference_value_shape=reference_value_shape)
         self._family = sub_element.family()
         self._degree = sub_element.degree()
@@ -550,7 +539,7 @@ class TensorElement(MixedElement):
         else:
             sym = ""
         return ("<tensor element with shape %s of %s%s>" %
-                (self.value_shape, self._sub_element, sym))
+                (self._shape, self._sub_element, sym))
 
     def shortstr(self):
         """Format as string for pretty printing."""
@@ -559,5 +548,5 @@ class TensorElement(MixedElement):
             sym = " with symmetries (%s)" % tmp
         else:
             sym = ""
-        return "Tensor<%s x %s%s>" % (self.value_shape,
+        return "Tensor<%s x %s%s>" % (self._shape,
                                       self._sub_element.shortstr(), sym)

@@ -22,17 +22,15 @@ from ufl.utils.sequences import product
 class FiniteElementBase(AbstractFiniteElement):
     """Base class for all finite elements."""
     __slots__ = ("_family", "_cell", "_degree", "_quad_scheme",
-                 "_value_shape", "_reference_value_shape")
+                 "_reference_value_shape")
 
     # TODO: Not all these should be in the base class! In particular
     # family, degree, and quad_scheme do not belong here.
-    def __init__(self, family, cell, degree, quad_scheme, value_shape,
+    def __init__(self, family, cell, degree, quad_scheme,
                  reference_value_shape):
         """Initialize basic finite element data."""
         if not (degree is None or isinstance(degree, (int, tuple))):
             raise ValueError("Invalid degree type.")
-        if not isinstance(value_shape, tuple):
-            raise ValueError("Invalid value_shape type.")
         if not isinstance(reference_value_shape, tuple):
             raise ValueError("Invalid reference_value_shape type.")
 
@@ -44,7 +42,6 @@ class FiniteElementBase(AbstractFiniteElement):
         self._family = family
         self._cell = cell
         self._degree = degree
-        self._value_shape = value_shape
         self._reference_value_shape = reference_value_shape
         self._quad_scheme = quad_scheme
 
@@ -124,19 +121,9 @@ class FiniteElementBase(AbstractFiniteElement):
         return self._is_globally_constant() or self.degree() == 0
 
     @property
-    def value_shape(self):
-        """Return the shape of the value space on the global domain."""
-        return self._value_shape
-
-    @property
     def reference_value_shape(self):
         """Return the shape of the value space on the reference cell."""
         return self._reference_value_shape
-
-    @property
-    def value_size(self):
-        """Return the integer product of the value shape."""
-        return product(self.value_shape)
 
     @property
     def reference_value_size(self):

@@ -401,14 +401,12 @@ def canonical_element_description(family, cell, order, form_degree):
     # Get domain dimensions
     if cell is not None:
         tdim = cell.topological_dimension()
-        gdim = cell.geometric_dimension()
         if isinstance(cell, Cell):
             cellname = cell.cellname()
         else:
             cellname = None
     else:
         tdim = None
-        gdim = None
         cellname = None
 
     # Catch general FEEC notation "P" and "S"
@@ -462,16 +460,10 @@ def canonical_element_description(family, cell, order, form_degree):
 
     if value_rank == 2:
         # Tensor valued fundamental elements in HEin have this shape
-        if gdim is None or tdim is None:
-            raise ValueError("Cannot infer shape of element without topological and geometric dimensions.")
         reference_value_shape = (tdim, tdim)
-        value_shape = (gdim, gdim)
     elif value_rank == 1:
         # Vector valued fundamental elements in HDiv and HCurl have a shape
-        if gdim is None or tdim is None:
-            raise ValueError("Cannot infer shape of element without topological and geometric dimensions.")
         reference_value_shape = (tdim,)
-        value_shape = (gdim,)
     elif value_rank == 0:
         # All other elements are scalar values
         reference_value_shape = ()
@@ -479,4 +471,4 @@ def canonical_element_description(family, cell, order, form_degree):
     else:
         raise ValueError(f"Invalid value rank {value_rank}.")
 
-    return family, short_name, order, value_shape, reference_value_shape, sobolev_space, mapping
+    return family, short_name, order, reference_value_shape, sobolev_space, mapping
