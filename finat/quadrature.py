@@ -89,6 +89,10 @@ class QuadratureRule(AbstractQuadratureRule):
     @cached_property
     def weight_expression(self):
         return gem.Indexed(gem.Literal(self.weights), self.point_set.indices)
+    
+    @property
+    def ufl_signature(self):
+        return type(self).__name__ + str(self._parameters)
 
 
 class TensorProductQuadratureRule(AbstractQuadratureRule):
