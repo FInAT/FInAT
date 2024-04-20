@@ -11,7 +11,7 @@ from .fiat_elements import HellanHerrmannJohnson, Regge  # noqa: F401
 from .fiat_elements import FacetBubble  # noqa: F401
 from .fiat_elements import KongMulderVeldhuizen  # noqa: F401
 from .argyris import Argyris            # noqa: F401
-from .hct import HsiehCloughTocher      # noqa: F401
+from .hct import HsiehCloughTocher, ReducedHsiehCloughTocher   # noqa: F401
 from .bell import Bell                  # noqa: F401
 from .hermite import Hermite            # noqa: F401
 from .mtw import MardalTaiWinther       # noqa: F401
