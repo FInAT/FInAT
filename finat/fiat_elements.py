@@ -323,6 +323,16 @@ class HellanHerrmannJohnson(FiatElement):  # symmetric matrix valued
         super(HellanHerrmannJohnson, self).__init__(FIAT.HellanHerrmannJohnson(cell, degree))
 
 
+class JohnsonMercier(FiatElement):  # symmetric matrix valued
+    def __init__(self, cell, degree):
+        super(JohnsonMercier, self).__init__(FIAT.JohnsonMercier(cell, degree))
+
+
+class ReducedJohnsonMercier(FiatElement):  # symmetric matrix valued
+    def __init__(self, cell, degree):
+        super(JohnsonMercier, self).__init__(FIAT.JohnsonMercier(cell, degree, reduced=True))
+
+
 class ScalarFiatElement(FiatElement):
     @property
     def value_shape(self):

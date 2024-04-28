@@ -115,7 +115,6 @@ class ReducedHsiehCloughTocher(PhysicallyMappedElement, ScalarFiatElement):
             V[s, v1id + 1] = t[0] * Bnn / Literal(40)
             V[s, v1id + 2] = t[1] * Bnn / Literal(40)
 
-
         # Patch up conditioning
         h = coordinate_mapping.cell_size()
         for v in range(d+1):

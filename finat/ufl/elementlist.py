@@ -112,7 +112,7 @@ register_element("Raviart-Thomas", "RT", 1, HDiv, "contravariant Piola",
 # Elements not in the periodic table
 register_element("Argyris", "ARG", 0, H2, "custom", (5, 5), ("triangle",))
 register_element("Hsieh-Clough-Tocher", "HCT", 0, H2, "custom", (3, 3), ("triangle",))
-register_element("Reduced-Hsieh-Clough-Tocher", "HCT-red", 0, H2, "custom", (3, 3), ("triangle",))
+register_element("Reduced Hsieh-Clough-Tocher", "HCT-red", 0, H2, "custom", (3, 3), ("triangle",))
 register_element("Bell", "BELL", 0, H2, "custom", (5, 5), ("triangle",))
 register_element("Brezzi-Douglas-Fortin-Marini", "BDFM", 1, HDiv,
                  "contravariant Piola", (1, None), simplices[1:])
@@ -142,6 +142,10 @@ register_element("Radau", "Rad", 0, L2, "identity", (0, None), ("interval",))
 register_element("Regge", "Regge", 2, HEin, "double covariant Piola",
                  (0, None), simplices[1:])
 register_element("HDiv Trace", "HDivT", 0, L2, "identity", (0, None), any_cell)
+register_element("Johnson-Mercier", "JM", 1, HDivDiv,
+                 "double contravariant Piola", (0, None), simplices)
+register_element("Reduced Johnson-Mercier", "JM-red", 1, HDivDiv,
+                 "double contravariant Piola", (0, None), simplices)
 register_element("Hellan-Herrmann-Johnson", "HHJ", 2, HDivDiv,
                  "double contravariant Piola", (0, None), ("triangle",))
 register_element("Nonconforming Arnold-Winther", "AWnc", 2, HDivDiv,
