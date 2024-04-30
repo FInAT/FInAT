@@ -78,7 +78,6 @@ class ReducedHsiehCloughTocher(PhysicallyMappedElement, ScalarFiatElement):
         J = coordinate_mapping.jacobian_at([1/3, 1/3])
 
         rns = coordinate_mapping.reference_normals()
-        rts = coordinate_mapping.normalized_reference_edge_tangents()
         pns = coordinate_mapping.physical_normals()
         pts = coordinate_mapping.physical_tangents()
 
