@@ -4,14 +4,16 @@ from gem import ListTensor, Literal, partial_indexed
 
 from finat.fiat_elements import ScalarFiatElement
 from finat.physically_mapped import Citations, PhysicallyMappedElement
+from copy import deepcopy
 
 
 class HsiehCloughTocher(PhysicallyMappedElement, ScalarFiatElement):
-    def __init__(self, cell, degree):
+    def __init__(self, cell, degree, avg=False):
         if degree != 3:
             raise ValueError("Degree must be 3 for HCT element")
         if Citations is not None:
             Citations().register("Clough1965")
+        self.avg = avg
         super().__init__(FIAT.HsiehCloughTocher(cell))
 
     def basis_transformation(self, coordinate_mapping):
@@ -19,14 +21,14 @@ class HsiehCloughTocher(PhysicallyMappedElement, ScalarFiatElement):
         J = coordinate_mapping.jacobian_at([1/3, 1/3])
 
         rns = coordinate_mapping.reference_normals()
-        pns = coordinate_mapping.physical_normals()
         pts = coordinate_mapping.physical_tangents()
+        pns = coordinate_mapping.physical_normals()
 
         pel = coordinate_mapping.physical_edge_lengths()
 
         d = self.cell.get_dimension()
-        numbf = self.space_dimension()
-        V = numpy.eye(numbf, dtype=object)
+        ndof = self.space_dimension()
+        V = numpy.eye(ndof, dtype=object)
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
 
@@ -41,14 +43,16 @@ class HsiehCloughTocher(PhysicallyMappedElement, ScalarFiatElement):
             s = (d+1) * voffset + e
             v0id, v1id = [i * voffset for i in range(3) if i != e]
 
+            nhat = partial_indexed(rns, (e, ))
             t = partial_indexed(pts, (e, ))
             n = partial_indexed(pns, (e, ))
-            nhat = partial_indexed(rns, (e, ))
 
-            Bn = nhat @ J.T / pel[e]
+            Bn = J @ nhat / pel[e]
             Bnn = Bn @ n
-            Bnt = (Bn @ t)
+            Bnt = Bn @ t
 
+            if self.avg:
+                Bnn = Bnn * pel[e]
             V[s, s] = Bnn
             V[s, v0id] = Literal(-1) * Bnt
             V[s, v1id] = Bnt
@@ -59,6 +63,7 @@ class HsiehCloughTocher(PhysicallyMappedElement, ScalarFiatElement):
             s = voffset * v
             for k in range(d):
                 V[:, s+1+k] /= h[v]
+
         for e in range(3):
             v0id, v1id = [i for i in range(3) if i != e]
             V[:, 9+e] *= 2 / (h[v0id] + h[v1id])
@@ -78,15 +83,16 @@ class ReducedHsiehCloughTocher(PhysicallyMappedElement, ScalarFiatElement):
         J = coordinate_mapping.jacobian_at([1/3, 1/3])
 
         rns = coordinate_mapping.reference_normals()
-        pns = coordinate_mapping.physical_normals()
         pts = coordinate_mapping.physical_tangents()
+        # pns = coordinate_mapping.physical_normals()
 
         pel = coordinate_mapping.physical_edge_lengths()
 
         d = self.cell.get_dimension()
-
+        numbf = self._element.space_dimension()
+        ndof = self.space_dimension()
         # rectangular to toss out the constraint dofs
-        V = numpy.eye(12, 12, dtype=object)
+        V = numpy.eye(numbf, ndof, dtype=object)
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
 
@@ -100,22 +106,23 @@ class ReducedHsiehCloughTocher(PhysicallyMappedElement, ScalarFiatElement):
         for e in range(3):
             s = (d+1) * voffset + e
             v0id, v1id = [i * voffset for i in range(3) if i != e]
-            t = partial_indexed(pts, (e, ))
-            n = partial_indexed(pns, (e, ))
+
             nhat = partial_indexed(rns, (e, ))
+            t = partial_indexed(pts, (e, ))
 
-            Bnn = n @ J @ nhat
-            Bnt = t @ J @ nhat
+            # n = partial_indexed(pns, (e, ))
+            # Bnn = (J @ nhat) @ n
+            # V[s, s] = Bnn
 
-            V[s, s] = Bnn
+            Bnt = (J @ nhat) @ t
+            V[s, v0id] = Literal(1/5) * Bnt / pel[e]
+            V[s, v1id] = Literal(-1) * V[s, v0id]
 
-            V[s, v0id] = Literal(0.2) * Bnt / pel[e]
-            V[s, v0id + 1] = t[0] * Literal(0.1) * Bnt
-            V[s, v0id + 2] = t[1] * Literal(0.1) * Bnt
-
-            V[s, v1id] = Literal(-0.2) * Bnt / pel[e]
-            V[s, v1id + 1] = t[0] * Literal(0.1) * Bnt
-            V[s, v1id + 2] = t[1] * Literal(0.1) * Bnt
+            R = Literal(1/10) * Bnt * t
+            V[s, v0id + 1] = R[0]
+            V[s, v0id + 2] = R[1]
+            V[s, v1id + 1] = R[0]
+            V[s, v1id + 2] = R[1]
 
         # Patch up conditioning
         h = coordinate_mapping.cell_size()
@@ -123,14 +130,14 @@ class ReducedHsiehCloughTocher(PhysicallyMappedElement, ScalarFiatElement):
             s = voffset * v
             for k in range(d):
                 V[:, s+1+k] /= h[v]
-        return ListTensor(V.T[:9])
+        return ListTensor(V.T)
 
     def entity_dofs(self):
-        return {0: {0: list(range(3)),
-                    1: list(range(3, 6)),
-                    2: list(range(6, 9))},
-                1: {0: [], 1: [], 2: []},
-                2: {0: []}}
+        edofs = deepcopy(super(ReducedHsiehCloughTocher, self).entity_dofs())
+        dim = 1
+        for entity in edofs[dim]:
+            edofs[dim][entity] = []
+        return edofs
 
     @property
     def index_shape(self):
