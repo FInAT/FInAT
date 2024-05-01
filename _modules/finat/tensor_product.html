@@ -84,6 +84,10 @@
     <span class="k">def</span> <span class="nf">cell</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">TensorProductCell</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">fe</span><span class="o">.</span><span class="n">cell</span> <span class="k">for</span> <span class="n">fe</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">factors</span><span class="p">])</span></div>
 
+<div class="viewcode-block" id="TensorProductElement.complex"><a class="viewcode-back" href="../../finat.html#finat.tensor_product.TensorProductElement.complex">[docs]</a>    <span class="nd">@cached_property</span>
+    <span class="k">def</span> <span class="nf">complex</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">TensorProductCell</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">fe</span><span class="o">.</span><span class="n">complex</span> <span class="k">for</span> <span class="n">fe</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">factors</span><span class="p">])</span></div>
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">degree</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">fe</span><span class="o">.</span><span class="n">degree</span> <span class="k">for</span> <span class="n">fe</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">factors</span><span class="p">)</span>

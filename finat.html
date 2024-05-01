@@ -415,6 +415,12 @@ would return (6, 2)</p>
 </dd></dl>
 
 </section>
+<section id="module-finat.cell_tools">
+<span id="finat-cell-tools-module"></span><h2>finat.cell_tools module<a class="headerlink" href="#module-finat.cell_tools" title="Permalink to this heading">¶</a></h2>
+<p>Find the maximal complex in a list of cell complexes.
+This is a pass-through from FIAT so that FInAT clients
+(e.g. tsfc) don’t have to directly import FIAT.</p>
+</section>
 <section id="module-finat.cube">
 <span id="finat-cube-module"></span><h2>finat.cube module<a class="headerlink" href="#module-finat.cube" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
@@ -444,6 +450,13 @@ reference element.</p>
 <dt class="sig sig-object py" id="finat.cube.FlattenedDimensions.cell">
 <span class="sig-name descname"><span class="pre">cell</span></span><a class="reference internal" href="_modules/finat/cube.html#FlattenedDimensions.cell"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.cube.FlattenedDimensions.cell" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.cube.FlattenedDimensions.complex">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">complex</span></span><a class="headerlink" href="#finat.cube.FlattenedDimensions.complex" title="Permalink to this definition">¶</a></dt>
+<dd><p>The reference cell complex over which bases are defined.
+Can be different than self.cell in the case of macro elements.</p>
+</dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="finat.cube.FlattenedDimensions.degree">
@@ -601,6 +614,13 @@ reference element.</p>
 <dt class="sig sig-object py" id="finat.direct_serendipity.DirectSerendipity.cell">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cell</span></span><a class="headerlink" href="#finat.direct_serendipity.DirectSerendipity.cell" title="Permalink to this definition">¶</a></dt>
 <dd><p>The reference cell on which the element is defined.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.direct_serendipity.DirectSerendipity.complex">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">complex</span></span><a class="headerlink" href="#finat.direct_serendipity.DirectSerendipity.complex" title="Permalink to this definition">¶</a></dt>
+<dd><p>The reference cell complex over which bases are defined.
+Can be different than self.cell in the case of macro elements.</p>
 </dd></dl>
 
 <dl class="py property">
@@ -803,6 +823,13 @@ provides physical geometry callbacks (may be None).</p></li>
 </dd></dl>
 
 <dl class="py property">
+<dt class="sig sig-object py" id="finat.discontinuous.DiscontinuousElement.complex">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">complex</span></span><a class="headerlink" href="#finat.discontinuous.DiscontinuousElement.complex" title="Permalink to this definition">¶</a></dt>
+<dd><p>The reference cell complex over which bases are defined.
+Can be different than self.cell in the case of macro elements.</p>
+</dd></dl>
+
+<dl class="py property">
 <dt class="sig sig-object py" id="finat.discontinuous.DiscontinuousElement.degree">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">degree</span></span><a class="headerlink" href="#finat.discontinuous.DiscontinuousElement.degree" title="Permalink to this definition">¶</a></dt>
 <dd><p>The degree of the embedding polynomial space.</p>
@@ -958,6 +985,11 @@ reference element.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="finat.enriched.EnrichedElement.cell">
 <span class="sig-name descname"><span class="pre">cell</span></span><a class="reference internal" href="_modules/finat/enriched.html#EnrichedElement.cell"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.enriched.EnrichedElement.cell" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="finat.enriched.EnrichedElement.complex">
+<span class="sig-name descname"><span class="pre">complex</span></span><a class="reference internal" href="_modules/finat/enriched.html#EnrichedElement.complex"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.enriched.EnrichedElement.complex" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -1179,7 +1211,7 @@ intervals.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="finat.fiat_elements.DiscontinuousLagrange">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">finat.fiat_elements.</span></span><span class="sig-name descname"><span class="pre">DiscontinuousLagrange</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cell</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degree</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/fiat_elements.html#DiscontinuousLagrange"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.fiat_elements.DiscontinuousLagrange" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">finat.fiat_elements.</span></span><span class="sig-name descname"><span class="pre">DiscontinuousLagrange</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cell</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degree</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/fiat_elements.html#DiscontinuousLagrange"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.fiat_elements.DiscontinuousLagrange" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#finat.fiat_elements.ScalarFiatElement" title="finat.fiat_elements.ScalarFiatElement"><code class="xref py py-class docutils literal notranslate"><span class="pre">ScalarFiatElement</span></code></a></p>
 </dd></dl>
 
@@ -1221,6 +1253,13 @@ reference element.</p>
 <dt class="sig sig-object py" id="finat.fiat_elements.FiatElement.cell">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cell</span></span><a class="headerlink" href="#finat.fiat_elements.FiatElement.cell" title="Permalink to this definition">¶</a></dt>
 <dd><p>The reference cell on which the element is defined.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.fiat_elements.FiatElement.complex">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">complex</span></span><a class="headerlink" href="#finat.fiat_elements.FiatElement.complex" title="Permalink to this definition">¶</a></dt>
+<dd><p>The reference cell complex over which bases are defined.
+Can be different than self.cell in the case of macro elements.</p>
 </dd></dl>
 
 <dl class="py property">
@@ -1416,7 +1455,7 @@ free indices are arbitrary.</p></li>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="finat.fiat_elements.Real">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">finat.fiat_elements.</span></span><span class="sig-name descname"><span class="pre">Real</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cell</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degree</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/fiat_elements.html#Real"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.fiat_elements.Real" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">finat.fiat_elements.</span></span><span class="sig-name descname"><span class="pre">Real</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cell</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degree</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/fiat_elements.html#Real"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.fiat_elements.Real" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#finat.fiat_elements.DiscontinuousLagrange" title="finat.fiat_elements.DiscontinuousLagrange"><code class="xref py py-class docutils literal notranslate"><span class="pre">DiscontinuousLagrange</span></code></a></p>
 </dd></dl>
 
@@ -1603,6 +1642,13 @@ provides physical geometry callbacks (may be None).</p></li>
 <dt class="sig sig-object py" id="finat.finiteelementbase.FiniteElementBase.cell">
 <em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cell</span></span><a class="headerlink" href="#finat.finiteelementbase.FiniteElementBase.cell" title="Permalink to this definition">¶</a></dt>
 <dd><p>The reference cell on which the element is defined.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.finiteelementbase.FiniteElementBase.complex">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">complex</span></span><a class="headerlink" href="#finat.finiteelementbase.FiniteElementBase.complex" title="Permalink to this definition">¶</a></dt>
+<dd><p>The reference cell complex over which bases are defined.
+Can be different than self.cell in the case of macro elements.</p>
 </dd></dl>
 
 <dl class="py property">
@@ -1822,6 +1868,65 @@ the corresponding basis functions take non-zero values.</p>
 </dd></dl>
 
 </section>
+<section id="module-finat.hct">
+<span id="finat-hct-module"></span><h2>finat.hct module<a class="headerlink" href="#module-finat.hct" title="Permalink to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="finat.hct.HsiehCloughTocher">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">finat.hct.</span></span><span class="sig-name descname"><span class="pre">HsiehCloughTocher</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cell</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degree</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">avg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/hct.html#HsiehCloughTocher"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.hct.HsiehCloughTocher" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#finat.physically_mapped.PhysicallyMappedElement" title="finat.physically_mapped.PhysicallyMappedElement"><code class="xref py py-class docutils literal notranslate"><span class="pre">PhysicallyMappedElement</span></code></a>, <a class="reference internal" href="#finat.fiat_elements.ScalarFiatElement" title="finat.fiat_elements.ScalarFiatElement"><code class="xref py py-class docutils literal notranslate"><span class="pre">ScalarFiatElement</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.hct.HsiehCloughTocher.basis_transformation">
+<span class="sig-name descname"><span class="pre">basis_transformation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coordinate_mapping</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/hct.html#HsiehCloughTocher.basis_transformation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.hct.HsiehCloughTocher.basis_transformation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transformation matrix for the basis functions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>coordinate_mapping</strong> – Object providing physical geometry.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="finat.hct.ReducedHsiehCloughTocher">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">finat.hct.</span></span><span class="sig-name descname"><span class="pre">ReducedHsiehCloughTocher</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cell</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degree</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/hct.html#ReducedHsiehCloughTocher"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.hct.ReducedHsiehCloughTocher" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#finat.physically_mapped.PhysicallyMappedElement" title="finat.physically_mapped.PhysicallyMappedElement"><code class="xref py py-class docutils literal notranslate"><span class="pre">PhysicallyMappedElement</span></code></a>, <a class="reference internal" href="#finat.fiat_elements.ScalarFiatElement" title="finat.fiat_elements.ScalarFiatElement"><code class="xref py py-class docutils literal notranslate"><span class="pre">ScalarFiatElement</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.hct.ReducedHsiehCloughTocher.basis_transformation">
+<span class="sig-name descname"><span class="pre">basis_transformation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coordinate_mapping</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/hct.html#ReducedHsiehCloughTocher.basis_transformation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.hct.ReducedHsiehCloughTocher.basis_transformation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transformation matrix for the basis functions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>coordinate_mapping</strong> – Object providing physical geometry.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.hct.ReducedHsiehCloughTocher.entity_dofs">
+<span class="sig-name descname"><span class="pre">entity_dofs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/hct.html#ReducedHsiehCloughTocher.entity_dofs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.hct.ReducedHsiehCloughTocher.entity_dofs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the map of topological entities to degrees of
+freedom for the finite element.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.hct.ReducedHsiehCloughTocher.index_shape">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">index_shape</span></span><a class="headerlink" href="#finat.hct.ReducedHsiehCloughTocher.index_shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>A tuple indicating the number of degrees of freedom in the
+element. For example a scalar quadratic Lagrange element on a triangle
+would return (6,) while a vector valued version of the same element
+would return (6, 2)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="finat.hct.ReducedHsiehCloughTocher.space_dimension">
+<span class="sig-name descname"><span class="pre">space_dimension</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/hct.html#ReducedHsiehCloughTocher.space_dimension"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.hct.ReducedHsiehCloughTocher.space_dimension" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the dimension of the finite element space.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
 <section id="module-finat.hdivcurl">
 <span id="finat-hdivcurl-module"></span><h2>finat.hdivcurl module<a class="headerlink" href="#module-finat.hdivcurl" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
@@ -1902,6 +2007,13 @@ provides physical geometry callbacks (may be None).</p></li>
 <dt class="sig sig-object py" id="finat.hdivcurl.WrapperElementBase.cell">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cell</span></span><a class="headerlink" href="#finat.hdivcurl.WrapperElementBase.cell" title="Permalink to this definition">¶</a></dt>
 <dd><p>The reference cell on which the element is defined.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.hdivcurl.WrapperElementBase.complex">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">complex</span></span><a class="headerlink" href="#finat.hdivcurl.WrapperElementBase.complex" title="Permalink to this definition">¶</a></dt>
+<dd><p>The reference cell complex over which bases are defined.
+Can be different than self.cell in the case of macro elements.</p>
 </dd></dl>
 
 <dl class="py property">
@@ -2134,6 +2246,13 @@ provides physical geometry callbacks (may be None).</p></li>
 <dt class="sig sig-object py" id="finat.mixed.MixedSubElement.cell">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cell</span></span><a class="headerlink" href="#finat.mixed.MixedSubElement.cell" title="Permalink to this definition">¶</a></dt>
 <dd><p>The reference cell on which the element is defined.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.mixed.MixedSubElement.complex">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">complex</span></span><a class="headerlink" href="#finat.mixed.MixedSubElement.complex" title="Permalink to this definition">¶</a></dt>
+<dd><p>The reference cell complex over which bases are defined.
+Can be different than self.cell in the case of macro elements.</p>
 </dd></dl>
 
 <dl class="py property">
@@ -2815,6 +2934,13 @@ reference element.</p>
 <dd></dd></dl>
 
 <dl class="py property">
+<dt class="sig sig-object py" id="finat.quadrature_element.QuadratureElement.complex">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">complex</span></span><a class="headerlink" href="#finat.quadrature_element.QuadratureElement.complex" title="Permalink to this definition">¶</a></dt>
+<dd><p>The reference cell complex over which bases are defined.
+Can be different than self.cell in the case of macro elements.</p>
+</dd></dl>
+
+<dl class="py property">
 <dt class="sig sig-object py" id="finat.quadrature_element.QuadratureElement.degree">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">degree</span></span><a class="headerlink" href="#finat.quadrature_element.QuadratureElement.degree" title="Permalink to this definition">¶</a></dt>
 <dd><p>The degree of the embedding polynomial space.</p>
@@ -3335,7 +3461,7 @@ reference element.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="finat.spectral.Legendre">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">finat.spectral.</span></span><span class="sig-name descname"><span class="pre">Legendre</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cell</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degree</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/spectral.html#Legendre"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.spectral.Legendre" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">finat.spectral.</span></span><span class="sig-name descname"><span class="pre">Legendre</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cell</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degree</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/finat/spectral.html#Legendre"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.spectral.Legendre" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#finat.fiat_elements.ScalarFiatElement" title="finat.fiat_elements.ScalarFiatElement"><code class="xref py py-class docutils literal notranslate"><span class="pre">ScalarFiatElement</span></code></a></p>
 <p>DG element with Legendre polynomials.</p>
 </dd></dl>
@@ -3453,6 +3579,11 @@ provides physical geometry callbacks (may be None).</p></li>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="finat.tensor_product.TensorProductElement.cell">
 <span class="sig-name descname"><span class="pre">cell</span></span><a class="reference internal" href="_modules/finat/tensor_product.html#TensorProductElement.cell"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.tensor_product.TensorProductElement.cell" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="finat.tensor_product.TensorProductElement.complex">
+<span class="sig-name descname"><span class="pre">complex</span></span><a class="reference internal" href="_modules/finat/tensor_product.html#TensorProductElement.complex"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#finat.tensor_product.TensorProductElement.complex" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py property">
@@ -3745,6 +3876,13 @@ will eventually be created, so it is the form we employ here.</p>
 <dt class="sig sig-object py" id="finat.tensorfiniteelement.TensorFiniteElement.cell">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cell</span></span><a class="headerlink" href="#finat.tensorfiniteelement.TensorFiniteElement.cell" title="Permalink to this definition">¶</a></dt>
 <dd><p>The reference cell on which the element is defined.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="finat.tensorfiniteelement.TensorFiniteElement.complex">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">complex</span></span><a class="headerlink" href="#finat.tensorfiniteelement.TensorFiniteElement.complex" title="Permalink to this definition">¶</a></dt>
+<dd><p>The reference cell complex over which bases are defined.
+Can be different than self.cell in the case of macro elements.</p>
 </dd></dl>
 
 <dl class="py property">

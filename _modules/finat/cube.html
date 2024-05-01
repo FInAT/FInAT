@@ -48,12 +48,12 @@
           <div class="body" role="main">
             
   <h1>Source code for finat.cube</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 
-<span class="kn">from</span> <span class="nn">FIAT.reference_element</span> <span class="kn">import</span> <span class="n">UFCHexahedron</span><span class="p">,</span> <span class="n">UFCQuadrilateral</span>
-<span class="kn">from</span> <span class="nn">FIAT.reference_element</span> <span class="kn">import</span> <span class="n">compute_unflattening_map</span><span class="p">,</span> <span class="n">flatten_entities</span><span class="p">,</span> <span class="n">flatten_permutations</span>
+<span class="kn">from</span> <span class="nn">FIAT.reference_element</span> <span class="kn">import</span> <span class="p">(</span><span class="n">UFCHexahedron</span><span class="p">,</span> <span class="n">UFCQuadrilateral</span><span class="p">,</span>
+                                    <span class="n">compute_unflattening_map</span><span class="p">,</span> <span class="n">flatten_entities</span><span class="p">,</span>
+                                    <span class="n">flatten_permutations</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">FIAT.tensor_product</span> <span class="kn">import</span> <span class="n">FlattenedDimensions</span> <span class="k">as</span> <span class="n">FIAT_FlattenedDimensions</span>
-
 <span class="kn">from</span> <span class="nn">gem.utils</span> <span class="kn">import</span> <span class="n">cached_property</span>
 
 <span class="kn">from</span> <span class="nn">finat.finiteelementbase</span> <span class="kn">import</span> <span class="n">FiniteElementBase</span>
@@ -78,6 +78,10 @@
             <span class="k">return</span> <span class="n">UFCHexahedron</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Cannot guess cell for spatial dimension </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">dim</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">complex</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="o">.</span><span class="n">complex</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">degree</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

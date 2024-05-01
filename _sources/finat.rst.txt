@@ -36,6 +36,14 @@ finat.bell module
    :undoc-members:
    :show-inheritance:
 
+finat.cell\_tools module
+------------------------
+
+.. automodule:: finat.cell_tools
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 finat.cube module
 -----------------
 
@@ -80,6 +88,14 @@ finat.finiteelementbase module
 ------------------------------
 
 .. automodule:: finat.finiteelementbase
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+finat.hct module
+----------------
+
+.. automodule:: finat.hct
    :members:
    :undoc-members:
    :show-inheritance:
