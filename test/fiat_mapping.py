@@ -1,6 +1,6 @@
 import FIAT
-import numpy as np
 import gem
+import numpy as np
 from finat.physically_mapped import PhysicalGeometry
 
 
@@ -29,6 +29,9 @@ class MyMapping(PhysicalGeometry):
 
     def jacobian_at(self, point):
         return gem.Literal(self.A)
+
+    def normalized_reference_edge_tangents(self):
+        return gem.Literal(np.asarray([self.ref_cell.compute_normalized_edge_tangent(i) for i in range(3)]))
 
     def reference_normals(self):
         return gem.Literal(

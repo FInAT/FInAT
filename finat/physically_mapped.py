@@ -32,6 +32,15 @@ try:
   eprint =       {1808.05513},
   primaryclass = {cs.MS}
 }""")
+    Citations().add("Clough1965", """
+@inproceedings{Clough1965,
+  author =       {R. W. Clough, J. L. Tocher},
+  title =        {Finite element stiffness matricess for analysis of plate bending},
+  booktitle =    {Proc. of the First Conf. on Matrix Methods in Struct. Mech},
+  year =         1965,
+  pages =        {515-546},
+}
+""")
     Citations().add("Argyris1968", """
 @Article{Argyris1968,
   author =       {J. H. Argyris and I. Fried and D. W. Scharpf},

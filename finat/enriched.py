@@ -1,12 +1,10 @@
 from functools import partial
-from operator import add, methodcaller
 from itertools import chain
-
-import numpy
+from operator import add, methodcaller
 
 import FIAT
-
 import gem
+import numpy
 from gem.utils import cached_property
 
 from finat.finiteelementbase import FiniteElementBase
@@ -29,6 +27,10 @@ class EnrichedElement(FiniteElementBase):
     def cell(self):
         result, = set(elem.cell for elem in self.elements)
         return result
+
+    @cached_property
+    def complex(self):
+        return FIAT.reference_element.max_complex(set(elem.complex for elem in self.elements))
 
     @cached_property
     def degree(self):

@@ -11,6 +11,7 @@ from .fiat_elements import HellanHerrmannJohnson, Regge  # noqa: F401
 from .fiat_elements import FacetBubble  # noqa: F401
 from .fiat_elements import KongMulderVeldhuizen  # noqa: F401
 from .argyris import Argyris            # noqa: F401
+from .hct import HsiehCloughTocher, ReducedHsiehCloughTocher   # noqa: F401
 from .bell import Bell                  # noqa: F401
 from .hermite import Hermite            # noqa: F401
 from .mtw import MardalTaiWinther       # noqa: F401
@@ -32,3 +33,4 @@ from .quadrature_element import QuadratureElement, make_quadrature_element  # no
 from .restricted import RestrictedElement          # noqa: F401
 from .runtime_tabulated import RuntimeTabulated  # noqa: F401
 from . import quadrature  # noqa: F401
+from . import cell_tools  # noqa: F401

@@ -38,6 +38,10 @@ class MixedSubElement(FiniteElementBase):
         return self.element.cell
 
     @property
+    def complex(self):
+        return self.element.complex
+
+    @property
     def degree(self):
         return self.element.degree
 

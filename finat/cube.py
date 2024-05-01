@@ -1,9 +1,9 @@
-from __future__ import absolute_import, print_function, division
+from __future__ import absolute_import, division, print_function
 
-from FIAT.reference_element import UFCHexahedron, UFCQuadrilateral
-from FIAT.reference_element import compute_unflattening_map, flatten_entities, flatten_permutations
+from FIAT.reference_element import (UFCHexahedron, UFCQuadrilateral,
+                                    compute_unflattening_map, flatten_entities,
+                                    flatten_permutations)
 from FIAT.tensor_product import FlattenedDimensions as FIAT_FlattenedDimensions
-
 from gem.utils import cached_property
 
 from finat.finiteelementbase import FiniteElementBase
@@ -28,6 +28,10 @@ class FlattenedDimensions(FiniteElementBase):
             return UFCHexahedron()
         else:
             raise NotImplementedError("Cannot guess cell for spatial dimension %s" % dim)
+
+    @property
+    def complex(self):
+        return self.product.complex
 
     @property
     def degree(self):

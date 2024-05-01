@@ -27,6 +27,10 @@ class WrapperElementBase(FiniteElementBase):
         return self.wrappee.cell
 
     @property
+    def complex(self):
+        return self.wrappee.complex
+
+    @property
     def degree(self):
         return self.wrappee.degree
 
