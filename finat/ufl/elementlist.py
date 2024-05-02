@@ -143,9 +143,9 @@ register_element("Regge", "Regge", 2, HEin, "double covariant Piola",
                  (0, None), simplices[1:])
 register_element("HDiv Trace", "HDivT", 0, L2, "identity", (0, None), any_cell)
 register_element("Johnson-Mercier", "JM", 2, HDivDiv,
-                 "double contravariant Piola", (1, 1), simplices)
+                 "double contravariant Piola", (1, 1), simplices[1:])
 register_element("Reduced-Johnson-Mercier", "JM-red", 2, HDivDiv,
-                 "double contravariant Piola", (1, 1), simplices)
+                 "double contravariant Piola", (1, 1), simplices[1:])
 register_element("Hellan-Herrmann-Johnson", "HHJ", 2, HDivDiv,
                  "double contravariant Piola", (0, None), ("triangle",))
 register_element("Nonconforming Arnold-Winther", "AWnc", 2, HDivDiv,

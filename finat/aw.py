@@ -6,9 +6,10 @@ from finat.fiat_elements import FiatElement
 from finat.physically_mapped import PhysicallyMappedElement, Citations
 
 
-def _face_transform(coordinate_mapping):
-    sd = coordinate_mapping.ref_cell.get_spatial_dimension()
-    num_faces = sd + 1
+def _face_transform(fiat_cell, coordinate_mapping):
+    sd = fiat_cell.get_spatial_dimension()
+    top = fiat_cell.get_topology()
+    num_faces = len(top[sd-1])
     dimP1_face = sd
     dofs_per_face = sd * dimP1_face
     ndofs = num_faces * dofs_per_face
@@ -72,7 +73,7 @@ class ArnoldWintherNC(PhysicallyMappedElement, FiatElement):
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
 
-        V[:12, :12] = _face_transform(coordinate_mapping)
+        V[:12, :12] = _face_transform(self.cell, coordinate_mapping)
 
         # internal dofs
         W = _evaluation_transform(coordinate_mapping)
@@ -126,7 +127,7 @@ class ArnoldWinther(PhysicallyMappedElement, FiatElement):
         # Put into the right rows and columns.
         V[0:3, 0:3] = V[3:6, 3:6] = V[6:9, 6:9] = W
 
-        V[9:21, 9:21] = _face_transform(coordinate_mapping)
+        V[9:21, 9:21] = _face_transform(self.cell, coordinate_mapping)
 
         # internal DOFs
         detJ = coordinate_mapping.detJ_at([1/3, 1/3])

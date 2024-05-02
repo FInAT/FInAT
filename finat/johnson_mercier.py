@@ -20,10 +20,9 @@ class JohnsonMercier(PhysicallyMappedElement, FiatElement):  # symmetric matrix 
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
 
-        sd = self.cell.get_spatial_dimension()
-        idofs = (sd * (sd+1)) // 2
-        fdofs = numbf - idofs
-        V[:fdofs, :fdofs] = _face_transform(coordinate_mapping)
+        Vsub = _face_transform(self.cell, coordinate_mapping)
+        fdofs = Vsub.shape[0]
+        V[:fdofs, :fdofs] = Vsub
 
         # Note: that the edge DOFs are scaled by edge lengths in FIAT implies
         # that they are already have the necessary rescaling to improve
