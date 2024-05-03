@@ -1,9 +1,10 @@
-import numpy
 import FIAT
-from gem import Literal, ListTensor
+import numpy
+from gem import ListTensor, Literal
+
+from finat.aw import _facet_transform
 from finat.fiat_elements import FiatElement
-from finat.physically_mapped import PhysicallyMappedElement, Citations
-from finat.aw import _face_transform
+from finat.physically_mapped import Citations, PhysicallyMappedElement
 
 
 class JohnsonMercier(PhysicallyMappedElement, FiatElement):  # symmetric matrix valued
@@ -20,7 +21,7 @@ class JohnsonMercier(PhysicallyMappedElement, FiatElement):  # symmetric matrix 
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
 
-        Vsub = _face_transform(self.cell, coordinate_mapping)
+        Vsub = _facet_transform(self.cell, 1, coordinate_mapping)
         fdofs = Vsub.shape[0]
         V[:fdofs, :fdofs] = Vsub
 

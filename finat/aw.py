@@ -1,18 +1,20 @@
 """Implementation of the Arnold-Winther finite elements."""
-import numpy
 import FIAT
-from gem import Literal, ListTensor, partial_indexed
+import numpy
+from gem import ListTensor, Literal, partial_indexed
+
 from finat.fiat_elements import FiatElement
-from finat.physically_mapped import PhysicallyMappedElement, Citations
+from finat.physically_mapped import Citations, PhysicallyMappedElement
 
 
-def _face_transform(fiat_cell, coordinate_mapping):
+def _facet_transform(fiat_cell, facet_moment_degree, coordinate_mapping):
     sd = fiat_cell.get_spatial_dimension()
     top = fiat_cell.get_topology()
-    num_faces = len(top[sd-1])
-    dimP1_face = sd
-    dofs_per_face = sd * dimP1_face
-    ndofs = num_faces * dofs_per_face
+    num_facets = len(top[sd-1])
+    dimPk_facet = FIAT.expansions.polynomial_dimension(
+        fiat_cell.construct_subelement(sd-1), facet_moment_degree)
+    dofs_per_facet = sd * dimPk_facet
+    ndofs = num_faces * dofs_per_facet
 
     Vsub = numpy.eye(ndofs, dtype=object)
     for multiindex in numpy.ndindex(Vsub.shape):
@@ -21,24 +23,65 @@ def _face_transform(fiat_cell, coordinate_mapping):
     bary = [1/(sd+1)] * sd
     detJ = coordinate_mapping.detJ_at(bary)
     J = coordinate_mapping.jacobian_at(bary)
-    R = Literal(numpy.array([[0, -1], [1, 0]]))
     rns = coordinate_mapping.reference_normals()
-    offset = dofs_per_face
-    for e in range(num_faces):
-        nhat = partial_indexed(rns, (e, ))
-        that = R @ nhat
-        Jn = J @ nhat
-        Jt = J @ that
+    offset = dofs_per_facet
+    if sd == 2:
+        R = Literal(numpy.array([[0, -1], [1, 0]]))
 
-        # Compute alpha and beta for the edge.
-        alpha = (Jn @ Jt) / detJ
-        beta = (Jt @ Jt) / detJ
-        # Stuff into the right rows and columns.
-        idx1, idx2 = offset*e + 1, offset*(e+1) - 1
-        Vsub[idx1, idx1-1] = Literal(-1) * alpha / beta
-        Vsub[idx1, idx1] = Literal(1) / beta
-        Vsub[idx2, idx2-1] = Literal(-1) * alpha / beta
-        Vsub[idx2, idx2] = Literal(1) / beta
+        for e in range(num_facets):
+            nhat = partial_indexed(rns, (e, ))
+            that = R @ nhat
+            Jn = J @ nhat
+            Jt = J @ that
+
+            # Compute alpha and beta for the edge.
+            alpha = (Jn @ Jt) / detJ
+            beta = (Jt @ Jt) / detJ
+            # Stuff into the right rows and columns.
+            for i in range(dimPk_facet):
+                idx = offset*e + i * dimPk_facet + 1
+                Vsub[idx, idx-1] = Literal(-1) * alpha / beta
+                Vsub[idx, idx] = Literal(1) / beta
+    elif sd == 3:
+        for f in range(num_facets):
+            nhat_fiat = fiat_cell.compute_normal(f)
+            nhat_fiat /= numpy.norm(nhat)
+
+            thats_fiat = fiat_cell.compute_normalized_tangents(sd-1, f)
+
+            nhat = Literal(nhat_fiat)
+            thats = [Literal(that) for that in thats_fiat]
+
+            thingies_fiat = [numpy.cross(nhat_fiat, thats_fiat[1]),
+                             numpy.cross(nhat_fiat, thats_fiat[0])]
+
+            for thingy in thingies_fiat:
+                thingy /= numpy.norm(thingy)
+
+            thingies = [Literal(thingy) for thingy in thingies_fiat]
+
+            Jn = J @ nhat
+            Jts = [J @ that for that in thats]
+            Jthingies = [J @ thingy for thingy in thingies]
+
+            alphas = [Jn @ Jt / detJ for Jt in Jts]
+            betas = [Jthingies[0] @ Jt / detJ for Jt in Jts]
+            gammas = [Jthingies[1] @ Jt / detJ for Jt in Jts]
+
+            # Now we invert the matrix
+            # [1 0 0 ; alpha0 beta0 gamma0; alpha1 beta1 gamma1]
+            # into the block of the matrix
+            for i in range(dimPk_facet):
+                idx = offset*e + i * dimPk_facet
+                det = betas[0] * gammas[1] - betas[1] * gammas[0]
+                Vsub[idx+1, idx] = (-alphas[0] * gammas[1]
+                                    + alphas[1] * gammas[0]) / det
+                Vsub[idx+1, idx+1] = gammas[1] / det
+                Vsub[idx+1, idx+2] = -gammas[0] / det
+                Vsub[idx+2, idx] = (alphas[0] * betas[1]
+                                    - alphas[1] * betas[0]) / det
+                Vsub[idx+2, idx+1] = -betas[1] / det
+                Vsub[idx+2, idx+2] = betas[0] / det
 
     return Vsub
 
@@ -73,7 +116,7 @@ class ArnoldWintherNC(PhysicallyMappedElement, FiatElement):
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
 
-        V[:12, :12] = _face_transform(self.cell, coordinate_mapping)
+        V[:12, :12] = _facet_transform(self.cell, 1, coordinate_mapping)
 
         # internal dofs
         W = _evaluation_transform(coordinate_mapping)
@@ -127,7 +170,7 @@ class ArnoldWinther(PhysicallyMappedElement, FiatElement):
         # Put into the right rows and columns.
         V[0:3, 0:3] = V[3:6, 3:6] = V[6:9, 6:9] = W
 
-        V[9:21, 9:21] = _face_transform(self.cell, coordinate_mapping)
+        V[9:21, 9:21] = _facet_transform(self.cell, 1, coordinate_mapping)
 
         # internal DOFs
         detJ = coordinate_mapping.detJ_at([1/3, 1/3])
