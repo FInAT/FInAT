@@ -43,6 +43,4 @@ def test_johnson_mercier():
                 ref_vals_zany[:, ell1, ell2, k] = \
                     M @ ref_vals_piola[:, ell1, ell2, k]
 
-    print(ref_vals_zany[:12]/phys_vals[:12])
-    #print(phys_vals[:12])
     assert np.allclose(ref_vals_zany[:12], phys_vals[:12])

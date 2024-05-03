@@ -14,7 +14,7 @@ def _facet_transform(fiat_cell, facet_moment_degree, coordinate_mapping):
     dimPk_facet = FIAT.expansions.polynomial_dimension(
         fiat_cell.construct_subelement(sd-1), facet_moment_degree)
     dofs_per_facet = sd * dimPk_facet
-    ndofs = num_faces * dofs_per_facet
+    ndofs = num_facets * dofs_per_facet
 
     Vsub = numpy.eye(ndofs, dtype=object)
     for multiindex in numpy.ndindex(Vsub.shape):
