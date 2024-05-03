@@ -45,7 +45,7 @@ def _facet_transform(fiat_cell, facet_moment_degree, coordinate_mapping):
     elif sd == 3:
         for f in range(num_facets):
             nhat_fiat = fiat_cell.compute_normal(f)
-            nhat_fiat /= numpy.norm(nhat)
+            nhat_fiat /= numpy.linalg.norm(nhat_fiat)
 
             thats_fiat = fiat_cell.compute_normalized_tangents(sd-1, f)
 
@@ -56,7 +56,7 @@ def _facet_transform(fiat_cell, facet_moment_degree, coordinate_mapping):
                              numpy.cross(nhat_fiat, thats_fiat[0])]
 
             for thingy in thingies_fiat:
-                thingy /= numpy.norm(thingy)
+                thingy /= numpy.linalg.norm(thingy)
 
             thingies = [Literal(thingy) for thingy in thingies_fiat]
 
@@ -72,15 +72,15 @@ def _facet_transform(fiat_cell, facet_moment_degree, coordinate_mapping):
             # [1 0 0 ; alpha0 beta0 gamma0; alpha1 beta1 gamma1]
             # into the block of the matrix
             for i in range(dimPk_facet):
-                idx = offset*e + i * dimPk_facet
+                idx = offset*f + i * dimPk_facet
                 det = betas[0] * gammas[1] - betas[1] * gammas[0]
-                Vsub[idx+1, idx] = (-alphas[0] * gammas[1]
-                                    + alphas[1] * gammas[0]) / det
+                Vsub[idx+1, idx] = (alphas[1] * gammas[0]
+                                    - alphas[0] * gammas[1]) / det
                 Vsub[idx+1, idx+1] = gammas[1] / det
-                Vsub[idx+1, idx+2] = -gammas[0] / det
+                Vsub[idx+1, idx+2] = Literal(-1) * gammas[0] / det
                 Vsub[idx+2, idx] = (alphas[0] * betas[1]
                                     - alphas[1] * betas[0]) / det
-                Vsub[idx+2, idx+1] = -betas[1] / det
+                Vsub[idx+2, idx+1] = Literal(-1) * betas[1] / det
                 Vsub[idx+2, idx+2] = betas[0] / det
 
     return Vsub
