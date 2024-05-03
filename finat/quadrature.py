@@ -1,16 +1,14 @@
 from abc import ABCMeta, abstractproperty
 from functools import reduce
 
-import numpy
-
 import gem
-from gem.utils import cached_property
-
-from FIAT.reference_element import LINE, QUADRILATERAL, TENSORPRODUCT
+import numpy
 from FIAT.quadrature import GaussLegendreQuadratureLineRule
 from FIAT.quadrature_schemes import create_quadrature as fiat_scheme
+from FIAT.reference_element import LINE, QUADRILATERAL, TENSORPRODUCT
+from gem.utils import cached_property
 
-from finat.point_set import PointSet, GaussLegendrePointSet, TensorPointSet
+from finat.point_set import GaussLegendrePointSet, PointSet, TensorPointSet
 
 
 def make_quadrature(ref_el, degree, scheme="default"):
@@ -44,7 +42,7 @@ def make_quadrature(ref_el, degree, scheme="default"):
     if degree < 0:
         raise ValueError("Need positive degree, not %d" % degree)
 
-    if ref_el.get_shape() == LINE:
+    if ref_el.get_shape() == LINE and not ref_el.is_macrocell():
         # FIAT uses Gauss-Legendre line quadature, however, since we
         # symbolically label it as such, we wish not to risk attaching
         # the wrong label in case FIAT changes.  So we explicitly ask

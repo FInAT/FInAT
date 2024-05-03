@@ -34,6 +34,10 @@ class DirectSerendipity(DirectlyDefinedElement, FiniteElementBase):
         return self._cell
 
     @property
+    def complex(self):
+        return self._cell
+
+    @property
     def degree(self):
         return self._degree
 

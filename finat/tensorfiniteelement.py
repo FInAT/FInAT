@@ -58,6 +58,10 @@ class TensorFiniteElement(FiniteElementBase):
         return self._base_element.cell
 
     @property
+    def complex(self):
+        return self._base_element.complex
+
+    @property
     def degree(self):
         return self._base_element.degree
 

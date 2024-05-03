@@ -34,6 +34,10 @@ class TensorProductElement(FiniteElementBase):
     def cell(self):
         return TensorProductCell(*[fe.cell for fe in self.factors])
 
+    @cached_property
+    def complex(self):
+        return TensorProductCell(*[fe.complex for fe in self.factors])
+
     @property
     def degree(self):
         return tuple(fe.degree for fe in self.factors)

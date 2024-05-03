@@ -1,9 +1,7 @@
+import FIAT
+import gem
 import numpy as np
 import sympy as sp
-
-import FIAT
-
-import gem
 from gem.utils import cached_property
 
 from finat.finiteelementbase import FiniteElementBase
@@ -52,6 +50,10 @@ class FiatElement(FiniteElementBase):
     @property
     def cell(self):
         return self._element.get_reference_element()
+
+    @property
+    def complex(self):
+        return self._element.get_reference_complex()
 
     @property
     def degree(self):
@@ -120,7 +122,14 @@ class FiatElement(FiniteElementBase):
 
             exprs = []
             for table in table_roll:
-                if derivative < self.degree:
+                if derivative == self.degree and not self.complex.is_macrocell():
+                    # Make sure numerics satisfies theory
+                    exprs.append(gem.Literal(table[0]))
+                elif derivative > self.degree:
+                    # Make sure numerics satisfies theory
+                    assert np.allclose(table, 0.0)
+                    exprs.append(gem.Literal(np.zeros(self.index_shape)))
+                else:
                     point_indices = ps.indices
                     point_shape = tuple(index.extent for index in point_indices)
 
@@ -128,13 +137,6 @@ class FiatElement(FiniteElementBase):
                         gem.Literal(table.reshape(point_shape + index_shape)),
                         point_indices
                     ))
-                elif derivative == self.degree:
-                    # Make sure numerics satisfies theory
-                    exprs.append(gem.Literal(table[0]))
-                else:
-                    # Make sure numerics satisfies theory
-                    assert np.allclose(table, 0.0)
-                    exprs.append(gem.Literal(np.zeros(self.index_shape)))
             if self.value_shape:
                 # As above, this extent may be different from that
                 # advertised by the finat element.
@@ -233,7 +235,10 @@ class FiatElement(FiniteElementBase):
             # significantly by building Q in a COO format rather than DOK (i.e.
             # storing coords and associated data in (nonzeros, entries) shaped
             # numpy arrays) to take advantage of numpy multiindexing
-            Qshape = tuple(s + 1 for s in map(max, *Q))
+            if len(Q) == 1:
+                Qshape = tuple(s + 1 for s in tuple(Q)[0])
+            else:
+                Qshape = tuple(s + 1 for s in map(max, *Q))
             Qdense = np.zeros(Qshape, dtype=np.float64)
             for idx, value in Q.items():
                 Qdense[idx] = value
@@ -346,8 +351,8 @@ class CrouzeixRaviart(ScalarFiatElement):
 
 
 class Lagrange(ScalarFiatElement):
-    def __init__(self, cell, degree):
-        super(Lagrange, self).__init__(FIAT.Lagrange(cell, degree))
+    def __init__(self, cell, degree, variant=None):
+        super(Lagrange, self).__init__(FIAT.Lagrange(cell, degree, variant=variant))
 
 
 class KongMulderVeldhuizen(ScalarFiatElement):
@@ -359,8 +364,8 @@ class KongMulderVeldhuizen(ScalarFiatElement):
 
 
 class DiscontinuousLagrange(ScalarFiatElement):
-    def __init__(self, cell, degree):
-        super(DiscontinuousLagrange, self).__init__(FIAT.DiscontinuousLagrange(cell, degree))
+    def __init__(self, cell, degree, variant=None):
+        super(DiscontinuousLagrange, self).__init__(FIAT.DiscontinuousLagrange(cell, degree, variant=variant))
 
 
 class Real(DiscontinuousLagrange):

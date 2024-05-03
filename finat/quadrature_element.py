@@ -25,7 +25,7 @@ def make_quadrature_element(fiat_ref_cell, degree, scheme="default"):
         "canonical" or "KMV".
     :returns: The appropriate :class:`QuadratureElement`
     """
-    rule = make_quadrature(fiat_ref_cell, degree, scheme)
+    rule = make_quadrature(fiat_ref_cell, degree, scheme=scheme)
     return QuadratureElement(fiat_ref_cell, rule)
 
 
@@ -49,6 +49,10 @@ class QuadratureElement(FiniteElementBase):
     @cached_property
     def cell(self):
         pass  # set at initialisation
+
+    @property
+    def complex(self):
+        return self.cell
 
     @property
     def degree(self):
