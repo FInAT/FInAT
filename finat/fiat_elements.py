@@ -318,6 +318,11 @@ class Regge(FiatElement):  # naturally tensor valued
         super(Regge, self).__init__(FIAT.Regge(cell, degree))
 
 
+class GopalakrishnanLedererSchoberl(FiatElement):  # naturally tensor valued
+    def __init__(self, cell, degree):
+        super(GopalakrishnanLedererSchoberl, self).__init__(FIAT.GopalakrishnanLedererSchoberl(cell, degree))
+
+
 class HellanHerrmannJohnson(FiatElement):  # symmetric matrix valued
     def __init__(self, cell, degree):
         super(HellanHerrmannJohnson, self).__init__(FIAT.HellanHerrmannJohnson(cell, degree))

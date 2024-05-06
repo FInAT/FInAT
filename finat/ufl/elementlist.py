@@ -21,7 +21,7 @@ import warnings
 from numpy import asarray
 
 from ufl.cell import Cell, TensorProductCell
-from ufl.sobolevspace import H1, H2, L2, HCurl, HDiv, HDivDiv, HEin, HInf
+from ufl.sobolevspace import H1, H2, L2, HCurl, HDiv, HDivDiv, HCurlDiv, HEin, HInf
 from ufl.utils.formatting import istr
 
 # List of valid elements
@@ -148,6 +148,8 @@ register_element("Nonconforming Arnold-Winther", "AWnc", 2, HDivDiv,
                  "double contravariant Piola", (2, 2), ("triangle", "tetrahedron"))
 register_element("Conforming Arnold-Winther", "AWc", 2, HDivDiv,
                  "double contravariant Piola", (3, None), ("triangle", "tetrahedron"))
+register_element("Gopalakrishnan-Lederer-Schoberl", "GLS", 2, HCurlDiv,
+                 "covariant contravariant Piola", (1, None), ("triangle", "tetrahedron"))
 # Spectral elements.
 register_element("Gauss-Legendre", "GL", 0, L2, "identity", (0, None),
                  ("interval",))
