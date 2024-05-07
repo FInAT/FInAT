@@ -44,36 +44,28 @@ def _facet_transform(fiat_cell, facet_moment_degree, coordinate_mapping):
                 Vsub[idx, idx] = Literal(1) / beta
     elif sd == 3:
         for f in range(num_facets):
-            nhat_fiat = fiat_cell.compute_normal(f)
-            nhat_fiat /= numpy.linalg.norm(nhat_fiat)
+            nhat = fiat_cell.compute_normal(f)
+            nhat /= numpy.linalg.norm(nhat)
+            ehats = fiat_cell.compute_tangents(2, f)
+            rels = [numpy.linalg.norm(ehat) for ehat in ehats]
+            thats = [a / b for a, b in zip(ehats, rels)]
+            vf = fiat_cell.volume_of_subcomplex(2, f)
 
-            thats_fiat = fiat_cell.compute_normalized_tangents(sd-1, f)
+            orth_vecs = [numpy.cross(nhat, thats[1]),
+                         numpy.cross(thats[0], nhat)]
 
-            nhat = Literal(nhat_fiat)
-            thats = [Literal(that) for that in thats_fiat]
+            Jn = J @ Literal(nhat)
+            Jts = [J @ Literal(that) for that in thats]
+            Jorth = [J @ Literal(ov) for ov in orth_vecs]
 
-            thingies_fiat = [numpy.cross(nhat_fiat, thats_fiat[1]),
-                             numpy.cross(nhat_fiat, thats_fiat[0])]
+            alphas = [Literal(rels[i]) * Jn * Jts[i] / detJ / Literal(vf) / Literal(2) for i in (0, 1)]
+            betas = [Jorth[0] @ Jts[i] / detJ / Literal(thats[0] @ orth_vecs[0]) for i in (0, 1)]
+            gammas = [Jorth[1] @ Jts[i] / detJ / Literal(thats[1] @ orth_vecs[1]) for i in (0, 1)]
 
-            for thingy in thingies_fiat:
-                thingy /= numpy.linalg.norm(thingy)
+            det = betas[0] * gammas[1] - betas[1] * gammas[0]
 
-            thingies = [Literal(thingy) for thingy in thingies_fiat]
-
-            Jn = J @ nhat
-            Jts = [J @ that for that in thats]
-            Jthingies = [J @ thingy for thingy in thingies]
-
-            alphas = [Jn @ Jt / detJ for Jt in Jts]
-            betas = [Jthingies[0] @ Jt / detJ for Jt in Jts]
-            gammas = [Jthingies[1] @ Jt / detJ for Jt in Jts]
-
-            # Now we invert the matrix
-            # [1 0 0 ; alpha0 beta0 gamma0; alpha1 beta1 gamma1]
-            # into the block of the matrix
             for i in range(dimPk_facet):
-                idx = offset*f + i * dimPk_facet
-                det = betas[0] * gammas[1] - betas[1] * gammas[0]
+                idx = offset*f + i * sd
                 Vsub[idx+1, idx] = (alphas[1] * gammas[0]
                                     - alphas[0] * gammas[1]) / det
                 Vsub[idx+1, idx+1] = gammas[1] / det

@@ -52,5 +52,6 @@ def test_johnson_mercier(phys_verts):
                 ref_vals_zany[:, ell1, ell2, k] = \
                     M @ ref_vals_piola[:, ell1, ell2, k]
 
-    print(ref_vals_zany[:num_facet_bfs] - phys_vals[:num_facet_bfs])
+    print(np.diag(M))
+    # print((ref_vals_zany[:num_facet_bfs] - phys_vals[:num_facet_bfs]).T)
     assert np.allclose(ref_vals_zany[:num_facet_bfs], phys_vals[:num_facet_bfs])
