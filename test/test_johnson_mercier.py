@@ -9,7 +9,9 @@ from fiat_mapping import MyMapping
 
 @pytest.mark.parametrize('phys_verts',
                          [((0.0, 0.0), (2.0, 0.1), (0.0, 1.0)),
-                          ((0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1))])
+                          ((0, 0, 0), (1., 0.1, -0.37),
+                           (0.01, 0.987, -.23),
+                           (-0.1, -0.2, 1.38))])
 def test_johnson_mercier(phys_verts):
     degree = 1
     sd = len(phys_verts) - 1

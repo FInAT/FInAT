@@ -43,6 +43,7 @@ def _facet_transform(fiat_cell, facet_moment_degree, coordinate_mapping):
                 Vsub[idx, idx-1] = Literal(-1) * alpha / beta
                 Vsub[idx, idx] = Literal(1) / beta
     elif sd == 3:
+        pass
         for f in range(num_facets):
             nhat = fiat_cell.compute_normal(f)
             nhat /= numpy.linalg.norm(nhat)
@@ -58,7 +59,7 @@ def _facet_transform(fiat_cell, facet_moment_degree, coordinate_mapping):
             Jts = [J @ Literal(that) for that in thats]
             Jorth = [J @ Literal(ov) for ov in orth_vecs]
 
-            alphas = [Literal(rels[i]) * Jn * Jts[i] / detJ / Literal(vf) / Literal(2) for i in (0, 1)]
+            alphas = [Literal(rels[i]) * (Jn @ Jts[i]) / detJ / Literal(vf) / Literal(2) for i in (0, 1)]
             betas = [Jorth[0] @ Jts[i] / detJ / Literal(thats[0] @ orth_vecs[0]) for i in (0, 1)]
             gammas = [Jorth[1] @ Jts[i] / detJ / Literal(thats[1] @ orth_vecs[1]) for i in (0, 1)]
 
@@ -66,6 +67,7 @@ def _facet_transform(fiat_cell, facet_moment_degree, coordinate_mapping):
 
             for i in range(dimPk_facet):
                 idx = offset*f + i * sd
+
                 Vsub[idx+1, idx] = (alphas[1] * gammas[0]
                                     - alphas[0] * gammas[1]) / det
                 Vsub[idx+1, idx+1] = gammas[1] / det
