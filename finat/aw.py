@@ -43,25 +43,25 @@ def _facet_transform(fiat_cell, facet_moment_degree, coordinate_mapping):
                 Vsub[idx, idx-1] = Literal(-1) * alpha / beta
                 Vsub[idx, idx] = Literal(1) / beta
     elif sd == 3:
-        pass
         for f in range(num_facets):
             nhat = fiat_cell.compute_normal(f)
             nhat /= numpy.linalg.norm(nhat)
-            ehats = fiat_cell.compute_tangents(2, f)
+            ehats = fiat_cell.compute_tangents(sd-1, f)
             rels = [numpy.linalg.norm(ehat) for ehat in ehats]
             thats = [a / b for a, b in zip(ehats, rels)]
-            vf = fiat_cell.volume_of_subcomplex(2, f)
+            vf = fiat_cell.volume_of_subcomplex(sd-1, f)
 
-            orth_vecs = [numpy.cross(nhat, thats[1]),
-                         numpy.cross(thats[0], nhat)]
+            scale = 1.0 / numpy.dot(thats[1], numpy.cross(thats[0], nhat))
+            orth_vecs = [scale * numpy.cross(nhat, thats[1]),
+                         scale * numpy.cross(thats[0], nhat)]
 
             Jn = J @ Literal(nhat)
             Jts = [J @ Literal(that) for that in thats]
             Jorth = [J @ Literal(ov) for ov in orth_vecs]
 
-            alphas = [Literal(rels[i]) * (Jn @ Jts[i]) / detJ / Literal(vf) / Literal(2) for i in (0, 1)]
-            betas = [Jorth[0] @ Jts[i] / detJ / Literal(thats[0] @ orth_vecs[0]) for i in (0, 1)]
-            gammas = [Jorth[1] @ Jts[i] / detJ / Literal(thats[1] @ orth_vecs[1]) for i in (0, 1)]
+            alphas = [(Jn @ Jts[i] / detJ) * (Literal(rels[i]) / Literal(2*vf)) for i in range(sd-1)]
+            betas = [Jorth[0] @ Jts[i] / detJ for i in range(sd-1)]
+            gammas = [Jorth[1] @ Jts[i] / detJ for i in range(sd-1)]
 
             det = betas[0] * gammas[1] - betas[1] * gammas[0]
 

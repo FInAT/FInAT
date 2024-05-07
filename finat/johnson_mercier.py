@@ -23,7 +23,6 @@ class JohnsonMercier(PhysicallyMappedElement, FiatElement):  # symmetric matrix 
 
         Vsub = _facet_transform(self.cell, 1, coordinate_mapping)
         fdofs = Vsub.shape[0]
-        print(Vsub.shape)
         V[:fdofs, :fdofs] = Vsub
 
         # Note: that the edge DOFs are scaled by edge lengths in FIAT implies
