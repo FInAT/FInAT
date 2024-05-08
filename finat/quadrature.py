@@ -94,7 +94,6 @@ class QuadratureRule(AbstractQuadratureRule):
     def ufl_signature(self):
         return type(self).__name__ + str(self._parameters)
 
-
 class TensorProductQuadratureRule(AbstractQuadratureRule):
     """Quadrature rule which is a tensor product of other rules."""
 
