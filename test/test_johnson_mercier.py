@@ -12,19 +12,20 @@ from fiat_mapping import MyMapping
                           ((0, 0, 0), (1., 0.1, -0.37),
                            (0.01, 0.987, -.23),
                            (-0.1, -0.2, 1.38))])
-def test_johnson_mercier(phys_verts):
+@pytest.mark.parametrize('variant', [None, 'divergence'])
+def test_johnson_mercier(phys_verts, variant):
     degree = 1
     sd = len(phys_verts) - 1
     z = tuple(0 for _ in range(sd))
     ref_cell = FIAT.ufc_simplex(sd)
-    ref_el_finat = finat.JohnsonMercier(ref_cell, degree)
+    ref_el_finat = finat.JohnsonMercier(ref_cell, degree, variant=variant)
     ref_element = ref_el_finat._element
     ref_pts = ref_cell.make_points(sd, 0, 1+sd)
     ref_vals = ref_element.tabulate(0, ref_pts)[z]
 
     phys_cell = FIAT.ufc_simplex(sd)
     phys_cell.vertices = phys_verts
-    phys_element = type(ref_element)(phys_cell, degree)
+    phys_element = type(ref_element)(phys_cell, degree, variant=variant)
 
     phys_pts = phys_cell.make_points(sd, 0, 1+sd)
     phys_vals = phys_element.tabulate(0, phys_pts)[z]
