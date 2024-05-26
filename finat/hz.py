@@ -66,8 +66,8 @@ class HuZhang(PhysicallyMappedElement, FiatElement):
         #p = degree # Obtain this somehow
         p = 3 # DELETE
         #V = numpy.zeros((space_dimension(self), space_dimension(self)), dtype = object)
-        #V = numpy.zeros((30, 30), dtype = object)
-        V = numpy.ones((30, 30), dtype = object)
+        V = numpy.zeros((30, 30), dtype = object)
+        #V = numpy.ones((30, 30), dtype = object)
 
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
