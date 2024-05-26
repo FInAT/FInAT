@@ -5,9 +5,10 @@ from gem import Literal, ListTensor
 from finat.fiat_elements import FiatElement
 from finat.physically_mapped import PhysicallyMappedElement, Citations
 
-def _edge_transform(T, coordinate_mapping):
+def _edge_transform(T, coordinate_mapping, degree):
     #degree = p # Obtain this somehow
-    p = 3 # DELETE
+    p = degree # Just makes things easier to read
+    #p = 3 # DELETE
     Vsub = numpy.zeros((6*(p - 1), 6*(p - 1)), dtype = object)
 
     for multiindex in numpy.ndindex(Vsub.shape):
@@ -64,7 +65,8 @@ class HuZhang(PhysicallyMappedElement, FiatElement):
 
     def basis_transformation(self, coordinate_mapping):
         #p = degree # Obtain this somehow
-        p = 3 # DELETE
+        p = self.degree
+        #p = 3 # DELETE
         #V = numpy.zeros((space_dimension(self), space_dimension(self)), dtype = object)
         V = numpy.zeros((30, 30), dtype = object)
         #V = numpy.ones((30, 30), dtype = object)
@@ -77,8 +79,8 @@ class HuZhang(PhysicallyMappedElement, FiatElement):
         # Put into the right rows and columns.
         V[0:3, 0:3] = V[3:6, 3:6] = V[6:9, 6:9] = W
 
-        #V[9:21, 9:21] = _edge_transform(self.cell, coordinate_mapping)
-        V[9:9 + 6*(p - 1), 9:9 + 6*(p - 1)] = _edge_transform(self.cell, coordinate_mapping)
+        #V[9:21, 9:21] = _edge_transform(self.cell, coordinate_mapping, p)
+        V[9:9 + 6*(p - 1), 9:9 + 6*(p - 1)] = _edge_transform(self.cell, coordinate_mapping, p)
 
         # internal DOFs
         detJ = coordinate_mapping.detJ_at([1/3, 1/3])
