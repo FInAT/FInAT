@@ -68,7 +68,9 @@ class HuZhang(PhysicallyMappedElement, FiatElement):
         p = self.degree
         #p = 3 # DELETE
         #V = numpy.zeros((space_dimension(self), space_dimension(self)), dtype = object)
-        V = numpy.zeros((30, 30), dtype = object)
+        #V = numpy.zeros((30, 30), dtype = object)
+        dim = round(3*(p + 2)*(p + 1)/2)
+        V = numpy.zeros((dim, dim), dtype = object)
         #V = numpy.ones((30, 30), dtype = object)
 
         for multiindex in numpy.ndindex(V.shape):
