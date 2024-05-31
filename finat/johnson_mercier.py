@@ -13,6 +13,7 @@ class JohnsonMercier(PhysicallyMappedElement, FiatElement):  # symmetric matrix 
             raise ValueError("Degree must be 1 for Johnson-Mercier element")
         if Citations is not None:
             Citations().register("Gopalakrishnan2024")
+        self._indices = slice(None, None)
         super(JohnsonMercier, self).__init__(FIAT.JohnsonMercier(cell, degree, variant=variant))
 
     def basis_transformation(self, coordinate_mapping):
@@ -23,14 +24,7 @@ class JohnsonMercier(PhysicallyMappedElement, FiatElement):  # symmetric matrix 
             V[multiindex] = Literal(V[multiindex])
 
         Vsub = _facet_transform(self.cell, 1, coordinate_mapping)
-        if ndof < numbf:
-            sd = self.cell.get_spatial_dimension()
-            edofs = self._element.entity_dofs()
-            indices = []
-            for entity in edofs[sd-1]:
-                indices.extend(edofs[sd-1][entity][:sd])
-            Vsub = Vsub[indices, :]
-
+        Vsub = Vsub[:, self._indices]
         m, n = Vsub.shape
         V[:m, :n] = Vsub
 
@@ -41,29 +35,32 @@ class JohnsonMercier(PhysicallyMappedElement, FiatElement):  # symmetric matrix 
 
 
 class ReducedJohnsonMercier(JohnsonMercier):  # symmetric matrix valued
-    def __init__(self, cell, degree):
-        super(ReducedJohnsonMercier, self).__init__(cell, degree, variant="divergence")
+    def __init__(self, cell, degree, variant=None):
+        super(ReducedJohnsonMercier, self).__init__(cell, degree, variant=variant)
+
+        full_dofs = self._element.entity_dofs()
+        top = cell.get_topology()
+        sd = cell.get_spatial_dimension()
+        fdim = sd - 1
+
+        indices = []
+        reduced_dofs = {dim: {entity: [] for entity in sorted(top[dim])} for dim in sorted(top)}
+        cur = 0
+        for entity in sorted(top[fdim]):
+            indices.extend(full_dofs[fdim][entity][:sd])
+            reduced_dofs[fdim][entity] = list(range(cur, cur + sd))
+            cur = cur + sd
+
+        self._indices = indices
+        self._entity_dofs = reduced_dofs
+        self._space_dimension = cur
 
     def entity_dofs(self):
-        top = sell.cell.get_topology()
-        sd = self.cell.get_spatial_dimension()
-        edofs = {{entity: [] for entity in top[dim]} for dim in top}
-        dim = sd - 1
-        cur = 0
-        for entity in sorted(top[dim]):
-            edofs[dim][entity] = list(range(cur, cur + sd))
-            cur = cur + sd
-        return edofs
+        return self._entity_dofs
+
+    def space_dimension(self):
+        return self._space_dimension
 
     @property
     def index_shape(self):
-        top = sell.cell.get_topology()
-        sd = self.cell.get_spatial_dimension()
-        num_facets = len(top[sd-1])
-        return (sd * num_facets,)
-
-    def space_dimension(self):
-        top = sell.cell.get_topology()
-        sd = self.cell.get_spatial_dimension()
-        num_facets = len(top[sd-1])
-        return sd * num_facets
+        return (self._space_dimension,)
