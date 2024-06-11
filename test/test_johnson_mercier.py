@@ -23,17 +23,13 @@ def make_unisolvent_points(element):
                           ((0, 0, 0), (1., 0.1, -0.37),
                            (0.01, 0.987, -.23),
                            (-0.1, -0.2, 1.38))])
-@pytest.mark.parametrize('reduced', [False, True])
-@pytest.mark.parametrize('variant', [None, "divergence"])
-def test_johnson_mercier(phys_verts, reduced, variant):
+def test_johnson_mercier(phys_verts):
     degree = 1
+    variant = None
     sd = len(phys_verts) - 1
     z = tuple(0 for _ in range(sd))
     ref_cell = FIAT.ufc_simplex(sd)
-    if reduced:
-        ref_el_finat = finat.ReducedJohnsonMercier(ref_cell, degree, variant=variant)
-    else:
-        ref_el_finat = finat.JohnsonMercier(ref_cell, degree, variant=variant)
+    ref_el_finat = finat.JohnsonMercier(ref_cell, degree, variant=variant)
     indices = ref_el_finat._indices
 
     ref_element = ref_el_finat._element

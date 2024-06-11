@@ -32,35 +32,3 @@ class JohnsonMercier(PhysicallyMappedElement, FiatElement):  # symmetric matrix 
         # that they are already have the necessary rescaling to improve
         # conditioning.
         return ListTensor(V.T)
-
-
-class ReducedJohnsonMercier(JohnsonMercier):  # symmetric matrix valued
-    def __init__(self, cell, degree, variant=None):
-        super(ReducedJohnsonMercier, self).__init__(cell, degree, variant=variant)
-
-        full_dofs = self._element.entity_dofs()
-        top = cell.get_topology()
-        sd = cell.get_spatial_dimension()
-        fdim = sd - 1
-
-        indices = []
-        reduced_dofs = {dim: {entity: [] for entity in sorted(top[dim])} for dim in sorted(top)}
-        cur = 0
-        for entity in sorted(top[fdim]):
-            indices.extend(full_dofs[fdim][entity][:sd])
-            reduced_dofs[fdim][entity] = list(range(cur, cur + sd))
-            cur = cur + sd
-
-        self._indices = indices
-        self._entity_dofs = reduced_dofs
-        self._space_dimension = cur
-
-    def entity_dofs(self):
-        return self._entity_dofs
-
-    def space_dimension(self):
-        return self._space_dimension
-
-    @property
-    def index_shape(self):
-        return (self._space_dimension,)
