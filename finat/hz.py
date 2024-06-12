@@ -6,9 +6,8 @@ from finat.fiat_elements import FiatElement
 from finat.physically_mapped import PhysicallyMappedElement, Citations
 
 def _edge_transform(T, coordinate_mapping, degree):
-    #degree = p # Obtain this somehow
     p = degree # Just makes things easier to read
-    #p = 3 # DELETE
+    #p = 3
     Vsub = numpy.zeros((6*(p - 1), 6*(p - 1)), dtype = object)
 
     for multiindex in numpy.ndindex(Vsub.shape):
@@ -33,11 +32,12 @@ def _edge_transform(T, coordinate_mapping, degree):
 
         (alpha, beta) = Ghat_T @ JTJ @ that[e, :] / detJ
         # Stuff into the right rows and columns.
-        (idx1, idx2) = (2*(p - 1)*e + 1, 2*(p - 1)*e + 3)
-        Vsub[idx1, idx1 - 1] = Literal(-1) * alpha / beta
-        Vsub[idx1, idx1] = Literal(1) / beta
-        Vsub[idx2, idx2 - 1] = Literal(-1) * alpha / beta
-        Vsub[idx2, idx2] = Literal(1) / beta
+        for deg in range(p - 1):
+            (id1, id2) = (2*(p - 1)*e + 2*deg + 1, 2*(p - 1)*e + 2*deg + 3)
+            Vsub[id1, id1 - 1] = Literal(-1) * alpha / beta
+            Vsub[id1, id1] = Literal(1) / beta
+            #Vsub[idx2, idx2 - 1] = Literal(-1) * alpha / beta
+            #Vsub[idx2, idx2] = Literal(1) / beta
 
     return Vsub
 
@@ -64,14 +64,12 @@ class HuZhang(PhysicallyMappedElement, FiatElement):
         super(HuZhang, self).__init__(FIAT.HuZhang(cell, degree))
 
     def basis_transformation(self, coordinate_mapping):
-        #p = degree # Obtain this somehow
         p = self.degree
-        #p = 3 # DELETE
+        #p = 3
         #V = numpy.zeros((space_dimension(self), space_dimension(self)), dtype = object)
         #V = numpy.zeros((30, 30), dtype = object)
         dim = round(3*(p + 2)*(p + 1)/2)
         V = numpy.zeros((dim, dim), dtype = object)
-        #V = numpy.ones((30, 30), dtype = object)
 
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
@@ -93,6 +91,8 @@ class HuZhang(PhysicallyMappedElement, FiatElement):
         for j in range(num_interior_dof_triples):
             #print(j)
             V[9 + 6*(p - 1) + 3*j:9 + 6*(p - 1) + 3*j + 3, 9 + 6*(p - 1) + 3*j:9 + 6*(p - 1) + 3*j + 3] = W / detJ
+        #for j in range(3*num_interior_dof_triples):
+        #    V[9 + 6*(p - 1) + j] = 1.0
 
 #        # RESCALING FOR CONDITIONING
 #        h = coordinate_mapping.cell_size()
