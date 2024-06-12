@@ -33,6 +33,7 @@ def _edge_transform(T, coordinate_mapping, degree):
         (alpha, beta) = Ghat_T @ JTJ @ that[e, :] / detJ
         # Stuff into the right rows and columns.
         for deg in range(p - 1):
+            # cyle through (p - 1) matrices of size 2x2 per edge
             (id1, id2) = (2*(p - 1)*e + 2*deg + 1, 2*(p - 1)*e + 2*deg + 3)
             Vsub[id1, id1 - 1] = Literal(-1) * alpha / beta
             Vsub[id1, id1] = Literal(1) / beta
