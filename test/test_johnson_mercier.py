@@ -75,5 +75,4 @@ def test_johnson_mercier(phys_verts):
     Mh = np.linalg.solve(Phi @ Phi.T, Phi @ phi.T).T
     assert np.allclose(M[:num_facet_bfs], Mh[indices][:num_facet_bfs])
 
-    # print((ref_vals_zany[:num_facet_bfs] - phys_vals[indices][:num_facet_bfs]).T)
     assert np.allclose(ref_vals_zany[:num_facet_bfs], phys_vals[indices][:num_facet_bfs])
