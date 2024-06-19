@@ -2,7 +2,6 @@ import FIAT
 import finat
 import numpy as np
 import pytest
-from itertools import chain
 from gem.interpreter import evaluate
 
 from fiat_mapping import MyMapping
