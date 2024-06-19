@@ -116,6 +116,14 @@ finat.hermite module
    :undoc-members:
    :show-inheritance:
 
+finat.johnson\_mercier module
+-----------------------------
+
+.. automodule:: finat.johnson_mercier
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 finat.mixed module
 ------------------
 
