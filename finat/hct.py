@@ -7,13 +7,13 @@ from finat.physically_mapped import Citations, PhysicallyMappedElement
 from copy import deepcopy
 
 
-def _edge_transform(V, fiat_cell, degree, coordinate_mapping, avg=False):
-    """Basis transformation for HCT edge degrees of freedom."""
+def _edge_transform(V, voffset, fiat_cell, moment_deg, coordinate_mapping, avg=False):
+    """Basis transformation for edge degrees of freedom."""
 
-    A = numpy.zeros((degree - 2, degree - 2))
-    if degree > 3:
+    A = numpy.zeros((moment_deg, moment_deg))
+    if moment_deg > 1:
         A[1, 0] = -1.0
-    for k in range(2, degree - 2):
+    for k in range(2, moment_deg):
         a, b, c = FIAT.expansions.jrc(0, 0, k-1)
         A[k, :k-2] -= (c/(1-a)) * A[k-2, :k-2]
         A[k, :k-1] += (b/(1-a)) * A[k-1, :k-1]
@@ -25,12 +25,10 @@ def _edge_transform(V, fiat_cell, degree, coordinate_mapping, avg=False):
     pns = coordinate_mapping.physical_normals()
     pel = coordinate_mapping.physical_edge_lengths()
 
-    sd = fiat_cell.get_spatial_dimension()
     top = fiat_cell.get_topology()
     num_verts = len(top[0])
 
-    voffset = sd + 1
-    eoffset = 2 * degree - 5
+    eoffset = 2 * moment_deg - 1
     for e in sorted(top[1]):
         v0id, v1id = [i * voffset for i in range(num_verts) if i != e]
         nhat = partial_indexed(rns, (e, ))
@@ -43,8 +41,8 @@ def _edge_transform(V, fiat_cell, degree, coordinate_mapping, avg=False):
             Bnn = Bnn * pel[e]
 
         s0 = num_verts * voffset + e * eoffset
-        toffset = s0 + degree - 2
-        for k in range(degree - 2):
+        toffset = s0 + moment_deg
+        for k in range(moment_deg):
             s = s0 + k
             V[s, s] = Bnn
             V[s, v1id] = Bnt
@@ -73,16 +71,17 @@ class HsiehCloughTocher(PhysicallyMappedElement, ScalarFiatElement):
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
 
+        voffset = sd + 1
         num_verts = len(top[0])
         num_edges = len(top[1])
-        voffset = sd + 1
         for v in range(num_verts):
             s = voffset * v
             for i in range(sd):
                 for j in range(sd):
                     V[s+1+i, s+1+j] = J[j, i]
 
-        _edge_transform(V, self.cell, self.degree, coordinate_mapping, avg=self.avg)
+        q = self.degree - 2
+        _edge_transform(V, voffset, self.cell, q, coordinate_mapping, avg=self.avg)
 
         # Patch up conditioning
         h = coordinate_mapping.cell_size()
@@ -91,11 +90,11 @@ class HsiehCloughTocher(PhysicallyMappedElement, ScalarFiatElement):
             for k in range(sd):
                 V[:, s+1+k] /= h[v]
 
-        eoffset = 2 * self.degree - 5
+        eoffset = 2 * q - 1
         for e in range(num_edges):
             v0id, v1id = [i for i in range(num_verts) if i != e]
             s0 = voffset*num_verts + e * eoffset
-            V[:, s0:s0+self.degree-2] *= 2 / (h[v0id] + h[v1id])
+            V[:, s0:s0+q] *= 2 / (h[v0id] + h[v1id])
         return ListTensor(V.T)
 
 

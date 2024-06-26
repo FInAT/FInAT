@@ -23,11 +23,11 @@ def phys_cell(request):
 def make_unisolvent_points(element):
     degree = element.degree()
     ref_complex = element.get_reference_complex()
-    sd = ref_complex.get_spatial_dimension()
     top = ref_complex.get_topology()
     pts = []
-    for cell in top[sd]:
-        pts.extend(ref_complex.make_points(sd, cell, degree+sd+1, variant="gll"))
+    for dim in top:
+        for entity in top[dim]:
+            pts.extend(ref_complex.make_points(dim, entity, degree, variant="gll"))
     return pts
 
 
@@ -66,6 +66,6 @@ def test_hct(ref_cell, phys_cell, degree):
         # print()
         # print(Mh.T[-offset:-i])
         # print(M.T[-offset:-i])
-        assert np.allclose(M, Mh, atol=1E-8)
+        assert np.allclose(M, Mh, atol=1E-9)
 
     assert np.allclose(finat_vals, phys_vals[:numbfs])
