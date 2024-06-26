@@ -1,5 +1,6 @@
 from functools import singledispatch, reduce
 
+import numpy
 import sympy
 try:
     import symengine

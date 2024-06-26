@@ -7,66 +7,95 @@ from finat.physically_mapped import Citations, PhysicallyMappedElement
 from copy import deepcopy
 
 
+def _edge_transform(V, fiat_cell, degree, coordinate_mapping, avg=False):
+    """Basis transformation for HCT edge degrees of freedom."""
+
+    A = numpy.zeros((degree - 2, degree - 2))
+    if degree > 3:
+        A[1, 0] = -1.0
+    for k in range(2, degree - 2):
+        a, b, c = FIAT.expansions.jrc(0, 0, k-1)
+        A[k, :k-2] -= (c/(1-a)) * A[k-2, :k-2]
+        A[k, :k-1] += (b/(1-a)) * A[k-1, :k-1]
+        A[k, k-1] = (k-1)*a/(1-a)
+
+    J = coordinate_mapping.jacobian_at([1/3, 1/3])
+    rns = coordinate_mapping.reference_normals()
+    pts = coordinate_mapping.physical_tangents()
+    pns = coordinate_mapping.physical_normals()
+    pel = coordinate_mapping.physical_edge_lengths()
+
+    sd = fiat_cell.get_spatial_dimension()
+    top = fiat_cell.get_topology()
+    num_verts = len(top[0])
+
+    voffset = sd + 1
+    eoffset = 2 * degree - 5
+    for e in sorted(top[1]):
+        v0id, v1id = [i * voffset for i in range(num_verts) if i != e]
+        nhat = partial_indexed(rns, (e, ))
+        n = partial_indexed(pns, (e, ))
+        t = partial_indexed(pts, (e, ))
+        Bn = J @ nhat / pel[e]
+        Bnt = Bn @ t
+        Bnn = Bn @ n
+        if avg:
+            Bnn = Bnn * pel[e]
+
+        s0 = num_verts * voffset + e * eoffset
+        toffset = s0 + degree - 2
+        for k in range(degree - 2):
+            s = s0 + k
+            V[s, s] = Bnn
+            V[s, v1id] = Bnt
+            V[s, v0id] = Literal((-1)**(k+1)) * Bnt
+            for j in range(k):
+                V[s, toffset + j] = Literal(2*A[k, j]) * Bnt
+
+
 class HsiehCloughTocher(PhysicallyMappedElement, ScalarFiatElement):
     def __init__(self, cell, degree, avg=False):
-        if degree != 3:
-            raise ValueError("Degree must be 3 for HCT element")
+        if degree < 3:
+            raise ValueError("HCT only defined for degree >= 3")
         if Citations is not None:
             Citations().register("Clough1965")
         self.avg = avg
-        super().__init__(FIAT.HsiehCloughTocher(cell))
+        super().__init__(FIAT.HsiehCloughTocher(cell, degree))
 
     def basis_transformation(self, coordinate_mapping):
         # Jacobians at cell center
         J = coordinate_mapping.jacobian_at([1/3, 1/3])
 
-        rns = coordinate_mapping.reference_normals()
-        pts = coordinate_mapping.physical_tangents()
-        pns = coordinate_mapping.physical_normals()
-
-        pel = coordinate_mapping.physical_edge_lengths()
-
-        d = self.cell.get_dimension()
+        top = self.cell.get_topology()
+        sd = self.cell.get_dimension()
         ndof = self.space_dimension()
         V = numpy.eye(ndof, dtype=object)
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
 
-        voffset = d+1
-        for v in range(d+1):
+        num_verts = len(top[0])
+        num_edges = len(top[1])
+        voffset = sd + 1
+        for v in range(num_verts):
             s = voffset * v
-            for i in range(d):
-                for j in range(d):
+            for i in range(sd):
+                for j in range(sd):
                     V[s+1+i, s+1+j] = J[j, i]
 
-        for e in range(3):
-            s = (d+1) * voffset + e
-            v0id, v1id = [i * voffset for i in range(3) if i != e]
-
-            nhat = partial_indexed(rns, (e, ))
-            t = partial_indexed(pts, (e, ))
-            n = partial_indexed(pns, (e, ))
-
-            Bn = J @ nhat / pel[e]
-            Bnn = Bn @ n
-            Bnt = Bn @ t
-
-            if self.avg:
-                Bnn = Bnn * pel[e]
-            V[s, s] = Bnn
-            V[s, v0id] = Literal(-1) * Bnt
-            V[s, v1id] = Bnt
+        _edge_transform(V, self.cell, self.degree, coordinate_mapping, avg=self.avg)
 
         # Patch up conditioning
         h = coordinate_mapping.cell_size()
-        for v in range(d+1):
+        for v in range(num_verts):
             s = voffset * v
-            for k in range(d):
+            for k in range(sd):
                 V[:, s+1+k] /= h[v]
 
-        for e in range(3):
-            v0id, v1id = [i for i in range(3) if i != e]
-            V[:, 9+e] *= 2 / (h[v0id] + h[v1id])
+        eoffset = 2 * self.degree - 5
+        for e in range(num_edges):
+            v0id, v1id = [i for i in range(num_verts) if i != e]
+            s0 = voffset*num_verts + e * eoffset
+            V[:, s0:s0+self.degree-2] *= 2 / (h[v0id] + h[v1id])
         return ListTensor(V.T)
 
 
