@@ -50,6 +50,7 @@
   <h1>Source code for finat.sympy2gem</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">singledispatch</span><span class="p">,</span> <span class="n">reduce</span>
 
+<span class="kn">import</span> <span class="nn">numpy</span>
 <span class="kn">import</span> <span class="nn">sympy</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">symengine</span>
@@ -115,6 +116,75 @@
 <span class="nd">@sympy2gem</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">symengine</span><span class="o">.</span><span class="n">Rational</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">sympy2gem_rational</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="bp">self</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">gem</span><span class="o">.</span><span class="n">Division</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">as_numer_denom</span><span class="p">())))</span></div>
+
+
+<div class="viewcode-block" id="sympy2gem_abs"><a class="viewcode-back" href="../../finat.html#finat.sympy2gem.sympy2gem_abs">[docs]</a><span class="nd">@sympy2gem</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">sympy</span><span class="o">.</span><span class="n">Abs</span><span class="p">)</span>
+<span class="nd">@sympy2gem</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">symengine</span><span class="o">.</span><span class="n">Abs</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">sympy2gem_abs</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">gem</span><span class="o">.</span><span class="n">MathFunction</span><span class="p">(</span><span class="s2">&quot;abs&quot;</span><span class="p">,</span> <span class="o">*</span><span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">args</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="sympy2gem_not"><a class="viewcode-back" href="../../finat.html#finat.sympy2gem.sympy2gem_not">[docs]</a><span class="nd">@sympy2gem</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">sympy</span><span class="o">.</span><span class="n">Not</span><span class="p">)</span>
+<span class="nd">@sympy2gem</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">symengine</span><span class="o">.</span><span class="n">Not</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">sympy2gem_not</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">gem</span><span class="o">.</span><span class="n">LogicalNot</span><span class="p">(</span><span class="o">*</span><span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">args</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="sympy2gem_or"><a class="viewcode-back" href="../../finat.html#finat.sympy2gem.sympy2gem_or">[docs]</a><span class="nd">@sympy2gem</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">sympy</span><span class="o">.</span><span class="n">Or</span><span class="p">)</span>
+<span class="nd">@sympy2gem</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">symengine</span><span class="o">.</span><span class="n">Or</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">sympy2gem_or</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">reduce</span><span class="p">(</span><span class="n">gem</span><span class="o">.</span><span class="n">LogicalOr</span><span class="p">,</span> <span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">args</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="sympy2gem_and"><a class="viewcode-back" href="../../finat.html#finat.sympy2gem.sympy2gem_and">[docs]</a><span class="nd">@sympy2gem</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">sympy</span><span class="o">.</span><span class="n">And</span><span class="p">)</span>
+<span class="nd">@sympy2gem</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">symengine</span><span class="o">.</span><span class="n">And</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">sympy2gem_and</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">reduce</span><span class="p">(</span><span class="n">gem</span><span class="o">.</span><span class="n">LogicalAnd</span><span class="p">,</span> <span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">args</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="sympy2gem_eq"><a class="viewcode-back" href="../../finat.html#finat.sympy2gem.sympy2gem_eq">[docs]</a><span class="nd">@sympy2gem</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">sympy</span><span class="o">.</span><span class="n">Eq</span><span class="p">)</span>
+<span class="nd">@sympy2gem</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">symengine</span><span class="o">.</span><span class="n">Eq</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">sympy2gem_eq</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">gem</span><span class="o">.</span><span class="n">Comparison</span><span class="p">(</span><span class="s2">&quot;==&quot;</span><span class="p">,</span> <span class="o">*</span><span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">args</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="sympy2gem_gt"><a class="viewcode-back" href="../../finat.html#finat.sympy2gem.sympy2gem_gt">[docs]</a><span class="nd">@sympy2gem</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">sympy</span><span class="o">.</span><span class="n">Gt</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">sympy2gem_gt</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">gem</span><span class="o">.</span><span class="n">Comparison</span><span class="p">(</span><span class="s2">&quot;&gt;&quot;</span><span class="p">,</span> <span class="o">*</span><span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">args</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="sympy2gem_ge"><a class="viewcode-back" href="../../finat.html#finat.sympy2gem.sympy2gem_ge">[docs]</a><span class="nd">@sympy2gem</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">sympy</span><span class="o">.</span><span class="n">Ge</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">sympy2gem_ge</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">gem</span><span class="o">.</span><span class="n">Comparison</span><span class="p">(</span><span class="s2">&quot;&gt;=&quot;</span><span class="p">,</span> <span class="o">*</span><span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">args</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="sympy2gem_lt"><a class="viewcode-back" href="../../finat.html#finat.sympy2gem.sympy2gem_lt">[docs]</a><span class="nd">@sympy2gem</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">sympy</span><span class="o">.</span><span class="n">Lt</span><span class="p">)</span>
+<span class="nd">@sympy2gem</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">symengine</span><span class="o">.</span><span class="n">Lt</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">sympy2gem_lt</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">gem</span><span class="o">.</span><span class="n">Comparison</span><span class="p">(</span><span class="s2">&quot;&lt;&quot;</span><span class="p">,</span> <span class="o">*</span><span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">args</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="sympy2gem_le"><a class="viewcode-back" href="../../finat.html#finat.sympy2gem.sympy2gem_le">[docs]</a><span class="nd">@sympy2gem</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">sympy</span><span class="o">.</span><span class="n">Le</span><span class="p">)</span>
+<span class="nd">@sympy2gem</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">symengine</span><span class="o">.</span><span class="n">Le</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">sympy2gem_le</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">gem</span><span class="o">.</span><span class="n">Comparison</span><span class="p">(</span><span class="s2">&quot;&lt;=&quot;</span><span class="p">,</span> <span class="o">*</span><span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">args</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="sympy2gem_conditional"><a class="viewcode-back" href="../../finat.html#finat.sympy2gem.sympy2gem_conditional">[docs]</a><span class="nd">@sympy2gem</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">sympy</span><span class="o">.</span><span class="n">Piecewise</span><span class="p">)</span>
+<span class="nd">@sympy2gem</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">symengine</span><span class="o">.</span><span class="n">Piecewise</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">sympy2gem_conditional</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="bp">self</span><span class="p">):</span>
+    <span class="n">expr</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">pieces</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">v</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">bool</span><span class="p">))</span> <span class="ow">and</span> <span class="n">c</span><span class="p">:</span>
+            <span class="n">expr</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+            <span class="k">break</span>
+        <span class="n">pieces</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">v</span><span class="p">,</span> <span class="n">c</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">expr</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">expr</span> <span class="o">=</span> <span class="n">gem</span><span class="o">.</span><span class="n">Literal</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">v</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">pieces</span><span class="p">):</span>
+        <span class="n">expr</span> <span class="o">=</span> <span class="n">gem</span><span class="o">.</span><span class="n">Conditional</span><span class="p">(</span><span class="bp">self</span><span class="p">(</span><span class="n">c</span><span class="p">),</span> <span class="bp">self</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="n">expr</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">expr</span></div>
 </pre></div>
 
             <div class="clearer"></div>
