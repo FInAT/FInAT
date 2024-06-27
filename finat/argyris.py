@@ -53,9 +53,11 @@ def _edge_transform(V, voffset, fiat_cell, moment_deg, coordinate_mapping, avg=F
 
 
 class Argyris(PhysicallyMappedElement, ScalarFiatElement):
-    def __init__(self, cell, degree, variant="point", avg=False):
+    def __init__(self, cell, degree, variant=None, avg=False):
         if Citations is not None:
             Citations().register("Argyris1968")
+        if variant is None:
+            variant = "integral"
         if variant == "integral":
             fiat_element = FIAT.Argyris(cell, degree, variant=variant)
         elif variant == "point":
