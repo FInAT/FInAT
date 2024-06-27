@@ -2,19 +2,71 @@ import numpy
 
 import FIAT
 
-from gem import Literal, ListTensor
+from gem import Literal, ListTensor, partial_indexed
 
 from finat.fiat_elements import ScalarFiatElement
 from finat.physically_mapped import PhysicallyMappedElement, Citations
 
 
+def _edge_transform(V, voffset, fiat_cell, moment_deg, coordinate_mapping, avg=False):
+    """Basis transformation for edge degrees of freedom."""
+
+    A = numpy.zeros((moment_deg, moment_deg))
+    if moment_deg > 1:
+        A[1, 0] = -1.0
+    for k in range(2, moment_deg):
+        a, b, c = FIAT.expansions.jrc(0, 0, k-1)
+        A[k, :k-2] -= (c/(1-a)) * A[k-2, :k-2]
+        A[k, :k-1] += (b/(1-a)) * A[k-1, :k-1]
+        A[k, k-1] = (k-1)*a/(1-a)
+
+    J = coordinate_mapping.jacobian_at([1/3, 1/3])
+    rns = coordinate_mapping.reference_normals()
+    pts = coordinate_mapping.physical_tangents()
+    pns = coordinate_mapping.physical_normals()
+    pel = coordinate_mapping.physical_edge_lengths()
+
+    top = fiat_cell.get_topology()
+    num_verts = len(top[0])
+
+    eoffset = 2 * moment_deg - 1
+    for e in sorted(top[1]):
+        v0id, v1id = [i * voffset for i in range(num_verts) if i != e]
+        nhat = partial_indexed(rns, (e, ))
+        n = partial_indexed(pns, (e, ))
+        t = partial_indexed(pts, (e, ))
+        Bn = J @ nhat / pel[e]
+        Bnt = Bn @ t
+        Bnn = Bn @ n
+        if avg:
+            Bnn = Bnn * pel[e]
+
+        s0 = num_verts * voffset + e * eoffset
+        toffset = s0 + moment_deg
+        for k in range(moment_deg):
+            s = s0 + k
+            V[s, s] = Bnn
+            V[s, v1id] = Bnt
+            V[s, v0id] = Literal((-1)**(k+1)) * Bnt
+            for j in range(k):
+                V[s, toffset + j] = Literal(2*A[k, j]) * Bnt
+
+
 class Argyris(PhysicallyMappedElement, ScalarFiatElement):
-    def __init__(self, cell, degree):
-        if degree != 5:
-            raise ValueError("Degree must be 5 for Argyris element")
+    def __init__(self, cell, degree, variant="point", avg=False):
         if Citations is not None:
             Citations().register("Argyris1968")
-        super().__init__(FIAT.QuinticArgyris(cell))
+        if variant == "integral":
+            fiat_element = FIAT.Argyris(cell, degree, variant=variant)
+        elif variant == "point":
+            if degree != 5:
+                raise ValueError("Degree must be 5 for Argyris element")
+            fiat_element = FIAT.QuinticArgyris(cell)
+        else:
+            raise ValueError("Invalid variant for Argyris")
+        self.variant = variant
+        self.avg = avg
+        super().__init__(fiat_element)
 
     def basis_transformation(self, coordinate_mapping):
         # Jacobians at edge midpoints
@@ -27,14 +79,14 @@ class Argyris(PhysicallyMappedElement, ScalarFiatElement):
 
         pel = coordinate_mapping.physical_edge_lengths()
 
-        V = numpy.zeros((21, 21), dtype=object)
-
+        ndof = self.space_dimension()
+        V = numpy.eye(ndof, dtype=object)
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
 
+        voffset = 6
         for v in range(3):
-            s = 6*v
-            V[s, s] = Literal(1)
+            s = voffset*v
             for i in range(2):
                 for j in range(2):
                     V[s+1+i, s+1+j] = J[j, i]
@@ -48,33 +100,37 @@ class Argyris(PhysicallyMappedElement, ScalarFiatElement):
             V[s+5, s+4] = 2*J[0, 1]*J[1, 1]
             V[s+5, s+5] = J[1, 1]*J[1, 1]
 
-        for e in range(3):
-            v0id, v1id = [i for i in range(3) if i != e]
+        if self.variant == "integral":
+            q = self.degree - 4
+            _edge_transform(V, voffset, self.cell, q, coordinate_mapping, avg=self.avg)
+        else:
+            for e in range(3):
+                v0id, v1id = [i for i in range(3) if i != e]
 
-            # nhat . J^{-T} . t
-            foo = (rns[e, 0]*(J[0, 0]*pts[e, 0] + J[1, 0]*pts[e, 1])
-                   + rns[e, 1]*(J[0, 1]*pts[e, 0] + J[1, 1]*pts[e, 1]))
+                # nhat . J^{-T} . t
+                foo = (rns[e, 0]*(J[0, 0]*pts[e, 0] + J[1, 0]*pts[e, 1])
+                       + rns[e, 1]*(J[0, 1]*pts[e, 0] + J[1, 1]*pts[e, 1]))
 
-            # vertex points
-            V[18+e, 6*v0id] = -15/8 * (foo / pel[e])
-            V[18+e, 6*v1id] = 15/8 * (foo / pel[e])
+                # vertex points
+                V[18+e, 6*v0id] = -15/8 * (foo / pel[e])
+                V[18+e, 6*v1id] = 15/8 * (foo / pel[e])
 
-            # vertex derivatives
-            for i in (0, 1):
-                V[18+e, 6*v0id+1+i] = -7/16*foo*pts[e, i]
-                V[18+e, 6*v1id+1+i] = V[18+e, 6*v0id+1+i]
+                # vertex derivatives
+                for i in (0, 1):
+                    V[18+e, 6*v0id+1+i] = -7/16*foo*pts[e, i]
+                    V[18+e, 6*v1id+1+i] = V[18+e, 6*v0id+1+i]
 
-            # second derivatives
-            tau = [pts[e, 0]*pts[e, 0],
-                   2*pts[e, 0]*pts[e, 1],
-                   pts[e, 1]*pts[e, 1]]
+                # second derivatives
+                tau = [pts[e, 0]*pts[e, 0],
+                       2*pts[e, 0]*pts[e, 1],
+                       pts[e, 1]*pts[e, 1]]
 
-            for i in (0, 1, 2):
-                V[18+e, 6*v0id+3+i] = -1/32 * (pel[e]*foo*tau[i])
-                V[18+e, 6*v1id+3+i] = 1/32 * (pel[e]*foo*tau[i])
+                for i in (0, 1, 2):
+                    V[18+e, 6*v0id+3+i] = -1/32 * (pel[e]*foo*tau[i])
+                    V[18+e, 6*v1id+3+i] = 1/32 * (pel[e]*foo*tau[i])
 
-            V[18+e, 18+e] = (rns[e, 0]*(J[0, 0]*pns[e, 0] + J[1, 0]*pns[e, 1])
-                             + rns[e, 1]*(J[0, 1]*pns[e, 0] + J[1, 1]*pns[e, 1]))
+                V[18+e, 18+e] = (rns[e, 0]*(J[0, 0]*pns[e, 0] + J[1, 0]*pns[e, 1])
+                                 + rns[e, 1]*(J[0, 1]*pns[e, 0] + J[1, 1]*pns[e, 1]))
 
         # Patch up conditioning
         h = coordinate_mapping.cell_size()

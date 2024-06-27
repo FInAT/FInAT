@@ -2,53 +2,10 @@ import FIAT
 import numpy
 from gem import ListTensor, Literal, partial_indexed
 
+from finat.argyris import _edge_transform
 from finat.fiat_elements import ScalarFiatElement
 from finat.physically_mapped import Citations, PhysicallyMappedElement
 from copy import deepcopy
-
-
-def _edge_transform(V, voffset, fiat_cell, moment_deg, coordinate_mapping, avg=False):
-    """Basis transformation for edge degrees of freedom."""
-
-    A = numpy.zeros((moment_deg, moment_deg))
-    if moment_deg > 1:
-        A[1, 0] = -1.0
-    for k in range(2, moment_deg):
-        a, b, c = FIAT.expansions.jrc(0, 0, k-1)
-        A[k, :k-2] -= (c/(1-a)) * A[k-2, :k-2]
-        A[k, :k-1] += (b/(1-a)) * A[k-1, :k-1]
-        A[k, k-1] = (k-1)*a/(1-a)
-
-    J = coordinate_mapping.jacobian_at([1/3, 1/3])
-    rns = coordinate_mapping.reference_normals()
-    pts = coordinate_mapping.physical_tangents()
-    pns = coordinate_mapping.physical_normals()
-    pel = coordinate_mapping.physical_edge_lengths()
-
-    top = fiat_cell.get_topology()
-    num_verts = len(top[0])
-
-    eoffset = 2 * moment_deg - 1
-    for e in sorted(top[1]):
-        v0id, v1id = [i * voffset for i in range(num_verts) if i != e]
-        nhat = partial_indexed(rns, (e, ))
-        n = partial_indexed(pns, (e, ))
-        t = partial_indexed(pts, (e, ))
-        Bn = J @ nhat / pel[e]
-        Bnt = Bn @ t
-        Bnn = Bn @ n
-        if avg:
-            Bnn = Bnn * pel[e]
-
-        s0 = num_verts * voffset + e * eoffset
-        toffset = s0 + moment_deg
-        for k in range(moment_deg):
-            s = s0 + k
-            V[s, s] = Bnn
-            V[s, v1id] = Bnt
-            V[s, v0id] = Literal((-1)**(k+1)) * Bnt
-            for j in range(k):
-                V[s, toffset + j] = Literal(2*A[k, j]) * Bnt
 
 
 class HsiehCloughTocher(PhysicallyMappedElement, ScalarFiatElement):
