@@ -9,7 +9,7 @@ from finat.physically_mapped import PhysicallyMappedElement, Citations
 
 
 def _edge_transform(V, voffset, fiat_cell, moment_deg, coordinate_mapping, avg=False):
-    """Basis transformation for edge degrees of freedom."""
+    """Basis transformation for integral edge moments."""
 
     A = numpy.zeros((moment_deg, moment_deg))
     if moment_deg > 1:
@@ -49,7 +49,7 @@ def _edge_transform(V, voffset, fiat_cell, moment_deg, coordinate_mapping, avg=F
             V[s, v1id] = Bnt
             V[s, v0id] = Literal((-1)**(k+1)) * Bnt
             for j in range(k):
-                V[s, toffset + j] = Literal(2*A[k, j]) * Bnt
+                V[s, toffset + j] = Literal(A[k, j]) * Bnt
 
 
 class Argyris(PhysicallyMappedElement, ScalarFiatElement):
@@ -60,7 +60,7 @@ class Argyris(PhysicallyMappedElement, ScalarFiatElement):
             fiat_element = FIAT.Argyris(cell, degree, variant=variant)
         elif variant == "point":
             if degree != 5:
-                raise ValueError("Degree must be 5 for Argyris element")
+                raise ValueError("Degree must be 5 for 'point' variant of Argyris")
             fiat_element = FIAT.QuinticArgyris(cell)
         else:
             raise ValueError("Invalid variant for Argyris")
@@ -71,13 +71,6 @@ class Argyris(PhysicallyMappedElement, ScalarFiatElement):
     def basis_transformation(self, coordinate_mapping):
         # Jacobians at edge midpoints
         J = coordinate_mapping.jacobian_at([1/3, 1/3])
-
-        rns = coordinate_mapping.reference_normals()
-        pns = coordinate_mapping.physical_normals()
-
-        pts = coordinate_mapping.physical_tangents()
-
-        pel = coordinate_mapping.physical_edge_lengths()
 
         ndof = self.space_dimension()
         V = numpy.eye(ndof, dtype=object)
@@ -100,51 +93,52 @@ class Argyris(PhysicallyMappedElement, ScalarFiatElement):
             V[s+5, s+4] = 2*J[0, 1]*J[1, 1]
             V[s+5, s+5] = J[1, 1]*J[1, 1]
 
+        q = self.degree - 4
         if self.variant == "integral":
-            q = self.degree - 4
             _edge_transform(V, voffset, self.cell, q, coordinate_mapping, avg=self.avg)
         else:
+            rns = coordinate_mapping.reference_normals()
+            pns = coordinate_mapping.physical_normals()
+            pts = coordinate_mapping.physical_tangents()
+            pel = coordinate_mapping.physical_edge_lengths()
             for e in range(3):
-                v0id, v1id = [i for i in range(3) if i != e]
-
-                # nhat . J^{-T} . t
-                foo = (rns[e, 0]*(J[0, 0]*pts[e, 0] + J[1, 0]*pts[e, 1])
-                       + rns[e, 1]*(J[0, 1]*pts[e, 0] + J[1, 1]*pts[e, 1]))
+                v0id, v1id = [i*voffset for i in range(3) if i != e]
+                s = 3*voffset + e
+                nhat = partial_indexed(rns, (e, ))
+                n = partial_indexed(pns, (e, ))
+                t = partial_indexed(pts, (e, ))
+                Bn = J @ nhat
+                Bnt = Bn @ t
+                Bnn = Bn @ n
+                V[s, s] = Bnn
 
                 # vertex points
-                V[18+e, 6*v0id] = -15/8 * (foo / pel[e])
-                V[18+e, 6*v1id] = 15/8 * (foo / pel[e])
+                V[s, v0id] = -15/8 * Bnt / pel[e]
+                V[s, v1id] = 15/8 * Bnt / pel[e]
 
                 # vertex derivatives
-                for i in (0, 1):
-                    V[18+e, 6*v0id+1+i] = -7/16*foo*pts[e, i]
-                    V[18+e, 6*v1id+1+i] = V[18+e, 6*v0id+1+i]
+                for i in range(2):
+                    V[s, v0id+1+i] = -7/16 * Bnt * t[i]
+                    V[s, v1id+1+i] = V[s, v0id+1+i]
 
                 # second derivatives
-                tau = [pts[e, 0]*pts[e, 0],
-                       2*pts[e, 0]*pts[e, 1],
-                       pts[e, 1]*pts[e, 1]]
-
-                for i in (0, 1, 2):
-                    V[18+e, 6*v0id+3+i] = -1/32 * (pel[e]*foo*tau[i])
-                    V[18+e, 6*v1id+3+i] = 1/32 * (pel[e]*foo*tau[i])
-
-                V[18+e, 18+e] = (rns[e, 0]*(J[0, 0]*pns[e, 0] + J[1, 0]*pns[e, 1])
-                                 + rns[e, 1]*(J[0, 1]*pns[e, 0] + J[1, 1]*pns[e, 1]))
+                tau = [t[0]*t[0], 2*t[0]*t[1], t[1]*t[1]]
+                for i in range(3):
+                    V[s, v0id+3+i] = -1/32 * (pel[e] * Bnt * tau[i])
+                    V[s, v1id+3+i] = 1/32 * (pel[e] * Bnt * tau[i])
 
         # Patch up conditioning
         h = coordinate_mapping.cell_size()
-
         for v in range(3):
             for k in range(2):
-                for i in range(21):
-                    V[i, 6*v+1+k] = V[i, 6*v+1+k] / h[v]
+                V[:, voffset*v+1+k] *= 1 / h[v]
             for k in range(3):
-                for i in range(21):
-                    V[i, 6*v+3+k] = V[i, 6*v+3+k] / (h[v]*h[v])
+                V[:, voffset*v+3+k] *= 1 / (h[v]*h[v])
+
+        eoffset = 2 * q - 1
         for e in range(3):
+            s = voffset*3 + e*eoffset
             v0id, v1id = [i for i in range(3) if i != e]
-            for i in range(21):
-                V[i, 18+e] = 2*V[i, 18+e] / (h[v0id] + h[v1id])
+            V[:, s:s+q] *= 2 / (h[v0id] + h[v1id])
 
         return ListTensor(V.T)

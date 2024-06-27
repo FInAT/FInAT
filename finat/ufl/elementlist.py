@@ -110,7 +110,7 @@ register_element("Raviart-Thomas", "RT", 1, HDiv, "contravariant Piola",
                  (1, None), simplices[1:])   # "RTF"  (2d), "N1F" (3d)
 
 # Elements not in the periodic table
-register_element("Argyris", "ARG", 0, H2, "custom", (5, 5), ("triangle",))
+register_element("Argyris", "ARG", 0, H2, "custom", (5, None), ("triangle",))
 register_element("Hsieh-Clough-Tocher", "HCT", 0, H2, "custom", (3, None), ("triangle",))
 register_element("Reduced-Hsieh-Clough-Tocher", "HCT-red", 0, H2, "custom", (3, 3), ("triangle",))
 register_element("Bell", "BELL", 0, H2, "custom", (5, 5), ("triangle",))

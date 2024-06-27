@@ -32,7 +32,7 @@ def make_unisolvent_points(element):
 
 
 @pytest.mark.parametrize("degree", range(5, 8))
-def test_argyris(ref_cell, phys_cell, degree):
+def test_integral_argyris(ref_cell, phys_cell, degree):
     variant = "integral"
     ref_element = finat.Argyris(ref_cell, degree, variant=variant, avg=True)
     ref_pts = finat.point_set.PointSet(make_unisolvent_points(ref_element._element))
