@@ -50,14 +50,9 @@ class Argyris(PhysicallyMappedElement, ScalarFiatElement):
             Citations().register("Argyris1968")
         if variant is None:
             variant = "integral"
-        if variant == "integral":
-            fiat_element = FIAT.Argyris(cell, degree, variant=variant)
-        elif variant == "point":
-            if degree != 5:
-                raise ValueError("Degree must be 5 for 'point' variant of Argyris")
-            fiat_element = FIAT.QuinticArgyris(cell)
-        else:
-            raise ValueError("Invalid variant for Argyris")
+        if variant == "point" and degree != 5:
+            raise NotImplementedError("Degree must be 5 for 'point' variant of Argyris")
+        fiat_element = FIAT.Argyris(cell, degree, variant=variant)
         self.variant = variant
         self.avg = avg
         super().__init__(fiat_element)
