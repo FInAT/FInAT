@@ -11,15 +11,6 @@ from finat.physically_mapped import PhysicallyMappedElement, Citations
 def _edge_transform(V, voffset, fiat_cell, moment_deg, coordinate_mapping, avg=False):
     """Basis transformation for integral edge moments."""
 
-    A = numpy.zeros((moment_deg, moment_deg))
-    if moment_deg > 1:
-        A[1, 0] = -1.0
-    for k in range(2, moment_deg):
-        a, b, c = FIAT.expansions.jrc(0, 0, k-1)
-        A[k, :k-2] -= (c/(1-a)) * A[k-2, :k-2]
-        A[k, :k-1] += (b/(1-a)) * A[k-1, :k-1]
-        A[k, k-1] = (k-1)*a/(1-a)
-
     J = coordinate_mapping.jacobian_at([1/3, 1/3])
     rns = coordinate_mapping.reference_normals()
     pts = coordinate_mapping.physical_tangents()
@@ -27,11 +18,8 @@ def _edge_transform(V, voffset, fiat_cell, moment_deg, coordinate_mapping, avg=F
     pel = coordinate_mapping.physical_edge_lengths()
 
     top = fiat_cell.get_topology()
-    num_verts = len(top[0])
-
     eoffset = 2 * moment_deg - 1
     for e in sorted(top[1]):
-        v0id, v1id = [i * voffset for i in range(num_verts) if i != e]
         nhat = partial_indexed(rns, (e, ))
         n = partial_indexed(pns, (e, ))
         t = partial_indexed(pts, (e, ))
@@ -41,15 +29,19 @@ def _edge_transform(V, voffset, fiat_cell, moment_deg, coordinate_mapping, avg=F
         if avg:
             Bnn = Bnn * pel[e]
 
-        s0 = num_verts * voffset + e * eoffset
+        v0id, v1id = (v * voffset for v in top[1][e])
+        s0 = len(top[0]) * voffset + e * eoffset
         toffset = s0 + moment_deg
-        for k in range(moment_deg):
+        V[s0, s0] = Bnn
+        V[s0, v0id] = -1 * Bnt
+        V[s0, v1id] = Bnt
+        if moment_deg > 1:
+            V[s0+1, v0id] = Bnt
+            V[s0+1, v1id] = Bnt
+        for k in range(1, moment_deg):
             s = s0 + k
             V[s, s] = Bnn
-            V[s, v1id] = Bnt
-            V[s, v0id] = Literal((-1)**(k+1)) * Bnt
-            for j in range(k):
-                V[s, toffset + j] = Literal(A[k, j]) * Bnt
+            V[s, toffset + k-1] = -1 * Bnt
 
 
 class Argyris(PhysicallyMappedElement, ScalarFiatElement):
@@ -79,11 +71,13 @@ class Argyris(PhysicallyMappedElement, ScalarFiatElement):
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
 
-        voffset = 6
-        for v in range(3):
-            s = voffset*v
-            for i in range(2):
-                for j in range(2):
+        sd = self.cell.get_spatial_dimension()
+        top = self.cell.get_topology()
+        voffset = (sd+1)*sd//2 + sd + 1
+        for v in sorted(top[0]):
+            s = voffset * v
+            for i in range(sd):
+                for j in range(sd):
                     V[s+1+i, s+1+j] = J[j, i]
             V[s+3, s+3] = J[0, 0]*J[0, 0]
             V[s+3, s+4] = 2*J[0, 0]*J[1, 0]
@@ -103,15 +97,16 @@ class Argyris(PhysicallyMappedElement, ScalarFiatElement):
             pns = coordinate_mapping.physical_normals()
             pts = coordinate_mapping.physical_tangents()
             pel = coordinate_mapping.physical_edge_lengths()
-            for e in range(3):
-                v0id, v1id = [i*voffset for i in range(3) if i != e]
-                s = 3*voffset + e
+            for e in sorted(top[1]):
                 nhat = partial_indexed(rns, (e, ))
                 n = partial_indexed(pns, (e, ))
                 t = partial_indexed(pts, (e, ))
                 Bn = J @ nhat
                 Bnt = Bn @ t
                 Bnn = Bn @ n
+
+                s = len(top[0]) * voffset + e
+                v0id, v1id = (v * voffset for v in top[1][e])
                 V[s, s] = Bnn
 
                 # vertex points
@@ -119,28 +114,28 @@ class Argyris(PhysicallyMappedElement, ScalarFiatElement):
                 V[s, v1id] = 15/8 * Bnt / pel[e]
 
                 # vertex derivatives
-                for i in range(2):
+                for i in range(sd):
                     V[s, v0id+1+i] = -7/16 * Bnt * t[i]
                     V[s, v1id+1+i] = V[s, v0id+1+i]
 
                 # second derivatives
                 tau = [t[0]*t[0], 2*t[0]*t[1], t[1]*t[1]]
-                for i in range(3):
+                for i in range(len(tau)):
                     V[s, v0id+3+i] = -1/32 * (pel[e] * Bnt * tau[i])
                     V[s, v1id+3+i] = 1/32 * (pel[e] * Bnt * tau[i])
 
         # Patch up conditioning
         h = coordinate_mapping.cell_size()
-        for v in range(3):
-            for k in range(2):
+        for v in sorted(top[0]):
+            for k in range(sd):
                 V[:, voffset*v+1+k] *= 1 / h[v]
-            for k in range(3):
+            for k in range((sd+1)*sd//2):
                 V[:, voffset*v+3+k] *= 1 / (h[v]*h[v])
 
         eoffset = 2 * q - 1
-        for e in range(3):
-            s = voffset*3 + e*eoffset
-            v0id, v1id = [i for i in range(3) if i != e]
-            V[:, s:s+q] *= 2 / (h[v0id] + h[v1id])
+        for e in sorted(top[1]):
+            v0, v1 = top[1][e]
+            s = len(top[0]) * voffset + e * eoffset
+            V[:, s:s+q] *= 2 / (h[v0] + h[v1])
 
         return ListTensor(V.T)

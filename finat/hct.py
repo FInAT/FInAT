@@ -29,9 +29,7 @@ class HsiehCloughTocher(PhysicallyMappedElement, ScalarFiatElement):
             V[multiindex] = Literal(V[multiindex])
 
         voffset = sd + 1
-        num_verts = len(top[0])
-        num_edges = len(top[1])
-        for v in range(num_verts):
+        for v in sorted(top[0]):
             s = voffset * v
             for i in range(sd):
                 for j in range(sd):
@@ -42,16 +40,16 @@ class HsiehCloughTocher(PhysicallyMappedElement, ScalarFiatElement):
 
         # Patch up conditioning
         h = coordinate_mapping.cell_size()
-        for v in range(num_verts):
+        for v in sorted(top[0]):
             s = voffset * v
             for k in range(sd):
                 V[:, s+1+k] /= h[v]
 
         eoffset = 2 * q - 1
-        for e in range(num_edges):
-            v0id, v1id = [i for i in range(num_verts) if i != e]
-            s0 = voffset*num_verts + e * eoffset
-            V[:, s0:s0+q] *= 2 / (h[v0id] + h[v1id])
+        for e in sorted(top[1]):
+            v0, v1 = top[1][e]
+            s0 = len(top[0]) * voffset + e * eoffset
+            V[:, s0:s0+q] *= 2 / (h[v0] + h[v1])
         return ListTensor(V.T)
 
 
