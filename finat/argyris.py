@@ -1,4 +1,5 @@
 import numpy
+from math import comb
 
 import FIAT
 
@@ -33,14 +34,15 @@ def _edge_transform(V, voffset, fiat_cell, moment_deg, coordinate_mapping, avg=F
         s0 = len(top[0]) * voffset + e * eoffset
         toffset = s0 + moment_deg
         V[s0, s0] = Bnn
-        V[s0, v0id] = -1 * Bnt
         V[s0, v1id] = Bnt
-        if moment_deg > 1:
-            V[s0+1, v0id] = Bnt
-            V[s0+1, v1id] = Bnt
+        V[s0, v0id] = -1 * Bnt
         for k in range(1, moment_deg):
             s = s0 + k
+            P1 = Literal(comb(k + 3, k))
+            P0 = (-1)**(k-1) * P1
             V[s, s] = Bnn
+            V[s, v1id] = P1 * Bnt
+            V[s, v0id] = P0 * Bnt
             V[s, toffset + k-1] = -1 * Bnt
 
 
