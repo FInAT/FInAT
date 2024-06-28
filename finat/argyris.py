@@ -20,6 +20,7 @@ def _edge_transform(V, voffset, fiat_cell, moment_deg, coordinate_mapping, avg=F
 
     top = fiat_cell.get_topology()
     eoffset = 2 * moment_deg - 1
+    toffset = moment_deg - 1
     for e in sorted(top[1]):
         nhat = partial_indexed(rns, (e, ))
         n = partial_indexed(pns, (e, ))
@@ -32,18 +33,15 @@ def _edge_transform(V, voffset, fiat_cell, moment_deg, coordinate_mapping, avg=F
 
         v0id, v1id = (v * voffset for v in top[1][e])
         s0 = len(top[0]) * voffset + e * eoffset
-        toffset = s0 + moment_deg
-        V[s0, s0] = Bnn
-        V[s0, v1id] = Bnt
-        V[s0, v0id] = -1 * Bnt
-        for k in range(1, moment_deg):
+        for k in range(moment_deg):
             s = s0 + k
-            P1 = Literal(comb(k + 3, k))
-            P0 = (-1)**(k-1) * P1
+            P1 = Literal(comb(k + 2, k))
+            P0 = -(-1)**k * P1
             V[s, s] = Bnn
             V[s, v1id] = P1 * Bnt
             V[s, v0id] = P0 * Bnt
-            V[s, toffset + k-1] = -1 * Bnt
+            if k > 0:
+                V[s, s + toffset] = -1 * Bnt
 
 
 class Argyris(PhysicallyMappedElement, ScalarFiatElement):

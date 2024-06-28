@@ -48,6 +48,7 @@ def run_argyris(ref_cell, phys_cell, degree, variant):
     # Solve for the basis transformation and compare results
     Mgem = ref_element.basis_transformation(mapping)
     M = evaluate([Mgem])[0].arr
+
     ref_vals = ref_element._element.tabulate(0, ref_pts.points)[z]
     Phi = ref_vals.reshape(numbfs, -1)
     phi = phys_vals.reshape(numbfs, -1)
