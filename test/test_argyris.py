@@ -31,7 +31,8 @@ def make_unisolvent_points(element):
     return pts
 
 
-def run_argyris(ref_cell, phys_cell, degree, variant):
+@pytest.mark.parametrize("variant, degree", [("point", 5), *(("integral", k) for k in range(5, 8))])
+def test_argyris(ref_cell, phys_cell, degree, variant):
     ref_element = finat.Argyris(ref_cell, degree, variant=variant, avg=True)
     ref_pts = finat.point_set.PointSet(make_unisolvent_points(ref_element._element))
 
@@ -63,12 +64,3 @@ def run_argyris(ref_cell, phys_cell, degree, variant):
     assert np.allclose(M, Mh, atol=1E-9)
 
     assert np.allclose(finat_vals, phys_vals[:numbfs])
-
-
-def test_point_argyris(ref_cell, phys_cell):
-    run_argyris(ref_cell, phys_cell, 5, "point")
-
-
-@pytest.mark.parametrize("degree", range(5, 8))
-def test_integral_argyris(ref_cell, phys_cell, degree):
-    run_argyris(ref_cell, phys_cell, degree, "integral")

@@ -58,7 +58,7 @@ class Argyris(PhysicallyMappedElement, ScalarFiatElement):
         super().__init__(fiat_element)
 
     def basis_transformation(self, coordinate_mapping):
-        # Jacobians at edge midpoints
+        # Jacobian at barycenter
         J = coordinate_mapping.jacobian_at([1/3, 1/3])
 
         ndof = self.space_dimension()
