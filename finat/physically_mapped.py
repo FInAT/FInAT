@@ -145,6 +145,17 @@ try:
   year={2024}
 }
 """)
+    Citations().add("Groselj2022", """
+@article{groselj2022generalized,
+  title={{Generalized C1 Clough--Tocher splines for CAGD and FEM}},
+  author={Gro{\v{s}}elj, Jan and Knez, Marjeta},
+  journal={Computer Methods in Applied Mechanics and Engineering},
+  volume={395},
+  pages={114983},
+  year={2022},
+  publisher={Elsevier}
+}
+""")
 except ImportError:
     Citations = None
 
