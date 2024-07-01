@@ -47,12 +47,11 @@ class HDivElement(FiniteElementBase):
         cell = element.cell
         degree = element.degree()
         quad_scheme = element.quadrature_scheme()
-        value_shape = (element.cell.geometric_dimension(),)
         reference_value_shape = (element.cell.topological_dimension(),)
 
         # Skipping TensorProductElement constructor! Bad code smell, refactor to avoid this non-inheritance somehow.
         FiniteElementBase.__init__(self, family, cell, degree,
-                                   quad_scheme, value_shape, reference_value_shape)
+                                   quad_scheme, reference_value_shape)
 
     def __repr__(self):
         """Doc."""
@@ -107,12 +106,11 @@ class HCurlElement(FiniteElementBase):
         degree = element.degree()
         quad_scheme = element.quadrature_scheme()
         cell = element.cell
-        value_shape = (cell.geometric_dimension(),)
         reference_value_shape = (cell.topological_dimension(),)  # TODO: Is this right?
         # Skipping TensorProductElement constructor! Bad code smell,
         # refactor to avoid this non-inheritance somehow.
         FiniteElementBase.__init__(self, family, cell, degree, quad_scheme,
-                                   value_shape, reference_value_shape)
+                                   reference_value_shape)
 
     def __repr__(self):
         """Doc."""
@@ -182,17 +180,16 @@ class WithMapping(FiniteElementBase):
         """Doc."""
         return f"WithMapping({repr(self.wrapee)}, '{self._mapping}')"
 
-    @property
-    def value_shape(self):
+    def value_shape(self, domain):
         """Doc."""
-        gdim = self.cell.geometric_dimension()
+        gdim = domain.geometric_dimension()
         mapping = self.mapping()
         if mapping in {"covariant Piola", "contravariant Piola"}:
             return (gdim,)
         elif mapping in {"double covariant Piola", "double contravariant Piola"}:
             return (gdim, gdim)
         else:
-            return self.wrapee.value_shape
+            return self.wrapee.value_shape(domain)
 
     @property
     def reference_value_shape(self):
