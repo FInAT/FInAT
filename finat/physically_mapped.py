@@ -137,6 +137,14 @@ try:
   institution={Tech. Rep. ICES REPORT 17-28, Institute for Computational Engineering and Sciences}
 }
 """)
+    Citations().add("Gopalakrishnan2024", """
+@article{gopalakrishnan2024johnson,
+  title={{The Johnson-Mercier elasticity element in any dimensions}},
+  author={Gopalakrishnan, J and Guzman, J and Lee, J J},
+  journal={arXiv preprint arXiv:2403.13189},
+  year={2024}
+}
+""")
 except ImportError:
     Citations = None
 

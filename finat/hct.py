@@ -78,6 +78,13 @@ class ReducedHsiehCloughTocher(PhysicallyMappedElement, ScalarFiatElement):
             Citations().register("Clough1965")
         super().__init__(FIAT.HsiehCloughTocher(cell, reduced=True))
 
+        reduced_dofs = deepcopy(self._element.entity_dofs())
+        sd = cell.get_spatial_dimension()
+        fdim = sd - 1
+        for entity in reduced_dofs[fdim]:
+            reduced_dofs[fdim][entity] = []
+        self._entity_dofs = reduced_dofs
+
     def basis_transformation(self, coordinate_mapping):
         # Jacobians at cell center
         J = coordinate_mapping.jacobian_at([1/3, 1/3])
@@ -133,11 +140,7 @@ class ReducedHsiehCloughTocher(PhysicallyMappedElement, ScalarFiatElement):
         return ListTensor(V.T)
 
     def entity_dofs(self):
-        edofs = deepcopy(super(ReducedHsiehCloughTocher, self).entity_dofs())
-        dim = 1
-        for entity in edofs[dim]:
-            edofs[dim][entity] = []
-        return edofs
+        return self._entity_dofs
 
     @property
     def index_shape(self):
