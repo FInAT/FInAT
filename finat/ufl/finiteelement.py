@@ -41,7 +41,7 @@ class FiniteElement(FiniteElementBase):
             from finat.ufl.hdivcurl import HDivElement as HDiv
             from finat.ufl.tensorproductelement import TensorProductElement
 
-            family, short_name, degree, value_shape, reference_value_shape, sobolev_space, mapping = \
+            family, short_name, degree, reference_value_shape, sobolev_space, mapping = \
                 canonical_element_description(family, cell, degree, form_degree)
 
             if family in ["RTCF", "RTCE"]:
@@ -141,7 +141,7 @@ class FiniteElement(FiniteElementBase):
             cell = as_cell(cell)
 
         (
-            family, short_name, degree, value_shape, reference_value_shape, sobolev_space, mapping
+            family, short_name, degree, reference_value_shape, sobolev_space, mapping
         ) = canonical_element_description(family, cell, degree, form_degree)
 
         # TODO: Move these to base? Might be better to instead
@@ -157,7 +157,7 @@ class FiniteElement(FiniteElementBase):
 
         # Initialize element data
         FiniteElementBase.__init__(self, family, cell, degree, quad_scheme,
-                                   value_shape, reference_value_shape)
+                                   reference_value_shape)
 
         # Cache repr string
         qs = self.quadrature_scheme()
@@ -189,6 +189,11 @@ class FiniteElement(FiniteElementBase):
     def mapping(self):
         """Return the mapping type for this element ."""
         return self._mapping
+
+    def value_shape(self, domain):
+        if self.family == "Morley":
+            return (domain.geometric_dimension(), )
+        return super().value_shape(domain)
 
     @property
     def sobolev_space(self):

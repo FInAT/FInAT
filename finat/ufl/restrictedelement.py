@@ -30,7 +30,6 @@ class RestrictedElement(FiniteElementBase):
         FiniteElementBase.__init__(self, "RestrictedElement", element.cell,
                                    element.degree(),
                                    element.quadrature_scheme(),
-                                   element.value_shape,
                                    element.reference_value_shape)
 
         self._element = element
