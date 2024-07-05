@@ -11,7 +11,7 @@ from finat.physically_mapped import PhysicallyMappedElement, Citations
 class Bell(PhysicallyMappedElement, ScalarFiatElement):
     def __init__(self, cell, degree):
         if degree != 5:
-            raise ValueError("Degree must be 3 for Bell element")
+            raise ValueError("Degree must be 5 for Bell element")
         if Citations is not None:
             Citations().register("Bell1969")
         super().__init__(FIAT.Bell(cell))
@@ -32,7 +32,6 @@ class Bell(PhysicallyMappedElement, ScalarFiatElement):
         voffset = sd + 1 + (sd*(sd+1))//2
         for v in sorted(top[1]):
             s = voffset * v
-            V[s, s] = Literal(1)
             for i in range(sd):
                 for j in range(sd):
                     V[s+1+i, s+1+j] = J[j, i]
@@ -72,8 +71,8 @@ class Bell(PhysicallyMappedElement, ScalarFiatElement):
                 V[s, v1id+3+i] = 1/252 * (pel[e] * Bnt * tau[i])
                 V[s, v0id+3+i] = -1 * V[s, v1id+3+i]
 
+        # Patch up conditioning
         h = coordinate_mapping.cell_size()
-
         for v in sorted(top[0]):
             for k in range(sd):
                 V[:, voffset*v+1+k] *= 1/h[v]

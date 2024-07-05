@@ -99,12 +99,8 @@ class ReducedHsiehCloughTocher(PhysicallyMappedElement, ScalarFiatElement):
 
             nhat = partial_indexed(rns, (e, ))
             t = partial_indexed(pts, (e, ))
-
-            # n = partial_indexed(pns, (e, ))
-            # Bnn = (J @ nhat) @ n
-            # V[s, s] = Bnn
-
             Bnt = (J @ nhat) @ t
+
             V[s, v0id] = Literal(1/5) * Bnt / pel[e]
             V[s, v1id] = Literal(-1) * V[s, v0id]
 
