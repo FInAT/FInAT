@@ -105,19 +105,19 @@ class Argyris(PhysicallyMappedElement, ScalarFiatElement):
                 V[s, s] = Bnn
 
                 # vertex points
-                V[s, v0id] = -15/8 * Bnt / pel[e]
                 V[s, v1id] = 15/8 * Bnt / pel[e]
+                V[s, v0id] = -1 * V[s, v1id]
 
                 # vertex derivatives
                 for i in range(sd):
-                    V[s, v0id+1+i] = -7/16 * Bnt * t[i]
-                    V[s, v1id+1+i] = V[s, v0id+1+i]
+                    V[s, v1id+1+i] = -7/16 * Bnt * t[i]
+                    V[s, v0id+1+i] = V[s, v1id+1+i]
 
                 # second derivatives
                 tau = [t[0]*t[0], 2*t[0]*t[1], t[1]*t[1]]
                 for i in range(len(tau)):
-                    V[s, v0id+3+i] = -1/32 * (pel[e] * Bnt * tau[i])
                     V[s, v1id+3+i] = 1/32 * (pel[e] * Bnt * tau[i])
+                    V[s, v0id+3+i] = -1 * V[s, v1id+3+i]
 
         # Patch up conditioning
         h = coordinate_mapping.cell_size()
