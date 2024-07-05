@@ -60,3 +60,13 @@ class MyMapping(PhysicalGeometry):
 
     def physical_vertices(self):
         return gem.Literal(self.phys_cell.verts)
+
+
+class FiredrakeMapping(MyMapping):
+
+    def cell_size(self):
+        # Firedrake interprets this as 2x the circumradius
+        cs = (np.prod([self.phys_cell.volume_of_subcomplex(1, i)
+                       for i in range(3)])
+              / 2.0 / self.phys_cell.volume())
+        return np.asarray([cs for _ in range(3)])

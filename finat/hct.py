@@ -45,12 +45,6 @@ class HsiehCloughTocher(PhysicallyMappedElement, ScalarFiatElement):
         for v in sorted(top[0]):
             for k in range(sd):
                 V[:, voffset*v+1+k] /= h[v]
-
-        eoffset = 2 * q - 1
-        for e in sorted(top[1]):
-            v0, v1 = top[1][e]
-            s = len(top[0]) * voffset + e * eoffset
-            V[:, s:s+q] *= 2 / (h[v0] + h[v1])
         return ListTensor(V.T)
 
 
@@ -90,7 +84,6 @@ class ReducedHsiehCloughTocher(PhysicallyMappedElement, ScalarFiatElement):
 
         rns = coordinate_mapping.reference_normals()
         pts = coordinate_mapping.physical_tangents()
-        # pns = coordinate_mapping.physical_normals()
         pel = coordinate_mapping.physical_edge_lengths()
 
         for e in sorted(top[1]):

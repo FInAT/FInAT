@@ -127,10 +127,11 @@ class Argyris(PhysicallyMappedElement, ScalarFiatElement):
             for k in range((sd+1)*sd//2):
                 V[:, voffset*v+3+k] *= 1 / (h[v]*h[v])
 
-        eoffset = 2 * q - 1
-        for e in sorted(top[1]):
-            v0, v1 = top[1][e]
-            s = len(top[0]) * voffset + e * eoffset
-            V[:, s:s+q] *= 2 / (h[v0] + h[v1])
+        if self.variant == "point":
+            eoffset = 2 * q - 1
+            for e in sorted(top[1]):
+                v0, v1 = top[1][e]
+                s = len(top[0]) * voffset + e * eoffset
+                V[:, s:s+q] *= 2 / (h[v0] + h[v1])
 
         return ListTensor(V.T)
