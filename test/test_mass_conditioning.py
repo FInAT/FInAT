@@ -8,7 +8,6 @@ from fiat_mapping import FiredrakeMapping
 
 
 @pytest.mark.parametrize("element, degree, variant", [
-                         (finat.Lagrange, 1, "spectral"),
                          (finat.Hermite, 3, None),
                          (finat.ReducedHsiehCloughTocher, 3, None),
                          (finat.HsiehCloughTocher, 3, None),

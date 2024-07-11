@@ -31,7 +31,7 @@ def make_unisolvent_points(element):
     return pts
 
 
-def run_test(finat_element, phys_element):
+def check_zany_mapping(finat_element, phys_element):
     ref_element = finat_element.fiat_equivalent
 
     ref_cell = ref_element.get_reference_element()
@@ -71,36 +71,31 @@ def run_test(finat_element, phys_element):
     assert np.allclose(finat_vals, phys_vals[:numdofs])
 
 
-@pytest.mark.parametrize("element, degree", [
-                         (finat.Morley, 2),
-                         (finat.Hermite, 3),
-                         (finat.ReducedHsiehCloughTocher, 3),
-                         (finat.Bell, 5)])
-def test_C1_elements(ref_cell, phys_cell, element, degree):
+@pytest.mark.parametrize("element", [
+                         finat.Morley,
+                         finat.Hermite,
+                         finat.ReducedHsiehCloughTocher,
+                         finat.Bell])
+def test_C1_elements(ref_cell, phys_cell, element):
     kwargs = {}
     if element == finat.ReducedHsiehCloughTocher:
         kwargs = dict(reduced=True)
-    finat_element = element(ref_cell, degree)
+    finat_element = element(ref_cell)
     phys_element = type(finat_element.fiat_equivalent)(phys_cell, **kwargs)
-    run_test(finat_element, phys_element)
+    check_zany_mapping(finat_element, phys_element)
+
+
+@pytest.mark.parametrize("element, degree", [
+                         *((finat.Argyris, k) for k in range(5, 8)),
+                         *((finat.HsiehCloughTocher, k) for k in range(3, 6))
+                         ])
+def test_high_order_C1_elements(ref_cell, phys_cell, element, degree):
+    finat_element = element(ref_cell, degree, avg=True)
+    phys_element = type(finat_element.fiat_equivalent)(phys_cell, degree)
+    check_zany_mapping(finat_element, phys_element)
 
 
 def test_argyris_point(ref_cell, phys_cell):
-    degree = 5
-    finat_element = finat.Argyris(ref_cell, degree, variant="point")
-    phys_element = type(finat_element.fiat_equivalent)(phys_cell, degree, variant="point")
-    run_test(finat_element, phys_element)
-
-
-@pytest.mark.parametrize("degree", range(5, 8))
-def test_argyris_integral(ref_cell, phys_cell, degree):
-    finat_element = finat.Argyris(ref_cell, degree, avg=True)
-    phys_element = type(finat_element.fiat_equivalent)(phys_cell, degree)
-    run_test(finat_element, phys_element)
-
-
-@pytest.mark.parametrize("degree", range(3, 6))
-def test_hct(ref_cell, phys_cell, degree):
-    finat_element = finat.HsiehCloughTocher(ref_cell, degree, avg=True)
-    phys_element = type(finat_element.fiat_equivalent)(phys_cell, degree)
-    run_test(finat_element, phys_element)
+    finat_element = finat.Argyris(ref_cell, variant="point")
+    phys_element = type(finat_element.fiat_equivalent)(phys_cell, variant="point")
+    check_zany_mapping(finat_element, phys_element)

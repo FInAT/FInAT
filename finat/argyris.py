@@ -45,7 +45,7 @@ def _edge_transform(V, voffset, fiat_cell, moment_deg, coordinate_mapping, avg=F
 
 
 class Argyris(PhysicallyMappedElement, ScalarFiatElement):
-    def __init__(self, cell, degree, variant=None, avg=False):
+    def __init__(self, cell, degree=5, variant=None, avg=False):
         if Citations is not None:
             Citations().register("Argyris1968")
         if variant is None:

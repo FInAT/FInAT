@@ -49,7 +49,7 @@ class HsiehCloughTocher(PhysicallyMappedElement, ScalarFiatElement):
 
 
 class ReducedHsiehCloughTocher(PhysicallyMappedElement, ScalarFiatElement):
-    def __init__(self, cell, degree):
+    def __init__(self, cell, degree=3):
         if degree != 3:
             raise ValueError("Degree must be 3 for reduced HCT element")
         if Citations is not None:
