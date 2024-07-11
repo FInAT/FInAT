@@ -1,42 +1,78 @@
 import numpy
+from math import comb
 
 import FIAT
 
-from gem import Literal, ListTensor
+from gem import Literal, ListTensor, partial_indexed
 
 from finat.fiat_elements import ScalarFiatElement
 from finat.physically_mapped import PhysicallyMappedElement, Citations
 
 
+def _edge_transform(V, voffset, fiat_cell, moment_deg, coordinate_mapping, avg=False):
+    """Basis transformation for integral edge moments."""
+
+    J = coordinate_mapping.jacobian_at([1/3, 1/3])
+    rns = coordinate_mapping.reference_normals()
+    pts = coordinate_mapping.physical_tangents()
+    pns = coordinate_mapping.physical_normals()
+    pel = coordinate_mapping.physical_edge_lengths()
+
+    top = fiat_cell.get_topology()
+    eoffset = 2 * moment_deg - 1
+    toffset = moment_deg - 1
+    for e in sorted(top[1]):
+        nhat = partial_indexed(rns, (e, ))
+        n = partial_indexed(pns, (e, ))
+        t = partial_indexed(pts, (e, ))
+        Bn = J @ nhat / pel[e]
+        Bnt = Bn @ t
+        Bnn = Bn @ n
+        if avg:
+            Bnn = Bnn * pel[e]
+
+        v0id, v1id = (v * voffset for v in top[1][e])
+        s0 = len(top[0]) * voffset + e * eoffset
+        for k in range(moment_deg):
+            s = s0 + k
+            P1 = Literal(comb(k + 2, k))
+            P0 = -(-1)**k * P1
+            V[s, s] = Bnn
+            V[s, v1id] = P1 * Bnt
+            V[s, v0id] = P0 * Bnt
+            if k > 0:
+                V[s, s + toffset] = -1 * Bnt
+
+
 class Argyris(PhysicallyMappedElement, ScalarFiatElement):
-    def __init__(self, cell, degree):
-        if degree != 5:
-            raise ValueError("Degree must be 5 for Argyris element")
+    def __init__(self, cell, degree=5, variant=None, avg=False):
         if Citations is not None:
             Citations().register("Argyris1968")
-        super().__init__(FIAT.QuinticArgyris(cell))
+        if variant is None:
+            variant = "integral"
+        if variant == "point" and degree != 5:
+            raise NotImplementedError("Degree must be 5 for 'point' variant of Argyris")
+        fiat_element = FIAT.Argyris(cell, degree, variant=variant)
+        self.variant = variant
+        self.avg = avg
+        super().__init__(fiat_element)
 
     def basis_transformation(self, coordinate_mapping):
-        # Jacobians at edge midpoints
+        # Jacobian at barycenter
         J = coordinate_mapping.jacobian_at([1/3, 1/3])
 
-        rns = coordinate_mapping.reference_normals()
-        pns = coordinate_mapping.physical_normals()
-
-        pts = coordinate_mapping.physical_tangents()
-
-        pel = coordinate_mapping.physical_edge_lengths()
-
-        V = numpy.zeros((21, 21), dtype=object)
-
+        ndof = self.space_dimension()
+        V = numpy.eye(ndof, dtype=object)
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
 
-        for v in range(3):
-            s = 6*v
-            V[s, s] = Literal(1)
-            for i in range(2):
-                for j in range(2):
+        sd = self.cell.get_spatial_dimension()
+        top = self.cell.get_topology()
+        voffset = (sd+1)*sd//2 + sd + 1
+        for v in sorted(top[0]):
+            s = voffset * v
+            for i in range(sd):
+                for j in range(sd):
                     V[s+1+i, s+1+j] = J[j, i]
             V[s+3, s+3] = J[0, 0]*J[0, 0]
             V[s+3, s+4] = 2*J[0, 0]*J[1, 0]
@@ -48,47 +84,54 @@ class Argyris(PhysicallyMappedElement, ScalarFiatElement):
             V[s+5, s+4] = 2*J[0, 1]*J[1, 1]
             V[s+5, s+5] = J[1, 1]*J[1, 1]
 
-        for e in range(3):
-            v0id, v1id = [i for i in range(3) if i != e]
+        q = self.degree - 4
+        if self.variant == "integral":
+            _edge_transform(V, voffset, self.cell, q, coordinate_mapping, avg=self.avg)
+        else:
+            rns = coordinate_mapping.reference_normals()
+            pns = coordinate_mapping.physical_normals()
+            pts = coordinate_mapping.physical_tangents()
+            pel = coordinate_mapping.physical_edge_lengths()
+            for e in sorted(top[1]):
+                nhat = partial_indexed(rns, (e, ))
+                n = partial_indexed(pns, (e, ))
+                t = partial_indexed(pts, (e, ))
+                Bn = J @ nhat
+                Bnt = Bn @ t
+                Bnn = Bn @ n
 
-            # nhat . J^{-T} . t
-            foo = (rns[e, 0]*(J[0, 0]*pts[e, 0] + J[1, 0]*pts[e, 1])
-                   + rns[e, 1]*(J[0, 1]*pts[e, 0] + J[1, 1]*pts[e, 1]))
+                s = len(top[0]) * voffset + e
+                v0id, v1id = (v * voffset for v in top[1][e])
+                V[s, s] = Bnn
 
-            # vertex points
-            V[18+e, 6*v0id] = -15/8 * (foo / pel[e])
-            V[18+e, 6*v1id] = 15/8 * (foo / pel[e])
+                # vertex points
+                V[s, v1id] = 15/8 * Bnt / pel[e]
+                V[s, v0id] = -1 * V[s, v1id]
 
-            # vertex derivatives
-            for i in (0, 1):
-                V[18+e, 6*v0id+1+i] = -7/16*foo*pts[e, i]
-                V[18+e, 6*v1id+1+i] = V[18+e, 6*v0id+1+i]
+                # vertex derivatives
+                for i in range(sd):
+                    V[s, v1id+1+i] = -7/16 * Bnt * t[i]
+                    V[s, v0id+1+i] = V[s, v1id+1+i]
 
-            # second derivatives
-            tau = [pts[e, 0]*pts[e, 0],
-                   2*pts[e, 0]*pts[e, 1],
-                   pts[e, 1]*pts[e, 1]]
-
-            for i in (0, 1, 2):
-                V[18+e, 6*v0id+3+i] = -1/32 * (pel[e]*foo*tau[i])
-                V[18+e, 6*v1id+3+i] = 1/32 * (pel[e]*foo*tau[i])
-
-            V[18+e, 18+e] = (rns[e, 0]*(J[0, 0]*pns[e, 0] + J[1, 0]*pns[e, 1])
-                             + rns[e, 1]*(J[0, 1]*pns[e, 0] + J[1, 1]*pns[e, 1]))
+                # second derivatives
+                tau = [t[0]*t[0], 2*t[0]*t[1], t[1]*t[1]]
+                for i in range(len(tau)):
+                    V[s, v1id+3+i] = 1/32 * (pel[e] * Bnt * tau[i])
+                    V[s, v0id+3+i] = -1 * V[s, v1id+3+i]
 
         # Patch up conditioning
         h = coordinate_mapping.cell_size()
+        for v in sorted(top[0]):
+            for k in range(sd):
+                V[:, voffset*v+1+k] *= 1 / h[v]
+            for k in range((sd+1)*sd//2):
+                V[:, voffset*v+3+k] *= 1 / (h[v]*h[v])
 
-        for v in range(3):
-            for k in range(2):
-                for i in range(21):
-                    V[i, 6*v+1+k] = V[i, 6*v+1+k] / h[v]
-            for k in range(3):
-                for i in range(21):
-                    V[i, 6*v+3+k] = V[i, 6*v+3+k] / (h[v]*h[v])
-        for e in range(3):
-            v0id, v1id = [i for i in range(3) if i != e]
-            for i in range(21):
-                V[i, 18+e] = 2*V[i, 18+e] / (h[v0id] + h[v1id])
+        if self.variant == "point":
+            eoffset = 2 * q - 1
+            for e in sorted(top[1]):
+                v0, v1 = top[1][e]
+                s = len(top[0]) * voffset + e * eoffset
+                V[:, s:s+q] *= 2 / (h[v0] + h[v1])
 
         return ListTensor(V.T)
