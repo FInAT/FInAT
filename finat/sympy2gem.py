@@ -126,7 +126,7 @@ def sympy2gem_conditional(node, self):
     expr = None
     pieces = []
     for v, c in node.args:
-        if isinstance(c, (bool, numpy.bool)) and c:
+        if isinstance(c, (bool, numpy.bool, sympy.logic.boolalg.BooleanTrue)) and c:
             expr = self(v)
             break
         pieces.append((v, c))
