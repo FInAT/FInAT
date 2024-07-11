@@ -52,76 +52,54 @@
 <span class="kn">import</span> <span class="nn">numpy</span>
 <span class="kn">from</span> <span class="nn">gem</span> <span class="kn">import</span> <span class="n">ListTensor</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">partial_indexed</span>
 
+<span class="kn">from</span> <span class="nn">finat.argyris</span> <span class="kn">import</span> <span class="n">_edge_transform</span>
 <span class="kn">from</span> <span class="nn">finat.fiat_elements</span> <span class="kn">import</span> <span class="n">ScalarFiatElement</span>
 <span class="kn">from</span> <span class="nn">finat.physically_mapped</span> <span class="kn">import</span> <span class="n">Citations</span><span class="p">,</span> <span class="n">PhysicallyMappedElement</span>
 <span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
 
 
 <div class="viewcode-block" id="HsiehCloughTocher"><a class="viewcode-back" href="../../finat.html#finat.hct.HsiehCloughTocher">[docs]</a><span class="k">class</span> <span class="nc">HsiehCloughTocher</span><span class="p">(</span><span class="n">PhysicallyMappedElement</span><span class="p">,</span> <span class="n">ScalarFiatElement</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cell</span><span class="p">,</span> <span class="n">degree</span><span class="p">,</span> <span class="n">avg</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">degree</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Degree must be 3 for HCT element&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cell</span><span class="p">,</span> <span class="n">degree</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">avg</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">degree</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;HCT only defined for degree &gt;= 3&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">Citations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">Citations</span><span class="p">()</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;Clough1965&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">degree</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="n">Citations</span><span class="p">()</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;Groselj2022&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">avg</span> <span class="o">=</span> <span class="n">avg</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">FIAT</span><span class="o">.</span><span class="n">HsiehCloughTocher</span><span class="p">(</span><span class="n">cell</span><span class="p">))</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">FIAT</span><span class="o">.</span><span class="n">HsiehCloughTocher</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span> <span class="n">degree</span><span class="p">))</span>
 
 <div class="viewcode-block" id="HsiehCloughTocher.basis_transformation"><a class="viewcode-back" href="../../finat.html#finat.hct.HsiehCloughTocher.basis_transformation">[docs]</a>    <span class="k">def</span> <span class="nf">basis_transformation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinate_mapping</span><span class="p">):</span>
         <span class="c1"># Jacobians at cell center</span>
         <span class="n">J</span> <span class="o">=</span> <span class="n">coordinate_mapping</span><span class="o">.</span><span class="n">jacobian_at</span><span class="p">([</span><span class="mi">1</span><span class="o">/</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">3</span><span class="p">])</span>
 
-        <span class="n">rns</span> <span class="o">=</span> <span class="n">coordinate_mapping</span><span class="o">.</span><span class="n">reference_normals</span><span class="p">()</span>
-        <span class="n">pts</span> <span class="o">=</span> <span class="n">coordinate_mapping</span><span class="o">.</span><span class="n">physical_tangents</span><span class="p">()</span>
-        <span class="n">pns</span> <span class="o">=</span> <span class="n">coordinate_mapping</span><span class="o">.</span><span class="n">physical_normals</span><span class="p">()</span>
-
-        <span class="n">pel</span> <span class="o">=</span> <span class="n">coordinate_mapping</span><span class="o">.</span><span class="n">physical_edge_lengths</span><span class="p">()</span>
-
-        <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">get_dimension</span><span class="p">()</span>
         <span class="n">ndof</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">space_dimension</span><span class="p">()</span>
         <span class="n">V</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">ndof</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">multiindex</span> <span class="ow">in</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndindex</span><span class="p">(</span><span class="n">V</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
             <span class="n">V</span><span class="p">[</span><span class="n">multiindex</span><span class="p">]</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">(</span><span class="n">V</span><span class="p">[</span><span class="n">multiindex</span><span class="p">])</span>
 
-        <span class="n">voffset</span> <span class="o">=</span> <span class="n">d</span><span class="o">+</span><span class="mi">1</span>
-        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">d</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">sd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">get_dimension</span><span class="p">()</span>
+        <span class="n">top</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">get_topology</span><span class="p">()</span>
+        <span class="n">voffset</span> <span class="o">=</span> <span class="n">sd</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">top</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
             <span class="n">s</span> <span class="o">=</span> <span class="n">voffset</span> <span class="o">*</span> <span class="n">v</span>
-            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
-                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">sd</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">sd</span><span class="p">):</span>
                     <span class="n">V</span><span class="p">[</span><span class="n">s</span><span class="o">+</span><span class="mi">1</span><span class="o">+</span><span class="n">i</span><span class="p">,</span> <span class="n">s</span><span class="o">+</span><span class="mi">1</span><span class="o">+</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">J</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>
 
-        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
-            <span class="n">s</span> <span class="o">=</span> <span class="p">(</span><span class="n">d</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">voffset</span> <span class="o">+</span> <span class="n">e</span>
-            <span class="n">v0id</span><span class="p">,</span> <span class="n">v1id</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="n">voffset</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">e</span><span class="p">]</span>
-
-            <span class="n">nhat</span> <span class="o">=</span> <span class="n">partial_indexed</span><span class="p">(</span><span class="n">rns</span><span class="p">,</span> <span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="p">))</span>
-            <span class="n">t</span> <span class="o">=</span> <span class="n">partial_indexed</span><span class="p">(</span><span class="n">pts</span><span class="p">,</span> <span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="p">))</span>
-            <span class="n">n</span> <span class="o">=</span> <span class="n">partial_indexed</span><span class="p">(</span><span class="n">pns</span><span class="p">,</span> <span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="p">))</span>
-
-            <span class="n">Bn</span> <span class="o">=</span> <span class="n">J</span> <span class="o">@</span> <span class="n">nhat</span> <span class="o">/</span> <span class="n">pel</span><span class="p">[</span><span class="n">e</span><span class="p">]</span>
-            <span class="n">Bnn</span> <span class="o">=</span> <span class="n">Bn</span> <span class="o">@</span> <span class="n">n</span>
-            <span class="n">Bnt</span> <span class="o">=</span> <span class="n">Bn</span> <span class="o">@</span> <span class="n">t</span>
-
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">avg</span><span class="p">:</span>
-                <span class="n">Bnn</span> <span class="o">=</span> <span class="n">Bnn</span> <span class="o">*</span> <span class="n">pel</span><span class="p">[</span><span class="n">e</span><span class="p">]</span>
-            <span class="n">V</span><span class="p">[</span><span class="n">s</span><span class="p">,</span> <span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="n">Bnn</span>
-            <span class="n">V</span><span class="p">[</span><span class="n">s</span><span class="p">,</span> <span class="n">v0id</span><span class="p">]</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">Bnt</span>
-            <span class="n">V</span><span class="p">[</span><span class="n">s</span><span class="p">,</span> <span class="n">v1id</span><span class="p">]</span> <span class="o">=</span> <span class="n">Bnt</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">degree</span> <span class="o">-</span> <span class="mi">2</span>
+        <span class="n">_edge_transform</span><span class="p">(</span><span class="n">V</span><span class="p">,</span> <span class="n">voffset</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">coordinate_mapping</span><span class="p">,</span> <span class="n">avg</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">avg</span><span class="p">)</span>
 
         <span class="c1"># Patch up conditioning</span>
         <span class="n">h</span> <span class="o">=</span> <span class="n">coordinate_mapping</span><span class="o">.</span><span class="n">cell_size</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">d</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
-            <span class="n">s</span> <span class="o">=</span> <span class="n">voffset</span> <span class="o">*</span> <span class="n">v</span>
-            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
-                <span class="n">V</span><span class="p">[:,</span> <span class="n">s</span><span class="o">+</span><span class="mi">1</span><span class="o">+</span><span class="n">k</span><span class="p">]</span> <span class="o">/=</span> <span class="n">h</span><span class="p">[</span><span class="n">v</span><span class="p">]</span>
-
-        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
-            <span class="n">v0id</span><span class="p">,</span> <span class="n">v1id</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">e</span><span class="p">]</span>
-            <span class="n">V</span><span class="p">[:,</span> <span class="mi">9</span><span class="o">+</span><span class="n">e</span><span class="p">]</span> <span class="o">*=</span> <span class="mi">2</span> <span class="o">/</span> <span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="n">v0id</span><span class="p">]</span> <span class="o">+</span> <span class="n">h</span><span class="p">[</span><span class="n">v1id</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">top</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">sd</span><span class="p">):</span>
+                <span class="n">V</span><span class="p">[:,</span> <span class="n">voffset</span><span class="o">*</span><span class="n">v</span><span class="o">+</span><span class="mi">1</span><span class="o">+</span><span class="n">k</span><span class="p">]</span> <span class="o">/=</span> <span class="n">h</span><span class="p">[</span><span class="n">v</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">ListTensor</span><span class="p">(</span><span class="n">V</span><span class="o">.</span><span class="n">T</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="ReducedHsiehCloughTocher"><a class="viewcode-back" href="../../finat.html#finat.hct.ReducedHsiehCloughTocher">[docs]</a><span class="k">class</span> <span class="nc">ReducedHsiehCloughTocher</span><span class="p">(</span><span class="n">PhysicallyMappedElement</span><span class="p">,</span> <span class="n">ScalarFiatElement</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cell</span><span class="p">,</span> <span class="n">degree</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cell</span><span class="p">,</span> <span class="n">degree</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">degree</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Degree must be 3 for reduced HCT element&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">Citations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -130,22 +108,14 @@
 
         <span class="n">reduced_dofs</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_element</span><span class="o">.</span><span class="n">entity_dofs</span><span class="p">())</span>
         <span class="n">sd</span> <span class="o">=</span> <span class="n">cell</span><span class="o">.</span><span class="n">get_spatial_dimension</span><span class="p">()</span>
-        <span class="n">fdim</span> <span class="o">=</span> <span class="n">sd</span> <span class="o">-</span> <span class="mi">1</span>
-        <span class="k">for</span> <span class="n">entity</span> <span class="ow">in</span> <span class="n">reduced_dofs</span><span class="p">[</span><span class="n">fdim</span><span class="p">]:</span>
-            <span class="n">reduced_dofs</span><span class="p">[</span><span class="n">fdim</span><span class="p">][</span><span class="n">entity</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">entity</span> <span class="ow">in</span> <span class="n">reduced_dofs</span><span class="p">[</span><span class="n">sd</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">reduced_dofs</span><span class="p">[</span><span class="n">sd</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">entity</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_entity_dofs</span> <span class="o">=</span> <span class="n">reduced_dofs</span>
 
 <div class="viewcode-block" id="ReducedHsiehCloughTocher.basis_transformation"><a class="viewcode-back" href="../../finat.html#finat.hct.ReducedHsiehCloughTocher.basis_transformation">[docs]</a>    <span class="k">def</span> <span class="nf">basis_transformation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinate_mapping</span><span class="p">):</span>
-        <span class="c1"># Jacobians at cell center</span>
+        <span class="c1"># Jacobian at barycenter</span>
         <span class="n">J</span> <span class="o">=</span> <span class="n">coordinate_mapping</span><span class="o">.</span><span class="n">jacobian_at</span><span class="p">([</span><span class="mi">1</span><span class="o">/</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">3</span><span class="p">])</span>
 
-        <span class="n">rns</span> <span class="o">=</span> <span class="n">coordinate_mapping</span><span class="o">.</span><span class="n">reference_normals</span><span class="p">()</span>
-        <span class="n">pts</span> <span class="o">=</span> <span class="n">coordinate_mapping</span><span class="o">.</span><span class="n">physical_tangents</span><span class="p">()</span>
-        <span class="c1"># pns = coordinate_mapping.physical_normals()</span>
-
-        <span class="n">pel</span> <span class="o">=</span> <span class="n">coordinate_mapping</span><span class="o">.</span><span class="n">physical_edge_lengths</span><span class="p">()</span>
-
-        <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">get_dimension</span><span class="p">()</span>
         <span class="n">numbf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_element</span><span class="o">.</span><span class="n">space_dimension</span><span class="p">()</span>
         <span class="n">ndof</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">space_dimension</span><span class="p">()</span>
         <span class="c1"># rectangular to toss out the constraint dofs</span>
@@ -153,25 +123,27 @@
         <span class="k">for</span> <span class="n">multiindex</span> <span class="ow">in</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndindex</span><span class="p">(</span><span class="n">V</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
             <span class="n">V</span><span class="p">[</span><span class="n">multiindex</span><span class="p">]</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">(</span><span class="n">V</span><span class="p">[</span><span class="n">multiindex</span><span class="p">])</span>
 
-        <span class="n">voffset</span> <span class="o">=</span> <span class="n">d</span><span class="o">+</span><span class="mi">1</span>
-        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">d</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">sd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">get_spatial_dimension</span><span class="p">()</span>
+        <span class="n">top</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">get_topology</span><span class="p">()</span>
+        <span class="n">voffset</span> <span class="o">=</span> <span class="n">sd</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">top</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
             <span class="n">s</span> <span class="o">=</span> <span class="n">voffset</span> <span class="o">*</span> <span class="n">v</span>
-            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
-                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">sd</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">sd</span><span class="p">):</span>
                     <span class="n">V</span><span class="p">[</span><span class="n">s</span><span class="o">+</span><span class="mi">1</span><span class="o">+</span><span class="n">i</span><span class="p">,</span> <span class="n">s</span><span class="o">+</span><span class="mi">1</span><span class="o">+</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">J</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>
 
-        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
-            <span class="n">s</span> <span class="o">=</span> <span class="p">(</span><span class="n">d</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">voffset</span> <span class="o">+</span> <span class="n">e</span>
-            <span class="n">v0id</span><span class="p">,</span> <span class="n">v1id</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="n">voffset</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">e</span><span class="p">]</span>
+        <span class="n">rns</span> <span class="o">=</span> <span class="n">coordinate_mapping</span><span class="o">.</span><span class="n">reference_normals</span><span class="p">()</span>
+        <span class="n">pts</span> <span class="o">=</span> <span class="n">coordinate_mapping</span><span class="o">.</span><span class="n">physical_tangents</span><span class="p">()</span>
+        <span class="n">pel</span> <span class="o">=</span> <span class="n">coordinate_mapping</span><span class="o">.</span><span class="n">physical_edge_lengths</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">top</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">top</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">voffset</span> <span class="o">+</span> <span class="n">e</span>
+            <span class="n">v0id</span><span class="p">,</span> <span class="n">v1id</span> <span class="o">=</span> <span class="p">(</span><span class="n">v</span> <span class="o">*</span> <span class="n">voffset</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">top</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">e</span><span class="p">])</span>
 
             <span class="n">nhat</span> <span class="o">=</span> <span class="n">partial_indexed</span><span class="p">(</span><span class="n">rns</span><span class="p">,</span> <span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="p">))</span>
             <span class="n">t</span> <span class="o">=</span> <span class="n">partial_indexed</span><span class="p">(</span><span class="n">pts</span><span class="p">,</span> <span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="p">))</span>
-
-            <span class="c1"># n = partial_indexed(pns, (e, ))</span>
-            <span class="c1"># Bnn = (J @ nhat) @ n</span>
-            <span class="c1"># V[s, s] = Bnn</span>
-
             <span class="n">Bnt</span> <span class="o">=</span> <span class="p">(</span><span class="n">J</span> <span class="o">@</span> <span class="n">nhat</span><span class="p">)</span> <span class="o">@</span> <span class="n">t</span>
+
             <span class="n">V</span><span class="p">[</span><span class="n">s</span><span class="p">,</span> <span class="n">v0id</span><span class="p">]</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">5</span><span class="p">)</span> <span class="o">*</span> <span class="n">Bnt</span> <span class="o">/</span> <span class="n">pel</span><span class="p">[</span><span class="n">e</span><span class="p">]</span>
             <span class="n">V</span><span class="p">[</span><span class="n">s</span><span class="p">,</span> <span class="n">v1id</span><span class="p">]</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">V</span><span class="p">[</span><span class="n">s</span><span class="p">,</span> <span class="n">v0id</span><span class="p">]</span>
 
@@ -183,9 +155,9 @@
 
         <span class="c1"># Patch up conditioning</span>
         <span class="n">h</span> <span class="o">=</span> <span class="n">coordinate_mapping</span><span class="o">.</span><span class="n">cell_size</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">d</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">top</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
             <span class="n">s</span> <span class="o">=</span> <span class="n">voffset</span> <span class="o">*</span> <span class="n">v</span>
-            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">sd</span><span class="p">):</span>
                 <span class="n">V</span><span class="p">[:,</span> <span class="n">s</span><span class="o">+</span><span class="mi">1</span><span class="o">+</span><span class="n">k</span><span class="p">]</span> <span class="o">/=</span> <span class="n">h</span><span class="p">[</span><span class="n">v</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">ListTensor</span><span class="p">(</span><span class="n">V</span><span class="o">.</span><span class="n">T</span><span class="p">)</span></div>
 
