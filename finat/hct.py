@@ -30,7 +30,7 @@ class HsiehCloughTocher(PhysicallyMappedElement, ScalarFiatElement):
 
         sd = self.cell.get_dimension()
         top = self.cell.get_topology()
-        voffset = sd + 1
+        voffset = 1 + sd
         for v in sorted(top[0]):
             s = voffset * v
             for i in range(sd):
@@ -38,7 +38,7 @@ class HsiehCloughTocher(PhysicallyMappedElement, ScalarFiatElement):
                     V[s+1+i, s+1+j] = J[j, i]
 
         q = self.degree - 2
-        _edge_transform(V, voffset, self.cell, q, coordinate_mapping, avg=self.avg)
+        _edge_transform(V, 1, q, self.cell, coordinate_mapping, avg=self.avg)
 
         # Patch up conditioning
         h = coordinate_mapping.cell_size()
