@@ -28,8 +28,8 @@ def _edge_transform(V, vorder, eorder, fiat_cell, coordinate_mapping, avg=False)
     pel = coordinate_mapping.physical_edge_lengths()
 
     # number of DOFs per vertex/edge
-    voffset = (comb(sd + vorder, 1 + vorder) * (1 + vorder)) // sd
-    eoffset = 2 * eorder - 1
+    voffset = comb(sd + vorder, vorder)
+    eoffset = 2 * eorder + 1
     top = fiat_cell.get_topology()
     for e in sorted(top[1]):
         nhat = partial_indexed(rns, (e, ))
@@ -43,16 +43,16 @@ def _edge_transform(V, vorder, eorder, fiat_cell, coordinate_mapping, avg=False)
 
         v0id, v1id = (v * voffset for v in top[1][e])
         s0 = len(top[0]) * voffset + e * eoffset
-        for k in range(eorder):
+        for k in range(eorder+1):
             s = s0 + k
             # Jacobi polynomial at the endpoints
-            P1 = Literal(comb(k + vorder, k))
+            P1 = comb(k + vorder, k)
             P0 = -(-1)**k * P1
             V[s, s] = Bnn
             V[s, v1id] = P1 * Bnt
             V[s, v0id] = P0 * Bnt
             if k > 0:
-                V[s, s + eorder - 1] = -1 * Bnt
+                V[s, s + eorder] = -1 * Bnt
 
 
 class Argyris(PhysicallyMappedElement, ScalarFiatElement):
@@ -79,7 +79,8 @@ class Argyris(PhysicallyMappedElement, ScalarFiatElement):
 
         sd = self.cell.get_spatial_dimension()
         top = self.cell.get_topology()
-        voffset = 1 + sd + (sd+1)*sd//2
+        vorder = 2
+        voffset = comb(sd + vorder, vorder)
         for v in sorted(top[0]):
             s = voffset * v
             for i in range(sd):
@@ -95,9 +96,9 @@ class Argyris(PhysicallyMappedElement, ScalarFiatElement):
             V[s+5, s+4] = 2*J[0, 1]*J[1, 1]
             V[s+5, s+5] = J[1, 1]*J[1, 1]
 
-        q = self.degree - 4
+        eorder = self.degree - 5
         if self.variant == "integral":
-            _edge_transform(V, 2, q, self.cell, coordinate_mapping, avg=self.avg)
+            _edge_transform(V, vorder, eorder, self.cell, coordinate_mapping, avg=self.avg)
         else:
             rns = coordinate_mapping.reference_normals()
             pns = coordinate_mapping.physical_normals()
@@ -139,10 +140,10 @@ class Argyris(PhysicallyMappedElement, ScalarFiatElement):
                 V[:, voffset*v+3+k] *= 1 / (h[v]*h[v])
 
         if self.variant == "point":
-            eoffset = 2 * q - 1
+            eoffset = 2 * eorder + 1
             for e in sorted(top[1]):
                 v0, v1 = top[1][e]
                 s = len(top[0]) * voffset + e * eoffset
-                V[:, s:s+q] *= 2 / (h[v0] + h[v1])
+                V[:, s:s+eorder+1] *= 2 / (h[v0] + h[v1])
 
         return ListTensor(V.T)
