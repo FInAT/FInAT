@@ -11,8 +11,8 @@ class QuadraticPowellSabin6(PhysicallyMappedElement, ScalarFiatElement):
         if degree != 2:
             raise ValueError("Degree must be 2 for PS6")
         self.avg = avg
-        # if Citations is not None:
-        #     Citations().register("PowellSabin")
+        if Citations is not None:
+            Citations().register("PowellSabin1977")
         super().__init__(FIAT.QuadraticPowellSabin6(cell))
 
     def basis_transformation(self, coordinate_mapping):

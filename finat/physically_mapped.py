@@ -157,18 +157,19 @@ try:
   publisher={Elsevier}
 }
 """)
-#     Citations.add("PowellSabin", """
-# @article{powell1977piecewise,
-#   title={Piecewise quadratic approximations on triangles},
-#   author={Powell, Michael J.~D.~ and Sabin, Malcolm A.},
-#   journal={ACM Transactions on Mathematical Software},
-#   volume={3},
-#   number={4},
-#   pages={316--325},
-#   year={1977},
-#   publisher={ACM New York, NY, USA}
-# }
-# """)
+    Citations().add("PowellSabin1977", """
+@article{powell1977piecewise,
+  title={Piecewise quadratic approximations on triangles},
+  author={Powell, Michael JD and Sabin, Malcolm A},
+  journal={ACM Transactions on Mathematical Software},
+  volume={3},
+  number={4},
+  pages={316--325},
+  year={1977},
+  publisher={ACM New York, NY, USA}
+}
+""")
+
 except ImportError:
     Citations = None
 
