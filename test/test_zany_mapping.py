@@ -57,12 +57,6 @@ def check_zany_mapping(finat_element, phys_element):
         phi = phys_vals.reshape(numbfs, -1)
         Mh = np.linalg.solve(Phi @ Phi.T, Phi @ phi.T).T
         Mh[abs(Mh) < 1E-10] = 0
-        # edofs = finat_element.entity_dofs()
-        # i = len(edofs[2][0])
-        # offset = len(edofs[1][0]) + i
-        # print()
-        # print(Mh.T[-offset:-i])
-        # print(M.T[-offset:-i])
 
         Mgem = finat_element.basis_transformation(mapping)
         M = evaluate([Mgem])[0].arr
@@ -86,6 +80,7 @@ def test_C1_elements(ref_cell, phys_cell, element):
 
 
 @pytest.mark.parametrize("element, degree", [
+                         (finat.QuadraticPowellSabin6, 2),
                          *((finat.Argyris, k) for k in range(5, 8)),
                          *((finat.HsiehCloughTocher, k) for k in range(3, 6))
                          ])
