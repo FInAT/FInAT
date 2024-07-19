@@ -136,6 +136,7 @@ register_element("FacetBubble", "FB", 0, H1, "identity", (2, None), simplices)
 register_element("Quadrature", "Quadrature", 0, L2, "identity", (0, None),
                  any_cell)
 register_element("QuadraticPowellSabin6", "PS6", 0, H2, "custom", (2, 2), ("triangle",))
+register_element("QuadraticPowellSabin12", "PS12", 0, H2, "custom", (2, 2), ("triangle",))
 register_element("Real", "R", 0, HInf, "identity", (0, 0),
                  any_cell + ("TensorProductCell",))
 register_element("Undefined", "U", 0, L2, "identity", (0, None), any_cell)
