@@ -60,6 +60,9 @@ def check_zany_mapping(finat_element, phys_element):
 
         Mgem = finat_element.basis_transformation(mapping)
         M = evaluate([Mgem])[0].arr
+        if not np.allclose(M, Mh):
+            print(Mh)
+            print(M)
         assert np.allclose(M, Mh, atol=1E-9)
 
     assert np.allclose(finat_vals, phys_vals[:numdofs])
@@ -80,10 +83,10 @@ def test_C1_elements(ref_cell, phys_cell, element):
 
 
 @pytest.mark.parametrize("element, degree", [
-                         (finat.QuadraticPowellSabin6, 2),
-                         *((finat.Argyris, k) for k in range(5, 8)),
-                         *((finat.HsiehCloughTocher, k) for k in range(3, 6))
-                         ])
+    (finat.QuadraticPowellSabin6, 2), (finat.QuadraticPowellSabin12, 2),
+    *((finat.Argyris, k) for k in range(5, 8)),
+    *((finat.HsiehCloughTocher, k) for k in range(3, 6))
+])
 def test_high_order_C1_elements(ref_cell, phys_cell, element, degree):
     finat_element = element(ref_cell, degree, avg=True)
     phys_element = type(finat_element.fiat_equivalent)(phys_cell, degree)
