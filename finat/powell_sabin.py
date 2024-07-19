@@ -8,10 +8,9 @@ from finat.physically_mapped import Citations, PhysicallyMappedElement
 
 
 class QuadraticPowellSabin6(PhysicallyMappedElement, ScalarFiatElement):
-    def __init__(self, cell, degree=2, avg=False):
+    def __init__(self, cell, degree=2):
         if degree != 2:
             raise ValueError("Degree must be 2 for PS6")
-        self.avg = avg
         if Citations is not None:
             Citations().register("PowellSabin1977")
         super().__init__(FIAT.QuadraticPowellSabin6(cell))
