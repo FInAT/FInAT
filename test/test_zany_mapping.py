@@ -69,20 +69,24 @@ def check_zany_mapping(finat_element, phys_element):
 
 @pytest.mark.parametrize("element", [
                          finat.Morley,
+                         finat.QuadraticPowellSabin6,
+                         finat.QuadraticPowellSabin12,
                          finat.Hermite,
                          finat.ReducedHsiehCloughTocher,
                          finat.Bell])
 def test_C1_elements(ref_cell, phys_cell, element):
     kwargs = {}
+    finat_kwargs = {}
     if element == finat.ReducedHsiehCloughTocher:
         kwargs = dict(reduced=True)
-    finat_element = element(ref_cell)
+    if element == finat.QuadraticPowellSabin12:
+        finat_kwargs = dict(avg=True)
+    finat_element = element(ref_cell, **finat_kwargs)
     phys_element = type(finat_element.fiat_equivalent)(phys_cell, **kwargs)
     check_zany_mapping(finat_element, phys_element)
 
 
 @pytest.mark.parametrize("element, degree", [
-    (finat.QuadraticPowellSabin6, 2), (finat.QuadraticPowellSabin12, 2),
     *((finat.Argyris, k) for k in range(5, 8)),
     *((finat.HsiehCloughTocher, k) for k in range(3, 6))
 ])
