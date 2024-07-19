@@ -68,7 +68,7 @@ class QuadraticPowellSabin12(PhysicallyMappedElement, ScalarFiatElement):
                 for j in range(sd):
                     V[s+1+i, s+1+j] = J[j, i]
 
-        _edge_transform(V, voffset, self.cell, 0, coordinate_mapping, avg=self.avg)
+        _edge_transform(V, 1, 0, self.cell, coordinate_mapping, avg=self.avg)
 
         # Patch up conditioning
         h = coordinate_mapping.cell_size()

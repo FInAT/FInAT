@@ -61,8 +61,7 @@ def check_zany_mapping(finat_element, phys_element):
         Mgem = finat_element.basis_transformation(mapping)
         M = evaluate([Mgem])[0].arr
         if not np.allclose(M, Mh):
-            print(Mh)
-            print(M)
+            print(Mh-M)
         assert np.allclose(M, Mh, atol=1E-9)
 
     assert np.allclose(finat_vals, phys_vals[:numdofs])
