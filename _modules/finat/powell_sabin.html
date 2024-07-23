@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>finat.powell_sabin &#8212; FInAT 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../_static/fenics.css?v=9da67524" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=e031e9a9"></script>
+    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<!--[if lte IE 6]>
+<link rel="stylesheet" href="../../_static/ie6.css" type="text/css" media="screen" charset="utf-8" />
+<![endif]-->
+
+<link rel="stylesheet" href="../../_static/featured.css">
+
+
+<link rel="shortcut icon" href="../../_static/icon.ico" />
+
+
+  </head><body>
+<div class="wrapper">
+  <a href="../../index.html"><img src="../../_static/banner.png" width="900px" alt="FInAT Project Banner" /></a>
+  <div id="access">
+    <div class="menu">
+      <ul>
+          <li class="page_item"><a href="https://github.com/FInAT/finat" title="GitHub">GitHub</a></li>
+<!--          <li class="page_item"><a href="../../documentation.html" title="Documentation for FInAT">Documentation</a></li>
+          <li class="page_item"><a href="../../download.html" title="Obtain the FInAT code">Download</a></li>
+          <li class="page_item"><a href="../../team.html" title="The guilty parties">Team</a></li>
+          <li class="page_item"><a href="../../publications.html" title="Publications">Publications</a></li>
+          <li class="page_item"><a href="../../funding.html" title="Our financial supporters">Funding</a></li>
+          <li class="page_item"><a href="../../contact.html" title="Getting in touch">Contact</a></li>
+          <li class="page_item"><a href="http://buildbot-ocean.ese.ic.ac.uk:8080/builders/FInAT-trunk" title="Buildbot">Buildbot</a></li>-->
+      </ul>
+    </div><!-- .menu -->
+  </div><!-- #access -->
+</div><!-- #wrapper -->
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for finat.powell_sabin</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">FIAT</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">from</span> <span class="nn">gem</span> <span class="kn">import</span> <span class="n">ListTensor</span><span class="p">,</span> <span class="n">Literal</span>
+
+<span class="kn">from</span> <span class="nn">finat.argyris</span> <span class="kn">import</span> <span class="n">_edge_transform</span>
+<span class="kn">from</span> <span class="nn">finat.fiat_elements</span> <span class="kn">import</span> <span class="n">ScalarFiatElement</span>
+<span class="kn">from</span> <span class="nn">finat.physically_mapped</span> <span class="kn">import</span> <span class="n">Citations</span><span class="p">,</span> <span class="n">PhysicallyMappedElement</span>
+
+
+<div class="viewcode-block" id="QuadraticPowellSabin6"><a class="viewcode-back" href="../../finat.html#finat.powell_sabin.QuadraticPowellSabin6">[docs]</a><span class="k">class</span> <span class="nc">QuadraticPowellSabin6</span><span class="p">(</span><span class="n">PhysicallyMappedElement</span><span class="p">,</span> <span class="n">ScalarFiatElement</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cell</span><span class="p">,</span> <span class="n">degree</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">degree</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Degree must be 2 for PS6&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">Citations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">Citations</span><span class="p">()</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;PowellSabin1977&quot;</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">FIAT</span><span class="o">.</span><span class="n">QuadraticPowellSabin6</span><span class="p">(</span><span class="n">cell</span><span class="p">))</span>
+
+<div class="viewcode-block" id="QuadraticPowellSabin6.basis_transformation"><a class="viewcode-back" href="../../finat.html#finat.powell_sabin.QuadraticPowellSabin6.basis_transformation">[docs]</a>    <span class="k">def</span> <span class="nf">basis_transformation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinate_mapping</span><span class="p">):</span>
+        <span class="n">Js</span> <span class="o">=</span> <span class="p">[</span><span class="n">coordinate_mapping</span><span class="o">.</span><span class="n">jacobian_at</span><span class="p">(</span><span class="n">vertex</span><span class="p">)</span>
+              <span class="k">for</span> <span class="n">vertex</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">get_vertices</span><span class="p">()]</span>
+
+        <span class="n">h</span> <span class="o">=</span> <span class="n">coordinate_mapping</span><span class="o">.</span><span class="n">cell_size</span><span class="p">()</span>
+
+        <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">get_dimension</span><span class="p">()</span>
+        <span class="n">numbf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">space_dimension</span><span class="p">()</span>
+
+        <span class="n">M</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">numbf</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">multiindex</span> <span class="ow">in</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndindex</span><span class="p">(</span><span class="n">M</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
+            <span class="n">M</span><span class="p">[</span><span class="n">multiindex</span><span class="p">]</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">(</span><span class="n">M</span><span class="p">[</span><span class="n">multiindex</span><span class="p">])</span>
+
+        <span class="n">cur</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">d</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">cur</span> <span class="o">+=</span> <span class="mi">1</span>  <span class="c1"># skip the vertex</span>
+            <span class="n">J</span> <span class="o">=</span> <span class="n">Js</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
+                    <span class="n">M</span><span class="p">[</span><span class="n">cur</span><span class="o">+</span><span class="n">j</span><span class="p">,</span> <span class="n">cur</span><span class="o">+</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">J</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">]</span> <span class="o">/</span> <span class="n">h</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">cur</span> <span class="o">+=</span> <span class="n">d</span>
+
+        <span class="k">return</span> <span class="n">ListTensor</span><span class="p">(</span><span class="n">M</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="QuadraticPowellSabin12"><a class="viewcode-back" href="../../finat.html#finat.powell_sabin.QuadraticPowellSabin12">[docs]</a><span class="k">class</span> <span class="nc">QuadraticPowellSabin12</span><span class="p">(</span><span class="n">PhysicallyMappedElement</span><span class="p">,</span> <span class="n">ScalarFiatElement</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cell</span><span class="p">,</span> <span class="n">degree</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">avg</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">degree</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Degree must be 2 for PS12&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">avg</span> <span class="o">=</span> <span class="n">avg</span>
+        <span class="k">if</span> <span class="n">Citations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">Citations</span><span class="p">()</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;PowellSabin1977&quot;</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">FIAT</span><span class="o">.</span><span class="n">QuadraticPowellSabin12</span><span class="p">(</span><span class="n">cell</span><span class="p">))</span>
+
+<div class="viewcode-block" id="QuadraticPowellSabin12.basis_transformation"><a class="viewcode-back" href="../../finat.html#finat.powell_sabin.QuadraticPowellSabin12.basis_transformation">[docs]</a>    <span class="k">def</span> <span class="nf">basis_transformation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinate_mapping</span><span class="p">):</span>
+        <span class="n">J</span> <span class="o">=</span> <span class="n">coordinate_mapping</span><span class="o">.</span><span class="n">jacobian_at</span><span class="p">([</span><span class="mi">1</span><span class="o">/</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">3</span><span class="p">])</span>
+
+        <span class="n">ndof</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">space_dimension</span><span class="p">()</span>
+        <span class="n">V</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">ndof</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">multiindex</span> <span class="ow">in</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndindex</span><span class="p">(</span><span class="n">V</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
+            <span class="n">V</span><span class="p">[</span><span class="n">multiindex</span><span class="p">]</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">(</span><span class="n">V</span><span class="p">[</span><span class="n">multiindex</span><span class="p">])</span>
+
+        <span class="n">sd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">get_dimension</span><span class="p">()</span>
+        <span class="n">top</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">get_topology</span><span class="p">()</span>
+        <span class="n">voffset</span> <span class="o">=</span> <span class="n">sd</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">top</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">voffset</span> <span class="o">*</span> <span class="n">v</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">sd</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">sd</span><span class="p">):</span>
+                    <span class="n">V</span><span class="p">[</span><span class="n">s</span><span class="o">+</span><span class="mi">1</span><span class="o">+</span><span class="n">i</span><span class="p">,</span> <span class="n">s</span><span class="o">+</span><span class="mi">1</span><span class="o">+</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">J</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>
+
+        <span class="n">_edge_transform</span><span class="p">(</span><span class="n">V</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell</span><span class="p">,</span> <span class="n">coordinate_mapping</span><span class="p">,</span> <span class="n">avg</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">avg</span><span class="p">)</span>
+
+        <span class="c1"># Patch up conditioning</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">coordinate_mapping</span><span class="o">.</span><span class="n">cell_size</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">top</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">sd</span><span class="p">):</span>
+                <span class="n">V</span><span class="p">[:,</span> <span class="n">voffset</span><span class="o">*</span><span class="n">v</span><span class="o">+</span><span class="mi">1</span><span class="o">+</span><span class="n">k</span><span class="p">]</span> <span class="o">/=</span> <span class="n">h</span><span class="p">[</span><span class="n">v</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">ListTensor</span><span class="p">(</span><span class="n">V</span><span class="o">.</span><span class="n">T</span><span class="p">)</span></div></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2014--2020, David A. Ham, Robert C. Kirby and others.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.1.2.
+    </div>
+  </body>
+</html>

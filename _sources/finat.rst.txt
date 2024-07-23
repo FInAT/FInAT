@@ -172,6 +172,14 @@ finat.point\_set module
    :undoc-members:
    :show-inheritance:
 
+finat.powell\_sabin module
+--------------------------
+
+.. automodule:: finat.powell_sabin
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 finat.quadrature module
 -----------------------
 
