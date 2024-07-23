@@ -8,15 +8,17 @@ from fiat_mapping import FiredrakeMapping
 
 
 @pytest.mark.parametrize("element, degree, variant", [
-                         (finat.Hermite, 3, None),
-                         (finat.ReducedHsiehCloughTocher, 3, None),
-                         (finat.HsiehCloughTocher, 3, None),
-                         (finat.HsiehCloughTocher, 4, None),
-                         (finat.Bell, 5, None),
-                         (finat.Argyris, 5, "point"),
-                         (finat.Argyris, 5, None),
-                         (finat.Argyris, 6, None),
-                         ])
+    (finat.Hermite, 3, None),
+    (finat.QuadraticPowellSabin6, 2, None),
+    (finat.QuadraticPowellSabin12, 2, None),
+    (finat.ReducedHsiehCloughTocher, 3, None),
+    (finat.HsiehCloughTocher, 3, None),
+    (finat.HsiehCloughTocher, 4, None),
+    (finat.Bell, 5, None),
+    (finat.Argyris, 5, "point"),
+    (finat.Argyris, 5, None),
+    (finat.Argyris, 6, None),
+])
 def test_mass_scaling(element, degree, variant):
     sd = 2
     ref_cell = FIAT.ufc_simplex(sd)

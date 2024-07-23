@@ -16,6 +16,7 @@ from .aw import ArnoldWinther           # noqa: F401
 from .aw import ArnoldWintherNC         # noqa: F401
 from .bell import Bell                  # noqa: F401
 from .hct import HsiehCloughTocher, ReducedHsiehCloughTocher   # noqa: F401
+from .powell_sabin import QuadraticPowellSabin6, QuadraticPowellSabin12  # noqa: F401
 from .hermite import Hermite            # noqa: F401
 from .johnson_mercier import JohnsonMercier  # noqa: F401
 from .mtw import MardalTaiWinther       # noqa: F401

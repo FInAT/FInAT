@@ -57,15 +57,11 @@ def check_zany_mapping(finat_element, phys_element):
         phi = phys_vals.reshape(numbfs, -1)
         Mh = np.linalg.solve(Phi @ Phi.T, Phi @ phi.T).T
         Mh[abs(Mh) < 1E-10] = 0
-        # edofs = finat_element.entity_dofs()
-        # i = len(edofs[2][0])
-        # offset = len(edofs[1][0]) + i
-        # print()
-        # print(Mh.T[-offset:-i])
-        # print(M.T[-offset:-i])
 
         Mgem = finat_element.basis_transformation(mapping)
         M = evaluate([Mgem])[0].arr
+        if not np.allclose(M, Mh):
+            print(Mh-M)
         assert np.allclose(M, Mh, atol=1E-9)
 
     assert np.allclose(finat_vals, phys_vals[:numdofs])
@@ -73,22 +69,27 @@ def check_zany_mapping(finat_element, phys_element):
 
 @pytest.mark.parametrize("element", [
                          finat.Morley,
+                         finat.QuadraticPowellSabin6,
+                         finat.QuadraticPowellSabin12,
                          finat.Hermite,
                          finat.ReducedHsiehCloughTocher,
                          finat.Bell])
 def test_C1_elements(ref_cell, phys_cell, element):
     kwargs = {}
+    finat_kwargs = {}
     if element == finat.ReducedHsiehCloughTocher:
         kwargs = dict(reduced=True)
-    finat_element = element(ref_cell)
+    if element == finat.QuadraticPowellSabin12:
+        finat_kwargs = dict(avg=True)
+    finat_element = element(ref_cell, **finat_kwargs)
     phys_element = type(finat_element.fiat_equivalent)(phys_cell, **kwargs)
     check_zany_mapping(finat_element, phys_element)
 
 
 @pytest.mark.parametrize("element, degree", [
-                         *((finat.Argyris, k) for k in range(5, 8)),
-                         *((finat.HsiehCloughTocher, k) for k in range(3, 6))
-                         ])
+    *((finat.Argyris, k) for k in range(5, 8)),
+    *((finat.HsiehCloughTocher, k) for k in range(3, 6))
+])
 def test_high_order_C1_elements(ref_cell, phys_cell, element, degree):
     finat_element = element(ref_cell, degree, avg=True)
     phys_element = type(finat_element.fiat_equivalent)(phys_cell, degree)
