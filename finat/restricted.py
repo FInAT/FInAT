@@ -9,6 +9,55 @@ from finat.fiat_elements import FiatElement
 from finat.physically_mapped import PhysicallyMappedElement
 
 
+def sorted_by_key(mapping):
+    "Sort dict items by key, allowing different key types."
+    # Python3 doesn't allow comparing builtins of different type, therefore the typename trick here
+    def _key(x):
+        return (type(x[0]).__name__, x[0])
+    return sorted(mapping.items(), key=_key)
+
+
+def _get_indices(element, restriction_domain, take_closure):
+    "Restriction domain can be 'interior', 'vertex', 'edge', 'face' or 'facet'"
+
+    if restriction_domain == "interior":
+        # Return dofs from interior
+        return element.entity_dofs()[max(element.entity_dofs().keys())][0]
+
+    # otherwise return dofs with d <= dim
+    if restriction_domain == "vertex":
+        dim = 0
+    elif restriction_domain == "edge":
+        dim = 1
+    elif restriction_domain == "face":
+        dim = 2
+    elif restriction_domain == "facet":
+        dim = element.get_reference_element().get_spatial_dimension() - 1
+    else:
+        raise RuntimeError("Invalid restriction domain")
+
+    is_prodcell = isinstance(max(element.entity_dofs().keys()), tuple)
+
+    entity_dofs = element.entity_dofs()
+    indices = []
+    ldim = 0 if take_closure else dim
+    for d in range(ldim, dim + 1):
+        if is_prodcell:
+            for a in range(d + 1):
+                b = d - a
+                try:
+                    entities = entity_dofs[(a, b)]
+                    for (entity, index) in sorted_by_key(entities):
+                        indices += index
+                except KeyError:
+                    pass
+        else:
+            entities = entity_dofs[d]
+            for (entity, index) in sorted_by_key(entities):
+                indices += index
+    return indices
+
+
 # Sentinel for when restricted element is empty
 null_element = object()
 
@@ -32,7 +81,10 @@ def restrict(element, domain, take_closure):
 @restrict.register(FiatElement)
 def restrict_fiat(element, domain, take_closure):
     try:
-        return FiatElement(FIAT.RestrictedElement(element._element, restriction_domain=domain))
+        indices = _get_indices(element._element, domain, take_closure)
+        if len(indices) == 0:
+            raise ValueError("Restricted element is empty")
+        return FiatElement(FIAT.RestrictedElement(element._element, indices=indices))
     except ValueError:
         return null_element
 
