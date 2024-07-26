@@ -52,6 +52,8 @@ def restrict_flattened_dimensions(element, domain, take_closure):
 
 
 @restrict.register(finat.DiscontinuousElement)
+@restrict.register(finat.DiscontinuousLagrange)
+@restrict.register(finat.Legendre)
 def restrict_discontinuous(element, domain, take_closure):
     if domain == "interior":
         return element
@@ -113,22 +115,6 @@ def restrict_mixed(element, domain, take_closure):
     raise AssertionError("Was expecting this to be handled inside EnrichedElement restriction")
 
 
-@restrict.register(finat.GaussLobattoLegendre)
-def restrict_gll(element, domain, take_closure):
-    try:
-        return FiatElement(FIAT.RestrictedElement(element._element, restriction_domain=domain))
-    except ValueError:
-        return null_element
-
-
-@restrict.register(finat.GaussLegendre)
-def restrict_gl(element, domain, take_closure):
-    if domain == "interior":
-        return element
-    else:
-        return null_element
-
-
 def r_to_codim(restriction, dim):
     if restriction == "interior":
         return 0
@@ -178,7 +164,6 @@ def restrict_tpe(element, domain, take_closure):
     # R(I, 0)⊗R(I, 1) ⊕ R(I, 1)⊗R(I, 0) ⊕ R(I, 0)⊗R(I, 0)
     factors = element.factors
     dimension = element.cell.get_spatial_dimension()
-
     # Figure out which codim entity we're selecting
     codim = r_to_codim(domain, dimension)
     # And the range of codims.
@@ -192,13 +177,14 @@ def restrict_tpe(element, domain, take_closure):
                                                   for c in range(codim, upper)))
                          if all(d <= factor.cell.get_dimension()
                                 for d, factor in zip(candidate, factors)))
+    take_closure = False
     elements = []
     for decomposition in restrictions:
         # Recurse, but don't take closure in recursion (since we
         # handled it already).
         new_factors = tuple(
             restrict(factor, codim_to_r(codim, factor.cell.get_dimension()),
-                     take_closure=False)
+                     take_closure)
             for factor, codim in zip(factors, decomposition))
         # If one of the factors was empty then the whole TPE is empty,
         # so skip.
