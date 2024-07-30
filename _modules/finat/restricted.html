@@ -82,7 +82,8 @@
 <div class="viewcode-block" id="restrict_fiat"><a class="viewcode-back" href="../../finat.html#finat.restricted.restrict_fiat">[docs]</a><span class="nd">@restrict</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">FiatElement</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">restrict_fiat</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">domain</span><span class="p">,</span> <span class="n">take_closure</span><span class="p">):</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">FiatElement</span><span class="p">(</span><span class="n">FIAT</span><span class="o">.</span><span class="n">RestrictedElement</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">_element</span><span class="p">,</span> <span class="n">restriction_domain</span><span class="o">=</span><span class="n">domain</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">FiatElement</span><span class="p">(</span><span class="n">FIAT</span><span class="o">.</span><span class="n">RestrictedElement</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">_element</span><span class="p">,</span>
+                           <span class="n">restriction_domain</span><span class="o">=</span><span class="n">domain</span><span class="p">,</span> <span class="n">take_closure</span><span class="o">=</span><span class="n">take_closure</span><span class="p">))</span>
     <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">null_element</span></div>
 
@@ -102,6 +103,8 @@
 
 
 <div class="viewcode-block" id="restrict_discontinuous"><a class="viewcode-back" href="../../finat.html#finat.restricted.restrict_discontinuous">[docs]</a><span class="nd">@restrict</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">finat</span><span class="o">.</span><span class="n">DiscontinuousElement</span><span class="p">)</span>
+<span class="nd">@restrict</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">finat</span><span class="o">.</span><span class="n">DiscontinuousLagrange</span><span class="p">)</span>
+<span class="nd">@restrict</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">finat</span><span class="o">.</span><span class="n">Legendre</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">restrict_discontinuous</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">domain</span><span class="p">,</span> <span class="n">take_closure</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">domain</span> <span class="o">==</span> <span class="s2">&quot;interior&quot;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">element</span>
@@ -163,22 +166,6 @@
     <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;Was expecting this to be handled inside EnrichedElement restriction&quot;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="restrict_gll"><a class="viewcode-back" href="../../finat.html#finat.restricted.restrict_gll">[docs]</a><span class="nd">@restrict</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">finat</span><span class="o">.</span><span class="n">GaussLobattoLegendre</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">restrict_gll</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">domain</span><span class="p">,</span> <span class="n">take_closure</span><span class="p">):</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">FiatElement</span><span class="p">(</span><span class="n">FIAT</span><span class="o">.</span><span class="n">RestrictedElement</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">_element</span><span class="p">,</span> <span class="n">restriction_domain</span><span class="o">=</span><span class="n">domain</span><span class="p">))</span>
-    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">null_element</span></div>
-
-
-<div class="viewcode-block" id="restrict_gl"><a class="viewcode-back" href="../../finat.html#finat.restricted.restrict_gl">[docs]</a><span class="nd">@restrict</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">finat</span><span class="o">.</span><span class="n">GaussLegendre</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">restrict_gl</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">domain</span><span class="p">,</span> <span class="n">take_closure</span><span class="p">):</span>
-    <span class="k">if</span> <span class="n">domain</span> <span class="o">==</span> <span class="s2">&quot;interior&quot;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">element</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">null_element</span></div>
-
-
 <div class="viewcode-block" id="r_to_codim"><a class="viewcode-back" href="../../finat.html#finat.restricted.r_to_codim">[docs]</a><span class="k">def</span> <span class="nf">r_to_codim</span><span class="p">(</span><span class="n">restriction</span><span class="p">,</span> <span class="n">dim</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">restriction</span> <span class="o">==</span> <span class="s2">&quot;interior&quot;</span><span class="p">:</span>
         <span class="k">return</span> <span class="mi">0</span>
@@ -228,7 +215,6 @@
     <span class="c1"># R(I, 0)⊗R(I, 1) ⊕ R(I, 1)⊗R(I, 0) ⊕ R(I, 0)⊗R(I, 0)</span>
     <span class="n">factors</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">factors</span>
     <span class="n">dimension</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">get_spatial_dimension</span><span class="p">()</span>
-
     <span class="c1"># Figure out which codim entity we&#39;re selecting</span>
     <span class="n">codim</span> <span class="o">=</span> <span class="n">r_to_codim</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">dimension</span><span class="p">)</span>
     <span class="c1"># And the range of codims.</span>
@@ -242,13 +228,14 @@
                                                   <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">codim</span><span class="p">,</span> <span class="n">upper</span><span class="p">)))</span>
                          <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">d</span> <span class="o">&lt;=</span> <span class="n">factor</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">get_dimension</span><span class="p">()</span>
                                 <span class="k">for</span> <span class="n">d</span><span class="p">,</span> <span class="n">factor</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">candidate</span><span class="p">,</span> <span class="n">factors</span><span class="p">)))</span>
+    <span class="n">take_closure</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="n">elements</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">decomposition</span> <span class="ow">in</span> <span class="n">restrictions</span><span class="p">:</span>
         <span class="c1"># Recurse, but don&#39;t take closure in recursion (since we</span>
         <span class="c1"># handled it already).</span>
         <span class="n">new_factors</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
             <span class="n">restrict</span><span class="p">(</span><span class="n">factor</span><span class="p">,</span> <span class="n">codim_to_r</span><span class="p">(</span><span class="n">codim</span><span class="p">,</span> <span class="n">factor</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">get_dimension</span><span class="p">()),</span>
-                     <span class="n">take_closure</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                     <span class="n">take_closure</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">factor</span><span class="p">,</span> <span class="n">codim</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">factors</span><span class="p">,</span> <span class="n">decomposition</span><span class="p">))</span>
         <span class="c1"># If one of the factors was empty then the whole TPE is empty,</span>
         <span class="c1"># so skip.</span>
