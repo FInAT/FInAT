@@ -34,68 +34,77 @@ def restriction(request):
     return request.param
 
 
-@pytest.fixture(params=["tet", "quad"], scope="module")
+@pytest.fixture(params=["tet", "quad", "prism"], scope="module")
 def cell(request):
-    return request.param
+    if request.param == "tet":
+        cell = (FIAT.ufc_simplex(3),)
+    elif request.param == "quad":
+        interval = FIAT.ufc_simplex(1)
+        cell = (interval, interval)
+    elif request.param == "prism":
+        triangle = FIAT.ufc_simplex(2)
+        interval = FIAT.ufc_simplex(1)
+        cell = (triangle, interval)
+    return cell
 
 
 @pytest.fixture
 def ps(cell):
-    if cell == "tet":
-        return PointSet([[1/3, 1/4, 1/5]])
-    elif cell == "quad":
-        return PointSet([[1/3, 1/4]])
+    dim = sum(e.get_spatial_dimension() for e in cell)
+    return PointSet([[1/3, 1/4, 1/5][:dim]])
 
 
 @pytest.fixture(scope="module")
 def scalar_element(cell):
-    if cell == "tet":
-        return finat.Lagrange(FIAT.reference_element.UFCTetrahedron(), 4)
-    elif cell == "quad":
-        interval = FIAT.reference_element.UFCInterval()
+    if len(cell) == 1:
+        return finat.Lagrange(cell[0], 4)
+    else:
+        e1, e2 = cell
         return finat.FlattenedDimensions(
             finat.TensorProductElement([
-                finat.GaussLobattoLegendre(interval, 3),
-                finat.GaussLobattoLegendre(interval, 3)]
+                finat.GaussLobattoLegendre(e1, 3),
+                finat.GaussLobattoLegendre(e2, 3)]
             )
         )
 
 
 @pytest.fixture(scope="module")
 def hdiv_element(cell):
-    if cell == "tet":
-        return finat.RaviartThomas(FIAT.reference_element.UFCTetrahedron(), 3, variant="integral(3)")
-    elif cell == "quad":
-        interval = FIAT.reference_element.UFCInterval()
+    if len(cell) == 1:
+        return finat.RaviartThomas(cell[0], 3, variant="integral(3)")
+    else:
+        e1, e2 = cell
+        element = finat.GaussLobattoLegendre if e1.get_spatial_dimension() == 1 else finat.RaviartThomas
         return finat.FlattenedDimensions(
             finat.EnrichedElement([
                 finat.HDivElement(
                     finat.TensorProductElement([
-                        finat.GaussLobattoLegendre(interval, 3),
-                        finat.GaussLegendre(interval, 3)])),
+                        element(e1, 3),
+                        finat.GaussLegendre(e2, 3)])),
                 finat.HDivElement(
                     finat.TensorProductElement([
-                        finat.GaussLegendre(interval, 3),
-                        finat.GaussLobattoLegendre(interval, 3)]))
+                        finat.GaussLegendre(e1, 3),
+                        finat.GaussLobattoLegendre(e2, 3)]))
             ]))
 
 
 @pytest.fixture(scope="module")
 def hcurl_element(cell):
-    if cell == "tet":
-        return finat.Nedelec(FIAT.reference_element.UFCTetrahedron(), 3, variant="integral(3)")
-    elif cell == "quad":
-        interval = FIAT.reference_element.UFCInterval()
+    if len(cell) == 1:
+        return finat.Nedelec(cell[0], 3, variant="integral(3)")
+    else:
+        e1, e2 = cell
+        element = finat.GaussLegendre if e1.get_spatial_dimension() == 1 else finat.Nedelec
         return finat.FlattenedDimensions(
             finat.EnrichedElement([
                 finat.HCurlElement(
                     finat.TensorProductElement([
-                        finat.GaussLobattoLegendre(interval, 3),
-                        finat.GaussLegendre(interval, 3)])),
+                        finat.GaussLobattoLegendre(e1, 3),
+                        finat.GaussLegendre(e2, 3)])),
                 finat.HCurlElement(
                     finat.TensorProductElement([
-                        finat.GaussLegendre(interval, 3),
-                        finat.GaussLobattoLegendre(interval, 3)]))
+                        element(e1, 3),
+                        finat.GaussLobattoLegendre(e2, 3)]))
             ]))
 
 
