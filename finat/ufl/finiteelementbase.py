@@ -234,7 +234,8 @@ class FiniteElementBase(AbstractFiniteElement):
 
     def __getitem__(self, index):
         """Restrict finite element to a subdomain, subcomponent or topology (cell)."""
-        if index in ("facet", "interior"):
+        from finat.ufl.restrictedelement import valid_restriction_domains
+        if index in valid_restriction_domains:
             from finat.ufl import RestrictedElement
             return RestrictedElement(self, index)
         else:
