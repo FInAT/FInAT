@@ -12,6 +12,7 @@
 # Modified by Matthew Scroggs, 2023
 
 from abc import abstractmethod, abstractproperty
+from hashlib import md5
 
 from ufl import pullback
 from ufl.cell import AbstractCell, as_cell
@@ -84,7 +85,7 @@ class FiniteElementBase(AbstractFiniteElement):
 
     def __hash__(self):
         """Compute hash code for insertion in hashmaps."""
-        return hash(self._ufl_hash_data_())
+        return int.from_bytes(md5(self._ufl_hash_data_().encode()).digest())
 
     def __eq__(self, other):
         """Compute element equality for insertion in hashmaps."""
