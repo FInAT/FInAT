@@ -85,7 +85,7 @@ class FiniteElementBase(AbstractFiniteElement):
 
     def __hash__(self):
         """Compute hash code for insertion in hashmaps."""
-        return int.from_bytes(md5(self._ufl_hash_data_().encode()).digest())
+        return int.from_bytes(md5(self._ufl_hash_data_().encode()).digest(), byteorder='big')
 
     def __eq__(self, other):
         """Compute element equality for insertion in hashmaps."""
