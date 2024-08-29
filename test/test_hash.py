@@ -14,6 +14,7 @@ def test_same_hash():
     same_cg = finat.ufl.finiteelement.FiniteElement("Lagrange", ufl.cell.Cell("triangle"), 1)
     assert hash(cg) == hash(same_cg)
 
+
 def test_different_hash():
     """ Two different elements should have different hashes.
     """
@@ -21,12 +22,14 @@ def test_different_hash():
     dg = finat.ufl.finiteelement.FiniteElement("DG", ufl.cell.Cell("triangle"), 2)
     assert hash(cg) != hash(dg)
 
+
 def test_variant_hashes_different():
     """ Different variants of the same element should have different hashes.
     """
     dg = finat.ufl.finiteelement.FiniteElement("DG", ufl.cell.Cell("triangle"), 2)
     dg_gll = finat.ufl.finiteelement.FiniteElement("DG", ufl.cell.Cell("triangle"), 2, variant="gll")
     assert hash(dg) != hash(dg_gll)
+
 
 def test_persistent_hash(tmp_path):
     """ Hashes should be the same across Python invocations.
