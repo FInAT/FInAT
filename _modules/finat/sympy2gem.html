@@ -92,6 +92,13 @@
     <span class="k">return</span> <span class="n">gem</span><span class="o">.</span><span class="n">Power</span><span class="p">(</span><span class="o">*</span><span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">args</span><span class="p">))</span></div>
 
 
+<div class="viewcode-block" id="sympy2gem_boolean"><a class="viewcode-back" href="../../finat.html#finat.sympy2gem.sympy2gem_boolean">[docs]</a><span class="nd">@sympy2gem</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">sympy</span><span class="o">.</span><span class="n">logic</span><span class="o">.</span><span class="n">boolalg</span><span class="o">.</span><span class="n">BooleanTrue</span><span class="p">)</span>
+<span class="nd">@sympy2gem</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">sympy</span><span class="o">.</span><span class="n">logic</span><span class="o">.</span><span class="n">boolalg</span><span class="o">.</span><span class="n">BooleanFalse</span><span class="p">)</span>
+<span class="nd">@sympy2gem</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">sympy2gem_boolean</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">gem</span><span class="o">.</span><span class="n">Literal</span><span class="p">(</span><span class="nb">bool</span><span class="p">(</span><span class="n">node</span><span class="p">))</span></div>
+
+
 <div class="viewcode-block" id="sympy2gem_integer"><a class="viewcode-back" href="../../finat.html#finat.sympy2gem.sympy2gem_integer">[docs]</a><span class="nd">@sympy2gem</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">sympy</span><span class="o">.</span><span class="n">Integer</span><span class="p">)</span>
 <span class="nd">@sympy2gem</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">symengine</span><span class="o">.</span><span class="n">Integer</span><span class="p">)</span>
 <span class="nd">@sympy2gem</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
@@ -185,6 +192,11 @@
     <span class="k">for</span> <span class="n">v</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">pieces</span><span class="p">):</span>
         <span class="n">expr</span> <span class="o">=</span> <span class="n">gem</span><span class="o">.</span><span class="n">Conditional</span><span class="p">(</span><span class="bp">self</span><span class="p">(</span><span class="n">c</span><span class="p">),</span> <span class="bp">self</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="n">expr</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">expr</span></div>
+
+
+<div class="viewcode-block" id="sympy2gem_ifthenelse"><a class="viewcode-back" href="../../finat.html#finat.sympy2gem.sympy2gem_ifthenelse">[docs]</a><span class="nd">@sympy2gem</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">sympy</span><span class="o">.</span><span class="n">ITE</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">sympy2gem_ifthenelse</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">gem</span><span class="o">.</span><span class="n">Conditional</span><span class="p">(</span><span class="o">*</span><span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">args</span><span class="p">))</span></div>
 </pre></div>
 
             <div class="clearer"></div>
