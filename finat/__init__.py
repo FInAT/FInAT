@@ -10,6 +10,7 @@ from .fiat_elements import Nedelec, NedelecSecondKind, RaviartThomas  # noqa: F4
 from .fiat_elements import HellanHerrmannJohnson, Regge  # noqa: F401
 from .fiat_elements import FacetBubble  # noqa: F401
 from .fiat_elements import KongMulderVeldhuizen  # noqa: F401
+from .fiat_elements import IndiaDefElement #noqa: F401
 
 from .argyris import Argyris            # noqa: F401
 from .aw import ArnoldWinther           # noqa: F401
