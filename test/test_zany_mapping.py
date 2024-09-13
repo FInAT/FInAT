@@ -33,6 +33,7 @@ def make_unisolvent_points(element):
 
 def check_zany_mapping(finat_element, phys_element):
     ref_element = finat_element.fiat_equivalent
+    shape = ref_element.value_shape()
 
     ref_cell = ref_element.get_reference_element()
     phys_cell = phys_element.get_reference_element()
@@ -43,7 +44,7 @@ def check_zany_mapping(finat_element, phys_element):
 
     z = (0,) * finat_element.cell.get_spatial_dimension()
     finat_vals_gem = finat_element.basis_evaluation(0, ps, coordinate_mapping=mapping)[z]
-    finat_vals = evaluate([finat_vals_gem])[0].arr.T
+    finat_vals = evaluate([finat_vals_gem])[0].arr.transpose(*range(1, len(shape)+2), 0)
 
     phys_points = make_unisolvent_points(phys_element)
     phys_vals = phys_element.tabulate(0, phys_points)[z]
@@ -60,9 +61,7 @@ def check_zany_mapping(finat_element, phys_element):
 
         Mgem = finat_element.basis_transformation(mapping)
         M = evaluate([Mgem])[0].arr
-        if not np.allclose(M, Mh):
-            print(Mh-M)
-        assert np.allclose(M, Mh, atol=1E-9)
+        assert np.allclose(M, Mh, atol=1E-9), str(Mh-M)
 
     assert np.allclose(finat_vals, phys_vals[:numdofs])
 
@@ -73,7 +72,8 @@ def check_zany_mapping(finat_element, phys_element):
                          finat.QuadraticPowellSabin12,
                          finat.Hermite,
                          finat.ReducedHsiehCloughTocher,
-                         finat.Bell])
+                         finat.Bell,
+                         finat.AlfeldSorokina])
 def test_C1_elements(ref_cell, phys_cell, element):
     kwargs = {}
     finat_kwargs = {}

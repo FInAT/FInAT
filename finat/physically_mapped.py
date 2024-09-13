@@ -36,7 +36,7 @@ try:
     Citations().add("Clough1965", """
 @inproceedings{Clough1965,
   author =       {R. W. Clough, J. L. Tocher},
-  title =        {Finite element stiffness matricess for analysis of plate bending},
+  title =        {Finite element stiffness matrices for analysis of plate bending},
   booktitle =    {Proc. of the First Conf. on Matrix Methods in Struct. Mech},
   year =         1965,
   pages =        {515-546},
@@ -169,6 +169,19 @@ try:
   publisher={ACM New York, NY, USA}
 }
 """)
+    Citations().add("AlfeldSorokina2016", """
+@article{alfeld2016linear,
+  title={Linear differential operators on bivariate spline spaces and spline vector fields},
+  author={Alfeld, Peter and Sorokina, Tatyana},
+  journal={BIT Numerical Mathematics},
+  volume={56},
+  number={1},
+  pages={15--32},
+  year={2016},
+  publisher={Springer}
+}
+""")
+
 
 except ImportError:
     Citations = None
