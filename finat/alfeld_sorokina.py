@@ -20,20 +20,32 @@ class AlfeldSorokina(PhysicallyMappedElement, VectorFiatElement):
         # Jacobians at cell center
         bary, = self.cell.make_points(sd, 0, sd+1)
         J = coordinate_mapping.jacobian_at(bary)
+        detJ = coordinate_mapping.detJ_at(bary)
+        # Cofactor matrix
+        rot = Literal(numpy.asarray([[0, 1], [-1, 0]]))
+        K = -1 * rot @ J @ rot
 
         ndof = self.space_dimension()
         V = numpy.eye(ndof, dtype=object)
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
 
-        voffset = 1 + sd
-        for v in sorted(top[0]):
-            s = voffset * v
-            for i in range(sd):
-                for j in range(sd):
-                    V[s+1+i, s+1+j] = J[j, i]
+        edofs = self.entity_dofs()
+        s = 0
+        for dim in range(2):
+            for entity in sorted(top[dim]):
+                if dim == 0:
+                    V[s, s] = detJ
+                    s += 1
+                for i in range(sd):
+                    for j in range(sd):
+                        V[s+i, s+j] = K[j, i]
+                if dim == 0:
+                    s -= 1
+                s += len(edofs[dim][entity])
 
         # Patch up conditioning
+        voffset = len(edofs[dim][0])
         h = coordinate_mapping.cell_size()
         for v in sorted(top[0]):
             for k in range(sd):

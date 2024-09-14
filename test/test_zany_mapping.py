@@ -132,12 +132,10 @@ def test_piola_C0_elements(ref_cell, phys_cell, element):
         for k in range(ref_vals.shape[-1]):
             ref_vals_piola[i, ..., k] = K @ ref_vals[i, ..., k]
 
-    num_dofs = ref_el_finat.space_dimension()
+    dofs = ref_el_finat.entity_dofs()
     num_bfs = phys_element.space_dimension()
-    ids = ref_el_finat.entity_dofs()
-    num_facet_bfs = sum(len(ids[dim][entity])
-                        for dim in ids if dim < sd
-                        for entity in ids[dim])
+    num_dofs = ref_el_finat.space_dimension()
+    num_facet_dofs = num_dofs - sum(len(dofs[sd][entity]) for entity in dofs[sd])
 
     # Zany map the results
     mappng = MyMapping(ref_cell, phys_cell)
@@ -151,6 +149,6 @@ def test_piola_C0_elements(ref_cell, phys_cell, element):
     phi = phys_vals.reshape(num_bfs, -1)
     Mh = np.linalg.solve(Phi @ Phi.T, Phi @ phi.T).T
     Mh[abs(Mh) < 1E-10] = 0.0
-    assert np.allclose(M[:num_facet_bfs], Mh[:num_facet_bfs]), str(M-Mh)
+    assert np.allclose(M[:num_facet_dofs], Mh[:num_facet_dofs]), str(M-Mh)
 
-    assert np.allclose(ref_vals_zany[:num_facet_bfs], phys_vals[:num_facet_bfs])
+    assert np.allclose(ref_vals_zany[:num_facet_dofs], phys_vals[:num_facet_dofs])

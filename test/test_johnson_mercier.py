@@ -27,7 +27,6 @@ def test_johnson_mercier(phys_verts):
     degree = 1
     variant = None
     sd = len(phys_verts) - 1
-    z = (0,)*sd
     ref_cell = FIAT.ufc_simplex(sd)
     ref_el_finat = finat.JohnsonMercier(ref_cell, degree, variant=variant)
     indices = ref_el_finat._indices
@@ -35,14 +34,14 @@ def test_johnson_mercier(phys_verts):
     ref_element = ref_el_finat._element
     shape = ref_element.value_shape()
     ref_pts = make_unisolvent_points(ref_element)
-    ref_vals = ref_element.tabulate(0, ref_pts)[z]
+    ref_vals = ref_element.tabulate(0, ref_pts)[(0,)*sd]
 
     phys_cell = FIAT.ufc_simplex(sd)
     phys_cell.vertices = phys_verts
     phys_element = type(ref_element)(phys_cell, degree, variant=variant)
 
     phys_pts = make_unisolvent_points(phys_element)
-    phys_vals = phys_element.tabulate(0, phys_pts)[z]
+    phys_vals = phys_element.tabulate(0, phys_pts)[(0,)*sd]
 
     # Piola map the reference elements
     J, b = FIAT.reference_element.make_affine_mapping(ref_cell.vertices,
@@ -55,12 +54,10 @@ def test_johnson_mercier(phys_verts):
         for k in range(ref_vals.shape[-1]):
             ref_vals_piola[i, ..., k] = K @ ref_vals[i, ..., k] @ K.T
 
-    num_dofs = ref_el_finat.space_dimension()
+    dofs = ref_el_finat.entity_dofs()
     num_bfs = phys_element.space_dimension()
-    ids = ref_el_finat.entity_dofs()
-    num_facet_bfs = sum(len(ids[dim][entity])
-                        for dim in ids if dim < sd
-                        for entity in ids[dim])
+    num_dofs = ref_el_finat.space_dimension()
+    num_facet_dofs = num_dofs - sum(len(dofs[sd][entity]) for entity in dofs[sd])
 
     # Zany map the results
     mappng = MyMapping(ref_cell, phys_cell)
@@ -73,6 +70,7 @@ def test_johnson_mercier(phys_verts):
     Phi = ref_vals_piola.reshape(num_bfs, -1)
     phi = phys_vals.reshape(num_bfs, -1)
     Mh = np.linalg.solve(Phi @ Phi.T, Phi @ phi.T).T
-    assert np.allclose(M[:num_facet_bfs], Mh[indices][:num_facet_bfs])
+    Mh[abs(Mh) < 1E-10] = 0.0
+    assert np.allclose(M[:num_facet_dofs], Mh[indices][:num_facet_dofs])
 
-    assert np.allclose(ref_vals_zany[:num_facet_bfs], phys_vals[indices][:num_facet_bfs])
+    assert np.allclose(ref_vals_zany[:num_facet_dofs], phys_vals[indices][:num_facet_dofs])
