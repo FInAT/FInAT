@@ -20,14 +20,19 @@ def phys_cell(request):
     return K
 
 
-def make_unisolvent_points(element):
+def make_unisolvent_points(element, interior=False):
     degree = element.degree()
     ref_complex = element.get_reference_complex()
     top = ref_complex.get_topology()
     pts = []
-    for dim in top:
+    if interior:
+        dim = ref_complex.get_spatial_dimension()
         for entity in top[dim]:
-            pts.extend(ref_complex.make_points(dim, entity, degree, variant="gll"))
+            pts.extend(ref_complex.make_points(dim, entity, degree+dim+1))
+    else:
+        for dim in top:
+            for entity in top[dim]:
+                pts.extend(ref_complex.make_points(dim, entity, degree, variant="gll"))
     return pts
 
 
@@ -102,44 +107,46 @@ def test_argyris_point(ref_cell, phys_cell):
     check_zany_mapping(finat_element, phys_element)
 
 
-@pytest.mark.parametrize("element", [
-                         finat.MardalTaiWinther,
-                         finat.AlfeldSorokina,
-                         ])
-def test_piola_C0_elements(ref_cell, phys_cell, element):
+def check_zany_piola_mapping(finat_element, phys_element):
+    ref_element = finat_element._element
+    ref_cell = ref_element.get_reference_element()
+    phys_cell = phys_element.get_reference_element()
     sd = ref_cell.get_spatial_dimension()
-    z = (0,)*sd
-    ref_el_finat = element(ref_cell)
+    try:
+        indices = finat_element._indices
+    except AttributeError:
+        indices = slice(None)
 
-    ref_element = ref_el_finat._element
     shape = ref_element.value_shape()
-    ref_pts = make_unisolvent_points(ref_element)
-    ref_vals = ref_element.tabulate(0, ref_pts)[z]
+    ref_pts = make_unisolvent_points(ref_element, interior=True)
+    ref_vals = ref_element.tabulate(0, ref_pts)[(0,)*sd]
 
-    phys_element = type(ref_element)(phys_cell)
-
-    phys_pts = make_unisolvent_points(phys_element)
-    phys_vals = phys_element.tabulate(0, phys_pts)[z]
+    phys_pts = make_unisolvent_points(phys_element, interior=True)
+    phys_vals = phys_element.tabulate(0, phys_pts)[(0,)*sd]
 
     # Piola map the reference elements
     J, b = FIAT.reference_element.make_affine_mapping(ref_cell.vertices,
                                                       phys_cell.vertices)
     detJ = np.linalg.det(J)
     K = J / detJ
+    if len(shape) == 2:
+        piola_map = lambda x: K @ x @ K.T
+    else:
+        piola_map = lambda x: K @ x
 
     ref_vals_piola = np.zeros(ref_vals.shape)
     for i in range(ref_vals.shape[0]):
         for k in range(ref_vals.shape[-1]):
-            ref_vals_piola[i, ..., k] = K @ ref_vals[i, ..., k]
+            ref_vals_piola[i, ..., k] = piola_map(ref_vals[i, ..., k])
 
-    dofs = ref_el_finat.entity_dofs()
+    dofs = finat_element.entity_dofs()
     num_bfs = phys_element.space_dimension()
-    num_dofs = ref_el_finat.space_dimension()
+    num_dofs = finat_element.space_dimension()
     num_facet_dofs = num_dofs - sum(len(dofs[sd][entity]) for entity in dofs[sd])
 
     # Zany map the results
     mappng = MyMapping(ref_cell, phys_cell)
-    Mgem = ref_el_finat.basis_transformation(mappng)
+    Mgem = finat_element.basis_transformation(mappng)
     M = evaluate([Mgem])[0].arr
     shp = (num_dofs, *shape, -1)
     ref_vals_zany = (M @ ref_vals_piola.reshape(num_bfs, -1)).reshape(shp)
@@ -149,6 +156,42 @@ def test_piola_C0_elements(ref_cell, phys_cell, element):
     phi = phys_vals.reshape(num_bfs, -1)
     Mh = np.linalg.solve(Phi @ Phi.T, Phi @ phi.T).T
     Mh[abs(Mh) < 1E-10] = 0.0
-    assert np.allclose(M[:num_facet_dofs], Mh[:num_facet_dofs]), str(M-Mh)
+    assert np.allclose(M[:num_facet_dofs], Mh[indices][:num_facet_dofs]), str(M-Mh)
 
-    assert np.allclose(ref_vals_zany[:num_facet_dofs], phys_vals[:num_facet_dofs])
+    assert np.allclose(ref_vals_zany[:num_facet_dofs], phys_vals[indices][:num_facet_dofs])
+
+
+@pytest.mark.parametrize("element", [
+                         finat.MardalTaiWinther,
+                         finat.AlfeldSorokina,
+                         finat.ArnoldWinther,
+                         finat.ArnoldWintherNC,
+                         finat.JohnsonMercier,
+                         ])
+def test_piola_triangle(ref_cell, phys_cell, element):
+    finat_element = element(ref_cell)
+    phys_element = type(finat_element.fiat_equivalent)(phys_cell)
+    check_zany_piola_mapping(finat_element, phys_element)
+
+
+@pytest.fixture
+def ref_tet(request):
+    K = FIAT.ufc_simplex(3)
+    return K
+
+
+@pytest.fixture
+def phys_tet(request):
+    K = FIAT.ufc_simplex(3)
+    K.vertices = ((0, 0, 0),
+                  (1., 0.1, -0.37),
+                  (0.01, 0.987, -.23),
+                  (-0.1, -0.2, 1.38))
+    return K
+
+
+@pytest.mark.parametrize("element", [finat.JohnsonMercier])
+def test_piola_tetrahedron(ref_tet, phys_tet, element):
+    finat_element = element(ref_tet)
+    phys_element = type(finat_element.fiat_equivalent)(phys_tet)
+    check_zany_piola_mapping(finat_element, phys_element)

@@ -98,7 +98,7 @@ def _evaluation_transform(coordinate_mapping):
 
 
 class ArnoldWintherNC(PhysicallyMappedElement, FiatElement):
-    def __init__(self, cell, degree):
+    def __init__(self, cell, degree=2):
         if Citations is not None:
             Citations().register("Arnold2003")
         super(ArnoldWintherNC, self).__init__(FIAT.ArnoldWintherNC(cell, degree))
@@ -147,7 +147,7 @@ class ArnoldWintherNC(PhysicallyMappedElement, FiatElement):
 
 
 class ArnoldWinther(PhysicallyMappedElement, FiatElement):
-    def __init__(self, cell, degree):
+    def __init__(self, cell, degree=3):
         if Citations is not None:
             Citations().register("Arnold2002")
         super(ArnoldWinther, self).__init__(FIAT.ArnoldWinther(cell, degree))
