@@ -20,7 +20,6 @@ class AlfeldSorokina(PhysicallyMappedElement, VectorFiatElement):
         # Jacobians at cell center
         bary, = self.cell.make_points(sd, 0, sd+1)
         J = coordinate_mapping.jacobian_at(bary)
-        detJ = coordinate_mapping.detJ_at(bary)
 
         ndof = self.space_dimension()
         V = numpy.eye(ndof, dtype=object)

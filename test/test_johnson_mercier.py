@@ -27,12 +27,13 @@ def test_johnson_mercier(phys_verts):
     degree = 1
     variant = None
     sd = len(phys_verts) - 1
-    z = tuple(0 for _ in range(sd))
+    z = (0,)*sd
     ref_cell = FIAT.ufc_simplex(sd)
     ref_el_finat = finat.JohnsonMercier(ref_cell, degree, variant=variant)
     indices = ref_el_finat._indices
 
     ref_element = ref_el_finat._element
+    shape = ref_element.value_shape()
     ref_pts = make_unisolvent_points(ref_element)
     ref_vals = ref_element.tabulate(0, ref_pts)[z]
 
@@ -47,27 +48,26 @@ def test_johnson_mercier(phys_verts):
     J, b = FIAT.reference_element.make_affine_mapping(ref_cell.vertices,
                                                       phys_cell.vertices)
     detJ = np.linalg.det(J)
+    K = J / detJ
 
     ref_vals_piola = np.zeros(ref_vals.shape)
     for i in range(ref_vals.shape[0]):
-        for k in range(ref_vals.shape[3]):
-            ref_vals_piola[i, :, :, k] = \
-                J @ ref_vals[i, :, :, k] @ J.T / detJ**2
+        for k in range(ref_vals.shape[-1]):
+            ref_vals_piola[i, ..., k] = K @ ref_vals[i, ..., k] @ K.T
 
     num_dofs = ref_el_finat.space_dimension()
     num_bfs = phys_element.space_dimension()
-    num_facet_bfs = (sd + 1) * len(phys_element.dual.entity_ids[sd-1][0])
+    ids = ref_el_finat.entity_dofs()
+    num_facet_bfs = sum(len(ids[dim][entity])
+                        for dim in ids if dim < sd
+                        for entity in ids[dim])
 
     # Zany map the results
     mappng = MyMapping(ref_cell, phys_cell)
     Mgem = ref_el_finat.basis_transformation(mappng)
     M = evaluate([Mgem])[0].arr
-    ref_vals_zany = np.zeros((num_dofs, sd, sd, len(phys_pts)))
-    for k in range(ref_vals_zany.shape[3]):
-        for ell1 in range(sd):
-            for ell2 in range(sd):
-                ref_vals_zany[:, ell1, ell2, k] = \
-                    M @ ref_vals_piola[:, ell1, ell2, k]
+    shp = (num_dofs, *shape, len(phys_pts))
+    ref_vals_zany = (M @ ref_vals_piola.reshape(num_bfs, -1)).reshape(shp)
 
     # Solve for the basis transformation and compare results
     Phi = ref_vals_piola.reshape(num_bfs, -1)
