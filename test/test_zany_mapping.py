@@ -164,6 +164,7 @@ def check_zany_piola_mapping(finat_element, phys_element):
 @pytest.mark.parametrize("element", [
                          finat.MardalTaiWinther,
                          finat.AlfeldSorokina,
+                         finat.ChristiansenHu,
                          finat.ArnoldWinther,
                          finat.ArnoldWintherNC,
                          finat.JohnsonMercier,
