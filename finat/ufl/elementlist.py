@@ -128,6 +128,8 @@ register_element("Mardal-Tai-Winther", "MTW", 1, H1, "contravariant Piola", (3, 
                  ("triangle",))
 register_element("Alfeld-Sorokina", "AS", 1, H1, "contravariant Piola", (2, 2),
                  ("triangle",))
+register_element("Christiansen-Hu", "CH", 1, H1, "contravariant Piola", (2, 2),
+                 ("triangle",))
 register_element("Morley", "MOR", 0, H2, "custom", (2, 2), ("triangle",))
 
 # Special elements
