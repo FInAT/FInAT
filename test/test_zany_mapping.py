@@ -28,7 +28,7 @@ def make_unisolvent_points(element, interior=False):
     if interior:
         dim = ref_complex.get_spatial_dimension()
         for entity in top[dim]:
-            pts.extend(ref_complex.make_points(dim, entity, degree+dim+1))
+            pts.extend(ref_complex.make_points(dim, entity, degree+dim+1, variant="gll"))
     else:
         for dim in top:
             for entity in top[dim]:
@@ -155,8 +155,10 @@ def check_zany_piola_mapping(finat_element, phys_element):
     Phi = ref_vals_piola.reshape(num_bfs, -1)
     phi = phys_vals.reshape(num_bfs, -1)
     Mh = np.linalg.solve(Phi @ Phi.T, Phi @ phi.T).T
+    M = M[:num_facet_dofs]
+    Mh = Mh[indices][:num_facet_dofs]
     Mh[abs(Mh) < 1E-10] = 0.0
-    assert np.allclose(M[:num_facet_dofs], Mh[indices][:num_facet_dofs]), str(M-Mh)
+    assert np.allclose(M, Mh), str(M-Mh)
 
     assert np.allclose(ref_vals_zany[:num_facet_dofs], phys_vals[indices][:num_facet_dofs])
 
