@@ -66,7 +66,7 @@ def check_zany_mapping(finat_element, phys_element):
 
         Mgem = finat_element.basis_transformation(mapping)
         M = evaluate([Mgem])[0].arr
-        assert np.allclose(M, Mh, atol=1E-9), str(Mh-M)
+        assert np.allclose(M, Mh, atol=1E-9), str(Mh.T-M.T)
 
     assert np.allclose(finat_vals, phys_vals[:numdofs])
 
@@ -158,6 +158,7 @@ def check_zany_piola_mapping(finat_element, phys_element):
     M = M[:num_facet_dofs]
     Mh = Mh[indices][:num_facet_dofs]
     Mh[abs(Mh) < 1E-10] = 0.0
+    M[abs(M) < 1E-10] = 0.0
     assert np.allclose(M, Mh), str(M.T-Mh.T)
 
     assert np.allclose(ref_vals_zany[:num_facet_dofs], phys_vals[indices][:num_facet_dofs])
@@ -165,8 +166,9 @@ def check_zany_piola_mapping(finat_element, phys_element):
 
 @pytest.mark.parametrize("element", [
                          finat.MardalTaiWinther,
+                         finat.ArnoldQin,
+                         finat.ReducedArnoldQin,
                          finat.AlfeldSorokina,
-                         finat.ChristiansenHu,
                          finat.ArnoldWinther,
                          finat.ArnoldWintherNC,
                          finat.JohnsonMercier,

@@ -7,19 +7,13 @@ from finat.physically_mapped import Citations, PhysicallyMappedElement
 from copy import deepcopy
 
 
-class ChristiansenHu(PhysicallyMappedElement, FiatElement):
+class ArnoldQin(PhysicallyMappedElement, FiatElement):
     def __init__(self, cell, degree=2):
         if degree != 2:
-            raise ValueError("Christiansen-Hu only defined for degree == 2")
+            raise ValueError("Arnold-Qin only defined for degree = 2")
         if Citations is not None:
             Citations().register("AlfeldSorokina2016")
-        super().__init__(FIAT.ChristiansenHu(cell, degree))
-
-        reduced_dofs = deepcopy(self._element.entity_dofs())
-        sd = cell.get_spatial_dimension()
-        for entity in reduced_dofs[sd-1]:
-            reduced_dofs[sd-1][entity] = reduced_dofs[sd-1][entity][:1]
-        self._entity_dofs = reduced_dofs
+        super().__init__(FIAT.ArnoldQin(cell, degree))
 
     def basis_transformation(self, coordinate_mapping):
         sd = self.cell.get_dimension()
@@ -27,6 +21,7 @@ class ChristiansenHu(PhysicallyMappedElement, FiatElement):
         # Jacobians at cell center
         bary, = self.cell.make_points(sd, 0, sd+1)
         J = coordinate_mapping.jacobian_at(bary)
+        detJ = coordinate_mapping.detJ_at(bary)
         # Adjugate matrix
         rot = Literal(numpy.asarray([[0, 1], [-1, 0]]))
         K = -1 * rot @ J @ rot
@@ -40,7 +35,6 @@ class ChristiansenHu(PhysicallyMappedElement, FiatElement):
 
         edofs = self.entity_dofs()
         voffset = len(edofs[0][0])
-        noffset = len(edofs[1][0])
         for v in sorted(top[0]):
             s = v * voffset
             for i in range(sd):
@@ -50,19 +44,32 @@ class ChristiansenHu(PhysicallyMappedElement, FiatElement):
         rns = coordinate_mapping.reference_normals()
         pts = coordinate_mapping.physical_tangents()
         pel = coordinate_mapping.physical_edge_lengths()
-        toffset = len(top[1]) * noffset
+        toffset = len(top[1])
 
         ref_el = self.cell
         top = ref_el.get_topology()
         for e in sorted(top[1]):
-            s = len(top[0]) * voffset + e * noffset
+            sn = len(top[0]) * voffset + e
+            st = sn + toffset
             nhat = partial_indexed(rns, (e, ))
             t = partial_indexed(pts, (e, ))
             Bnt = (J @ nhat) @ t
             rel = ref_el.volume_of_subcomplex(1, e)
-            V[s+toffset, s] = Literal(-rel) * Bnt / pel[e]
-
+            V[st, sn] = Literal(-rel) * Bnt / pel[e]
+            if numbf == ndof:
+                V[st, st] = detJ * (rel * rel) / (pel[e] * pel[e])
         return ListTensor(V.T)
+
+
+class ReducedArnoldQin(ArnoldQin):
+    def __init__(self, cell, degree=2):
+        super(ReducedArnoldQin, self).__init__(cell, degree)
+
+        reduced_dofs = deepcopy(self._element.entity_dofs())
+        sd = cell.get_spatial_dimension()
+        for entity in reduced_dofs[sd-1]:
+            reduced_dofs[sd-1][entity] = reduced_dofs[sd-1][entity][:1]
+        self._entity_dofs = reduced_dofs
 
     def entity_dofs(self):
         return self._entity_dofs
