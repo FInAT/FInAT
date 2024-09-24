@@ -196,7 +196,11 @@ def phys_tet(request):
     return K
 
 
-@pytest.mark.parametrize("element", [finat.JohnsonMercier])
+@pytest.mark.parametrize("element", [
+                         finat.BernardiRaugel,
+                         finat.AlfeldSorokina,
+                         finat.JohnsonMercier,
+                         ])
 def test_piola_tetrahedron(ref_tet, phys_tet, element):
     finat_element = element(ref_tet)
     phys_element = type(finat_element.fiat_equivalent)(phys_tet)
