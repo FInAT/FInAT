@@ -181,6 +181,16 @@ try:
   publisher={Springer}
 }
 """)
+    Citations().add("ArnoldQin1992", """
+@article{arnold1992quadratic,
+  title={{Quadratic velocity/linear pressure Stokes elements}},
+  author={Arnold, Douglas N and Qin, Jinshui},
+  journal={Advances in computer methods for partial differential equations},
+  volume={7},
+  pages={28--34},
+  year={1992}
+}
+""")
 
 
 except ImportError:

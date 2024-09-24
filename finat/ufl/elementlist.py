@@ -112,6 +112,7 @@ register_element("Raviart-Thomas", "RT", 1, HDiv, "contravariant Piola",
 # Elements not in the periodic table
 register_element("Argyris", "ARG", 0, H2, "custom", (5, None), ("triangle",))
 register_element("Bell", "BELL", 0, H2, "custom", (5, 5), ("triangle",))
+register_element("Berardi-Raugel", "BR", 1, H1, "contravariant Piola", (2, 2), ("triangle",))
 register_element("Brezzi-Douglas-Fortin-Marini", "BDFM", 1, HDiv,
                  "contravariant Piola", (1, None), simplices[1:])
 register_element("Crouzeix-Raviart", "CR", 0, L2, "identity", (1, 1),
