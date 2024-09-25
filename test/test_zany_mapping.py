@@ -159,8 +159,7 @@ def check_zany_piola_mapping(finat_element, phys_element):
     Mh = Mh[indices][:num_facet_dofs]
     Mh[abs(Mh) < 1E-10] = 0.0
     M[abs(M) < 1E-10] = 0.0
-    assert np.allclose(M, Mh), str(M.T-Mh.T)
-
+    assert np.allclose(M, Mh), str(M.T - Mh.T)
     assert np.allclose(ref_vals_zany[:num_facet_dofs], phys_vals[indices][:num_facet_dofs])
 
 

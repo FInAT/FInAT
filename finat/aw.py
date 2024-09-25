@@ -1,7 +1,7 @@
 """Implementation of the Arnold-Winther finite elements."""
 import FIAT
 import numpy
-from gem import ListTensor, Literal, partial_indexed
+from gem import ListTensor, Literal
 
 from finat.fiat_elements import FiatElement
 from finat.physically_mapped import Citations, PhysicallyMappedElement
@@ -23,50 +23,44 @@ def _facet_transform(fiat_cell, facet_moment_degree, coordinate_mapping):
     bary, = fiat_cell.make_points(sd, 0, sd+1)
     detJ = coordinate_mapping.detJ_at(bary)
     J = coordinate_mapping.jacobian_at(bary)
-    rns = coordinate_mapping.reference_normals()
-    offset = dofs_per_facet
     if sd == 2:
-        R = Literal(numpy.array([[0, -1], [1, 0]]))
-
-        for e in range(num_facets):
-            nhat = partial_indexed(rns, (e, ))
+        R = numpy.array([[0, 1], [-1, 0]])
+        for f in range(num_facets):
+            nhat = fiat_cell.compute_normal(f)
             that = R @ nhat
-            Jn = J @ nhat
-            Jt = J @ that
-
-            # Compute alpha and beta for the edge.
+            # Compute alpha and beta for the facet.
+            Jn = J @ Literal(nhat)
+            Jt = J @ Literal(that)
             alpha = Jn @ Jt
             beta = Jt @ Jt
-            # Stuff into the right rows and columns.
-            row = (-1 * alpha / beta, detJ / beta)
+            # Stuff the inverse into the right rows and columns.
+            row = (alpha / beta, detJ / beta)
             for i in range(dimPk_facet):
-                s = offset*e + i * dimPk_facet
+                s = dofs_per_facet*f + i * sd
                 Vsub[s+1, s:s+sd] = row
 
     elif sd == 3:
         for f in range(num_facets):
-            # Compute the reciprocal basis such that dot(orth_vecs, (nhat, *thats).T) == I
+            # Compute the reciprocal basis
             thats = fiat_cell.compute_tangents(sd-1, f)
             nhat = fiat_cell.compute_scaled_normal(f)
             nhat /= numpy.dot(nhat, nhat)
-            scale = 1.0 / numpy.dot(thats[1], numpy.cross(thats[0], nhat))
             orth_vecs = numpy.array([nhat,
-                                     scale * numpy.cross(nhat, thats[1]),
-                                     scale * numpy.cross(thats[0], nhat)])
-
+                                     numpy.cross(nhat, thats[1]),
+                                     numpy.cross(thats[0], nhat)])
+            # Compute A = (alpha, beta, gamma) for the facet.
             Jts = J @ Literal(thats.T)
             Jorths = J @ Literal(orth_vecs.T)
             A = Jorths.T @ Jts
+            # Stuff the inverse into the right rows and columns.
             det0 = A[1, 0] * A[2, 1] - A[1, 1] * A[2, 0]
             det1 = A[2, 0] * A[0, 1] - A[2, 1] * A[0, 0]
             det2 = A[0, 0] * A[1, 1] - A[0, 1] * A[1, 0]
-
             scale = detJ / det0
             rows = ((det1 / det0, scale * A[2, 1], -1 * scale * A[2, 0]),
                     (det2 / det0, -1 * scale * A[1, 1], scale * A[1, 0]))
-
             for i in range(dimPk_facet):
-                s = offset*f + i * sd
+                s = dofs_per_facet*f + i * sd
                 Vsub[s+1:s+sd, s:s+sd] = rows
     return Vsub
 

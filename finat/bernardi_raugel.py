@@ -1,6 +1,6 @@
 import FIAT
 import numpy
-from gem import ListTensor, Literal, partial_indexed
+from gem import ListTensor, Literal
 
 from finat.fiat_elements import FiatElement
 from finat.physically_mapped import Citations, PhysicallyMappedElement, adjugate
@@ -42,20 +42,47 @@ class BernardiRaugel(PhysicallyMappedElement, FiatElement):
             vdofs = edofs[0][v]
             V[numpy.ix_(vdofs, vdofs)] = adjJ
 
-        rns = coordinate_mapping.reference_normals()
-        pts = coordinate_mapping.physical_tangents()
-        pel = coordinate_mapping.physical_edge_lengths()
+        fiat_cell = self.cell
         toffset = len(edofs[sd-1])
 
-        for e in sorted(edofs[sd-1]):
-            sn = edofs[sd-1][e][0]
-            st = sn + toffset
-            nhat = partial_indexed(rns, (e, ))
-            t = partial_indexed(pts, (e, ))
-            Bnt = (J @ nhat) @ t
-            rel = self.cell.volume_of_subcomplex(sd-1, e)
-            scale = rel / pel[e]
-            V[st, sn] = -1 * scale * Bnt
+        if sd == 2:
+            R = numpy.array([[0, 1], [-1, 0]])
+            for f in sorted(edofs[sd-1]):
+                that = fiat_cell.compute_edge_tangent(f)
+                nhat = R @ that
+                # Compute alpha and beta for the facet.
+                Jn = J @ Literal(nhat)
+                Jt = J @ Literal(that)
+                alpha = Jn @ Jt
+                beta = Jt @ Jt
+                # Stuff the inverse into the right rows and columns.
+                sn = edofs[sd-1][f][0]
+                st = sn + toffset
+                V[st, sn] = -1 * alpha / beta
+
+        elif sd == 3:
+            for f in sorted(edofs[sd-1]):
+                # Compute the reciprocal basis
+                thats = fiat_cell.compute_tangents(sd-1, f)
+                nhat = numpy.cross(*thats)
+                nhat /= numpy.dot(nhat, nhat)
+                orth_vecs = numpy.array([nhat,
+                                         numpy.cross(nhat, thats[1]),
+                                         numpy.cross(thats[0], nhat)])
+                # Compute A = (alpha, beta, gamma) for the facet.
+                Jts = J @ Literal(thats.T)
+                Jorths = J @ Literal(orth_vecs.T)
+                A = Jorths.T @ Jts
+                # Stuff the inverse into the right rows and columns.
+                det0 = A[1, 0] * A[2, 1] - A[1, 1] * A[2, 0]
+                det1 = A[2, 0] * A[0, 1] - A[2, 1] * A[0, 0]
+                det2 = A[0, 0] * A[1, 1] - A[0, 1] * A[1, 0]
+                sn = edofs[sd-1][f][0]
+                st1 = sn + toffset
+                st2 = st1 + toffset
+                V[st1, sn] = -1 * det1 / det0
+                V[st2, sn] = -1 * det2 / det0
+
         return ListTensor(V.T)
 
     def entity_dofs(self):
