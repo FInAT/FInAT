@@ -1,6 +1,7 @@
 from abc import ABCMeta, abstractmethod
 
 import gem
+import numpy
 
 try:
     from firedrake_citations import Citations
@@ -329,3 +330,37 @@ class PhysicalGeometry(metaclass=ABCMeta):
 
         :returns: a GEM expression for the physical vertices, shape
                 (gdim, )."""
+
+
+def determinant(A):
+    n = A.shape[0]
+    if n == 0:
+        return 1
+    elif n == 1:
+        return A[0, 0]
+    elif n == 2:
+        return A[0, 0] * A[1, 1] - A[0, 1] * A[1, 0]
+    else:
+        detA = A[0, 0] * determinant(A[1:, 1:])
+        cols = numpy.ones(A.shape[1], dtype=bool)
+        for j in range(1, n):
+            cols[j] = False
+            detA += (-1)**j * A[0, j] * determinant(A[1:][:, cols])
+            cols[j] = True
+        return detA
+
+
+def adjugate(A):
+    """Return the adjugate matrix of A"""
+    A = numpy.asarray(A)
+    C = numpy.zeros_like(A)
+    rows = numpy.ones(A.shape[0], dtype=bool)
+    cols = numpy.ones(A.shape[1], dtype=bool)
+    for i in range(A.shape[0]):
+        rows[i] = False
+        for j in range(A.shape[1]):
+            cols[j] = False
+            C[j, i] = (-1)**(i+j)*determinant(A[rows, :][:, cols])
+            cols[j] = True
+        rows[i] = True
+    return C

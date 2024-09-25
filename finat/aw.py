@@ -20,7 +20,7 @@ def _facet_transform(fiat_cell, facet_moment_degree, coordinate_mapping):
     for multiindex in numpy.ndindex(Vsub.shape):
         Vsub[multiindex] = Literal(Vsub[multiindex])
 
-    bary = [1/(sd+1)] * sd
+    bary, = fiat_cell.make_points(sd, 0, sd+1)
     detJ = coordinate_mapping.detJ_at(bary)
     J = coordinate_mapping.jacobian_at(bary)
     rns = coordinate_mapping.reference_normals()
@@ -35,53 +35,46 @@ def _facet_transform(fiat_cell, facet_moment_degree, coordinate_mapping):
             Jt = J @ that
 
             # Compute alpha and beta for the edge.
-            alpha = (Jn @ Jt) / detJ
-            beta = (Jt @ Jt) / detJ
+            alpha = Jn @ Jt
+            beta = Jt @ Jt
             # Stuff into the right rows and columns.
+            row = (-1 * alpha / beta, detJ / beta)
             for i in range(dimPk_facet):
-                idx = offset*e + i * dimPk_facet + 1
-                Vsub[idx, idx-1] = Literal(-1) * alpha / beta
-                Vsub[idx, idx] = Literal(1) / beta
+                s = offset*e + i * dimPk_facet
+                Vsub[s+1, s:s+sd] = row
+
     elif sd == 3:
         for f in range(num_facets):
-            nhat = fiat_cell.compute_normal(f)
-            nhat /= numpy.linalg.norm(nhat)
-            ehats = fiat_cell.compute_tangents(sd-1, f)
-            rels = [numpy.linalg.norm(ehat) for ehat in ehats]
-            thats = [a / b for a, b in zip(ehats, rels)]
-            vf = fiat_cell.volume_of_subcomplex(sd-1, f)
-
+            # Compute the reciprocal basis such that dot(orth_vecs, (nhat, *thats).T) == I
+            thats = fiat_cell.compute_tangents(sd-1, f)
+            nhat = fiat_cell.compute_scaled_normal(f)
+            nhat /= numpy.dot(nhat, nhat)
             scale = 1.0 / numpy.dot(thats[1], numpy.cross(thats[0], nhat))
-            orth_vecs = [scale * numpy.cross(nhat, thats[1]),
-                         scale * numpy.cross(thats[0], nhat)]
+            orth_vecs = numpy.array([nhat,
+                                     scale * numpy.cross(nhat, thats[1]),
+                                     scale * numpy.cross(thats[0], nhat)])
 
-            Jn = J @ Literal(nhat)
-            Jts = [J @ Literal(that) for that in thats]
-            Jorth = [J @ Literal(ov) for ov in orth_vecs]
+            Jts = J @ Literal(thats.T)
+            Jorths = J @ Literal(orth_vecs.T)
+            A = Jorths.T @ Jts
+            det0 = A[1, 0] * A[2, 1] - A[1, 1] * A[2, 0]
+            det1 = A[2, 0] * A[0, 1] - A[2, 1] * A[0, 0]
+            det2 = A[0, 0] * A[1, 1] - A[0, 1] * A[1, 0]
 
-            alphas = [(Jn @ Jts[i] / detJ) * (Literal(rels[i]) / Literal(2*vf)) for i in range(sd-1)]
-            betas = [Jorth[0] @ Jts[i] / detJ for i in range(sd-1)]
-            gammas = [Jorth[1] @ Jts[i] / detJ for i in range(sd-1)]
-
-            det = betas[0] * gammas[1] - betas[1] * gammas[0]
+            scale = detJ / det0
+            rows = ((det1 / det0, scale * A[2, 1], -1 * scale * A[2, 0]),
+                    (det2 / det0, -1 * scale * A[1, 1], scale * A[1, 0]))
 
             for i in range(dimPk_facet):
-                idx = offset*f + i * sd
-
-                Vsub[idx+1, idx] = (alphas[1] * gammas[0]
-                                    - alphas[0] * gammas[1]) / det
-                Vsub[idx+1, idx+1] = gammas[1] / det
-                Vsub[idx+1, idx+2] = Literal(-1) * gammas[0] / det
-                Vsub[idx+2, idx] = (alphas[0] * betas[1]
-                                    - alphas[1] * betas[0]) / det
-                Vsub[idx+2, idx+1] = Literal(-1) * betas[1] / det
-                Vsub[idx+2, idx+2] = betas[0] / det
-
+                s = offset*f + i * sd
+                Vsub[s+1:s+sd, s:s+sd] = rows
     return Vsub
 
 
-def _evaluation_transform(coordinate_mapping):
-    J = coordinate_mapping.jacobian_at([1/3, 1/3])
+def _evaluation_transform(fiat_cell, coordinate_mapping):
+    sd = fiat_cell.get_spatial_dimension()
+    bary, = fiat_cell.make_points(sd, 0, sd+1)
+    J = coordinate_mapping.jacobian_at(bary)
 
     W = numpy.zeros((3, 3), dtype=object)
     W[0, 0] = J[1, 1]*J[1, 1]
@@ -113,7 +106,7 @@ class ArnoldWintherNC(PhysicallyMappedElement, FiatElement):
         V[:12, :12] = _facet_transform(self.cell, 1, coordinate_mapping)
 
         # internal dofs
-        W = _evaluation_transform(coordinate_mapping)
+        W = _evaluation_transform(self.cell, coordinate_mapping)
         detJ = coordinate_mapping.detJ_at([1/3, 1/3])
 
         V[12:15, 12:15] = W / detJ
@@ -159,7 +152,7 @@ class ArnoldWinther(PhysicallyMappedElement, FiatElement):
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
 
-        W = _evaluation_transform(coordinate_mapping)
+        W = _evaluation_transform(self.cell, coordinate_mapping)
 
         # Put into the right rows and columns.
         V[0:3, 0:3] = V[3:6, 3:6] = V[6:9, 6:9] = W

@@ -3,7 +3,7 @@ import numpy
 from gem import ListTensor, Literal, partial_indexed
 
 from finat.fiat_elements import FiatElement
-from finat.physically_mapped import Citations, PhysicallyMappedElement
+from finat.physically_mapped import Citations, PhysicallyMappedElement, adjugate
 from copy import deepcopy
 
 
@@ -21,10 +21,7 @@ class ArnoldQin(PhysicallyMappedElement, FiatElement):
         bary, = self.cell.make_points(sd, 0, sd+1)
         J = coordinate_mapping.jacobian_at(bary)
         detJ = coordinate_mapping.detJ_at(bary)
-        # Adjugate matrix
-        rot = Literal([[0, 1], [-1, 0]])
-        K = -1 * rot @ J @ rot
-        KT = [[K[j, i] for j in range(sd)] for i in range(sd)]
+        adjJ = adjugate([[J[i, j] for j in range(sd)] for i in range(sd)])
 
         numbf = self._element.space_dimension()
         ndof = self.space_dimension()
@@ -36,16 +33,15 @@ class ArnoldQin(PhysicallyMappedElement, FiatElement):
         edofs = self.entity_dofs()
         for v in sorted(edofs[0]):
             vdofs = edofs[0][v]
-            V[numpy.ix_(vdofs, vdofs)] = KT
+            V[numpy.ix_(vdofs, vdofs)] = adjJ
 
         rns = coordinate_mapping.reference_normals()
         pts = coordinate_mapping.physical_tangents()
         pel = coordinate_mapping.physical_edge_lengths()
-        voffset = len(edofs[0]) * len(edofs[0][0])
         toffset = len(edofs[sd-1])
 
         for e in sorted(edofs[sd-1]):
-            sn = voffset + e
+            sn = edofs[sd-1][e][0]
             st = sn + toffset
             nhat = partial_indexed(rns, (e, ))
             t = partial_indexed(pts, (e, ))
@@ -73,7 +69,7 @@ class ReducedArnoldQin(ArnoldQin):
 
     @property
     def index_shape(self):
-        return (9,)
+        return (self.space_dimension(),)
 
     def space_dimension(self):
         return 9
