@@ -133,7 +133,7 @@ register_element("QuadraticPowellSabin12", "PS12", 0, H2, "custom", (2, 2), ("tr
 register_element("Hsieh-Clough-Tocher", "HCT", 0, H2, "custom", (3, None), ("triangle",))
 register_element("Reduced-Hsieh-Clough-Tocher", "HCT-red", 0, H2, "custom", (3, 3), ("triangle",))
 register_element("Arnold-Qin", "AQ", 1, H1, "contravariant Piola", (2, 2), ("triangle",))
-register_element("Reduced-Arnold-Qin", "AQ-red", 1, H1, "contravariant Piola", (2, 2), ("triangle",))
+register_element("Reduced-Arnold-Qin", "AQ-red", 1, H1, "contravariant Piola", (1, 2), simplices[1:])
 register_element("Alfeld-Sorokina", "AS", 1, H1, "contravariant Piola", (2, 2), simplices[1:])
 register_element("Johnson-Mercier", "JM", 2, HDivDiv, "double contravariant Piola", (1, 1), simplices[1:])
 

@@ -197,6 +197,7 @@ def phys_tet(request):
 
 @pytest.mark.parametrize("element", [
                          finat.BernardiRaugel,
+                         finat.ReducedArnoldQin,
                          finat.AlfeldSorokina,
                          finat.JohnsonMercier,
                          ])
