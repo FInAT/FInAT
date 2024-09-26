@@ -49,6 +49,7 @@ class BernardiRaugel(PhysicallyMappedElement, FiatElement):
             R = numpy.array([[0, 1], [-1, 0]])
             for f in sorted(edofs[sd-1]):
                 that = fiat_cell.compute_edge_tangent(f)
+                that /= numpy.linalg.norm(that)
                 nhat = R @ that
                 # Compute alpha and beta for the facet.
                 Jn = J @ Literal(nhat)
