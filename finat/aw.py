@@ -7,6 +7,41 @@ from finat.fiat_elements import FiatElement
 from finat.physically_mapped import Citations, PhysicallyMappedElement
 
 
+def _single_edge_transform(fiat_cell, J, detJ, f):
+    R = numpy.array([[0, 1], [-1, 0]])
+    that = fiat_cell.compute_edge_tangent(f)
+    that /= numpy.linalg.norm(that)
+    nhat = R @ that
+    Jn = J @ Literal(nhat)
+    Jt = J @ Literal(that)
+    alpha = Jn @ Jt
+    beta = Jt @ Jt
+    row = (-1 * alpha / beta, detJ / beta)
+    return row
+
+
+def _single_face_transform(fiat_cell, J, detJ, f):
+    # Compute the reciprocal basis
+    thats = fiat_cell.compute_tangents(2, f)
+    nhat = numpy.cross(*thats)
+    nhat /= numpy.dot(nhat, nhat)
+    orth_vecs = numpy.array([nhat,
+                             numpy.cross(nhat, thats[1]),
+                             numpy.cross(thats[0], nhat)])
+    # Compute A = (alpha, beta, gamma) for the facet.
+    Jts = J @ Literal(thats.T)
+    Jorths = J @ Literal(orth_vecs.T)
+    A = Jorths.T @ Jts
+    # Stuff the inverse into the right rows and columns.
+    det0 = A[1, 0] * A[2, 1] - A[1, 1] * A[2, 0]
+    det1 = A[2, 0] * A[0, 1] - A[2, 1] * A[0, 0]
+    det2 = A[0, 0] * A[1, 1] - A[0, 1] * A[1, 0]
+    scale = detJ / det0
+    rows = ((-1 * det1 / det0, -1 * scale * A[2, 1], scale * A[2, 0]),
+            (-1 * det2 / det0, scale * A[1, 1], -1 * scale * A[1, 0]))
+    return rows
+
+
 def _facet_transform(fiat_cell, facet_moment_degree, coordinate_mapping):
     sd = fiat_cell.get_spatial_dimension()
     top = fiat_cell.get_topology()
@@ -16,53 +51,24 @@ def _facet_transform(fiat_cell, facet_moment_degree, coordinate_mapping):
     dofs_per_facet = sd * dimPk_facet
     ndofs = num_facets * dofs_per_facet
 
-    Vsub = numpy.eye(ndofs, dtype=object)
-    for multiindex in numpy.ndindex(Vsub.shape):
-        Vsub[multiindex] = Literal(Vsub[multiindex])
+    V = numpy.eye(ndofs, dtype=object)
+    for multiindex in numpy.ndindex(V.shape):
+        V[multiindex] = Literal(V[multiindex])
 
     bary, = fiat_cell.make_points(sd, 0, sd+1)
-    detJ = coordinate_mapping.detJ_at(bary)
     J = coordinate_mapping.jacobian_at(bary)
+    detJ = coordinate_mapping.detJ_at(bary)
     if sd == 2:
-        R = numpy.array([[0, 1], [-1, 0]])
-        for f in range(num_facets):
-            nhat = fiat_cell.compute_normal(f)
-            that = R @ nhat
-            # Compute alpha and beta for the facet.
-            Jn = J @ Literal(nhat)
-            Jt = J @ Literal(that)
-            alpha = Jn @ Jt
-            beta = Jt @ Jt
-            # Stuff the inverse into the right rows and columns.
-            row = (alpha / beta, detJ / beta)
-            for i in range(dimPk_facet):
-                s = dofs_per_facet*f + i * sd
-                Vsub[s+1, s:s+sd] = row
-
+        transform = _single_edge_transform
     elif sd == 3:
-        for f in range(num_facets):
-            # Compute the reciprocal basis
-            thats = fiat_cell.compute_tangents(sd-1, f)
-            nhat = fiat_cell.compute_scaled_normal(f)
-            nhat /= numpy.dot(nhat, nhat)
-            orth_vecs = numpy.array([nhat,
-                                     numpy.cross(nhat, thats[1]),
-                                     numpy.cross(thats[0], nhat)])
-            # Compute A = (alpha, beta, gamma) for the facet.
-            Jts = J @ Literal(thats.T)
-            Jorths = J @ Literal(orth_vecs.T)
-            A = Jorths.T @ Jts
-            # Stuff the inverse into the right rows and columns.
-            det0 = A[1, 0] * A[2, 1] - A[1, 1] * A[2, 0]
-            det1 = A[2, 0] * A[0, 1] - A[2, 1] * A[0, 0]
-            det2 = A[0, 0] * A[1, 1] - A[0, 1] * A[1, 0]
-            scale = detJ / det0
-            rows = ((det1 / det0, scale * A[2, 1], -1 * scale * A[2, 0]),
-                    (det2 / det0, -1 * scale * A[1, 1], scale * A[1, 0]))
-            for i in range(dimPk_facet):
-                s = dofs_per_facet*f + i * sd
-                Vsub[s+1:s+sd, s:s+sd] = rows
-    return Vsub
+        transform = _single_face_transform
+
+    for f in range(num_facets):
+        rows = transform(fiat_cell, J, detJ, f)
+        for i in range(dimPk_facet):
+            s = dofs_per_facet*f + i * sd
+            V[s+1:s+sd, s:s+sd] = rows
+    return V
 
 
 def _evaluation_transform(fiat_cell, coordinate_mapping):

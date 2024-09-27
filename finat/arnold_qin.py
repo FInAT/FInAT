@@ -4,6 +4,7 @@ from gem import ListTensor, Literal
 
 from finat.fiat_elements import FiatElement
 from finat.physically_mapped import Citations, PhysicallyMappedElement, adjugate
+from finat.aw import _single_edge_transform, _single_face_transform
 from copy import deepcopy
 
 
@@ -21,62 +22,30 @@ class ArnoldQin(PhysicallyMappedElement, FiatElement):
         detJ = coordinate_mapping.detJ_at(bary)
         adjJ = adjugate([[J[i, j] for j in range(sd)] for i in range(sd)])
 
-        numbf = self._element.space_dimension()
         ndof = self.space_dimension()
+        numbf = self._element.space_dimension()
         # rectangular to toss out the constraint dofs
         V = numpy.eye(numbf, ndof, dtype=object)
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
 
-        edofs = self.entity_dofs()
-        for v in sorted(edofs[0]):
-            vdofs = edofs[0][v]
+        dofs = self.entity_dofs()
+        edofs = self._element.entity_dofs()
+        for v in sorted(dofs[0]):
+            vdofs = dofs[0][v]
             V[numpy.ix_(vdofs, vdofs)] = adjJ
 
         fiat_cell = self.cell
-        toffset = len(edofs[sd-1])
-
         if sd == 2:
-            R = numpy.array([[0, 1], [-1, 0]])
-            for f in sorted(edofs[sd-1]):
-                that = fiat_cell.compute_edge_tangent(f)
-                that /= numpy.linalg.norm(that)
-                nhat = R @ that
-                # Compute alpha and beta for the facet.
-                Jn = J @ Literal(nhat)
-                Jt = J @ Literal(that)
-                alpha = Jn @ Jt
-                beta = Jt @ Jt
-                # Stuff the inverse into the right rows and columns.
-                sn = edofs[sd-1][f][0]
-                st = sn + toffset
-                V[st, sn] = -1 * alpha / beta
-                if numbf == ndof:
-                    V[st, st] = detJ / beta
-
+            transform = _single_edge_transform
         elif sd == 3:
-            for f in sorted(edofs[sd-1]):
-                # Compute the reciprocal basis
-                thats = fiat_cell.compute_tangents(sd-1, f)
-                nhat = numpy.cross(*thats)
-                nhat /= numpy.dot(nhat, nhat)
-                orth_vecs = numpy.array([nhat,
-                                         numpy.cross(nhat, thats[1]),
-                                         numpy.cross(thats[0], nhat)])
-                # Compute A = (alpha, beta, gamma) for the facet.
-                Jts = J @ Literal(thats.T)
-                Jorths = J @ Literal(orth_vecs.T)
-                A = Jorths.T @ Jts
-                # Stuff the inverse into the right rows and columns.
-                det0 = A[1, 0] * A[2, 1] - A[1, 1] * A[2, 0]
-                det1 = A[2, 0] * A[0, 1] - A[2, 1] * A[0, 0]
-                det2 = A[0, 0] * A[1, 1] - A[0, 1] * A[1, 0]
-                sn = edofs[sd-1][f][0]
-                st1 = sn + toffset
-                st2 = st1 + toffset
-                V[st1, sn] = -1 * det1 / det0
-                V[st2, sn] = -1 * det2 / det0
+            transform = _single_face_transform
 
+        for f in sorted(dofs[sd-1]):
+            rows = numpy.asarray(transform(fiat_cell, J, detJ, f))
+            fdofs = dofs[sd-1][f]
+            bfs = edofs[sd-1][f][1:]
+            V[numpy.ix_(bfs, fdofs)] = rows[..., :len(fdofs)]
         return ListTensor(V.T)
 
 
@@ -98,4 +67,4 @@ class ReducedArnoldQin(ArnoldQin):
         return (self.space_dimension(),)
 
     def space_dimension(self):
-        return (self.cell.get_spatial_dimension()+1)**2
+        return (self.cell.get_spatial_dimension() + 1)**2
