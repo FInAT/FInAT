@@ -16,6 +16,7 @@ def _single_edge_transform(fiat_cell, J, detJ, f):
     Jt = J @ Literal(that)
     alpha = Jn @ Jt
     beta = Jt @ Jt
+    # Compute the last row of inv([[1, 0], [alpha/detJ, beta/detJ]])
     row = (-1 * alpha / beta, detJ / beta)
     return row
 
@@ -32,7 +33,7 @@ def _single_face_transform(fiat_cell, J, detJ, f):
     Jts = J @ Literal(thats.T)
     Jorths = J @ Literal(orth_vecs.T)
     A = Jorths.T @ Jts
-    # Stuff the inverse into the right rows and columns.
+    # Compute the last two rows of inv([[1, 0, 0], A.T/detJ])
     det0 = A[1, 0] * A[2, 1] - A[1, 1] * A[2, 0]
     det1 = A[2, 0] * A[0, 1] - A[2, 1] * A[0, 0]
     det2 = A[0, 0] * A[1, 1] - A[0, 1] * A[1, 0]

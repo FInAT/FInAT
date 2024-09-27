@@ -192,7 +192,17 @@ try:
   year={1992}
 }
 """)
-
+    Citations().add("BernardiRaugel1985", """
+@article{bernardi-raugel-0,
+    AUTHOR = {Bernardi, Christine and Raugel, Geneviv\\`eve},
+     TITLE = {Analysis of some finite elements for the {Stokes} problem},
+   JOURNAL = {Mathematics of Computation},
+    VOLUME = {44},
+      YEAR = {1985},
+       DOI = {10.1090/S0025-5718-1985-0771031-7},
+     PAGES = {{71--79}},
+}
+""")
 
 except ImportError:
     Citations = None

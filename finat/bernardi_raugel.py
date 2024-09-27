@@ -16,7 +16,7 @@ class BernardiRaugel(PhysicallyMappedElement, FiatElement):
         if degree != sd:
             raise ValueError(f"Bernardi-Raugel only defined for degree = {sd}")
         if Citations is not None:
-            Citations().register("ArnoldQin1992")
+            Citations().register("BernardiRaugel1985")
         super().__init__(FIAT.BernardiRaugel(cell, degree))
 
         reduced_dofs = deepcopy(self._element.entity_dofs())
