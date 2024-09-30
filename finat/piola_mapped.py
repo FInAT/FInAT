@@ -1,8 +1,9 @@
 import numpy
-from gem import Literal, ListTensor
+from gem import Literal
 
 
 def determinant(A):
+    """Return the determinant of A"""
     n = A.shape[0]
     if n == 0:
         return 1
@@ -37,12 +38,15 @@ def adjugate(A):
 
 
 def piola_inverse(fiat_cell, J, detJ):
+    """Return the basis transformation of evaluation at a point"""
     sd = fiat_cell.get_spatial_dimension()
     Jnp = numpy.array([[J[i, j] for j in range(sd)] for i in range(sd)])
     return adjugate(Jnp)
 
 
 def normal_tangential_edge_transform(fiat_cell, J, detJ, f):
+    """Return the basis transformation of
+    normal and tangential edge moments"""
     R = numpy.array([[0, 1], [-1, 0]])
     that = fiat_cell.compute_edge_tangent(f)
     that /= numpy.linalg.norm(that)
@@ -57,6 +61,8 @@ def normal_tangential_edge_transform(fiat_cell, J, detJ, f):
 
 
 def normal_tangential_face_transform(fiat_cell, J, detJ, f):
+    """Return the basis transformation of
+    normal and tangential face moments"""
     # Compute the reciprocal basis
     thats = fiat_cell.compute_tangents(2, f)
     nhat = numpy.cross(*thats)
