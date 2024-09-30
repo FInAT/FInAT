@@ -193,7 +193,7 @@ try:
 """)
     Citations().add("BernardiRaugel1985", """
 @article{bernardi-raugel-0,
-    AUTHOR = {Bernardi, Christine and Raugel, Geneviv\\`eve},
+    AUTHOR = {Bernardi, Christine and Raugel, Genevi\\`eve},
      TITLE = {Analysis of some finite elements for the {Stokes} problem},
    JOURNAL = {Mathematics of Computation},
     VOLUME = {44},
