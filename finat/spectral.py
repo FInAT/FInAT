@@ -22,7 +22,7 @@ class GaussLobattoLegendre(Lagrange):
         :param entity: the cell entity on which to tabulate.
         '''
 
-        result = super(GaussLobattoLegendre, self).basis_evaluation(order, ps, entity)
+        result = super().basis_evaluation(order, ps, entity)
         cell_dimension = self.cell.get_dimension()
         if entity is None or entity == (cell_dimension, 0):  # on cell interior
             space_dim = self.space_dimension()
@@ -51,7 +51,7 @@ class GaussLegendre(DiscontinuousLagrange):
         :param entity: the cell entity on which to tabulate.
         '''
 
-        result = super(GaussLegendre, self).basis_evaluation(order, ps, entity)
+        result = super().basis_evaluation(order, ps, entity)
         cell_dimension = self.cell.get_dimension()
         if entity is None or entity == (cell_dimension, 0):  # on cell interior
             space_dim = self.space_dimension()
@@ -69,7 +69,7 @@ class Legendre(ScalarFiatElement):
 
     def __init__(self, cell, degree, variant=None):
         fiat_element = FIAT.Legendre(cell, degree, variant=variant)
-        super(Legendre, self).__init__(fiat_element)
+        super().__init__(fiat_element)
 
 
 class IntegratedLegendre(ScalarFiatElement):
@@ -77,7 +77,7 @@ class IntegratedLegendre(ScalarFiatElement):
 
     def __init__(self, cell, degree, variant=None):
         fiat_element = FIAT.IntegratedLegendre(cell, degree, variant=variant)
-        super(IntegratedLegendre, self).__init__(fiat_element)
+        super().__init__(fiat_element)
 
 
 class FDMLagrange(ScalarFiatElement):
@@ -85,7 +85,7 @@ class FDMLagrange(ScalarFiatElement):
 
     def __init__(self, cell, degree):
         fiat_element = FIAT.FDMLagrange(cell, degree)
-        super(FDMLagrange, self).__init__(fiat_element)
+        super().__init__(fiat_element)
 
 
 class FDMDiscontinuousLagrange(ScalarFiatElement):
@@ -93,7 +93,7 @@ class FDMDiscontinuousLagrange(ScalarFiatElement):
 
     def __init__(self, cell, degree):
         fiat_element = FIAT.FDMDiscontinuousLagrange(cell, degree)
-        super(FDMDiscontinuousLagrange, self).__init__(fiat_element)
+        super().__init__(fiat_element)
 
 
 class FDMQuadrature(ScalarFiatElement):
@@ -101,7 +101,7 @@ class FDMQuadrature(ScalarFiatElement):
 
     def __init__(self, cell, degree):
         fiat_element = FIAT.FDMQuadrature(cell, degree)
-        super(FDMQuadrature, self).__init__(fiat_element)
+        super().__init__(fiat_element)
 
 
 class FDMBrokenH1(ScalarFiatElement):
@@ -109,7 +109,7 @@ class FDMBrokenH1(ScalarFiatElement):
 
     def __init__(self, cell, degree):
         fiat_element = FIAT.FDMBrokenH1(cell, degree)
-        super(FDMBrokenH1, self).__init__(fiat_element)
+        super().__init__(fiat_element)
 
 
 class FDMBrokenL2(ScalarFiatElement):
@@ -117,7 +117,7 @@ class FDMBrokenL2(ScalarFiatElement):
 
     def __init__(self, cell, degree):
         fiat_element = FIAT.FDMBrokenL2(cell, degree)
-        super(FDMBrokenL2, self).__init__(fiat_element)
+        super().__init__(fiat_element)
 
 
 class FDMHermite(ScalarFiatElement):
@@ -125,4 +125,4 @@ class FDMHermite(ScalarFiatElement):
 
     def __init__(self, cell, degree):
         fiat_element = FIAT.FDMHermite(cell, degree)
-        super(FDMHermite, self).__init__(fiat_element)
+        super().__init__(fiat_element)

@@ -5,42 +5,7 @@ from gem import ListTensor, Literal
 
 from finat.fiat_elements import FiatElement
 from finat.physically_mapped import Citations, PhysicallyMappedElement
-
-
-def _single_edge_transform(fiat_cell, J, detJ, f):
-    R = numpy.array([[0, 1], [-1, 0]])
-    that = fiat_cell.compute_edge_tangent(f)
-    that /= numpy.linalg.norm(that)
-    nhat = R @ that
-    Jn = J @ Literal(nhat)
-    Jt = J @ Literal(that)
-    alpha = Jn @ Jt
-    beta = Jt @ Jt
-    # Compute the last row of inv([[1, 0], [alpha/detJ, beta/detJ]])
-    row = (-1 * alpha / beta, detJ / beta)
-    return row
-
-
-def _single_face_transform(fiat_cell, J, detJ, f):
-    # Compute the reciprocal basis
-    thats = fiat_cell.compute_tangents(2, f)
-    nhat = numpy.cross(*thats)
-    nhat /= numpy.dot(nhat, nhat)
-    orth_vecs = numpy.array([nhat,
-                             numpy.cross(nhat, thats[1]),
-                             numpy.cross(thats[0], nhat)])
-    # Compute A = (alpha, beta, gamma) for the facet.
-    Jts = J @ Literal(thats.T)
-    Jorths = J @ Literal(orth_vecs.T)
-    A = Jorths.T @ Jts
-    # Compute the last two rows of inv([[1, 0, 0], A.T/detJ])
-    det0 = A[1, 0] * A[2, 1] - A[1, 1] * A[2, 0]
-    det1 = A[2, 0] * A[0, 1] - A[2, 1] * A[0, 0]
-    det2 = A[0, 0] * A[1, 1] - A[0, 1] * A[1, 0]
-    scale = detJ / det0
-    rows = ((-1 * det1 / det0, -1 * scale * A[2, 1], scale * A[2, 0]),
-            (-1 * det2 / det0, scale * A[1, 1], -1 * scale * A[1, 0]))
-    return rows
+from finat.piola_mapped import normal_tangential_edge_transform, normal_tangential_face_transform
 
 
 def _facet_transform(fiat_cell, facet_moment_degree, coordinate_mapping):
@@ -60,9 +25,9 @@ def _facet_transform(fiat_cell, facet_moment_degree, coordinate_mapping):
     J = coordinate_mapping.jacobian_at(bary)
     detJ = coordinate_mapping.detJ_at(bary)
     if sd == 2:
-        transform = _single_edge_transform
+        transform = normal_tangential_edge_transform
     elif sd == 3:
-        transform = _single_face_transform
+        transform = normal_tangential_face_transform
 
     for f in range(num_facets):
         rows = transform(fiat_cell, J, detJ, f)
@@ -95,7 +60,7 @@ class ArnoldWintherNC(PhysicallyMappedElement, FiatElement):
     def __init__(self, cell, degree=2):
         if Citations is not None:
             Citations().register("Arnold2003")
-        super(ArnoldWintherNC, self).__init__(FIAT.ArnoldWintherNC(cell, degree))
+        super().__init__(FIAT.ArnoldWintherNC(cell, degree))
 
     def basis_transformation(self, coordinate_mapping):
         """Note, the extra 3 dofs which are removed here
@@ -144,7 +109,7 @@ class ArnoldWinther(PhysicallyMappedElement, FiatElement):
     def __init__(self, cell, degree=3):
         if Citations is not None:
             Citations().register("Arnold2002")
-        super(ArnoldWinther, self).__init__(FIAT.ArnoldWinther(cell, degree))
+        super().__init__(FIAT.ArnoldWinther(cell, degree))
 
     def basis_transformation(self, coordinate_mapping):
         """The extra 6 dofs removed here correspond to the constraints."""

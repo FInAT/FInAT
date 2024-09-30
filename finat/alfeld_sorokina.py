@@ -3,7 +3,8 @@ import numpy
 from gem import ListTensor, Literal
 
 from finat.fiat_elements import FiatElement
-from finat.physically_mapped import Citations, PhysicallyMappedElement, adjugate
+from finat.physically_mapped import Citations, PhysicallyMappedElement
+from finat.piola_mapped import adjugate
 
 
 class AlfeldSorokina(PhysicallyMappedElement, FiatElement):
@@ -15,7 +16,6 @@ class AlfeldSorokina(PhysicallyMappedElement, FiatElement):
         super().__init__(FIAT.AlfeldSorokina(cell, degree))
 
     def basis_transformation(self, coordinate_mapping):
-        # Jacobians at cell center
         sd = self.cell.get_spatial_dimension()
         bary, = self.cell.make_points(sd, 0, sd+1)
         J = coordinate_mapping.jacobian_at(bary)
