@@ -4,7 +4,7 @@ from gem import ListTensor, Literal
 
 from finat.fiat_elements import FiatElement
 from finat.physically_mapped import Citations, PhysicallyMappedElement
-from finat.piola_mapped import adjugate
+from finat.piola_mapped import piola_inverse
 
 
 class AlfeldSorokina(PhysicallyMappedElement, FiatElement):
@@ -20,7 +20,7 @@ class AlfeldSorokina(PhysicallyMappedElement, FiatElement):
         bary, = self.cell.make_points(sd, 0, sd+1)
         J = coordinate_mapping.jacobian_at(bary)
         detJ = coordinate_mapping.detJ_at(bary)
-        adjJ = adjugate([[J[i, j] for j in range(sd)] for i in range(sd)])
+        adjJ = piola_inverse(self.cell, J, detJ)
 
         ndof = self.space_dimension()
         V = numpy.eye(ndof, dtype=object)

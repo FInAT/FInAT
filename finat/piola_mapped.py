@@ -1,5 +1,5 @@
 import numpy
-from gem import Literal
+from gem import Literal, ListTensor
 
 
 def determinant(A):
@@ -34,6 +34,12 @@ def adjugate(A):
             cols[j] = True
         rows[i] = True
     return C
+
+
+def piola_inverse(fiat_cell, J, detJ):
+    sd = fiat_cell.get_spatial_dimension()
+    Jnp = numpy.array([[J[i, j] for j in range(sd)] for i in range(sd)])
+    return adjugate(Jnp)
 
 
 def normal_tangential_edge_transform(fiat_cell, J, detJ, f):
