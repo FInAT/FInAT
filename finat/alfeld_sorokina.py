@@ -20,13 +20,13 @@ class AlfeldSorokina(PhysicallyMappedElement, FiatElement):
         bary, = self.cell.make_points(sd, 0, sd+1)
         J = coordinate_mapping.jacobian_at(bary)
         detJ = coordinate_mapping.detJ_at(bary)
-        adjJ = piola_inverse(self.cell, J, detJ)
 
         ndof = self.space_dimension()
         V = numpy.eye(ndof, dtype=object)
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
 
+        Finv = piola_inverse(self.cell, J, detJ)
         edofs = self.entity_dofs()
         for dim in edofs:
             for entity in sorted(edofs[dim]):
@@ -37,6 +37,6 @@ class AlfeldSorokina(PhysicallyMappedElement, FiatElement):
                     dofs = dofs[1:]
                 for i in range(0, len(dofs), sd):
                     s = dofs[i:i+sd]
-                    V[numpy.ix_(s, s)] = adjJ
+                    V[numpy.ix_(s, s)] = Finv
 
         return ListTensor(V.T)

@@ -38,7 +38,8 @@ def adjugate(A):
 
 
 def piola_inverse(fiat_cell, J, detJ):
-    """Return the basis transformation of evaluation at a point"""
+    """Return the basis transformation of evaluation at a point.
+    This simply inverts the Piola transform inv(J / detJ) = adj(J)."""
     sd = fiat_cell.get_spatial_dimension()
     Jnp = numpy.array([[J[i, j] for j in range(sd)] for i in range(sd)])
     return adjugate(Jnp)

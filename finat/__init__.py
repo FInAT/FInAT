@@ -17,8 +17,9 @@ from .aw import ArnoldWintherNC         # noqa: F401
 from .bell import Bell                  # noqa: F401
 from .bernardi_raugel import BernardiRaugel   # noqa: F401
 from .hct import HsiehCloughTocher, ReducedHsiehCloughTocher   # noqa: F401
-from .alfeld_sorokina import AlfeldSorokina   # noqa: F401
 from .arnold_qin import ArnoldQin, ReducedArnoldQin   # noqa: F401
+from .christiansen_hu import ChristiansenHu   # noqa: F401
+from .alfeld_sorokina import AlfeldSorokina   # noqa: F401
 from .powell_sabin import QuadraticPowellSabin6, QuadraticPowellSabin12  # noqa: F401
 from .hermite import Hermite            # noqa: F401
 from .johnson_mercier import JohnsonMercier  # noqa: F401

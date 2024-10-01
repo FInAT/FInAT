@@ -5,6 +5,7 @@ import pytest
 from gem.interpreter import evaluate
 
 from fiat_mapping import MyMapping
+from finat import *
 
 
 @pytest.fixture
@@ -72,12 +73,12 @@ def check_zany_mapping(finat_element, phys_element):
 
 
 @pytest.mark.parametrize("element", [
-                         finat.Morley,
-                         finat.QuadraticPowellSabin6,
-                         finat.QuadraticPowellSabin12,
-                         finat.Hermite,
-                         finat.ReducedHsiehCloughTocher,
-                         finat.Bell,
+                         Morley,
+                         QuadraticPowellSabin6,
+                         QuadraticPowellSabin12,
+                         Hermite,
+                         ReducedHsiehCloughTocher,
+                         Bell,
                          ])
 def test_C1_elements(ref_cell, phys_cell, element):
     kwargs = {}
@@ -164,14 +165,14 @@ def check_zany_piola_mapping(finat_element, phys_element):
 
 
 @pytest.mark.parametrize("element", [
-                         finat.MardalTaiWinther,
-                         finat.BernardiRaugel,
-                         finat.ArnoldQin,
-                         finat.ReducedArnoldQin,
-                         finat.AlfeldSorokina,
-                         finat.ArnoldWinther,
-                         finat.ArnoldWintherNC,
-                         finat.JohnsonMercier,
+                         MardalTaiWinther,
+                         BernardiRaugel,
+                         ArnoldQin,
+                         ReducedArnoldQin,
+                         AlfeldSorokina,
+                         ArnoldWinther,
+                         ArnoldWintherNC,
+                         JohnsonMercier,
                          ])
 def test_piola_triangle(ref_cell, phys_cell, element):
     finat_element = element(ref_cell)
@@ -196,11 +197,10 @@ def phys_tet(request):
 
 
 @pytest.mark.parametrize("element", [
-                         finat.BernardiRaugel,
-                         finat.ArnoldQin,
-                         finat.ReducedArnoldQin,
-                         finat.AlfeldSorokina,
-                         finat.JohnsonMercier,
+                         BernardiRaugel,
+                         ChristiansenHu,
+                         AlfeldSorokina,
+                         JohnsonMercier,
                          ])
 def test_piola_tetrahedron(ref_tet, phys_tet, element):
     finat_element = element(ref_tet)

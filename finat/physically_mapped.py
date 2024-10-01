@@ -191,6 +191,16 @@ try:
   year={1992}
 }
 """)
+    Citations().add("ChristiansenHu2019", """
+@article{christiansen2019finite,
+  title={A finite element for Stokes with a commuting diagram },
+  author={Christiansen, Snorre H and Hu, Kaibo},
+  journal={Mathematical Analysis in Fluid and Gas Dynamics},
+  volume={2107},
+  pages={172--183},
+  year={2019},
+}
+""")
     Citations().add("BernardiRaugel1985", """
 @article{bernardi-raugel-0,
     AUTHOR = {Bernardi, Christine and Raugel, Genevi\\`eve},
@@ -202,6 +212,7 @@ try:
      PAGES = {{71--79}},
 }
 """)
+
 
 except ImportError:
     Citations = None

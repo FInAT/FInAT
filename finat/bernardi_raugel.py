@@ -8,6 +8,38 @@ from finat.piola_mapped import piola_inverse, normal_tangential_edge_transform, 
 from copy import deepcopy
 
 
+def bernardi_raugel_transformation(self, coordinate_mapping):
+    sd = self.cell.get_spatial_dimension()
+    bary, = self.cell.make_points(sd, 0, sd+1)
+    J = coordinate_mapping.jacobian_at(bary)
+    detJ = coordinate_mapping.detJ_at(bary)
+
+    dofs = self.entity_dofs()
+    edofs = self._element.entity_dofs()
+    ndof = self.space_dimension()
+    numbf = self._element.space_dimension()
+    V = numpy.eye(numbf, ndof, dtype=object)
+    for multiindex in numpy.ndindex(V.shape):
+        V[multiindex] = Literal(V[multiindex])
+
+    Finv = piola_inverse(self.cell, J, detJ)
+    for v in sorted(dofs[0]):
+        vdofs = dofs[0][v]
+        V[numpy.ix_(vdofs, vdofs)] = Finv
+
+    if sd == 2:
+        transform = normal_tangential_edge_transform
+    elif sd == 3:
+        transform = normal_tangential_face_transform
+
+    for f in sorted(dofs[sd-1]):
+        rows = numpy.asarray(transform(self.cell, J, detJ, f))
+        fdofs = dofs[sd-1][f]
+        bfs = edofs[sd-1][f][1:]
+        V[numpy.ix_(bfs, fdofs)] = rows[..., :len(fdofs)]
+    return ListTensor(V.T)
+
+
 class BernardiRaugel(PhysicallyMappedElement, FiatElement):
     def __init__(self, cell, degree=None):
         sd = cell.get_spatial_dimension()
@@ -27,35 +59,7 @@ class BernardiRaugel(PhysicallyMappedElement, FiatElement):
         self._entity_dofs = reduced_dofs
 
     def basis_transformation(self, coordinate_mapping):
-        sd = self.cell.get_spatial_dimension()
-        bary, = self.cell.make_points(sd, 0, sd+1)
-        J = coordinate_mapping.jacobian_at(bary)
-        detJ = coordinate_mapping.detJ_at(bary)
-        adjJ = piola_inverse(self.cell, J, detJ)
-
-        dofs = self.entity_dofs()
-        edofs = self._element.entity_dofs()
-        ndof = self.space_dimension()
-        numbf = self._element.space_dimension()
-        V = numpy.eye(numbf, ndof, dtype=object)
-        for multiindex in numpy.ndindex(V.shape):
-            V[multiindex] = Literal(V[multiindex])
-
-        for v in sorted(dofs[0]):
-            vdofs = dofs[0][v]
-            V[numpy.ix_(vdofs, vdofs)] = adjJ
-
-        if sd == 2:
-            transform = normal_tangential_edge_transform
-        elif sd == 3:
-            transform = normal_tangential_face_transform
-
-        for f in sorted(dofs[sd-1]):
-            rows = numpy.asarray(transform(self.cell, J, detJ, f))
-            fdofs = dofs[sd-1][f]
-            bfs = edofs[sd-1][f][1:]
-            V[numpy.ix_(bfs, fdofs)] = rows[..., :len(fdofs)]
-        return ListTensor(V.T)
+        return bernardi_raugel_transformation(self, coordinate_mapping)
 
     def entity_dofs(self):
         return self._entity_dofs
