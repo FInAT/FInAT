@@ -167,6 +167,7 @@ def check_zany_piola_mapping(finat_element, phys_element):
 @pytest.mark.parametrize("element", [
                          MardalTaiWinther,
                          BernardiRaugel,
+                         GuzmanNeilan,
                          ArnoldQin,
                          ReducedArnoldQin,
                          AlfeldSorokina,
@@ -198,6 +199,7 @@ def phys_tet(request):
 
 @pytest.mark.parametrize("element", [
                          BernardiRaugel,
+                         GuzmanNeilan,
                          ChristiansenHu,
                          AlfeldSorokina,
                          JohnsonMercier,
