@@ -14,7 +14,7 @@ class GuzmanNeilan(PhysicallyMappedElement, FiatElement):
         if degree != sd:
             raise ValueError("Guzman-Neilan only defined for degree = dim")
         if Citations is not None:
-            Citations().register("GuzmanNeilan2018")
+            Citations().register("GuzmanNeilan2019")
         super().__init__(FIAT.GuzmanNeilan(cell, degree))
 
         reduced_dofs = deepcopy(self._element.entity_dofs())
