@@ -198,7 +198,19 @@ try:
   journal={Mathematical Analysis in Fluid and Gas Dynamics},
   volume={2107},
   pages={172--183},
-  year={2019},
+  year={2019}
+}
+""")
+    Citations().add("GuzmanNeilan2019", """
+@article{guzman2019infsup,
+    author = {Guzm\'{a}n, Johnny and Neilan, Michael},
+    title = {{Inf-Sup Stable Finite Elements on Barycentric Refinements Producing Divergence--Free Approximations in Arbitrary Dimensions}},
+    journal = {SIAM Journal on Numerical Analysis},
+    volume = {56},
+    number = {5},
+    pages = {2826-2844},
+    year = {2018},
+    doi = {10.1137/17M1153467}
 }
 """)
     Citations().add("BernardiRaugel1985", """
@@ -209,7 +221,7 @@ try:
     VOLUME = {44},
       YEAR = {1985},
        DOI = {10.1090/S0025-5718-1985-0771031-7},
-     PAGES = {{71--79}},
+     PAGES = {{71--79}}
 }
 """)
 
