@@ -36,6 +36,17 @@ def make_unisolvent_points(element, interior=False):
     return pts
 
 
+def reconstruct_fiat_element(fiat_element, *args, **kwargs):
+    indices = None
+    if isinstance(fiat_element, FIAT.RestrictedElement):
+        indices = fiat_element._indices
+        fiat_element = fiat_element._element
+    fe = type(fiat_element)(*args, **kwargs)
+    if indices is not None:
+        fe = FIAT.RestrictedElement(fe, indices=indices)
+    return fe
+
+
 def check_zany_mapping(finat_element, phys_element):
     ref_element = finat_element.fiat_equivalent
     shape = ref_element.value_shape()
@@ -87,7 +98,7 @@ def test_C1_elements(ref_cell, phys_cell, element):
     if element == finat.QuadraticPowellSabin12:
         finat_kwargs = dict(avg=True)
     finat_element = element(ref_cell, **finat_kwargs)
-    phys_element = type(finat_element.fiat_equivalent)(phys_cell, **kwargs)
+    phys_element = reconstruct_fiat_element(finat_element.fiat_equivalent, phys_cell, **kwargs)
     check_zany_mapping(finat_element, phys_element)
 
 
@@ -173,10 +184,11 @@ def check_zany_piola_mapping(finat_element, phys_element):
                          finat.ArnoldWintherNC,
                          finat.JohnsonMercier,
                          finat.GuzmanNeilan,
+                         finat.GuzmanNeilanBubble,
                          ])
 def test_piola_triangle(ref_cell, phys_cell, element):
     finat_element = element(ref_cell)
-    phys_element = type(finat_element.fiat_equivalent)(phys_cell)
+    phys_element = reconstruct_fiat_element(finat_element.fiat_equivalent, phys_cell)
     check_zany_piola_mapping(finat_element, phys_element)
 
 
@@ -202,8 +214,9 @@ def phys_tet(request):
                          finat.AlfeldSorokina,
                          finat.JohnsonMercier,
                          finat.GuzmanNeilan,
+                         finat.GuzmanNeilanBubble,
                          ])
 def test_piola_tetrahedron(ref_tet, phys_tet, element):
     finat_element = element(ref_tet)
-    phys_element = type(finat_element.fiat_equivalent)(phys_tet)
+    phys_element = reconstruct_fiat_element(finat_element.fiat_equivalent, phys_tet)
     check_zany_piola_mapping(finat_element, phys_element)

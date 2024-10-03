@@ -36,3 +36,28 @@ class GuzmanNeilan(PhysicallyMappedElement, FiatElement):
 
     def space_dimension(self):
         return (self.cell.get_spatial_dimension() + 1)**2
+
+
+class GuzmanNeilanBubble(GuzmanNeilan):
+    def __init__(self, cell, degree=None):
+        sd = cell.get_spatial_dimension()
+        if degree is None:
+            degree = sd
+        if degree != sd:
+            raise ValueError("Guzman-Neilan Bubble only defined for degree = dim")
+        if Citations is not None:
+            Citations().register("GuzmanNeilan2019")
+        element = FIAT.RestrictedElement(FIAT.GuzmanNeilan(cell, degree),
+                                         restriction_domain="facet",
+                                         take_closure=False)
+        super(GuzmanNeilan, self).__init__(element)
+
+        reduced_dofs = deepcopy(self._element.entity_dofs())
+        cur = reduced_dofs[sd-1][0][0]
+        for entity in reduced_dofs[sd-1]:
+            reduced_dofs[sd-1][entity] = [cur]
+            cur += 1
+        self._entity_dofs = reduced_dofs
+
+    def space_dimension(self):
+        return self.cell.get_spatial_dimension() + 1

@@ -25,7 +25,8 @@ def bernardi_raugel_transformation(self, coordinate_mapping):
     Finv = piola_inverse(self.cell, J, detJ)
     for v in sorted(dofs[0]):
         vdofs = dofs[0][v]
-        V[numpy.ix_(vdofs, vdofs)] = Finv
+        if len(vdofs) == sd:
+            V[numpy.ix_(vdofs, vdofs)] = Finv
 
     if sd == 2:
         transform = normal_tangential_edge_transform
