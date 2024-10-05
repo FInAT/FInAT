@@ -180,6 +180,7 @@ def check_zany_piola_mapping(finat_element, phys_element):
                          finat.ArnoldQin,
                          finat.ReducedArnoldQin,
                          finat.AlfeldSorokina,
+                         finat.ChristiansenHu,
                          finat.ArnoldWinther,
                          finat.ArnoldWintherNC,
                          finat.JohnsonMercier,
