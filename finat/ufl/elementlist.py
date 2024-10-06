@@ -113,6 +113,7 @@ register_element("Raviart-Thomas", "RT", 1, HDiv, "contravariant Piola",
 register_element("Argyris", "ARG", 0, H2, "custom", (5, None), ("triangle",))
 register_element("Bell", "BELL", 0, H2, "custom", (5, 5), ("triangle",))
 register_element("Bernardi-Raugel", "BR", 1, H1, "contravariant Piola", (2, 3), simplices[1:])
+register_element("Bernardi-Raugel Bubble", "BRB", 1, H1, "contravariant Piola", (2, 3), simplices[1:])
 register_element("Brezzi-Douglas-Fortin-Marini", "BDFM", 1, HDiv,
                  "contravariant Piola", (1, None), simplices[1:])
 register_element("Crouzeix-Raviart", "CR", 0, L2, "identity", (1, 1),
@@ -132,7 +133,7 @@ register_element("QuadraticPowellSabin6", "PS6", 0, H2, "custom", (2, 2), ("tria
 register_element("QuadraticPowellSabin12", "PS12", 0, H2, "custom", (2, 2), ("triangle",))
 register_element("Hsieh-Clough-Tocher", "HCT", 0, H2, "custom", (3, None), ("triangle",))
 register_element("Reduced-Hsieh-Clough-Tocher", "HCT-red", 0, H2, "custom", (3, 3), ("triangle",))
-register_element("Arnold-Qin", "AQ", 1, H1, "contravariant Piola", (2, 2), ("triangle",))
+register_element("Arnold-Qin", "AQ", 1, H1, "identity", (2, 2), ("triangle",))
 register_element("Reduced-Arnold-Qin", "AQ-red", 1, H1, "contravariant Piola", (2, 2), ("triangle",))
 register_element("Christiansen-Hu", "CH", 1, H1, "contravariant Piola", (1, 1), simplices[1:])
 register_element("Guzman-Neilan", "GN", 1, H1, "contravariant Piola", (2, 3), simplices[1:])

@@ -108,13 +108,13 @@ def test_C1_elements(ref_cell, phys_cell, element):
 ])
 def test_high_order_C1_elements(ref_cell, phys_cell, element, degree):
     finat_element = element(ref_cell, degree, avg=True)
-    phys_element = type(finat_element.fiat_equivalent)(phys_cell, degree)
+    phys_element = reconstruct_fiat_element(finat_element.fiat_equivalent, phys_cell, degree)
     check_zany_mapping(finat_element, phys_element)
 
 
 def test_argyris_point(ref_cell, phys_cell):
     finat_element = finat.Argyris(ref_cell, variant="point")
-    phys_element = type(finat_element.fiat_equivalent)(phys_cell, variant="point")
+    phys_element = reconstruct_fiat_element(finat_element.fiat_equivalent, phys_cell, variant="point")
     check_zany_mapping(finat_element, phys_element)
 
 
@@ -177,7 +177,7 @@ def check_zany_piola_mapping(finat_element, phys_element):
 @pytest.mark.parametrize("element", [
                          finat.MardalTaiWinther,
                          finat.BernardiRaugel,
-                         finat.ArnoldQin,
+                         finat.BernardiRaugelBubble,
                          finat.ReducedArnoldQin,
                          finat.AlfeldSorokina,
                          finat.ChristiansenHu,
@@ -189,7 +189,12 @@ def check_zany_piola_mapping(finat_element, phys_element):
                          ])
 def test_piola_triangle(ref_cell, phys_cell, element):
     finat_element = element(ref_cell)
-    phys_element = reconstruct_fiat_element(finat_element.fiat_equivalent, phys_cell)
+    kwargs = {}
+    if isinstance(finat_element, (finat.BernardiRaugelBubble, finat.GuzmanNeilanBubble)):
+        kwargs["subdegree"] = 0
+    elif isinstance(finat_element, finat.ReducedArnoldQin):
+        kwargs["reduced"] = True
+    phys_element = reconstruct_fiat_element(finat_element.fiat_equivalent, phys_cell, **kwargs)
     check_zany_piola_mapping(finat_element, phys_element)
 
 
@@ -211,6 +216,7 @@ def phys_tet(request):
 
 @pytest.mark.parametrize("element", [
                          finat.BernardiRaugel,
+                         finat.BernardiRaugelBubble,
                          finat.ChristiansenHu,
                          finat.AlfeldSorokina,
                          finat.JohnsonMercier,
@@ -219,5 +225,8 @@ def phys_tet(request):
                          ])
 def test_piola_tetrahedron(ref_tet, phys_tet, element):
     finat_element = element(ref_tet)
-    phys_element = reconstruct_fiat_element(finat_element.fiat_equivalent, phys_tet)
+    kwargs = {}
+    if isinstance(finat_element, (finat.BernardiRaugelBubble, finat.GuzmanNeilanBubble)):
+        kwargs["subdegree"] = 0
+    phys_element = reconstruct_fiat_element(finat_element.fiat_equivalent, phys_tet, **kwargs)
     check_zany_piola_mapping(finat_element, phys_element)

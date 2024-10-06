@@ -1,5 +1,9 @@
 import numpy
-from gem import Literal
+
+from finat.fiat_elements import FiatElement
+from finat.physically_mapped import PhysicallyMappedElement
+from gem import Literal, ListTensor
+from copy import deepcopy
 
 
 def determinant(A):
@@ -83,3 +87,68 @@ def normal_tangential_face_transform(fiat_cell, J, detJ, f):
     rows = ((-1 * det1 / det0, -1 * scale * A[2, 1], scale * A[2, 0]),
             (-1 * det2 / det0, scale * A[1, 1], -1 * scale * A[1, 0]))
     return rows
+
+
+class PiolaBubbleElement(PhysicallyMappedElement, FiatElement):
+    """A general class to transform Piola-mapped elements with normal facet bubbles."""
+    def __init__(self, fiat_element):
+        mapping, = set(fiat_element.mapping())
+        if mapping != "contravariant piola":
+            raise ValueError(f"{type(fiat_element).__name__} needs to be Piola mapped.")
+        super().__init__(fiat_element)
+
+        # On each facet we expect the normal dof followed by the tangential ones
+        # The tangential dofs should be numbered last, and are constrained to be zero
+        sd = self.cell.get_spatial_dimension()
+        reduced_dofs = deepcopy(self._element.entity_dofs())
+        cur = reduced_dofs[sd-1][0][0]
+        for entity in reduced_dofs[sd-1]:
+            reduced_dofs[sd-1][entity] = [cur]
+            cur += 1
+        self._entity_dofs = reduced_dofs
+        self._space_dimension = cur
+
+    def entity_dofs(self):
+        return self._entity_dofs
+
+    @property
+    def index_shape(self):
+        return (self._space_dimension,)
+
+    def space_dimension(self):
+        return self._space_dimension
+
+    def basis_transformation(self, coordinate_mapping):
+        sd = self.cell.get_spatial_dimension()
+        bary, = self.cell.make_points(sd, 0, sd+1)
+        J = coordinate_mapping.jacobian_at(bary)
+        detJ = coordinate_mapping.detJ_at(bary)
+
+        dofs = self.entity_dofs()
+        edofs = self._element.entity_dofs()
+        ndof = self.space_dimension()
+        numbf = self._element.space_dimension()
+        V = numpy.eye(numbf, ndof, dtype=object)
+        for multiindex in numpy.ndindex(V.shape):
+            V[multiindex] = Literal(V[multiindex])
+
+        # Undo the Piola transform for non-facet bubble basis functions
+        Finv = piola_inverse(self.cell, J, detJ)
+        for dim in range(sd-1):
+            for e in sorted(dofs[dim]):
+                for k in range(0, len(dofs[dim][e]), sd):
+                    cur = dofs[dim][e][k:k+sd]
+                    V[numpy.ix_(cur, cur)] = Finv
+
+        # Unpick the normal component for the facet bubbles
+        if sd == 2:
+            transform = normal_tangential_edge_transform
+        elif sd == 3:
+            transform = normal_tangential_face_transform
+
+        for f in sorted(dofs[sd-1]):
+            rows = numpy.asarray(transform(self.cell, J, detJ, f))
+            fdofs = dofs[sd-1][f]
+            bfs = edofs[sd-1][f][1:]
+            V[numpy.ix_(bfs, fdofs)] = rows[..., :len(fdofs)]
+        return ListTensor(V.T)
