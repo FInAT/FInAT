@@ -14,7 +14,7 @@ class JohnsonMercier(PhysicallyMappedElement, FiatElement):  # symmetric matrix 
         if Citations is not None:
             Citations().register("Gopalakrishnan2024")
         self._indices = slice(None, None)
-        super(JohnsonMercier, self).__init__(FIAT.JohnsonMercier(cell, degree, variant=variant))
+        super().__init__(FIAT.JohnsonMercier(cell, degree, variant=variant))
 
     def basis_transformation(self, coordinate_mapping):
         numbf = self._element.space_dimension()
