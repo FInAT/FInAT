@@ -1,5 +1,6 @@
 from functools import singledispatch, reduce
 
+import numpy
 import sympy
 try:
     import symengine
@@ -41,6 +42,13 @@ def sympy2gem_pow(node, self):
     return gem.Power(*map(self, node.args))
 
 
+@sympy2gem.register(sympy.logic.boolalg.BooleanTrue)
+@sympy2gem.register(sympy.logic.boolalg.BooleanFalse)
+@sympy2gem.register(bool)
+def sympy2gem_boolean(node, self):
+    return gem.Literal(bool(node))
+
+
 @sympy2gem.register(sympy.Integer)
 @sympy2gem.register(symengine.Integer)
 @sympy2gem.register(int)
@@ -65,3 +73,77 @@ def sympy2gem_symbol(node, self):
 @sympy2gem.register(symengine.Rational)
 def sympy2gem_rational(node, self):
     return gem.Division(*(map(self, node.as_numer_denom())))
+
+
+@sympy2gem.register(sympy.Abs)
+@sympy2gem.register(symengine.Abs)
+def sympy2gem_abs(node, self):
+    return gem.MathFunction("abs", *map(self, node.args))
+
+
+@sympy2gem.register(sympy.Not)
+@sympy2gem.register(symengine.Not)
+def sympy2gem_not(node, self):
+    return gem.LogicalNot(*map(self, node.args))
+
+
+@sympy2gem.register(sympy.Or)
+@sympy2gem.register(symengine.Or)
+def sympy2gem_or(node, self):
+    return reduce(gem.LogicalOr, map(self, node.args))
+
+
+@sympy2gem.register(sympy.And)
+@sympy2gem.register(symengine.And)
+def sympy2gem_and(node, self):
+    return reduce(gem.LogicalAnd, map(self, node.args))
+
+
+@sympy2gem.register(sympy.Eq)
+@sympy2gem.register(symengine.Eq)
+def sympy2gem_eq(node, self):
+    return gem.Comparison("==", *map(self, node.args))
+
+
+@sympy2gem.register(sympy.Gt)
+def sympy2gem_gt(node, self):
+    return gem.Comparison(">", *map(self, node.args))
+
+
+@sympy2gem.register(sympy.Ge)
+def sympy2gem_ge(node, self):
+    return gem.Comparison(">=", *map(self, node.args))
+
+
+@sympy2gem.register(sympy.Lt)
+@sympy2gem.register(symengine.Lt)
+def sympy2gem_lt(node, self):
+    return gem.Comparison("<", *map(self, node.args))
+
+
+@sympy2gem.register(sympy.Le)
+@sympy2gem.register(symengine.Le)
+def sympy2gem_le(node, self):
+    return gem.Comparison("<=", *map(self, node.args))
+
+
+@sympy2gem.register(sympy.Piecewise)
+@sympy2gem.register(symengine.Piecewise)
+def sympy2gem_conditional(node, self):
+    expr = None
+    pieces = []
+    for v, c in node.args:
+        if isinstance(c, (bool, numpy.bool, sympy.logic.boolalg.BooleanTrue)) and c:
+            expr = self(v)
+            break
+        pieces.append((v, c))
+    if expr is None:
+        expr = gem.Literal(float("nan"))
+    for v, c in reversed(pieces):
+        expr = gem.Conditional(self(c), self(v), expr)
+    return expr
+
+
+@sympy2gem.register(sympy.ITE)
+def sympy2gem_ifthenelse(node, self):
+    return gem.Conditional(*map(self, node.args))

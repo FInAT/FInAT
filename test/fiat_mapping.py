@@ -1,6 +1,6 @@
 import FIAT
-import numpy as np
 import gem
+import numpy as np
 from finat.physically_mapped import PhysicalGeometry
 
 
@@ -30,6 +30,9 @@ class MyMapping(PhysicalGeometry):
     def jacobian_at(self, point):
         return gem.Literal(self.A)
 
+    def normalized_reference_edge_tangents(self):
+        return gem.Literal(np.asarray([self.ref_cell.compute_normalized_edge_tangent(i) for i in range(3)]))
+
     def reference_normals(self):
         return gem.Literal(
             np.asarray([self.ref_cell.compute_normal(i)
@@ -57,3 +60,13 @@ class MyMapping(PhysicalGeometry):
 
     def physical_vertices(self):
         return gem.Literal(self.phys_cell.verts)
+
+
+class FiredrakeMapping(MyMapping):
+
+    def cell_size(self):
+        # Firedrake interprets this as 2x the circumradius
+        cs = (np.prod([self.phys_cell.volume_of_subcomplex(1, i)
+                       for i in range(3)])
+              / 2.0 / self.phys_cell.volume())
+        return np.asarray([cs for _ in range(3)])

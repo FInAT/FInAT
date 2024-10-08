@@ -1,5 +1,6 @@
-import gem
 from abc import ABCMeta, abstractmethod
+
+import gem
 
 try:
     from firedrake_citations import Citations
@@ -32,6 +33,15 @@ try:
   eprint =       {1808.05513},
   primaryclass = {cs.MS}
 }""")
+    Citations().add("Clough1965", """
+@inproceedings{Clough1965,
+  author =       {R. W. Clough, J. L. Tocher},
+  title =        {Finite element stiffness matrices for analysis of plate bending},
+  booktitle =    {Proc. of the First Conf. on Matrix Methods in Struct. Mech},
+  year =         1965,
+  pages =        {515-546},
+}
+""")
     Citations().add("Argyris1968", """
 @Article{Argyris1968,
   author =       {J. H. Argyris and I. Fried and D. W. Scharpf},
@@ -138,6 +148,94 @@ try:
   institution={Tech. Rep. ICES REPORT 17-28, Institute for Computational Engineering and Sciences}
 }
 """)
+    Citations().add("Gopalakrishnan2024", """
+@article{gopalakrishnan2024johnson,
+  title={{The Johnson-Mercier elasticity element in any dimensions}},
+  author={Gopalakrishnan, J and Guzman, J and Lee, J J},
+  journal={arXiv preprint arXiv:2403.13189},
+  year={2024}
+}
+""")
+    Citations().add("Groselj2022", """
+@article{groselj2022generalized,
+  title={{Generalized C1 Clough--Tocher splines for CAGD and FEM}},
+  author={Gro{\v{s}}elj, Jan and Knez, Marjeta},
+  journal={Computer Methods in Applied Mechanics and Engineering},
+  volume={395},
+  pages={114983},
+  year={2022},
+  publisher={Elsevier}
+}
+""")
+    Citations().add("PowellSabin1977", """
+@article{powell1977piecewise,
+  title={Piecewise quadratic approximations on triangles},
+  author={Powell, Michael JD and Sabin, Malcolm A},
+  journal={ACM Transactions on Mathematical Software},
+  volume={3},
+  number={4},
+  pages={316--325},
+  year={1977},
+  publisher={ACM New York, NY, USA}
+}
+""")
+    Citations().add("AlfeldSorokina2016", """
+@article{alfeld2016linear,
+  title={Linear differential operators on bivariate spline spaces and spline vector fields},
+  author={Alfeld, Peter and Sorokina, Tatyana},
+  journal={BIT Numerical Mathematics},
+  volume={56},
+  number={1},
+  pages={15--32},
+  year={2016},
+  publisher={Springer}
+}
+""")
+    Citations().add("ArnoldQin1992", """
+@article{arnold1992quadratic,
+  title={{Quadratic velocity/linear pressure Stokes elements}},
+  author={Arnold, Douglas N and Qin, Jinshui},
+  journal={Advances in computer methods for partial differential equations},
+  volume={7},
+  pages={28--34},
+  year={1992}
+}
+""")
+    Citations().add("ChristiansenHu2019", """
+@article{christiansen2019finite,
+  title={A finite element for Stokes with a commuting diagram },
+  author={Christiansen, Snorre H and Hu, Kaibo},
+  journal={Mathematical Analysis in Fluid and Gas Dynamics},
+  volume={2107},
+  pages={172--183},
+  year={2019}
+}
+""")
+    Citations().add("GuzmanNeilan2019", """
+@article{guzman2019infsup,
+    author = {Guzm\'{a}n, Johnny and Neilan, Michael},
+    title = {{Inf-Sup Stable Finite Elements on Barycentric Refinements Producing Divergence--Free Approximations in Arbitrary Dimensions}},
+    journal = {SIAM Journal on Numerical Analysis},
+    volume = {56},
+    number = {5},
+    pages = {2826-2844},
+    year = {2018},
+    doi = {10.1137/17M1153467}
+}
+""")
+    Citations().add("BernardiRaugel1985", """
+@article{bernardi-raugel-0,
+    AUTHOR = {Bernardi, Christine and Raugel, Genevi\\`eve},
+     TITLE = {Analysis of some finite elements for the {Stokes} problem},
+   JOURNAL = {Mathematics of Computation},
+    VOLUME = {44},
+      YEAR = {1985},
+       DOI = {10.1090/S0025-5718-1985-0771031-7},
+     PAGES = {{71--79}}
+}
+""")
+
+
 except ImportError:
     Citations = None
 
