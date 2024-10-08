@@ -9,8 +9,6 @@ class BernardiRaugel(PiolaBubbleElement):
         sd = cell.get_spatial_dimension()
         if degree is None:
             degree = sd
-        if degree != sd:
-            raise ValueError("Bernardi-Raugel only defined for degree = dim")
         if Citations is not None:
             Citations().register("BernardiRaugel1985")
         super().__init__(FIAT.BernardiRaugel(cell, degree, subdegree=subdegree))

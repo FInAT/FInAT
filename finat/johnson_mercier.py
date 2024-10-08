@@ -9,8 +9,6 @@ from finat.physically_mapped import Citations, PhysicallyMappedElement
 
 class JohnsonMercier(PhysicallyMappedElement, FiatElement):  # symmetric matrix valued
     def __init__(self, cell, degree=1, variant=None):
-        if degree != 1:
-            raise ValueError("Degree must be 1 for Johnson-Mercier element")
         if Citations is not None:
             Citations().register("Gopalakrishnan2024")
         self._indices = slice(None, None)

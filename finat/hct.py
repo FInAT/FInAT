@@ -10,8 +10,6 @@ from copy import deepcopy
 
 class HsiehCloughTocher(PhysicallyMappedElement, ScalarFiatElement):
     def __init__(self, cell, degree=3, avg=False):
-        if degree < 3:
-            raise ValueError("HCT only defined for degree >= 3")
         if Citations is not None:
             Citations().register("Clough1965")
             if degree > 3:
@@ -51,8 +49,6 @@ class HsiehCloughTocher(PhysicallyMappedElement, ScalarFiatElement):
 
 class ReducedHsiehCloughTocher(PhysicallyMappedElement, ScalarFiatElement):
     def __init__(self, cell, degree=3):
-        if degree != 3:
-            raise ValueError("Degree must be 3 for reduced HCT element")
         if Citations is not None:
             Citations().register("Clough1965")
         super().__init__(FIAT.HsiehCloughTocher(cell, reduced=True))

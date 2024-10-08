@@ -7,8 +7,6 @@ from finat.piola_mapped import PiolaBubbleElement
 
 class ArnoldQin(FiatElement):
     def __init__(self, cell, degree=2):
-        if degree != 2:
-            raise ValueError("Arnold-Qin only defined for degree = 2")
         if Citations is not None:
             Citations().register("ArnoldQin1992")
         super().__init__(FIAT.ArnoldQin(cell, degree))
@@ -16,8 +14,6 @@ class ArnoldQin(FiatElement):
 
 class ReducedArnoldQin(PiolaBubbleElement):
     def __init__(self, cell, degree=2):
-        if degree != 2:
-            raise ValueError("Reduced Arnold-Qin only defined for degree = 2")
         if Citations is not None:
             Citations().register("ArnoldQin1992")
         super().__init__(FIAT.ArnoldQin(cell, degree, reduced=True))

@@ -10,8 +10,6 @@ from finat.physically_mapped import PhysicallyMappedElement, Citations
 
 class Bell(PhysicallyMappedElement, ScalarFiatElement):
     def __init__(self, cell, degree=5):
-        if degree != 5:
-            raise ValueError("Degree must be 5 for Bell element")
         if Citations is not None:
             Citations().register("Bell1969")
         super().__init__(FIAT.Bell(cell))

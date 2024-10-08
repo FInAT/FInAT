@@ -9,8 +9,6 @@ class GuzmanNeilan(PiolaBubbleElement):
         sd = cell.get_spatial_dimension()
         if degree is None:
             degree = sd
-        if degree != sd:
-            raise ValueError("Guzman-Neilan only defined for degree = dim")
         if Citations is not None:
             Citations().register("GuzmanNeilan2019")
         super().__init__(FIAT.GuzmanNeilan(cell, degree, subdegree=subdegree))

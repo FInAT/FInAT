@@ -9,8 +9,6 @@ from finat.piola_mapped import piola_inverse
 
 class AlfeldSorokina(PhysicallyMappedElement, FiatElement):
     def __init__(self, cell, degree=2):
-        if degree != 2:
-            raise ValueError("Alfeld-Sorokina only defined for degree = 2")
         if Citations is not None:
             Citations().register("AlfeldSorokina2016")
         super().__init__(FIAT.AlfeldSorokina(cell, degree))
