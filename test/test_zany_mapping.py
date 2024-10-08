@@ -183,6 +183,7 @@ def check_zany_piola_mapping(finat_element, phys_element):
                          finat.ChristiansenHu,
                          finat.ArnoldWinther,
                          finat.ArnoldWintherNC,
+                         finat.HuZhang,
                          finat.JohnsonMercier,
                          finat.GuzmanNeilan,
                          finat.GuzmanNeilanBubble,
