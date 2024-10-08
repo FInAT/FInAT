@@ -1,10 +1,11 @@
 """Implementation of the Arnold-Winther finite elements."""
 import FIAT
 import numpy
-from gem import ListTensor, Literal, partial_indexed
+from gem import ListTensor, Literal
 
 from finat.fiat_elements import FiatElement
 from finat.physically_mapped import Citations, PhysicallyMappedElement
+from finat.piola_mapped import normal_tangential_edge_transform, normal_tangential_face_transform
 
 
 def _facet_transform(fiat_cell, facet_moment_degree, coordinate_mapping):
@@ -16,72 +17,30 @@ def _facet_transform(fiat_cell, facet_moment_degree, coordinate_mapping):
     dofs_per_facet = sd * dimPk_facet
     ndofs = num_facets * dofs_per_facet
 
-    Vsub = numpy.eye(ndofs, dtype=object)
-    for multiindex in numpy.ndindex(Vsub.shape):
-        Vsub[multiindex] = Literal(Vsub[multiindex])
+    V = numpy.eye(ndofs, dtype=object)
+    for multiindex in numpy.ndindex(V.shape):
+        V[multiindex] = Literal(V[multiindex])
 
-    bary = [1/(sd+1)] * sd
-    detJ = coordinate_mapping.detJ_at(bary)
+    bary, = fiat_cell.make_points(sd, 0, sd+1)
     J = coordinate_mapping.jacobian_at(bary)
-    rns = coordinate_mapping.reference_normals()
-    offset = dofs_per_facet
+    detJ = coordinate_mapping.detJ_at(bary)
     if sd == 2:
-        R = Literal(numpy.array([[0, -1], [1, 0]]))
-
-        for e in range(num_facets):
-            nhat = partial_indexed(rns, (e, ))
-            that = R @ nhat
-            Jn = J @ nhat
-            Jt = J @ that
-
-            # Compute alpha and beta for the edge.
-            alpha = (Jn @ Jt) / detJ
-            beta = (Jt @ Jt) / detJ
-            # Stuff into the right rows and columns.
-            for i in range(dimPk_facet):
-                idx = offset*e + i * dimPk_facet + 1
-                Vsub[idx, idx-1] = Literal(-1) * alpha / beta
-                Vsub[idx, idx] = Literal(1) / beta
+        transform = normal_tangential_edge_transform
     elif sd == 3:
-        for f in range(num_facets):
-            nhat = fiat_cell.compute_normal(f)
-            nhat /= numpy.linalg.norm(nhat)
-            ehats = fiat_cell.compute_tangents(sd-1, f)
-            rels = [numpy.linalg.norm(ehat) for ehat in ehats]
-            thats = [a / b for a, b in zip(ehats, rels)]
-            vf = fiat_cell.volume_of_subcomplex(sd-1, f)
+        transform = normal_tangential_face_transform
 
-            scale = 1.0 / numpy.dot(thats[1], numpy.cross(thats[0], nhat))
-            orth_vecs = [scale * numpy.cross(nhat, thats[1]),
-                         scale * numpy.cross(thats[0], nhat)]
-
-            Jn = J @ Literal(nhat)
-            Jts = [J @ Literal(that) for that in thats]
-            Jorth = [J @ Literal(ov) for ov in orth_vecs]
-
-            alphas = [(Jn @ Jts[i] / detJ) * (Literal(rels[i]) / Literal(2*vf)) for i in range(sd-1)]
-            betas = [Jorth[0] @ Jts[i] / detJ for i in range(sd-1)]
-            gammas = [Jorth[1] @ Jts[i] / detJ for i in range(sd-1)]
-
-            det = betas[0] * gammas[1] - betas[1] * gammas[0]
-
-            for i in range(dimPk_facet):
-                idx = offset*f + i * sd
-
-                Vsub[idx+1, idx] = (alphas[1] * gammas[0]
-                                    - alphas[0] * gammas[1]) / det
-                Vsub[idx+1, idx+1] = gammas[1] / det
-                Vsub[idx+1, idx+2] = Literal(-1) * gammas[0] / det
-                Vsub[idx+2, idx] = (alphas[0] * betas[1]
-                                    - alphas[1] * betas[0]) / det
-                Vsub[idx+2, idx+1] = Literal(-1) * betas[1] / det
-                Vsub[idx+2, idx+2] = betas[0] / det
-
-    return Vsub
+    for f in range(num_facets):
+        rows = transform(fiat_cell, J, detJ, f)
+        for i in range(dimPk_facet):
+            s = dofs_per_facet*f + i * sd
+            V[s+1:s+sd, s:s+sd] = rows
+    return V
 
 
-def _evaluation_transform(coordinate_mapping):
-    J = coordinate_mapping.jacobian_at([1/3, 1/3])
+def _evaluation_transform(fiat_cell, coordinate_mapping):
+    sd = fiat_cell.get_spatial_dimension()
+    bary, = fiat_cell.make_points(sd, 0, sd+1)
+    J = coordinate_mapping.jacobian_at(bary)
 
     W = numpy.zeros((3, 3), dtype=object)
     W[0, 0] = J[1, 1]*J[1, 1]
@@ -98,10 +57,10 @@ def _evaluation_transform(coordinate_mapping):
 
 
 class ArnoldWintherNC(PhysicallyMappedElement, FiatElement):
-    def __init__(self, cell, degree):
+    def __init__(self, cell, degree=2):
         if Citations is not None:
             Citations().register("Arnold2003")
-        super(ArnoldWintherNC, self).__init__(FIAT.ArnoldWintherNC(cell, degree))
+        super().__init__(FIAT.ArnoldWintherNC(cell, degree))
 
     def basis_transformation(self, coordinate_mapping):
         """Note, the extra 3 dofs which are removed here
@@ -113,7 +72,7 @@ class ArnoldWintherNC(PhysicallyMappedElement, FiatElement):
         V[:12, :12] = _facet_transform(self.cell, 1, coordinate_mapping)
 
         # internal dofs
-        W = _evaluation_transform(coordinate_mapping)
+        W = _evaluation_transform(self.cell, coordinate_mapping)
         detJ = coordinate_mapping.detJ_at([1/3, 1/3])
 
         V[12:15, 12:15] = W / detJ
@@ -147,10 +106,10 @@ class ArnoldWintherNC(PhysicallyMappedElement, FiatElement):
 
 
 class ArnoldWinther(PhysicallyMappedElement, FiatElement):
-    def __init__(self, cell, degree):
+    def __init__(self, cell, degree=3):
         if Citations is not None:
             Citations().register("Arnold2002")
-        super(ArnoldWinther, self).__init__(FIAT.ArnoldWinther(cell, degree))
+        super().__init__(FIAT.ArnoldWinther(cell, degree))
 
     def basis_transformation(self, coordinate_mapping):
         """The extra 6 dofs removed here correspond to the constraints."""
@@ -159,7 +118,7 @@ class ArnoldWinther(PhysicallyMappedElement, FiatElement):
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
 
-        W = _evaluation_transform(coordinate_mapping)
+        W = _evaluation_transform(self.cell, coordinate_mapping)
 
         # Put into the right rows and columns.
         V[0:3, 0:3] = V[3:6, 3:6] = V[6:9, 6:9] = W

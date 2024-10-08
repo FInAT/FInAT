@@ -9,8 +9,6 @@ from finat.physically_mapped import PhysicallyMappedElement, Citations
 
 class Hermite(PhysicallyMappedElement, ScalarFiatElement):
     def __init__(self, cell, degree=3):
-        if degree != 3:
-            raise ValueError("Degree must be 3 for Hermite element")
         if Citations is not None:
             Citations().register("Ciarlet1972")
         super().__init__(FIAT.CubicHermite(cell))

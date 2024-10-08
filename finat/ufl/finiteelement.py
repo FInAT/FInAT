@@ -115,7 +115,7 @@ class FiniteElement(FiniteElementBase):
                                               for c in cell.sub_cells()],
                                             cell=cell)
 
-        return super(FiniteElement, cls).__new__(cls)
+        return super().__new__(cls)
 
     def __init__(self,
                  family,
