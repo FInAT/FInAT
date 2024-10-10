@@ -138,6 +138,7 @@ register_element("Reduced-Arnold-Qin", "AQ-red", 1, H1, "contravariant Piola", (
 register_element("Christiansen-Hu", "CH", 1, H1, "contravariant Piola", (1, 1), simplices[1:])
 register_element("Guzman-Neilan", "GN", 1, H1, "contravariant Piola", (2, 3), simplices[1:])
 register_element("Guzman-Neilan Bubble", "GNB", 1, H1, "contravariant Piola", (2, 3), simplices[1:])
+register_element("Guzman-Neilan H1(div)", "GNH1div", 1, H1, "contravariant Piola", (3, 3), simplices[2:])
 register_element("Alfeld-Sorokina", "AS", 1, H1, "contravariant Piola", (2, 2), simplices[1:])
 register_element("Johnson-Mercier", "JM", 2, HDivDiv, "double contravariant Piola", (1, 1), simplices[1:])
 
