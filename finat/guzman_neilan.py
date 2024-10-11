@@ -8,10 +8,20 @@ class GuzmanNeilan(PiolaBubbleElement):
     """H1-conforming macroelement construced as the enrichment of Pk^d
     with Guzman-Neilan facet bubbles.
     """
-    def __init__(self, cell, degree=None, subdegree=1):
+    def __init__(self, cell, order=1):
         if Citations is not None:
             Citations().register("GuzmanNeilan2019")
-        super().__init__(FIAT.GuzmanNeilan(cell, degree=degree, subdegree=subdegree))
+        super().__init__(FIAT.GuzmanNeilan(cell, order=order))
+
+
+class GuzmanNeilanSecondKind(PiolaBubbleElement):
+    """H1-conforming macroelement construced as the enrichment of C0 Pk^d(Alfeld)
+    with Guzman-Neilan facet bubbles.
+    """
+    def __init__(self, cell, order=1):
+        if Citations is not None:
+            Citations().register("GuzmanNeilan2019")
+        super().__init__(FIAT.GuzmanNeilanSecondKind(cell, order=order))
 
 
 class GuzmanNeilanBubble(GuzmanNeilan):
@@ -19,7 +29,7 @@ class GuzmanNeilanBubble(GuzmanNeilan):
     with constant divergence.
     """
     def __init__(self, cell, degree=None):
-        super().__init__(cell, degree=degree, subdegree=0)
+        super().__init__(cell, order=0)
 
 
 class GuzmanNeilanH1div(PiolaBubbleElement):
@@ -30,5 +40,5 @@ class GuzmanNeilanH1div(PiolaBubbleElement):
         if Citations is not None:
             Citations().register("GuzmanNeilan2019")
         AS = FIAT.AlfeldSorokina(cell, 2)
-        GNBubble = FIAT.GuzmanNeilan(cell, degree=degree, subdegree=0)
+        GNBubble = FIAT.GuzmanNeilan(cell, order=0)
         super().__init__(FIAT.NodalEnrichedElement(AS, GNBubble))

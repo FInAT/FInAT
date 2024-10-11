@@ -101,12 +101,14 @@ class PiolaBubbleElement(PhysicallyMappedElement, FiatElement):
         # The tangential dofs should be numbered last, and are constrained to be zero
         sd = self.cell.get_spatial_dimension()
         reduced_dofs = deepcopy(self._element.entity_dofs())
+        reduced_dim = 0
         cur = reduced_dofs[sd-1][0][0]
-        for entity in reduced_dofs[sd-1]:
+        for entity in sorted(reduced_dofs[sd-1]):
+            reduced_dim += len(reduced_dofs[sd-1][entity][1:])
             reduced_dofs[sd-1][entity] = [cur]
             cur += 1
         self._entity_dofs = reduced_dofs
-        self._space_dimension = cur
+        self._space_dimension = fiat_element.space_dimension() - reduced_dim
 
     def entity_dofs(self):
         return self._entity_dofs
@@ -135,7 +137,9 @@ class PiolaBubbleElement(PhysicallyMappedElement, FiatElement):
         # Undo the Piola transform for non-facet bubble basis functions
         nodes = self._element.get_dual_set().nodes
         Finv = piola_inverse(self.cell, J, detJ)
-        for dim in range(sd-1):
+        for dim in dofs:
+            if dim == sd-1:
+                continue
             for e in sorted(dofs[dim]):
                 k = 0
                 while k < len(dofs[dim][e]):
