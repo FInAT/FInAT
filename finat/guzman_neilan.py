@@ -31,6 +31,4 @@ class GuzmanNeilanH1div(PiolaBubbleElement):
     def __init__(self, cell, degree=None):
         if Citations is not None:
             Citations().register("GuzmanNeilan2018")
-        AS = FIAT.AlfeldSorokina(cell, 2)
-        GNBubble = FIAT.GuzmanNeilan(cell, order=0)
-        super().__init__(FIAT.NodalEnrichedElement(AS, GNBubble))
+        super().__init__(FIAT.GuzmanNeilanH1div(cell, degree=degree))
