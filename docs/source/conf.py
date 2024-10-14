@@ -289,5 +289,9 @@ texinfo_documents = [
 # texinfo_no_detailmenu = False
 
 
-# Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {"https://docs.python.org/3/": None}
+# Configuration for intersphinx
+intersphinx_mapping = {
+    'FIAT': ('https://fenics.readthedocs.io/projects/fiat/en/latest/', None),
+    'ufl': ('https://fenics.readthedocs.io/projects/ufl/en/latest/', None),
+    'python': ('https://docs.python.org/3/', None),
+}
