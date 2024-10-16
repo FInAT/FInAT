@@ -20,7 +20,7 @@ from .hct import HsiehCloughTocher, ReducedHsiehCloughTocher   # noqa: F401
 from .arnold_qin import ArnoldQin, ReducedArnoldQin   # noqa: F401
 from .christiansen_hu import ChristiansenHu   # noqa: F401
 from .alfeld_sorokina import AlfeldSorokina   # noqa: F401
-from .guzman_neilan import GuzmanNeilan, GuzmanNeilanSecondKind, GuzmanNeilanBubble, GuzmanNeilanH1div   # noqa: F401
+from .guzman_neilan import GuzmanNeilanFirstKindH1, GuzmanNeilanSecondKindH1, GuzmanNeilanBubble, GuzmanNeilanH1div   # noqa: F401
 from .powell_sabin import QuadraticPowellSabin6, QuadraticPowellSabin12  # noqa: F401
 from .hermite import Hermite            # noqa: F401
 from .johnson_mercier import JohnsonMercier  # noqa: F401

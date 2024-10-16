@@ -170,8 +170,8 @@ def check_zany_piola_mapping(element, ref_cell, phys_cell, *args, **kwargs):
                          finat.ArnoldWinther,
                          finat.ArnoldWintherNC,
                          finat.JohnsonMercier,
-                         finat.GuzmanNeilan,
-                         finat.GuzmanNeilanSecondKind,
+                         finat.GuzmanNeilanFirstKindH1,
+                         finat.GuzmanNeilanSecondKindH1,
                          finat.GuzmanNeilanBubble,
                          ])
 def test_piola_triangle(ref_cell, phys_cell, element):
@@ -200,8 +200,8 @@ def phys_tet(request):
                          finat.ChristiansenHu,
                          finat.AlfeldSorokina,
                          finat.JohnsonMercier,
-                         finat.GuzmanNeilan,
-                         finat.GuzmanNeilanSecondKind,
+                         finat.GuzmanNeilanFirstKindH1,
+                         finat.GuzmanNeilanSecondKindH1,
                          finat.GuzmanNeilanBubble,
                          finat.GuzmanNeilanH1div,
                          ])
