@@ -101,12 +101,14 @@ class PiolaBubbleElement(PhysicallyMappedElement, FiatElement):
         # The tangential dofs should be numbered last, and are constrained to be zero
         sd = self.cell.get_spatial_dimension()
         reduced_dofs = deepcopy(self._element.entity_dofs())
+        reduced_dim = 0
         cur = reduced_dofs[sd-1][0][0]
-        for entity in reduced_dofs[sd-1]:
+        for entity in sorted(reduced_dofs[sd-1]):
+            reduced_dim += len(reduced_dofs[sd-1][entity][1:])
             reduced_dofs[sd-1][entity] = [cur]
             cur += 1
         self._entity_dofs = reduced_dofs
-        self._space_dimension = cur
+        self._space_dimension = fiat_element.space_dimension() - reduced_dim
 
     def entity_dofs(self):
         return self._entity_dofs
@@ -125,7 +127,7 @@ class PiolaBubbleElement(PhysicallyMappedElement, FiatElement):
         detJ = coordinate_mapping.detJ_at(bary)
 
         dofs = self.entity_dofs()
-        edofs = self._element.entity_dofs()
+        bfs = self._element.entity_dofs()
         ndof = self.space_dimension()
         numbf = self._element.space_dimension()
         V = numpy.eye(numbf, ndof, dtype=object)
@@ -133,12 +135,22 @@ class PiolaBubbleElement(PhysicallyMappedElement, FiatElement):
             V[multiindex] = Literal(V[multiindex])
 
         # Undo the Piola transform for non-facet bubble basis functions
+        nodes = self._element.get_dual_set().nodes
         Finv = piola_inverse(self.cell, J, detJ)
-        for dim in range(sd-1):
+        for dim in dofs:
+            if dim == sd-1:
+                continue
             for e in sorted(dofs[dim]):
-                for k in range(0, len(dofs[dim][e]), sd):
-                    cur = dofs[dim][e][k:k+sd]
-                    V[numpy.ix_(cur, cur)] = Finv
+                k = 0
+                while k < len(dofs[dim][e]):
+                    cur = dofs[dim][e][k]
+                    if len(nodes[cur].deriv_dict) > 0:
+                        V[cur, cur] = detJ
+                        k += 1
+                    else:
+                        s = dofs[dim][e][k:k+sd]
+                        V[numpy.ix_(s, s)] = Finv
+                        k += sd
 
         # Unpick the normal component for the facet bubbles
         if sd == 2:
@@ -148,7 +160,7 @@ class PiolaBubbleElement(PhysicallyMappedElement, FiatElement):
 
         for f in sorted(dofs[sd-1]):
             rows = numpy.asarray(transform(self.cell, J, detJ, f))
-            fdofs = dofs[sd-1][f]
-            bfs = edofs[sd-1][f][1:]
-            V[numpy.ix_(bfs, fdofs)] = rows[..., :len(fdofs)]
+            cur_dofs = dofs[sd-1][f]
+            cur_bfs = bfs[sd-1][f][1:]
+            V[numpy.ix_(cur_bfs, cur_dofs)] = rows[..., :len(cur_dofs)]
         return ListTensor(V.T)
