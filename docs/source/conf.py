@@ -12,6 +12,12 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
+import os
+import sys
+import shlex
+import pkg_resources
+import datetime
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
@@ -49,7 +55,7 @@ master_doc = "index"
 
 # General information about the project.
 project = u"FInAT"
-copyright = u"2014--2020, David A. Ham, Robert C. Kirby and others"
+copyright = u"2014--2024, David A. Ham, Robert C. Kirby and others"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -289,5 +295,28 @@ texinfo_documents = [
 # texinfo_no_detailmenu = False
 
 
-# Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {"https://docs.python.org/3/": None}
+# Configuration for intersphinx
+intersphinx_mapping = {
+    'FIAT': ('https://fenics.readthedocs.io/projects/fiat/en/latest/', None),
+    'ufl': ('https://fenics.readthedocs.io/projects/ufl/en/latest/', None),
+    'python': ('https://docs.python.org/3/', None),
+}
+
+
+def run_apidoc(_):
+    modules = ['finat']
+
+    # Get location of Sphinx files
+    sphinx_source_dir = os.path.abspath(os.path.dirname(__file__))
+    repo_dir = os.path.abspath(os.path.join(sphinx_source_dir, os.path.pardir,
+                                            os.path.pardir, os.path.pardir))
+    apidoc_dir = os.path.join(sphinx_source_dir, "api-doc")
+
+    from sphinx.ext.apidoc import main
+    for module in modules:
+        # Generate .rst files ready for autodoc
+        module_dir = os.path.join(repo_dir, module)
+        main(["-f", "-d", "1", "-o", apidoc_dir, module_dir])
+
+def setup(app):
+    app.connect('builder-inited', run_apidoc)
