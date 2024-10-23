@@ -201,8 +201,8 @@ try:
   year={2019}
 }
 """)
-    Citations().add("GuzmanNeilan2019", """
-@article{guzman2019infsup,
+    Citations().add("GuzmanNeilan2018", """
+@article{guzman2018infsup,
     author = {Guzm\'{a}n, Johnny and Neilan, Michael},
     title = {{Inf-Sup Stable Finite Elements on Barycentric Refinements Producing Divergence--Free Approximations in Arbitrary Dimensions}},
     journal = {SIAM Journal on Numerical Analysis},

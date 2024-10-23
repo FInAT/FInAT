@@ -112,8 +112,8 @@ register_element("Raviart-Thomas", "RT", 1, HDiv, "contravariant Piola",
 # Elements not in the periodic table
 register_element("Argyris", "ARG", 0, H2, "custom", (5, None), ("triangle",))
 register_element("Bell", "BELL", 0, H2, "custom", (5, 5), ("triangle",))
-register_element("Bernardi-Raugel", "BR", 1, H1, "contravariant Piola", (2, 3), simplices[1:])
-register_element("Bernardi-Raugel Bubble", "BRB", 1, H1, "contravariant Piola", (2, 3), simplices[1:])
+register_element("Bernardi-Raugel", "BR", 1, H1, "contravariant Piola", (1, None), simplices[1:])
+register_element("Bernardi-Raugel Bubble", "BRB", 1, H1, "contravariant Piola", (None, None), simplices[1:])
 register_element("Brezzi-Douglas-Fortin-Marini", "BDFM", 1, HDiv,
                  "contravariant Piola", (1, None), simplices[1:])
 register_element("Crouzeix-Raviart", "CR", 0, L2, "identity", (1, 1),
@@ -133,13 +133,17 @@ register_element("QuadraticPowellSabin6", "PS6", 0, H2, "custom", (2, 2), ("tria
 register_element("QuadraticPowellSabin12", "PS12", 0, H2, "custom", (2, 2), ("triangle",))
 register_element("Hsieh-Clough-Tocher", "HCT", 0, H2, "custom", (3, None), ("triangle",))
 register_element("Reduced-Hsieh-Clough-Tocher", "HCT-red", 0, H2, "custom", (3, 3), ("triangle",))
+register_element("Johnson-Mercier", "JM", 2, HDivDiv, "double contravariant Piola", (1, 1), simplices[1:])
+
 register_element("Arnold-Qin", "AQ", 1, H1, "identity", (2, 2), ("triangle",))
 register_element("Reduced-Arnold-Qin", "AQ-red", 1, H1, "contravariant Piola", (2, 2), ("triangle",))
 register_element("Christiansen-Hu", "CH", 1, H1, "contravariant Piola", (1, 1), simplices[1:])
-register_element("Guzman-Neilan", "GN", 1, H1, "contravariant Piola", (2, 3), simplices[1:])
-register_element("Guzman-Neilan Bubble", "GNB", 1, H1, "contravariant Piola", (2, 3), simplices[1:])
 register_element("Alfeld-Sorokina", "AS", 1, H1, "contravariant Piola", (2, 2), simplices[1:])
-register_element("Johnson-Mercier", "JM", 2, HDivDiv, "double contravariant Piola", (1, 1), simplices[1:])
+
+register_element("Guzman-Neilan 1st kind H1", "GN", 1, H1, "contravariant Piola", (1, None), simplices[1:])
+register_element("Guzman-Neilan 2nd kind H1", "GN2", 1, H1, "contravariant Piola", (1, None), simplices[1:])
+register_element("Guzman-Neilan H1(div)", "GNH1div", 1, H1, "contravariant Piola", (2, None), simplices[1:])
+register_element("Guzman-Neilan Bubble", "GNB", 1, H1, "contravariant Piola", (None, None), simplices[1:])
 
 # Special elements
 register_element("Boundary Quadrature", "BQ", 0, L2, "identity", (0, None),
@@ -494,4 +498,7 @@ def canonical_element_description(family, cell, order, form_degree):
     else:
         raise ValueError(f"Invalid value rank {value_rank}.")
 
-    return family, short_name, order, value_shape, reference_value_shape, sobolev_space, mapping
+    embedded_degree = order
+    if any(bubble in family for bubble in ("Guzman-Neilan", "Bernardi-Raugel")):
+        embedded_degree = tdim
+    return family, short_name, order, value_shape, reference_value_shape, sobolev_space, mapping, embedded_degree
