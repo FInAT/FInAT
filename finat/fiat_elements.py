@@ -44,7 +44,7 @@ class FiatElement(FiniteElementBase):
     """Base class for finite elements for which the tabulation is provided
     by FIAT."""
     def __init__(self, fiat_element):
-        super(FiatElement, self).__init__()
+        super().__init__()
         self._element = fiat_element
 
     @property
@@ -315,7 +315,7 @@ def point_evaluation(fiat_element, order, refcoords, entity):
 
 class Regge(FiatElement):  # naturally tensor valued
     def __init__(self, cell, degree):
-        super(Regge, self).__init__(FIAT.Regge(cell, degree))
+        super().__init__(FIAT.Regge(cell, degree))
 
 
 class GopalakrishnanLedererSchoberl(FiatElement):  # naturally tensor valued
@@ -325,7 +325,7 @@ class GopalakrishnanLedererSchoberl(FiatElement):  # naturally tensor valued
 
 class HellanHerrmannJohnson(FiatElement):  # symmetric matrix valued
     def __init__(self, cell, degree):
-        super(HellanHerrmannJohnson, self).__init__(FIAT.HellanHerrmannJohnson(cell, degree))
+        super().__init__(FIAT.HellanHerrmannJohnson(cell, degree))
 
 
 class ScalarFiatElement(FiatElement):
@@ -342,27 +342,27 @@ class Bernstein(ScalarFiatElement):
 
 class Bubble(ScalarFiatElement):
     def __init__(self, cell, degree):
-        super(Bubble, self).__init__(FIAT.Bubble(cell, degree))
+        super().__init__(FIAT.Bubble(cell, degree))
 
 
 class FacetBubble(ScalarFiatElement):
     def __init__(self, cell, degree):
-        super(FacetBubble, self).__init__(FIAT.FacetBubble(cell, degree))
+        super().__init__(FIAT.FacetBubble(cell, degree))
 
 
 class CrouzeixRaviart(ScalarFiatElement):
     def __init__(self, cell, degree):
-        super(CrouzeixRaviart, self).__init__(FIAT.CrouzeixRaviart(cell, degree))
+        super().__init__(FIAT.CrouzeixRaviart(cell, degree))
 
 
 class Lagrange(ScalarFiatElement):
     def __init__(self, cell, degree, variant=None):
-        super(Lagrange, self).__init__(FIAT.Lagrange(cell, degree, variant=variant))
+        super().__init__(FIAT.Lagrange(cell, degree, variant=variant))
 
 
 class KongMulderVeldhuizen(ScalarFiatElement):
     def __init__(self, cell, degree):
-        super(KongMulderVeldhuizen, self).__init__(FIAT.KongMulderVeldhuizen(cell, degree))
+        super().__init__(FIAT.KongMulderVeldhuizen(cell, degree))
         if Citations is not None:
             Citations().register("Chin1999higher")
             Citations().register("Geevers2018new")
@@ -370,7 +370,7 @@ class KongMulderVeldhuizen(ScalarFiatElement):
 
 class DiscontinuousLagrange(ScalarFiatElement):
     def __init__(self, cell, degree, variant=None):
-        super(DiscontinuousLagrange, self).__init__(FIAT.DiscontinuousLagrange(cell, degree, variant=variant))
+        super().__init__(FIAT.DiscontinuousLagrange(cell, degree, variant=variant))
 
 
 class Real(DiscontinuousLagrange):
@@ -379,17 +379,17 @@ class Real(DiscontinuousLagrange):
 
 class Serendipity(ScalarFiatElement):
     def __init__(self, cell, degree):
-        super(Serendipity, self).__init__(FIAT.Serendipity(cell, degree))
+        super().__init__(FIAT.Serendipity(cell, degree))
 
 
 class DPC(ScalarFiatElement):
     def __init__(self, cell, degree):
-        super(DPC, self).__init__(FIAT.DPC(cell, degree))
+        super().__init__(FIAT.DPC(cell, degree))
 
 
 class DiscontinuousTaylor(ScalarFiatElement):
     def __init__(self, cell, degree):
-        super(DiscontinuousTaylor, self).__init__(FIAT.DiscontinuousTaylor(cell, degree))
+        super().__init__(FIAT.DiscontinuousTaylor(cell, degree))
 
 
 class VectorFiatElement(FiatElement):
@@ -400,12 +400,12 @@ class VectorFiatElement(FiatElement):
 
 class RaviartThomas(VectorFiatElement):
     def __init__(self, cell, degree, variant=None):
-        super(RaviartThomas, self).__init__(FIAT.RaviartThomas(cell, degree, variant=variant))
+        super().__init__(FIAT.RaviartThomas(cell, degree, variant=variant))
 
 
 class TrimmedSerendipityFace(VectorFiatElement):
     def __init__(self, cell, degree):
-        super(TrimmedSerendipityFace, self).__init__(FIAT.TrimmedSerendipityFace(cell, degree))
+        super().__init__(FIAT.TrimmedSerendipityFace(cell, degree))
 
     @property
     def entity_permutations(self):
@@ -414,7 +414,7 @@ class TrimmedSerendipityFace(VectorFiatElement):
 
 class TrimmedSerendipityDiv(VectorFiatElement):
     def __init__(self, cell, degree):
-        super(TrimmedSerendipityDiv, self).__init__(FIAT.TrimmedSerendipityDiv(cell, degree))
+        super().__init__(FIAT.TrimmedSerendipityDiv(cell, degree))
 
     @property
     def entity_permutations(self):
@@ -423,7 +423,7 @@ class TrimmedSerendipityDiv(VectorFiatElement):
 
 class TrimmedSerendipityEdge(VectorFiatElement):
     def __init__(self, cell, degree):
-        super(TrimmedSerendipityEdge, self).__init__(FIAT.TrimmedSerendipityEdge(cell, degree))
+        super().__init__(FIAT.TrimmedSerendipityEdge(cell, degree))
 
     @property
     def entity_permutations(self):
@@ -432,7 +432,7 @@ class TrimmedSerendipityEdge(VectorFiatElement):
 
 class TrimmedSerendipityCurl(VectorFiatElement):
     def __init__(self, cell, degree):
-        super(TrimmedSerendipityCurl, self).__init__(FIAT.TrimmedSerendipityCurl(cell, degree))
+        super().__init__(FIAT.TrimmedSerendipityCurl(cell, degree))
 
     @property
     def entity_permutations(self):
@@ -441,12 +441,12 @@ class TrimmedSerendipityCurl(VectorFiatElement):
 
 class BrezziDouglasMarini(VectorFiatElement):
     def __init__(self, cell, degree, variant=None):
-        super(BrezziDouglasMarini, self).__init__(FIAT.BrezziDouglasMarini(cell, degree, variant=variant))
+        super().__init__(FIAT.BrezziDouglasMarini(cell, degree, variant=variant))
 
 
 class BrezziDouglasMariniCubeEdge(VectorFiatElement):
     def __init__(self, cell, degree):
-        super(BrezziDouglasMariniCubeEdge, self).__init__(FIAT.BrezziDouglasMariniCubeEdge(cell, degree))
+        super().__init__(FIAT.BrezziDouglasMariniCubeEdge(cell, degree))
 
     @property
     def entity_permutations(self):
@@ -455,7 +455,7 @@ class BrezziDouglasMariniCubeEdge(VectorFiatElement):
 
 class BrezziDouglasMariniCubeFace(VectorFiatElement):
     def __init__(self, cell, degree):
-        super(BrezziDouglasMariniCubeFace, self).__init__(FIAT.BrezziDouglasMariniCubeFace(cell, degree))
+        super().__init__(FIAT.BrezziDouglasMariniCubeFace(cell, degree))
 
     @property
     def entity_permutations(self):
@@ -464,14 +464,14 @@ class BrezziDouglasMariniCubeFace(VectorFiatElement):
 
 class BrezziDouglasFortinMarini(VectorFiatElement):
     def __init__(self, cell, degree):
-        super(BrezziDouglasFortinMarini, self).__init__(FIAT.BrezziDouglasFortinMarini(cell, degree))
+        super().__init__(FIAT.BrezziDouglasFortinMarini(cell, degree))
 
 
 class Nedelec(VectorFiatElement):
     def __init__(self, cell, degree, variant=None):
-        super(Nedelec, self).__init__(FIAT.Nedelec(cell, degree, variant=variant))
+        super().__init__(FIAT.Nedelec(cell, degree, variant=variant))
 
 
 class NedelecSecondKind(VectorFiatElement):
     def __init__(self, cell, degree, variant=None):
-        super(NedelecSecondKind, self).__init__(FIAT.NedelecSecondKind(cell, degree, variant=variant))
+        super().__init__(FIAT.NedelecSecondKind(cell, degree, variant=variant))

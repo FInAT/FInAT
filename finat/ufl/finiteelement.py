@@ -41,7 +41,7 @@ class FiniteElement(FiniteElementBase):
             from finat.ufl.hdivcurl import HDivElement as HDiv
             from finat.ufl.tensorproductelement import TensorProductElement
 
-            family, short_name, degree, value_shape, reference_value_shape, sobolev_space, mapping = \
+            family, short_name, degree, value_shape, reference_value_shape, sobolev_space, mapping, embedded_degree = \
                 canonical_element_description(family, cell, degree, form_degree)
 
             if family in ["RTCF", "RTCE"]:
@@ -115,7 +115,7 @@ class FiniteElement(FiniteElementBase):
                                               for c in cell.sub_cells()],
                                             cell=cell)
 
-        return super(FiniteElement, cls).__new__(cls)
+        return super().__new__(cls)
 
     def __init__(self,
                  family,
@@ -141,7 +141,7 @@ class FiniteElement(FiniteElementBase):
             cell = as_cell(cell)
 
         (
-            family, short_name, degree, value_shape, reference_value_shape, sobolev_space, mapping
+            family, short_name, degree, value_shape, reference_value_shape, sobolev_space, mapping, embedded_degree
         ) = canonical_element_description(family, cell, degree, form_degree)
 
         # TODO: Move these to base? Might be better to instead
@@ -150,6 +150,7 @@ class FiniteElement(FiniteElementBase):
         self._mapping = mapping
         self._short_name = short_name or family
         self._variant = variant
+        self._embedded_degree = embedded_degree
 
         # Type check variant
         if variant is not None and not isinstance(variant, str):
@@ -238,15 +239,19 @@ class FiniteElement(FiniteElementBase):
     @property
     def embedded_subdegree(self):
         """Return embedded subdegree."""
-        if isinstance(self.degree(), int):
-            return self.degree()
-        else:
-            return min(self.degree())
+        subdegree = self.degree()
+        if not isinstance(subdegree, int):
+            subdegree = min(subdegree)
+        if isinstance(self._embedded_degree, int):
+            subdegree = min(subdegree, self._embedded_degree)
+        return subdegree
 
     @property
     def embedded_superdegree(self):
         """Return embedded superdegree."""
-        if isinstance(self.degree(), int):
-            return self.degree()
-        else:
-            return max(self.degree())
+        superdegree = self.degree()
+        if not isinstance(superdegree, int):
+            superdegree = max(superdegree)
+        if isinstance(self._embedded_degree, int):
+            superdegree = max(superdegree, self._embedded_degree)
+        return superdegree

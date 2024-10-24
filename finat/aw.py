@@ -1,47 +1,46 @@
 """Implementation of the Arnold-Winther finite elements."""
-import numpy
 import FIAT
-from gem import Literal, ListTensor
+import numpy
+from gem import ListTensor, Literal
+
 from finat.fiat_elements import FiatElement
-from finat.physically_mapped import PhysicallyMappedElement, Citations
+from finat.physically_mapped import Citations, PhysicallyMappedElement
+from finat.piola_mapped import normal_tangential_edge_transform, normal_tangential_face_transform
 
 
-def _edge_transform(T, coordinate_mapping):
-    Vsub = numpy.zeros((12, 12), dtype=object)
+def _facet_transform(fiat_cell, facet_moment_degree, coordinate_mapping):
+    sd = fiat_cell.get_spatial_dimension()
+    top = fiat_cell.get_topology()
+    num_facets = len(top[sd-1])
+    dimPk_facet = FIAT.expansions.polynomial_dimension(
+        fiat_cell.construct_subelement(sd-1), facet_moment_degree)
+    dofs_per_facet = sd * dimPk_facet
+    ndofs = num_facets * dofs_per_facet
 
-    for multiindex in numpy.ndindex(Vsub.shape):
-        Vsub[multiindex] = Literal(Vsub[multiindex])
+    V = numpy.eye(ndofs, dtype=object)
+    for multiindex in numpy.ndindex(V.shape):
+        V[multiindex] = Literal(V[multiindex])
 
-    for i in range(0, 12, 2):
-        Vsub[i, i] = Literal(1)
+    bary, = fiat_cell.make_points(sd, 0, sd+1)
+    J = coordinate_mapping.jacobian_at(bary)
+    detJ = coordinate_mapping.detJ_at(bary)
+    if sd == 2:
+        transform = normal_tangential_edge_transform
+    elif sd == 3:
+        transform = normal_tangential_face_transform
 
-    # This bypasses the GEM wrapper.
-    that = numpy.array([T.compute_normalized_edge_tangent(i) for i in range(3)])
-    nhat = numpy.array([T.compute_normal(i) for i in range(3)])
-
-    detJ = coordinate_mapping.detJ_at([1/3, 1/3])
-    J = coordinate_mapping.jacobian_at([1/3, 1/3])
-    J_np = numpy.array([[J[0, 0], J[0, 1]],
-                        [J[1, 0], J[1, 1]]])
-    JTJ = J_np.T @ J_np
-
-    for e in range(3):
-        # Compute alpha and beta for the edge.
-        Ghat_T = numpy.array([nhat[e, :], that[e, :]])
-
-        (alpha, beta) = Ghat_T @ JTJ @ that[e, :] / detJ
-        # Stuff into the right rows and columns.
-        (idx1, idx2) = (4*e + 1, 4*e + 3)
-        Vsub[idx1, idx1-1] = Literal(-1) * alpha / beta
-        Vsub[idx1, idx1] = Literal(1) / beta
-        Vsub[idx2, idx2-1] = Literal(-1) * alpha / beta
-        Vsub[idx2, idx2] = Literal(1) / beta
-
-    return Vsub
+    for f in range(num_facets):
+        rows = transform(fiat_cell, J, detJ, f)
+        for i in range(dimPk_facet):
+            s = dofs_per_facet*f + i * sd
+            V[s+1:s+sd, s:s+sd] = rows
+    return V
 
 
-def _evaluation_transform(coordinate_mapping):
-    J = coordinate_mapping.jacobian_at([1/3, 1/3])
+def _evaluation_transform(fiat_cell, coordinate_mapping):
+    sd = fiat_cell.get_spatial_dimension()
+    bary, = fiat_cell.make_points(sd, 0, sd+1)
+    J = coordinate_mapping.jacobian_at(bary)
 
     W = numpy.zeros((3, 3), dtype=object)
     W[0, 0] = J[1, 1]*J[1, 1]
@@ -58,24 +57,22 @@ def _evaluation_transform(coordinate_mapping):
 
 
 class ArnoldWintherNC(PhysicallyMappedElement, FiatElement):
-    def __init__(self, cell, degree):
+    def __init__(self, cell, degree=2):
         if Citations is not None:
             Citations().register("Arnold2003")
-        super(ArnoldWintherNC, self).__init__(FIAT.ArnoldWintherNC(cell, degree))
+        super().__init__(FIAT.ArnoldWintherNC(cell, degree))
 
     def basis_transformation(self, coordinate_mapping):
         """Note, the extra 3 dofs which are removed here
         correspond to the constraints."""
-
-        T = self.cell
         V = numpy.zeros((18, 15), dtype=object)
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
 
-        V[:12, :12] = _edge_transform(T, coordinate_mapping)
+        V[:12, :12] = _facet_transform(self.cell, 1, coordinate_mapping)
 
         # internal dofs
-        W = _evaluation_transform(coordinate_mapping)
+        W = _evaluation_transform(self.cell, coordinate_mapping)
         detJ = coordinate_mapping.detJ_at([1/3, 1/3])
 
         V[12:15, 12:15] = W / detJ
@@ -109,10 +106,10 @@ class ArnoldWintherNC(PhysicallyMappedElement, FiatElement):
 
 
 class ArnoldWinther(PhysicallyMappedElement, FiatElement):
-    def __init__(self, cell, degree):
+    def __init__(self, cell, degree=3):
         if Citations is not None:
             Citations().register("Arnold2002")
-        super(ArnoldWinther, self).__init__(FIAT.ArnoldWinther(cell, degree))
+        super().__init__(FIAT.ArnoldWinther(cell, degree))
 
     def basis_transformation(self, coordinate_mapping):
         """The extra 6 dofs removed here correspond to the constraints."""
@@ -121,12 +118,12 @@ class ArnoldWinther(PhysicallyMappedElement, FiatElement):
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
 
-        W = _evaluation_transform(coordinate_mapping)
+        W = _evaluation_transform(self.cell, coordinate_mapping)
 
         # Put into the right rows and columns.
         V[0:3, 0:3] = V[3:6, 3:6] = V[6:9, 6:9] = W
 
-        V[9:21, 9:21] = _edge_transform(self.cell, coordinate_mapping)
+        V[9:21, 9:21] = _facet_transform(self.cell, 1, coordinate_mapping)
 
         # internal DOFs
         detJ = coordinate_mapping.detJ_at([1/3, 1/3])
