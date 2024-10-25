@@ -5,15 +5,12 @@ from finat.piola_mapped import PiolaBubbleElement
 
 
 class BernardiRaugel(PiolaBubbleElement):
-    def __init__(self, cell, degree=None, subdegree=1):
-        sd = cell.get_spatial_dimension()
-        if degree is None:
-            degree = sd
+    def __init__(self, cell, order=1):
         if Citations is not None:
             Citations().register("BernardiRaugel1985")
-        super().__init__(FIAT.BernardiRaugel(cell, degree, subdegree=subdegree))
+        super().__init__(FIAT.BernardiRaugel(cell, order=order))
 
 
 class BernardiRaugelBubble(BernardiRaugel):
     def __init__(self, cell, degree=None):
-        super().__init__(cell, degree=degree, subdegree=0)
+        super().__init__(cell, order=0)
