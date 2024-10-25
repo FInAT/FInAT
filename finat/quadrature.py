@@ -74,9 +74,9 @@ class QuadratureRule(AbstractQuadratureRule):
     """Generic quadrature rule with no internal structure."""
 
     def __init__(self, point_set, weights):
-        weights = numpy.asarray(weights)
-        assert len(point_set.points) == len(weights)
+        assert len(point_set.points) == len(numpy.asarray(weights))
 
+        self._parameters = (point_set, weights)
         self.point_set = point_set
         self.weights = numpy.asarray(weights)
 
@@ -88,6 +88,9 @@ class QuadratureRule(AbstractQuadratureRule):
     def weight_expression(self):
         return gem.Indexed(gem.Literal(self.weights), self.point_set.indices)
 
+    @property
+    def ufl_signature(self):
+        return type(self).__name__ + str(self._parameters)
 
 class TensorProductQuadratureRule(AbstractQuadratureRule):
     """Quadrature rule which is a tensor product of other rules."""
