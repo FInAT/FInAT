@@ -169,6 +169,7 @@ def check_zany_piola_mapping(element, ref_cell, phys_cell, *args, **kwargs):
                          finat.ChristiansenHu,
                          finat.ArnoldWinther,
                          finat.ArnoldWintherNC,
+                         finat.HuZhang,
                          finat.JohnsonMercier,
                          finat.GuzmanNeilanFirstKindH1,
                          finat.GuzmanNeilanSecondKindH1,

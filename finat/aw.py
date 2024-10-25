@@ -112,9 +112,10 @@ class ArnoldWinther(PhysicallyMappedElement, FiatElement):
         super().__init__(FIAT.ArnoldWinther(cell, degree))
 
     def basis_transformation(self, coordinate_mapping):
-        """The extra 6 dofs removed here correspond to the constraints."""
-        V = numpy.zeros((30, 24), dtype=object)
-
+        # The extra 6 dofs removed here correspond to the constraints
+        nbfs = self._element.space_dimension()
+        ndofs = self.space_dimension()
+        V = numpy.eye(nbfs, ndofs, dtype=object)
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
 
@@ -122,12 +123,15 @@ class ArnoldWinther(PhysicallyMappedElement, FiatElement):
 
         # Put into the right rows and columns.
         V[0:3, 0:3] = V[3:6, 3:6] = V[6:9, 6:9] = W
+        voffset = 9
 
-        V[9:21, 9:21] = _facet_transform(self.cell, 1, coordinate_mapping)
+        Vsub = _facet_transform(self.cell, 1, coordinate_mapping)
+        foffset = voffset + Vsub.shape[0]
+        V[voffset:foffset, voffset:foffset] = Vsub
 
         # internal DOFs
         detJ = coordinate_mapping.detJ_at([1/3, 1/3])
-        V[21:24, 21:24] = W / detJ
+        V[foffset:foffset+3, foffset:foffset+3] = W / detJ
 
         # RESCALING FOR CONDITIONING
         h = coordinate_mapping.cell_size()
@@ -152,24 +156,9 @@ class ArnoldWinther(PhysicallyMappedElement, FiatElement):
                 1: {0: [9, 10, 11, 12], 1: [13, 14, 15, 16], 2: [17, 18, 19, 20]},
                 2: {0: [21, 22, 23]}}
 
-    # need to overload since we're cutting out some dofs from the FIAT element.
-    def entity_closure_dofs(self):
-        ct = self.cell.topology
-        ecdofs = {i: {} for i in range(3)}
-        for i in range(3):
-            ecdofs[0][i] = list(range(3*i, 3*(i+1)))
-
-        for i in range(3):
-            ecdofs[1][i] = [dof for v in ct[1][i] for dof in ecdofs[0][v]] + \
-                list(range(9+4*i, 9+4*(i+1)))
-
-        ecdofs[2][0] = list(range(24))
-
-        return ecdofs
-
     @property
     def index_shape(self):
-        return (24,)
+        return (self.space_dimension(),)
 
     def space_dimension(self):
         return 24
