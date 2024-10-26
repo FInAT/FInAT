@@ -102,8 +102,8 @@ def test_argyris_point(ref_cell, phys_cell):
 
 
 def check_zany_piola_mapping(element, ref_cell, phys_cell, *args, **kwargs):
-    phys_element = element(phys_cell).fiat_equivalent
-    finat_element = element(ref_cell)
+    phys_element = element(phys_cell, *args, **kwargs).fiat_equivalent
+    finat_element = element(ref_cell, *args, **kwargs)
 
     ref_element = finat_element._element
     ref_cell = ref_element.get_reference_element()
@@ -170,13 +170,18 @@ def check_zany_piola_mapping(element, ref_cell, phys_cell, *args, **kwargs):
                          finat.ArnoldWinther,
                          finat.ArnoldWintherNC,
                          finat.HuZhang,
+                         (finat.HuZhang, 4),
                          finat.JohnsonMercier,
                          finat.GuzmanNeilanFirstKindH1,
                          finat.GuzmanNeilanSecondKindH1,
                          finat.GuzmanNeilanBubble,
                          ])
 def test_piola_triangle(ref_cell, phys_cell, element):
-    check_zany_piola_mapping(element, ref_cell, phys_cell)
+    args = []
+    if type(element) is tuple:
+        element, degree = element
+        args.append(degree)
+    check_zany_piola_mapping(element, ref_cell, phys_cell, *args)
 
 
 @pytest.fixture
