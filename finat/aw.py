@@ -62,19 +62,13 @@ class ArnoldWintherNC(PhysicallyMappedElement, FiatElement):
     def basis_transformation(self, coordinate_mapping):
         """Note, the extra 3 dofs which are removed here
         correspond to the constraints."""
-        V = numpy.zeros((18, 15), dtype=object)
+        numbf = self._element.space_dimension()
+        ndof = self.space_dimension()
+        V = numpy.eye(numbf, ndof, dtype=object)
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
 
         V[:12, :12] = _facet_transform(self.cell, 1, coordinate_mapping)
-
-        # internal dofs
-        sd = self.cell.get_spatial_dimension()
-        bary, = self.cell.make_points(sd, 0, sd+1)
-        detJ = coordinate_mapping.detJ_at(bary)
-        W = _evaluation_transform(self.cell, coordinate_mapping)
-
-        V[12:15, 12:15] = W / detJ
 
         # Note: that the edge DOFs are scaled by edge lengths in FIAT implies
         # that they are already have the necessary rescaling to improve
@@ -112,26 +106,18 @@ class ArnoldWinther(PhysicallyMappedElement, FiatElement):
             V[multiindex] = Literal(V[multiindex])
 
         sd = self.cell.get_spatial_dimension()
-        bary, = self.cell.make_points(sd, 0, sd+1)
-        detJ = coordinate_mapping.detJ_at(bary)
         W = _evaluation_transform(self.cell, coordinate_mapping)
         ncomp = W.shape[0]
 
         # Put into the right rows and columns.
         V[0:3, 0:3] = V[3:6, 3:6] = V[6:9, 6:9] = W
-        num_verts = sd+1
+        num_verts = sd + 1
         cur = num_verts * ncomp
 
         Vsub = _facet_transform(self.cell, 1, coordinate_mapping)
         fdofs = Vsub.shape[0]
         V[cur:cur+fdofs, cur:cur+fdofs] = Vsub
         cur += fdofs
-
-        # internal DOFs
-        W /= detJ
-        while cur < ndof:
-            V[cur:cur+ncomp, cur:cur+ncomp] = W
-            cur += ncomp
 
         # RESCALING FOR CONDITIONING
         h = coordinate_mapping.cell_size()

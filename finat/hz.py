@@ -21,8 +21,6 @@ class HuZhang(PhysicallyMappedElement, FiatElement):
             V[multiindex] = Literal(V[multiindex])
 
         sd = self.cell.get_spatial_dimension()
-        bary, = self.cell.make_points(sd, 0, sd+1)
-        detJ = coordinate_mapping.detJ_at(bary)
         W = _evaluation_transform(self.cell, coordinate_mapping)
 
         # Put into the right rows and columns.
@@ -37,11 +35,10 @@ class HuZhang(PhysicallyMappedElement, FiatElement):
         cur += fdofs
 
         # internal DOFs
-        if self.variant != "point":
-            W /= detJ
-        while cur < ndofs:
-            V[cur:cur+ncomp, cur:cur+ncomp] = W
-            cur += ncomp
+        if self.variant == "point":
+            while cur < ndofs:
+                V[cur:cur+ncomp, cur:cur+ncomp] = W
+                cur += ncomp
 
         # RESCALING FOR CONDITIONING
         h = coordinate_mapping.cell_size()
