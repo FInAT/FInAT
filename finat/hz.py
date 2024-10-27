@@ -11,6 +11,7 @@ class HuZhang(PhysicallyMappedElement, FiatElement):
     def __init__(self, cell, degree=3, variant=None):
         if Citations is not None:
             Citations().register("Hu2015")
+        self.variant = variant
         super().__init__(FIAT.HuZhang(cell, degree, variant=variant))
 
     def basis_transformation(self, coordinate_mapping):
@@ -36,8 +37,10 @@ class HuZhang(PhysicallyMappedElement, FiatElement):
         cur += fdofs
 
         # internal DOFs
+        if self.variant != "point":
+            W /= detJ
         while cur < ndofs:
-            V[cur:cur+ncomp, cur:cur+ncomp] = W / detJ
+            V[cur:cur+ncomp, cur:cur+ncomp] = W
             cur += ncomp
 
         # RESCALING FOR CONDITIONING

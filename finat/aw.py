@@ -41,7 +41,7 @@ def _evaluation_transform(fiat_cell, coordinate_mapping):
     sd = fiat_cell.get_spatial_dimension()
     bary, = fiat_cell.make_points(sd, 0, sd+1)
     J = coordinate_mapping.jacobian_at(bary)
-    K = adjugate(numpy.array([[J[i, j] for j in range(sd)] for i in range(sd)]))
+    K = adjugate([[J[i, j] for j in range(sd)] for i in range(sd)])
 
     indices = [(i, j) for i in range(sd) for j in range(i, sd)]
     ncomp = len(indices)
@@ -128,8 +128,9 @@ class ArnoldWinther(PhysicallyMappedElement, FiatElement):
         cur += fdofs
 
         # internal DOFs
+        W /= detJ
         while cur < ndof:
-            V[cur:cur+ncomp, cur:cur+ncomp] = W / detJ
+            V[cur:cur+ncomp, cur:cur+ncomp] = W
             cur += ncomp
 
         # RESCALING FOR CONDITIONING

@@ -32,9 +32,10 @@ class JohnsonMercier(PhysicallyMappedElement, FiatElement):  # symmetric matrix 
         bary, = self.cell.make_points(sd, 0, sd+1)
         detJ = coordinate_mapping.detJ_at(bary)
         W = _evaluation_transform(self.cell, coordinate_mapping)
+        W /= detJ
         ncomp = W.shape[0]
         while cur < ndof:
-            V[cur:cur+ncomp, cur:cur+ncomp] = W / detJ
+            V[cur:cur+ncomp, cur:cur+ncomp] = W
             cur += ncomp
 
         # Note: that the edge DOFs are scaled by edge lengths in FIAT implies

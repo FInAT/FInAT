@@ -161,19 +161,20 @@ def check_zany_piola_mapping(element, ref_cell, phys_cell, *args, **kwargs):
                          finat.ChristiansenHu,
                          finat.ArnoldWinther,
                          finat.ArnoldWintherNC,
-                         finat.HuZhang,
-                         (finat.HuZhang, 4),
                          finat.JohnsonMercier,
                          finat.GuzmanNeilanFirstKindH1,
                          finat.GuzmanNeilanSecondKindH1,
                          finat.GuzmanNeilanBubble,
                          ])
 def test_piola_triangle(ref_cell, phys_cell, element):
-    args = []
-    if type(element) is tuple:
-        element, degree = element
-        args.append(degree)
-    check_zany_piola_mapping(element, ref_cell, phys_cell, *args)
+    check_zany_piola_mapping(element, ref_cell, phys_cell)
+
+
+@pytest.mark.parametrize("element, degree, variant", [
+    *((finat.HuZhang, k, v) for v in ("integral", "point") for k in range(3, 6)),
+])
+def test_piola_triangle_high_order(ref_cell, phys_cell, element, degree, variant):
+    check_zany_piola_mapping(element, ref_cell, phys_cell, degree, variant)
 
 
 @pytest.fixture
