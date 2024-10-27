@@ -56,21 +56,21 @@ def check_zany_mapping(element, ref_cell, phys_cell, *args, **kwargs):
     phys_points = make_unisolvent_points(phys_element)
     phys_vals = phys_element.tabulate(0, phys_points)[z]
 
-    numdofs = finat_element.space_dimension()
-    numbfs = phys_element.space_dimension()
-    if numbfs == numdofs:
-        # Solve for the basis transformation and compare results
-        ref_vals = ref_element.tabulate(0, ref_points)[z]
-        Phi = ref_vals.reshape(numbfs, -1)
-        phi = phys_vals.reshape(numbfs, -1)
-        Mh = np.linalg.solve(Phi @ Phi.T, Phi @ phi.T).T
-        Mh[abs(Mh) < 1E-10] = 0
+    num_dofs = finat_element.space_dimension()
+    num_bfs = phys_element.space_dimension()
 
-        Mgem = finat_element.basis_transformation(mapping)
-        M = evaluate([Mgem])[0].arr
-        assert np.allclose(M, Mh, atol=1E-9), str(Mh.T-M.T)
+    # Solve for the basis transformation and compare results
+    ref_vals = ref_element.tabulate(0, ref_points)[z]
+    Phi = ref_vals.reshape(num_bfs, -1)
+    phi = phys_vals.reshape(num_bfs, -1)
+    Mh = np.linalg.solve(Phi @ Phi.T, Phi @ phi.T).T
+    Mh = Mh[:num_dofs]
+    Mh[abs(Mh) < 1E-10] = 0
 
-    assert np.allclose(finat_vals, phys_vals[:numdofs])
+    Mgem = finat_element.basis_transformation(mapping)
+    M = evaluate([Mgem])[0].arr
+    assert np.allclose(M, Mh, atol=1E-9), str(Mh.T-M.T)
+    assert np.allclose(finat_vals, phys_vals[:num_dofs])
 
 
 @pytest.mark.parametrize("element", [
@@ -109,10 +109,6 @@ def check_zany_piola_mapping(element, ref_cell, phys_cell, *args, **kwargs):
     ref_cell = ref_element.get_reference_element()
     phys_cell = phys_element.get_reference_element()
     sd = ref_cell.get_spatial_dimension()
-    try:
-        indices = finat_element._indices
-    except AttributeError:
-        indices = slice(None)
 
     shape = ref_element.value_shape()
     ref_pts = make_unisolvent_points(ref_element, interior=True)
@@ -136,28 +132,24 @@ def check_zany_piola_mapping(element, ref_cell, phys_cell, *args, **kwargs):
         for k in range(ref_vals.shape[-1]):
             ref_vals_piola[i, ..., k] = piola_map(ref_vals[i, ..., k])
 
-    dofs = finat_element.entity_dofs()
     num_bfs = phys_element.space_dimension()
     num_dofs = finat_element.space_dimension()
-    num_facet_dofs = num_dofs - sum(len(dofs[sd][entity]) for entity in dofs[sd])
 
     # Zany map the results
     mappng = MyMapping(ref_cell, phys_cell)
     Mgem = finat_element.basis_transformation(mappng)
     M = evaluate([Mgem])[0].arr
-    shp = (num_dofs, *shape, -1)
-    ref_vals_zany = (M @ ref_vals_piola.reshape(num_bfs, -1)).reshape(shp)
+    ref_vals_zany = np.tensordot(M, ref_vals_piola, (-1, 0))
 
     # Solve for the basis transformation and compare results
     Phi = ref_vals_piola.reshape(num_bfs, -1)
     phi = phys_vals.reshape(num_bfs, -1)
     Mh = np.linalg.solve(Phi @ Phi.T, Phi @ phi.T).T
-    M = M[:num_facet_dofs]
-    Mh = Mh[indices][:num_facet_dofs]
+    Mh = Mh[:num_dofs]
     Mh[abs(Mh) < 1E-10] = 0.0
     M[abs(M) < 1E-10] = 0.0
     assert np.allclose(M, Mh), str(M.T - Mh.T)
-    assert np.allclose(ref_vals_zany[:num_facet_dofs], phys_vals[indices][:num_facet_dofs])
+    assert np.allclose(ref_vals_zany, phys_vals[:num_dofs])
 
 
 @pytest.mark.parametrize("element", [
