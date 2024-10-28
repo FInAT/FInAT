@@ -7,19 +7,6 @@ from gem.interpreter import evaluate
 from fiat_mapping import MyMapping
 
 
-@pytest.fixture
-def ref_cell(request):
-    K = FIAT.ufc_simplex(2)
-    return K
-
-
-@pytest.fixture
-def phys_cell(request):
-    K = FIAT.ufc_simplex(2)
-    K.vertices = ((0.0, 0.1), (1.17, -0.09), (0.15, 1.84))
-    return K
-
-
 def make_unisolvent_points(element, interior=False):
     degree = element.degree()
     ref_complex = element.get_reference_complex()
@@ -98,6 +85,19 @@ def check_zany_mapping(element, ref_cell, phys_cell, *args, **kwargs):
     assert np.allclose(ref_vals_zany, phys_vals[:num_dofs])
 
 
+@pytest.fixture
+def ref_tri(request):
+    K = FIAT.ufc_simplex(2)
+    return K
+
+
+@pytest.fixture
+def phys_tri(request):
+    K = FIAT.ufc_simplex(2)
+    K.vertices = ((0.0, 0.1), (1.17, -0.09), (0.15, 1.84))
+    return K
+
+
 @pytest.mark.parametrize("element", [
                          finat.Morley,
                          finat.QuadraticPowellSabin6,
@@ -106,23 +106,23 @@ def check_zany_mapping(element, ref_cell, phys_cell, *args, **kwargs):
                          finat.ReducedHsiehCloughTocher,
                          finat.Bell,
                          ])
-def test_C1_elements(ref_cell, phys_cell, element):
+def test_C1_elements(ref_tri, phys_tri, element):
     kwargs = {}
     if element == finat.QuadraticPowellSabin12:
         kwargs = dict(avg=True)
-    check_zany_mapping(element, ref_cell, phys_cell, **kwargs)
+    check_zany_mapping(element, ref_tri, phys_tri, **kwargs)
 
 
 @pytest.mark.parametrize("element, degree", [
     *((finat.Argyris, k) for k in range(5, 8)),
     *((finat.HsiehCloughTocher, k) for k in range(3, 6))
 ])
-def test_high_order_C1_elements(ref_cell, phys_cell, element, degree):
-    check_zany_mapping(element, ref_cell, phys_cell, degree, avg=True)
+def test_high_order_C1_elements(ref_tri, phys_tri, element, degree):
+    check_zany_mapping(element, ref_tri, phys_tri, degree, avg=True)
 
 
-def test_argyris_point(ref_cell, phys_cell):
-    check_zany_mapping(finat.Argyris, ref_cell, phys_cell, variant="point")
+def test_argyris_point(ref_tri, phys_tri):
+    check_zany_mapping(finat.Argyris, ref_tri, phys_tri, variant="point")
 
 
 @pytest.mark.parametrize("element", [
@@ -139,15 +139,15 @@ def test_argyris_point(ref_cell, phys_cell):
                          finat.GuzmanNeilanSecondKindH1,
                          finat.GuzmanNeilanBubble,
                          ])
-def test_piola_triangle(ref_cell, phys_cell, element):
-    check_zany_mapping(element, ref_cell, phys_cell)
+def test_piola_triangle(ref_tri, phys_tri, element):
+    check_zany_mapping(element, ref_tri, phys_tri)
 
 
 @pytest.mark.parametrize("element, degree, variant", [
     *((finat.HuZhang, k, v) for v in ("integral", "point") for k in range(3, 6)),
 ])
-def test_piola_triangle_high_order(ref_cell, phys_cell, element, degree, variant):
-    check_zany_mapping(element, ref_cell, phys_cell, degree, variant)
+def test_piola_triangle_high_order(ref_tri, phys_tri, element, degree, variant):
+    check_zany_mapping(element, ref_tri, phys_tri, degree, variant)
 
 
 @pytest.fixture
@@ -179,3 +179,16 @@ def phys_tet(request):
                          ])
 def test_piola_tetrahedron(ref_tet, phys_tet, element):
     check_zany_mapping(element, ref_tet, phys_tet)
+
+
+@pytest.mark.parametrize("element, degree", [
+                         *((finat.Regge, k) for k in range(3)),
+                         *((finat.HellanHerrmannJohnson, k) for k in range(3)),
+                         ])
+@pytest.mark.parametrize("dimension", [2, 3])
+def test_affine(ref_tri, phys_tri, ref_tet, phys_tet, element, degree, dimension):
+    if dimension == 2:
+        ref_el, phys_el = ref_tri, phys_tri
+    elif dimension == 3:
+        ref_el, phys_el = ref_tet, phys_tet
+    check_zany_mapping(element, ref_el, phys_el, degree)
