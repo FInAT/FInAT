@@ -15,6 +15,7 @@ from .fiat_elements import KongMulderVeldhuizen  # noqa: F401
 from .argyris import Argyris            # noqa: F401
 from .aw import ArnoldWinther           # noqa: F401
 from .aw import ArnoldWintherNC         # noqa: F401
+from .hz import HuZhang                 # noqa: F401
 from .bell import Bell                  # noqa: F401
 from .bernardi_raugel import BernardiRaugel, BernardiRaugelBubble   # noqa: F401
 from .hct import HsiehCloughTocher, ReducedHsiehCloughTocher   # noqa: F401

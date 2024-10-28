@@ -5,7 +5,7 @@ from gem import ListTensor, Literal
 
 from finat.fiat_elements import FiatElement
 from finat.physically_mapped import Citations, PhysicallyMappedElement
-from finat.piola_mapped import normal_tangential_edge_transform, normal_tangential_face_transform
+from finat.piola_mapped import adjugate, normal_tangential_edge_transform, normal_tangential_face_transform
 
 
 def _facet_transform(fiat_cell, facet_moment_degree, coordinate_mapping):
@@ -41,18 +41,15 @@ def _evaluation_transform(fiat_cell, coordinate_mapping):
     sd = fiat_cell.get_spatial_dimension()
     bary, = fiat_cell.make_points(sd, 0, sd+1)
     J = coordinate_mapping.jacobian_at(bary)
+    K = adjugate([[J[i, j] for j in range(sd)] for i in range(sd)])
 
-    W = numpy.zeros((3, 3), dtype=object)
-    W[0, 0] = J[1, 1]*J[1, 1]
-    W[0, 1] = -2*J[1, 1]*J[0, 1]
-    W[0, 2] = J[0, 1]*J[0, 1]
-    W[1, 0] = -1*J[1, 1]*J[1, 0]
-    W[1, 1] = J[1, 1]*J[0, 0] + J[0, 1]*J[1, 0]
-    W[1, 2] = -1*J[0, 1]*J[0, 0]
-    W[2, 0] = J[1, 0]*J[1, 0]
-    W[2, 1] = -2*J[1, 0]*J[0, 0]
-    W[2, 2] = J[0, 0]*J[0, 0]
-
+    indices = [(i, j) for i in range(sd) for j in range(i, sd)]
+    ncomp = len(indices)
+    W = numpy.zeros((ncomp, ncomp), dtype=object)
+    for p, (i, j) in enumerate(indices):
+        for q, (m, n) in enumerate(indices):
+            W[p, q] = 0.5*(K[i, m] * K[j, n] + K[j, m] * K[i, n])
+    W[:, [i != j for i, j in indices]] *= 2
     return W
 
 
@@ -65,17 +62,13 @@ class ArnoldWintherNC(PhysicallyMappedElement, FiatElement):
     def basis_transformation(self, coordinate_mapping):
         """Note, the extra 3 dofs which are removed here
         correspond to the constraints."""
-        V = numpy.zeros((18, 15), dtype=object)
+        numbf = self._element.space_dimension()
+        ndof = self.space_dimension()
+        V = numpy.eye(numbf, ndof, dtype=object)
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
 
         V[:12, :12] = _facet_transform(self.cell, 1, coordinate_mapping)
-
-        # internal dofs
-        W = _evaluation_transform(self.cell, coordinate_mapping)
-        detJ = coordinate_mapping.detJ_at([1/3, 1/3])
-
-        V[12:15, 12:15] = W / detJ
 
         # Note: that the edge DOFs are scaled by edge lengths in FIAT implies
         # that they are already have the necessary rescaling to improve
@@ -90,16 +83,9 @@ class ArnoldWintherNC(PhysicallyMappedElement, FiatElement):
                 1: {0: [0, 1, 2, 3], 1: [4, 5, 6, 7], 2: [8, 9, 10, 11]},
                 2: {0: [12, 13, 14]}}
 
-    def entity_closure_dofs(self):
-        return {0: {0: [],
-                    1: [],
-                    2: []},
-                1: {0: [0, 1, 2, 3], 1: [4, 5, 6, 7], 2: [8, 9, 10, 11]},
-                2: {0: list(range(15))}}
-
     @property
     def index_shape(self):
-        return (15,)
+        return (self.space_dimension(),)
 
     def space_dimension(self):
         return 15
@@ -112,37 +98,35 @@ class ArnoldWinther(PhysicallyMappedElement, FiatElement):
         super().__init__(FIAT.ArnoldWinther(cell, degree))
 
     def basis_transformation(self, coordinate_mapping):
-        """The extra 6 dofs removed here correspond to the constraints."""
-        V = numpy.zeros((30, 24), dtype=object)
-
+        # The extra 6 dofs removed here correspond to the constraints
+        numbf = self._element.space_dimension()
+        ndof = self.space_dimension()
+        V = numpy.eye(numbf, ndof, dtype=object)
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
 
+        sd = self.cell.get_spatial_dimension()
         W = _evaluation_transform(self.cell, coordinate_mapping)
+        ncomp = W.shape[0]
 
         # Put into the right rows and columns.
         V[0:3, 0:3] = V[3:6, 3:6] = V[6:9, 6:9] = W
+        num_verts = sd + 1
+        cur = num_verts * ncomp
 
-        V[9:21, 9:21] = _facet_transform(self.cell, 1, coordinate_mapping)
-
-        # internal DOFs
-        detJ = coordinate_mapping.detJ_at([1/3, 1/3])
-        V[21:24, 21:24] = W / detJ
+        Vsub = _facet_transform(self.cell, 1, coordinate_mapping)
+        fdofs = Vsub.shape[0]
+        V[cur:cur+fdofs, cur:cur+fdofs] = Vsub
+        cur += fdofs
 
         # RESCALING FOR CONDITIONING
         h = coordinate_mapping.cell_size()
-
-        for e in range(3):
-            eff_h = h[e]
-            for i in range(24):
-                V[i, 3*e] = V[i, 3*e]/(eff_h*eff_h)
-                V[i, 1+3*e] = V[i, 1+3*e]/(eff_h*eff_h)
-                V[i, 2+3*e] = V[i, 2+3*e]/(eff_h*eff_h)
+        for e in range(num_verts):
+            V[:, ncomp*e:ncomp*(e+1)] *= 1/(h[e] * h[e])
 
         # Note: that the edge DOFs are scaled by edge lengths in FIAT implies
         # that they are already have the necessary rescaling to improve
         # conditioning.
-
         return ListTensor(V.T)
 
     def entity_dofs(self):
@@ -152,24 +136,9 @@ class ArnoldWinther(PhysicallyMappedElement, FiatElement):
                 1: {0: [9, 10, 11, 12], 1: [13, 14, 15, 16], 2: [17, 18, 19, 20]},
                 2: {0: [21, 22, 23]}}
 
-    # need to overload since we're cutting out some dofs from the FIAT element.
-    def entity_closure_dofs(self):
-        ct = self.cell.topology
-        ecdofs = {i: {} for i in range(3)}
-        for i in range(3):
-            ecdofs[0][i] = list(range(3*i, 3*(i+1)))
-
-        for i in range(3):
-            ecdofs[1][i] = [dof for v in ct[1][i] for dof in ecdofs[0][v]] + \
-                list(range(9+4*i, 9+4*(i+1)))
-
-        ecdofs[2][0] = list(range(24))
-
-        return ecdofs
-
     @property
     def index_shape(self):
-        return (24,)
+        return (self.space_dimension(),)
 
     def space_dimension(self):
         return 24

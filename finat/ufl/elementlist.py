@@ -104,6 +104,7 @@ register_element("Hellan-Herrmann-Johnson", "HHJ", 2, HDivDiv, "double contravar
 register_element("Gopalakrishnan-Lederer-Schoberl", "GLS", 2, HCurlDiv, "covariant contravariant Piola", (1, None), ("triangle", "tetrahedron"))
 register_element("Nonconforming Arnold-Winther", "AWnc", 2, HDiv, "double contravariant Piola", (2, 2), ("triangle",))
 register_element("Conforming Arnold-Winther", "AWc", 2, HDiv, "double contravariant Piola", (3, None), ("triangle",))
+register_element("Hu-Zhang", "HZ", 2, HDiv, "double contravariant Piola", (3, None), ("triangle"))
 
 # Zany elements
 register_element("Bernardi-Raugel", "BR", 1, H1, "contravariant Piola", (1, None), simplices[1:])
