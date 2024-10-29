@@ -184,6 +184,7 @@ def test_piola_tetrahedron(ref_tet, phys_tet, element):
 @pytest.mark.parametrize("element, degree", [
                          *((finat.Regge, k) for k in range(3)),
                          *((finat.HellanHerrmannJohnson, k) for k in range(3)),
+                         *((finat.GopalakrishnanLedererSchoberl, k) for k in range(1, 3)),
                          ])
 @pytest.mark.parametrize("dimension", [2, 3])
 def test_affine(ref_tri, phys_tri, ref_tet, phys_tet, element, degree, dimension):
