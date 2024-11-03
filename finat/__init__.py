@@ -8,6 +8,7 @@ from .fiat_elements import TrimmedSerendipityCurl  # noqa: F401
 from .fiat_elements import BrezziDouglasMarini, BrezziDouglasFortinMarini  # noqa: F401
 from .fiat_elements import Nedelec, NedelecSecondKind, RaviartThomas  # noqa: F401
 from .fiat_elements import HellanHerrmannJohnson, Regge  # noqa: F401
+from .fiat_elements import HuLinZhang  # noqa: F401
 from .fiat_elements import GopalakrishnanLedererSchoberlFirstKind  # noqa: F401
 from .fiat_elements import GopalakrishnanLedererSchoberlSecondKind  # noqa: F401
 from .fiat_elements import FacetBubble  # noqa: F401

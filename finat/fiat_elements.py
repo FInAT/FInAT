@@ -323,6 +323,11 @@ class HellanHerrmannJohnson(FiatElement):  # symmetric matrix valued
         super().__init__(FIAT.HellanHerrmannJohnson(cell, degree, variant=variant))
 
 
+class HuLinZhang(FiatElement):  # traceless matrix valued
+    def __init__(self, cell, degree):
+        super().__init__(FIAT.HuLinZhang(cell, degree))
+
+
 class GopalakrishnanLedererSchoberlFirstKind(FiatElement):  # traceless matrix valued
     def __init__(self, cell, degree):
         super().__init__(FIAT.GopalakrishnanLedererSchoberlFirstKind(cell, degree))

@@ -177,6 +177,7 @@ def test_piola_triangle_high_order(ref_el, phys_el, element, degree, variant):
                          *((finat.HellanHerrmannJohnson, k) for k in range(3)),
                          *((finat.GopalakrishnanLedererSchoberlFirstKind, k) for k in range(1, 4)),
                          *((finat.GopalakrishnanLedererSchoberlSecondKind, k) for k in range(0, 3)),
+                         *((finat.HuLinZhang, k) for k in range(1, 2)),
                          ])
 @pytest.mark.parametrize("dimension", [2, 3])
 def test_affine(ref_el, phys_el, element, degree, dimension):

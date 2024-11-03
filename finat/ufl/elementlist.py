@@ -101,6 +101,7 @@ register_element("Kong-Mulder-Veldhuizen", "KMV", 0, H1, "identity", (1, None), 
 # Tensor elements
 register_element("Regge", "Regge", 2, HEin, "double covariant Piola", (0, None), simplices)
 register_element("Hellan-Herrmann-Johnson", "HHJ", 2, HDivDiv, "double contravariant Piola", (0, None), ("triangle", "tetrahedron"))
+register_element("Hu-Lin-Zhang", "HLZ", 2, HCurlDiv, "covariant contravariant Piola", (1, None), ("tetrahedron"))
 register_element("Gopalakrishnan-Lederer-Schoberl 1st kind", "GLS", 2, HCurlDiv, "covariant contravariant Piola", (1, None), simplices[1:])
 register_element("Gopalakrishnan-Lederer-Schoberl 2nd kind", "GLS2", 2, HCurlDiv, "covariant contravariant Piola", (0, None), simplices[1:])
 
