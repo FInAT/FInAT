@@ -9,6 +9,19 @@ from finat.fiat_elements import ScalarFiatElement
 from finat.physically_mapped import PhysicallyMappedElement, Citations
 
 
+def _normal_tangential_transform(fiat_cell, J, edge):
+    R = Literal([[0, 1], [-1, 0]])
+    that = fiat_cell.compute_edge_tangent(edge)
+    nhat = fiat_cell.compute_scaled_normal(edge)
+    nhat /= numpy.linalg.norm(nhat)
+    Jt = J @ Literal(that)
+    Jn = J @ Literal(nhat)
+    gamma = Jt @ Jt
+    alpha = (Jn @ R @ Jt) / gamma
+    beta = (Jn @ Jt) / gamma
+    return alpha, beta, Jt
+
+
 def _edge_transform(V, vorder, eorder, fiat_cell, coordinate_mapping, avg=False):
     """Basis transformation for integral edge moments.
 
@@ -22,7 +35,6 @@ def _edge_transform(V, vorder, eorder, fiat_cell, coordinate_mapping, avg=False)
     """
     sd = fiat_cell.get_spatial_dimension()
     J = coordinate_mapping.jacobian_at(fiat_cell.make_points(sd, 0, sd+1)[0])
-    R = Literal([[0, 1], [-1, 0]])
     pel = coordinate_mapping.physical_edge_lengths()
 
     # number of DOFs per vertex/edge
@@ -30,14 +42,7 @@ def _edge_transform(V, vorder, eorder, fiat_cell, coordinate_mapping, avg=False)
     eoffset = 2 * eorder + 1
     top = fiat_cell.get_topology()
     for e in sorted(top[1]):
-        that = fiat_cell.compute_edge_tangent(e)
-        nhat = fiat_cell.compute_scaled_normal(e)
-        nhat /= numpy.linalg.norm(nhat)
-
-        Jn = J @ Literal(nhat)
-        Jt = J @ Literal(that)
-        Bnt = (Jn @ Jt) / (Jt @ Jt)
-        Bnn = (Jn @ R @ Jt) / (Jt @ Jt)
+        Bnn, Bnt, Jt = _normal_tangential_transform(fiat_cell, J, e)
         if avg:
             Bnn = Bnn * pel[e]
 
@@ -73,7 +78,6 @@ class Argyris(PhysicallyMappedElement, ScalarFiatElement):
         sd = self.cell.get_spatial_dimension()
         bary, = self.cell.make_points(sd, 0, sd+1)
         J = coordinate_mapping.jacobian_at(bary)
-        R = Literal([[0, 1], [-1, 0]])
 
         ndof = self.space_dimension()
         V = numpy.eye(ndof, dtype=object)
@@ -108,14 +112,7 @@ class Argyris(PhysicallyMappedElement, ScalarFiatElement):
                 s = len(top[0]) * voffset + e
                 v0id, v1id = (v * voffset for v in top[1][e])
 
-                that = self.cell.compute_edge_tangent(e)
-                nhat = self.cell.compute_scaled_normal(e)
-                nhat /= numpy.linalg.norm(nhat)
-                Jt = J @ Literal(that)
-                Jn = J @ Literal(nhat)
-                Bnt = (Jn @ Jt) / (Jt @ Jt)
-                Bnn = (Jn @ R @ Jt) / (Jt @ Jt)
-
+                Bnn, Bnt, Jt = _normal_tangential_transform(self.cell, J, e)
                 V[s, s] = Bnn * pel[e]
 
                 # vertex points

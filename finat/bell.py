@@ -4,6 +4,7 @@ import FIAT
 
 from gem import Literal, ListTensor
 
+from finat.argyris import _normal_tangential_transform
 from finat.fiat_elements import ScalarFiatElement
 from finat.physically_mapped import PhysicallyMappedElement, Citations
 
@@ -46,13 +47,7 @@ class Bell(PhysicallyMappedElement, ScalarFiatElement):
         for e in sorted(top[1]):
             s = len(top[0]) * voffset + e
             v0id, v1id = (v * voffset for v in top[1][e])
-
-            that = self.cell.compute_edge_tangent(e)
-            nhat = self.cell.compute_scaled_normal(e)
-            nhat /= numpy.linalg.norm(nhat)
-            Jt = J @ Literal(that)
-            Jn = J @ Literal(nhat)
-            Bnt = (Jn @ Jt) / (Jt @ Jt)
+            Bnn, Bnt, Jt = _normal_tangential_transform(self.cell, J, e)
 
             # vertex points
             V[s, v1id] = 1/21 * Bnt
