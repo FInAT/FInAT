@@ -2,7 +2,7 @@ import numpy
 
 import FIAT
 
-from gem import Literal, ListTensor, partial_indexed
+from gem import Literal, ListTensor
 
 from finat.fiat_elements import ScalarFiatElement
 from finat.physically_mapped import PhysicallyMappedElement, Citations
@@ -43,30 +43,30 @@ class Bell(PhysicallyMappedElement, ScalarFiatElement):
             V[s+5, s+4] = 2*J[0, 1]*J[1, 1]
             V[s+5, s+5] = J[1, 1]*J[1, 1]
 
-        rns = coordinate_mapping.reference_normals()
-        pts = coordinate_mapping.physical_tangents()
-        pel = coordinate_mapping.physical_edge_lengths()
         for e in sorted(top[1]):
             s = len(top[0]) * voffset + e
             v0id, v1id = (v * voffset for v in top[1][e])
 
-            nhat = partial_indexed(rns, (e, ))
-            t = partial_indexed(pts, (e, ))
-            Bnt = (J @ nhat) @ t
+            that = self.cell.compute_edge_tangent(e)
+            nhat = self.cell.compute_scaled_normal(e)
+            nhat /= numpy.linalg.norm(nhat)
+            Jt = J @ Literal(that)
+            Jn = J @ Literal(nhat)
+            Bnt = (Jn @ Jt) / (Jt @ Jt)
 
             # vertex points
-            V[s, v1id] = 1/21 * Bnt / pel[e]
+            V[s, v1id] = 1/21 * Bnt
             V[s, v0id] = -1 * V[s, v1id]
 
             # vertex derivatives
             for i in range(sd):
-                V[s, v1id+1+i] = -1/42 * Bnt * t[i]
+                V[s, v1id+1+i] = -1/42 * Bnt * Jt[i]
                 V[s, v0id+1+i] = V[s, v1id+1+i]
 
             # second derivatives
-            tau = [t[0]*t[0], 2*t[0]*t[1], t[1]*t[1]]
+            tau = [Jt[0]*Jt[0], 2*Jt[0]*Jt[1], Jt[1]*Jt[1]]
             for i in range(len(tau)):
-                V[s, v1id+3+i] = 1/252 * (pel[e] * Bnt * tau[i])
+                V[s, v1id+3+i] = 1/252 * (Bnt * tau[i])
                 V[s, v0id+3+i] = -1 * V[s, v1id+3+i]
 
         # Patch up conditioning

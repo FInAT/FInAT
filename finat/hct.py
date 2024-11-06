@@ -1,6 +1,6 @@
 import FIAT
 import numpy
-from gem import ListTensor, Literal, partial_indexed
+from gem import ListTensor, Literal
 
 from finat.argyris import _edge_transform
 from finat.fiat_elements import ScalarFiatElement
@@ -79,26 +79,25 @@ class ReducedHsiehCloughTocher(PhysicallyMappedElement, ScalarFiatElement):
                 for j in range(sd):
                     V[s+1+i, s+1+j] = J[j, i]
 
-        rns = coordinate_mapping.reference_normals()
-        pts = coordinate_mapping.physical_tangents()
-        pel = coordinate_mapping.physical_edge_lengths()
-
         for e in sorted(top[1]):
             s = len(top[0]) * voffset + e
             v0id, v1id = (v * voffset for v in top[1][e])
 
-            nhat = partial_indexed(rns, (e, ))
-            t = partial_indexed(pts, (e, ))
-            Bnt = (J @ nhat) @ t
+            that = self.cell.compute_edge_tangent(e)
+            nhat = self.cell.compute_scaled_normal(e)
+            nhat /= numpy.linalg.norm(nhat)
+            Jt = J @ Literal(that)
+            Jn = J @ Literal(nhat)
+            Bnt = (Jn @ Jt) / (Jt @ Jt)
 
-            V[s, v0id] = Literal(1/5) * Bnt / pel[e]
-            V[s, v1id] = Literal(-1) * V[s, v0id]
+            # vertex points
+            V[s, v0id] = 1/5 * Bnt
+            V[s, v1id] = -1 * V[s, v0id]
 
-            R = Literal(1/10) * Bnt * t
-            V[s, v0id + 1] = R[0]
-            V[s, v0id + 2] = R[1]
-            V[s, v1id + 1] = R[0]
-            V[s, v1id + 2] = R[1]
+            # vertex derivatives
+            for i in range(sd):
+                V[s, v1id+1+i] = 1/10 * Bnt * Jt[i]
+                V[s, v0id+1+i] = V[s, v1id+1+i]
 
         # Patch up conditioning
         h = coordinate_mapping.cell_size()

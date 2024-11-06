@@ -3,7 +3,7 @@ from math import comb
 
 import FIAT
 
-from gem import Literal, ListTensor, partial_indexed
+from gem import Literal, ListTensor
 
 from finat.fiat_elements import ScalarFiatElement
 from finat.physically_mapped import PhysicallyMappedElement, Citations
@@ -22,9 +22,7 @@ def _edge_transform(V, vorder, eorder, fiat_cell, coordinate_mapping, avg=False)
     """
     sd = fiat_cell.get_spatial_dimension()
     J = coordinate_mapping.jacobian_at(fiat_cell.make_points(sd, 0, sd+1)[0])
-    rns = coordinate_mapping.reference_normals()
-    pts = coordinate_mapping.physical_tangents()
-    pns = coordinate_mapping.physical_normals()
+    R = Literal([[0, 1], [-1, 0]])
     pel = coordinate_mapping.physical_edge_lengths()
 
     # number of DOFs per vertex/edge
@@ -32,12 +30,14 @@ def _edge_transform(V, vorder, eorder, fiat_cell, coordinate_mapping, avg=False)
     eoffset = 2 * eorder + 1
     top = fiat_cell.get_topology()
     for e in sorted(top[1]):
-        nhat = partial_indexed(rns, (e, ))
-        n = partial_indexed(pns, (e, ))
-        t = partial_indexed(pts, (e, ))
-        Bn = J @ nhat / pel[e]
-        Bnt = Bn @ t
-        Bnn = Bn @ n
+        that = fiat_cell.compute_edge_tangent(e)
+        nhat = fiat_cell.compute_scaled_normal(e)
+        nhat /= numpy.linalg.norm(nhat)
+
+        Jn = J @ Literal(nhat)
+        Jt = J @ Literal(that)
+        Bnt = (Jn @ Jt) / (Jt @ Jt)
+        Bnn = (Jn @ R @ Jt) / (Jt @ Jt)
         if avg:
             Bnn = Bnn * pel[e]
 
@@ -70,7 +70,10 @@ class Argyris(PhysicallyMappedElement, ScalarFiatElement):
 
     def basis_transformation(self, coordinate_mapping):
         # Jacobian at barycenter
-        J = coordinate_mapping.jacobian_at([1/3, 1/3])
+        sd = self.cell.get_spatial_dimension()
+        bary, = self.cell.make_points(sd, 0, sd+1)
+        J = coordinate_mapping.jacobian_at(bary)
+        R = Literal([[0, 1], [-1, 0]])
 
         ndof = self.space_dimension()
         V = numpy.eye(ndof, dtype=object)
@@ -100,35 +103,34 @@ class Argyris(PhysicallyMappedElement, ScalarFiatElement):
         if self.variant == "integral":
             _edge_transform(V, vorder, eorder, self.cell, coordinate_mapping, avg=self.avg)
         else:
-            rns = coordinate_mapping.reference_normals()
-            pns = coordinate_mapping.physical_normals()
-            pts = coordinate_mapping.physical_tangents()
             pel = coordinate_mapping.physical_edge_lengths()
             for e in sorted(top[1]):
-                nhat = partial_indexed(rns, (e, ))
-                n = partial_indexed(pns, (e, ))
-                t = partial_indexed(pts, (e, ))
-                Bn = J @ nhat
-                Bnt = Bn @ t
-                Bnn = Bn @ n
-
                 s = len(top[0]) * voffset + e
                 v0id, v1id = (v * voffset for v in top[1][e])
-                V[s, s] = Bnn
+
+                that = self.cell.compute_edge_tangent(e)
+                nhat = self.cell.compute_scaled_normal(e)
+                nhat /= numpy.linalg.norm(nhat)
+                Jt = J @ Literal(that)
+                Jn = J @ Literal(nhat)
+                Bnt = (Jn @ Jt) / (Jt @ Jt)
+                Bnn = (Jn @ R @ Jt) / (Jt @ Jt)
+
+                V[s, s] = Bnn * pel[e]
 
                 # vertex points
-                V[s, v1id] = 15/8 * Bnt / pel[e]
+                V[s, v1id] = 15/8 * Bnt
                 V[s, v0id] = -1 * V[s, v1id]
 
                 # vertex derivatives
                 for i in range(sd):
-                    V[s, v1id+1+i] = -7/16 * Bnt * t[i]
+                    V[s, v1id+1+i] = -7/16 * Bnt * Jt[i]
                     V[s, v0id+1+i] = V[s, v1id+1+i]
 
                 # second derivatives
-                tau = [t[0]*t[0], 2*t[0]*t[1], t[1]*t[1]]
+                tau = [Jt[0]*Jt[0], 2*Jt[0]*Jt[1], Jt[1]*Jt[1]]
                 for i in range(len(tau)):
-                    V[s, v1id+3+i] = 1/32 * (pel[e] * Bnt * tau[i])
+                    V[s, v1id+3+i] = 1/32 * (Bnt * tau[i])
                     V[s, v0id+3+i] = -1 * V[s, v1id+3+i]
 
         # Patch up conditioning
