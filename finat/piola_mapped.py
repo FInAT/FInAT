@@ -151,7 +151,6 @@ class PiolaBubbleElement(PhysicallyMappedElement, FiatElement):
                         s = dofs[dim][e][k:k+sd]
                         V[numpy.ix_(s, s)] = Finv
                         k += sd
-
         # Unpick the normal component for the facet bubbles
         if sd == 2:
             transform = normal_tangential_edge_transform

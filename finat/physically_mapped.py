@@ -130,6 +130,16 @@ try:
         journal = {Mathematical Models and Methods in Applied Sciences}
 }
 """)
+    Citations().add("Hu2015", """
+@article{Hu2015,
+      author = {Hu, J.~ and Zhang, S.~},
+      title = {A family of conforming mixed finite elements for linear elasticity on triangular grids},
+      year = {2015},
+      month = jan,
+      archiveprefix = {arXiv},
+      eprint = {1406.7457},
+}
+""")
     Citations().add("Arbogast2017", """
 @techreport{Arbogast2017,
   title={Direct serendipity finite elements on convex quadrilaterals},

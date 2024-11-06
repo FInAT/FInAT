@@ -6,66 +6,47 @@ from gem import Literal, ListTensor
 
 from finat.fiat_elements import FiatElement
 from finat.physically_mapped import PhysicallyMappedElement, Citations
+from finat.piola_mapped import normal_tangential_edge_transform
+from copy import deepcopy
 
 
 class MardalTaiWinther(PhysicallyMappedElement, FiatElement):
     def __init__(self, cell, degree=3):
         if Citations is not None:
             Citations().register("Mardal2002")
-        super(MardalTaiWinther, self).__init__(FIAT.MardalTaiWinther(cell, degree))
+        super().__init__(FIAT.MardalTaiWinther(cell, degree))
+        entity_dofs = deepcopy(self._element.entity_dofs())
+        sd = cell.get_spatial_dimension()
+        fdofs = sd + 1
+        for f in entity_dofs[sd-1]:
+            entity_dofs[sd-1][f] = entity_dofs[sd-1][f][:fdofs]
+        self._entity_dofs = entity_dofs
+        self._space_dimension = fdofs * len(entity_dofs[sd-1])
 
     def basis_transformation(self, coordinate_mapping):
-        V = numpy.zeros((20, 9), dtype=object)
-
+        numbf = self._element.space_dimension()
+        ndof = self.space_dimension()
+        V = numpy.eye(numbf, ndof, dtype=object)
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
 
-        for i in range(0, 9, 3):
-            V[i, i] = Literal(1)
-            V[i+2, i+2] = Literal(1)
-
-        T = self.cell
-
-        # This bypasses the GEM wrapper.
-        that = numpy.array([T.compute_normalized_edge_tangent(i) for i in range(3)])
-        nhat = numpy.array([T.compute_normal(i) for i in range(3)])
-
-        detJ = coordinate_mapping.detJ_at([1/3, 1/3])
-        J = coordinate_mapping.jacobian_at([1/3, 1/3])
-        J_np = numpy.array([[J[0, 0], J[0, 1]],
-                            [J[1, 0], J[1, 1]]])
-        JTJ = J_np.T @ J_np
-
-        for e in range(3):
-            # Compute alpha and beta for the edge.
-            Ghat_T = numpy.array([nhat[e, :], that[e, :]])
-
-            (alpha, beta) = Ghat_T @ JTJ @ that[e, :] / detJ
-
-            # Stuff into the right rows and columns.
-            idx = 3*e + 1
-            V[idx, idx-1] = Literal(-1) * alpha / beta
-            V[idx, idx] = Literal(1) / beta
+        sd = self.cell.get_spatial_dimension()
+        bary, = self.cell.make_points(sd, 0, sd+1)
+        J = coordinate_mapping.jacobian_at(bary)
+        detJ = coordinate_mapping.detJ_at(bary)
+        entity_dofs = self.entity_dofs()
+        for f in sorted(entity_dofs[sd-1]):
+            cur = entity_dofs[sd-1][f][0]
+            V[cur+1, cur:cur+sd] = normal_tangential_edge_transform(self.cell, J, detJ, f)
 
         return ListTensor(V.T)
 
     def entity_dofs(self):
-        return {0: {0: [],
-                    1: [],
-                    2: []},
-                1: {0: [0, 1, 2], 1: [3, 4, 5], 2: [6, 7, 8]},
-                2: {0: []}}
-
-    def entity_closure_dofs(self):
-        return {0: {0: [],
-                    1: [],
-                    2: []},
-                1: {0: [0, 1, 2], 1: [3, 4, 5], 2: [6, 7, 8]},
-                2: {0: [0, 1, 2, 3, 4, 5, 6, 7, 8]}}
+        return self._entity_dofs
 
     @property
     def index_shape(self):
-        return (9,)
+        return (self._space_dimension,)
 
     def space_dimension(self):
-        return 9
+        return self._space_dimension

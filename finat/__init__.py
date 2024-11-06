@@ -8,12 +8,15 @@ from .fiat_elements import TrimmedSerendipityCurl  # noqa: F401
 from .fiat_elements import BrezziDouglasMarini, BrezziDouglasFortinMarini  # noqa: F401
 from .fiat_elements import Nedelec, NedelecSecondKind, RaviartThomas  # noqa: F401
 from .fiat_elements import HellanHerrmannJohnson, Regge  # noqa: F401
+from .fiat_elements import GopalakrishnanLedererSchoberlFirstKind  # noqa: F401
+from .fiat_elements import GopalakrishnanLedererSchoberlSecondKind  # noqa: F401
 from .fiat_elements import FacetBubble  # noqa: F401
 from .fiat_elements import KongMulderVeldhuizen  # noqa: F401
 
 from .argyris import Argyris            # noqa: F401
 from .aw import ArnoldWinther           # noqa: F401
 from .aw import ArnoldWintherNC         # noqa: F401
+from .hz import HuZhang                 # noqa: F401
 from .bell import Bell                  # noqa: F401
 from .bernardi_raugel import BernardiRaugel, BernardiRaugelBubble   # noqa: F401
 from .hct import HsiehCloughTocher, ReducedHsiehCloughTocher   # noqa: F401

@@ -313,7 +313,7 @@ def point_evaluation(fiat_element, order, refcoords, entity):
     return result
 
 
-class Regge(FiatElement):  # naturally tensor valued
+class Regge(FiatElement):  # symmetric matrix valued
     def __init__(self, cell, degree, variant=None):
         super().__init__(FIAT.Regge(cell, degree, variant=variant))
 
@@ -321,6 +321,16 @@ class Regge(FiatElement):  # naturally tensor valued
 class HellanHerrmannJohnson(FiatElement):  # symmetric matrix valued
     def __init__(self, cell, degree, variant=None):
         super().__init__(FIAT.HellanHerrmannJohnson(cell, degree, variant=variant))
+
+
+class GopalakrishnanLedererSchoberlFirstKind(FiatElement):  # traceless matrix valued
+    def __init__(self, cell, degree):
+        super().__init__(FIAT.GopalakrishnanLedererSchoberlFirstKind(cell, degree))
+
+
+class GopalakrishnanLedererSchoberlSecondKind(FiatElement):  # traceless matrix valued
+    def __init__(self, cell, degree):
+        super().__init__(FIAT.GopalakrishnanLedererSchoberlSecondKind(cell, degree))
 
 
 class ScalarFiatElement(FiatElement):
