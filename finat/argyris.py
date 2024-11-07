@@ -18,16 +18,12 @@ def _vertex_transform(V, fiat_cell, J):
     G = [[J[j, i] for j in range(sd)] for i in range(sd)]
 
     hdofs = (sd*(sd+1))//2
+    indices = [(i, j) for i in range(sd) for j in range(i, sd)]
     H = numpy.zeros((hdofs, hdofs), dtype=object)
-    H[0, 0] = J[0, 0]*J[0, 0]
-    H[0, 1] = J[0, 0]*J[1, 0] * 2
-    H[0, 2] = J[1, 0]*J[1, 0]
-    H[1, 0] = J[0, 0]*J[0, 1]
-    H[1, 1] = J[0, 0]*J[1, 1] + J[1, 0]*J[0, 1]
-    H[1, 2] = J[1, 0]*J[1, 1]
-    H[2, 0] = J[0, 1]*J[0, 1]
-    H[2, 1] = J[0, 1]*J[1, 1] * 2
-    H[2, 2] = J[1, 1]*J[1, 1]
+    for p, (i, j) in enumerate(indices):
+        for q, (m, n) in enumerate(indices):
+            H[p, q] = J[m, i] * J[n, j] + J[m, j] * J[n, i]
+    H[:, [i == j for i, j in indices]] *= 0.5
 
     s = 0
     for v in sorted(top[0]):
