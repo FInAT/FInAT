@@ -4,9 +4,10 @@ import FIAT
 
 from gem import Literal, ListTensor
 
-from finat.argyris import _normal_tangential_transform
 from finat.fiat_elements import ScalarFiatElement
 from finat.physically_mapped import PhysicallyMappedElement, Citations
+from finat.argyris import _vertex_transform, _normal_tangential_transform
+from copy import deepcopy
 
 
 class Bell(PhysicallyMappedElement, ScalarFiatElement):
@@ -15,9 +16,18 @@ class Bell(PhysicallyMappedElement, ScalarFiatElement):
             Citations().register("Bell1969")
         super().__init__(FIAT.Bell(cell))
 
+        reduced_dofs = deepcopy(self._element.entity_dofs())
+        sd = cell.get_spatial_dimension()
+        for entity in reduced_dofs[sd-1]:
+            reduced_dofs[sd-1][entity] = []
+        self._entity_dofs = reduced_dofs
+
     def basis_transformation(self, coordinate_mapping):
-        # Jacobians at edge midpoints
-        J = coordinate_mapping.jacobian_at([1/3, 1/3])
+        # Jacobian at barycenter
+        sd = self.cell.get_spatial_dimension()
+        top = self.cell.get_topology()
+        bary, = self.cell.make_points(sd, 0, sd+1)
+        J = coordinate_mapping.jacobian_at(bary)
 
         numbf = self._element.space_dimension()
         ndof = self.space_dimension()
@@ -26,24 +36,9 @@ class Bell(PhysicallyMappedElement, ScalarFiatElement):
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
 
-        sd = self.cell.get_spatial_dimension()
-        top = self.cell.get_topology()
-        voffset = sd + 1 + (sd*(sd+1))//2
-        for v in sorted(top[1]):
-            s = voffset * v
-            for i in range(sd):
-                for j in range(sd):
-                    V[s+1+i, s+1+j] = J[j, i]
-            V[s+3, s+3] = J[0, 0]*J[0, 0]
-            V[s+3, s+4] = 2*J[0, 0]*J[1, 0]
-            V[s+3, s+5] = J[1, 0]*J[1, 0]
-            V[s+4, s+3] = J[0, 0]*J[0, 1]
-            V[s+4, s+4] = J[0, 0]*J[1, 1] + J[1, 0]*J[0, 1]
-            V[s+4, s+5] = J[1, 0]*J[1, 1]
-            V[s+5, s+3] = J[0, 1]*J[0, 1]
-            V[s+5, s+4] = 2*J[0, 1]*J[1, 1]
-            V[s+5, s+5] = J[1, 1]*J[1, 1]
+        _vertex_transform(V, self.cell, J)
 
+        voffset = sd + 1 + (sd*(sd+1))//2
         for e in sorted(top[1]):
             s = len(top[0]) * voffset + e
             v0id, v1id = (v * voffset for v in top[1][e])
@@ -79,11 +74,7 @@ class Bell(PhysicallyMappedElement, ScalarFiatElement):
     # under the edge constraint.  However, we only have an 18 DOF
     # element.
     def entity_dofs(self):
-        return {0: {0: list(range(6)),
-                    1: list(range(6, 12)),
-                    2: list(range(12, 18))},
-                1: {0: [], 1: [], 2: []},
-                2: {0: []}}
+        return self._entity_dofs
 
     @property
     def index_shape(self):

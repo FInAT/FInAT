@@ -2,9 +2,9 @@ import FIAT
 import numpy
 from gem import ListTensor, Literal
 
-from finat.argyris import _edge_transform, _normal_tangential_transform
 from finat.fiat_elements import ScalarFiatElement
 from finat.physically_mapped import Citations, PhysicallyMappedElement
+from finat.argyris import _edge_transform, _normal_tangential_transform
 from copy import deepcopy
 
 
@@ -61,7 +61,10 @@ class ReducedHsiehCloughTocher(PhysicallyMappedElement, ScalarFiatElement):
 
     def basis_transformation(self, coordinate_mapping):
         # Jacobian at barycenter
-        J = coordinate_mapping.jacobian_at([1/3, 1/3])
+        sd = self.cell.get_spatial_dimension()
+        top = self.cell.get_topology()
+        bary, = self.cell.make_points(sd, 0, sd+1)
+        J = coordinate_mapping.jacobian_at(bary)
 
         numbf = self._element.space_dimension()
         ndof = self.space_dimension()
@@ -70,8 +73,6 @@ class ReducedHsiehCloughTocher(PhysicallyMappedElement, ScalarFiatElement):
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
 
-        sd = self.cell.get_spatial_dimension()
-        top = self.cell.get_topology()
         voffset = sd + 1
         for v in sorted(top[0]):
             s = voffset * v

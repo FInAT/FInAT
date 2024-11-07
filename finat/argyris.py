@@ -9,6 +9,36 @@ from finat.fiat_elements import ScalarFiatElement
 from finat.physically_mapped import PhysicallyMappedElement, Citations
 
 
+def _vertex_transform(V, fiat_cell, J):
+    """Basis transformation for evaluation, gradient, and hessian at vertices."""
+    sd = fiat_cell.get_spatial_dimension()
+    top = fiat_cell.get_topology()
+
+    gdofs = sd
+    G = [[J[j, i] for j in range(sd)] for i in range(sd)]
+
+    hdofs = (sd*(sd+1))//2
+    H = numpy.zeros((hdofs, hdofs), dtype=object)
+    H[0, 0] = J[0, 0]*J[0, 0]
+    H[0, 1] = J[0, 0]*J[1, 0] * 2
+    H[0, 2] = J[1, 0]*J[1, 0]
+    H[1, 0] = J[0, 0]*J[0, 1]
+    H[1, 1] = J[0, 0]*J[1, 1] + J[1, 0]*J[0, 1]
+    H[1, 2] = J[1, 0]*J[1, 1]
+    H[2, 0] = J[0, 1]*J[0, 1]
+    H[2, 1] = J[0, 1]*J[1, 1] * 2
+    H[2, 2] = J[1, 1]*J[1, 1]
+
+    s = 0
+    for v in sorted(top[0]):
+        s += 1
+        V[s:s+gdofs, s:s+gdofs] = G
+        s += gdofs
+        V[s:s+hdofs, s:s+hdofs] = H
+        s += hdofs
+    return V
+
+
 def _normal_tangential_transform(fiat_cell, J, edge):
     R = Literal([[0, 1], [-1, 0]])
     that = fiat_cell.compute_edge_tangent(edge)
@@ -76,6 +106,7 @@ class Argyris(PhysicallyMappedElement, ScalarFiatElement):
     def basis_transformation(self, coordinate_mapping):
         # Jacobian at barycenter
         sd = self.cell.get_spatial_dimension()
+        top = self.cell.get_topology()
         bary, = self.cell.make_points(sd, 0, sd+1)
         J = coordinate_mapping.jacobian_at(bary)
 
@@ -84,35 +115,21 @@ class Argyris(PhysicallyMappedElement, ScalarFiatElement):
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
 
-        sd = self.cell.get_spatial_dimension()
-        top = self.cell.get_topology()
+        _vertex_transform(V, self.cell, J)
+
         vorder = 2
         voffset = comb(sd + vorder, vorder)
-        for v in sorted(top[0]):
-            s = voffset * v
-            for i in range(sd):
-                for j in range(sd):
-                    V[s+1+i, s+1+j] = J[j, i]
-            V[s+3, s+3] = J[0, 0]*J[0, 0]
-            V[s+3, s+4] = 2*J[0, 0]*J[1, 0]
-            V[s+3, s+5] = J[1, 0]*J[1, 0]
-            V[s+4, s+3] = J[0, 0]*J[0, 1]
-            V[s+4, s+4] = J[0, 0]*J[1, 1] + J[1, 0]*J[0, 1]
-            V[s+4, s+5] = J[1, 0]*J[1, 1]
-            V[s+5, s+3] = J[0, 1]*J[0, 1]
-            V[s+5, s+4] = 2*J[0, 1]*J[1, 1]
-            V[s+5, s+5] = J[1, 1]*J[1, 1]
-
         eorder = self.degree - 5
+
         if self.variant == "integral":
             _edge_transform(V, vorder, eorder, self.cell, coordinate_mapping, avg=self.avg)
         else:
             pel = coordinate_mapping.physical_edge_lengths()
             for e in sorted(top[1]):
-                s = len(top[0]) * voffset + e
+                s = len(top[0]) * voffset + e * (eorder+1)
                 v0id, v1id = (v * voffset for v in top[1][e])
-
                 Bnn, Bnt, Jt = _normal_tangential_transform(self.cell, J, e)
+
                 V[s, s] = Bnn * pel[e]
 
                 # vertex points
