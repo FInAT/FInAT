@@ -15,13 +15,15 @@ class MardalTaiWinther(PhysicallyMappedElement, FiatElement):
         if Citations is not None:
             Citations().register("Mardal2002")
         super().__init__(FIAT.MardalTaiWinther(cell, degree))
-        entity_dofs = deepcopy(self._element.entity_dofs())
+
+        reduced_dofs = deepcopy(self._element.entity_dofs())
         sd = cell.get_spatial_dimension()
         fdofs = sd + 1
-        for f in entity_dofs[sd-1]:
-            entity_dofs[sd-1][f] = entity_dofs[sd-1][f][:fdofs]
-        self._entity_dofs = entity_dofs
-        self._space_dimension = fdofs * len(entity_dofs[sd-1])
+        reduced_dofs[sd][0] = []
+        for f in reduced_dofs[sd-1]:
+            reduced_dofs[sd-1][f] = reduced_dofs[sd-1][f][:fdofs]
+        self._entity_dofs = reduced_dofs
+        self._space_dimension = fdofs * len(reduced_dofs[sd-1])
 
     def basis_transformation(self, coordinate_mapping):
         numbf = self._element.space_dimension()
