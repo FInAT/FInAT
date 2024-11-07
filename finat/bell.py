@@ -28,6 +28,7 @@ class Bell(PhysicallyMappedElement, ScalarFiatElement):
         top = self.cell.get_topology()
         bary, = self.cell.make_points(sd, 0, sd+1)
         J = coordinate_mapping.jacobian_at(bary)
+        detJ = coordinate_mapping.detJ_at(bary)
 
         numbf = self._element.space_dimension()
         ndof = self.space_dimension()
@@ -42,7 +43,7 @@ class Bell(PhysicallyMappedElement, ScalarFiatElement):
         for e in sorted(top[1]):
             s = len(top[0]) * voffset + e
             v0id, v1id = (v * voffset for v in top[1][e])
-            Bnn, Bnt, Jt = _normal_tangential_transform(self.cell, J, e)
+            Bnn, Bnt, Jt = _normal_tangential_transform(self.cell, J, detJ, e)
 
             # vertex points
             V[s, v1id] = 1/21 * Bnt

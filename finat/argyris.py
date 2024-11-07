@@ -35,17 +35,21 @@ def _vertex_transform(V, fiat_cell, J):
     return V
 
 
-def _normal_tangential_transform(fiat_cell, J, edge):
-    R = Literal([[0, 1], [-1, 0]])
-    that = fiat_cell.compute_edge_tangent(edge)
-    nhat = fiat_cell.compute_scaled_normal(edge)
-    nhat /= numpy.linalg.norm(nhat)
-    Jt = J @ Literal(that)
+def _normal_tangential_transform(fiat_cell, J, detJ, f):
+    R = numpy.array([[0, 1], [-1, 0]])
+    that = fiat_cell.compute_edge_tangent(f)
+    nhat = R @ that
     Jn = J @ Literal(nhat)
-    gamma = Jt @ Jt
-    alpha = (Jn @ R @ Jt) / gamma
-    beta = (Jn @ Jt) / gamma
-    return alpha, beta, Jt
+    Jt = J @ Literal(that)
+    alpha = Jn @ Jt
+    beta = Jt @ Jt
+    Bnn = detJ / beta
+    Bnt = alpha / beta
+
+    Lhat = numpy.linalg.norm(that)
+    Bnn = Bnn * Lhat
+    Bnt = Bnt / Lhat
+    return Bnn, Bnt, Jt
 
 
 def _edge_transform(V, vorder, eorder, fiat_cell, coordinate_mapping, avg=False):
@@ -60,7 +64,9 @@ def _edge_transform(V, vorder, eorder, fiat_cell, coordinate_mapping, avg=False)
     :kwarg avg: are we scaling integrals by dividing by the edge length?
     """
     sd = fiat_cell.get_spatial_dimension()
-    J = coordinate_mapping.jacobian_at(fiat_cell.make_points(sd, 0, sd+1)[0])
+    bary, = fiat_cell.make_points(sd, 0, sd+1)
+    J = coordinate_mapping.jacobian_at(bary)
+    detJ = coordinate_mapping.detJ_at(bary)
     pel = coordinate_mapping.physical_edge_lengths()
 
     # number of DOFs per vertex/edge
@@ -68,7 +74,7 @@ def _edge_transform(V, vorder, eorder, fiat_cell, coordinate_mapping, avg=False)
     eoffset = 2 * eorder + 1
     top = fiat_cell.get_topology()
     for e in sorted(top[1]):
-        Bnn, Bnt, Jt = _normal_tangential_transform(fiat_cell, J, e)
+        Bnn, Bnt, Jt = _normal_tangential_transform(fiat_cell, J, detJ, e)
         if avg:
             Bnn = Bnn * pel[e]
 
@@ -120,12 +126,14 @@ class Argyris(PhysicallyMappedElement, ScalarFiatElement):
         if self.variant == "integral":
             _edge_transform(V, vorder, eorder, self.cell, coordinate_mapping, avg=self.avg)
         else:
+            detJ = coordinate_mapping.detJ_at(bary)
             pel = coordinate_mapping.physical_edge_lengths()
             for e in sorted(top[1]):
                 s = len(top[0]) * voffset + e * (eorder+1)
                 v0id, v1id = (v * voffset for v in top[1][e])
-                Bnn, Bnt, Jt = _normal_tangential_transform(self.cell, J, e)
+                Bnn, Bnt, Jt = _normal_tangential_transform(self.cell, J, detJ, e)
 
+                # edge midpoint normal derivative
                 V[s, s] = Bnn * pel[e]
 
                 # vertex points
