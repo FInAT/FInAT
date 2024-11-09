@@ -1,7 +1,6 @@
-import numpy
-
 import FIAT
-
+import numpy
+from math import comb
 from gem import Literal, ListTensor
 
 from finat.fiat_elements import ScalarFiatElement
@@ -37,9 +36,10 @@ class Bell(PhysicallyMappedElement, ScalarFiatElement):
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
 
-        _vertex_transform(V, self.cell, J)
+        vorder = 2
+        _vertex_transform(V, vorder, self.cell, coordinate_mapping)
 
-        voffset = sd + 1 + (sd*(sd+1))//2
+        voffset = comb(sd + vorder, vorder)
         for e in sorted(top[1]):
             s = len(top[0]) * voffset + e
             v0id, v1id = (v * voffset for v in top[1][e])
@@ -57,16 +57,15 @@ class Bell(PhysicallyMappedElement, ScalarFiatElement):
             # second derivatives
             tau = [Jt[0]*Jt[0], 2*Jt[0]*Jt[1], Jt[1]*Jt[1]]
             for i in range(len(tau)):
-                V[s, v1id+3+i] = 1/252 * (Bnt * tau[i])
+                V[s, v1id+3+i] = 1/252 * Bnt * tau[i]
                 V[s, v0id+3+i] = -1 * V[s, v1id+3+i]
 
         # Patch up conditioning
         h = coordinate_mapping.cell_size()
         for v in sorted(top[0]):
-            for k in range(sd):
-                V[:, voffset*v+1+k] *= 1/h[v]
-            for k in range((sd+1)*sd//2):
-                V[:, voffset*v+3+k] *= 1/(h[v]*h[v])
+            s = voffset * v + 1
+            V[:, s:s+sd] *= 1/h[v]
+            V[:, s+sd:voffset*(v+1)] *= 1/(h[v]*h[v])
 
         return ListTensor(V.T)
 

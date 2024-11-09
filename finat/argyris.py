@@ -9,21 +9,27 @@ from finat.fiat_elements import ScalarFiatElement
 from finat.physically_mapped import PhysicallyMappedElement, Citations
 
 
-def _vertex_transform(V, fiat_cell, J):
+def _vertex_transform(V, vorder, fiat_cell, coordinate_mapping):
     """Basis transformation for evaluation, gradient, and hessian at vertices."""
     sd = fiat_cell.get_spatial_dimension()
     top = fiat_cell.get_topology()
+    bary, = fiat_cell.make_points(sd, 0, sd+1)
+    J = coordinate_mapping.jacobian_at(bary)
 
     gdofs = sd
     G = [[J[j, i] for j in range(sd)] for i in range(sd)]
 
-    hdofs = (sd*(sd+1))//2
-    indices = [(i, j) for i in range(sd) for j in range(i, sd)]
-    H = numpy.zeros((hdofs, hdofs), dtype=object)
-    for p, (i, j) in enumerate(indices):
-        for q, (m, n) in enumerate(indices):
-            H[p, q] = J[m, i] * J[n, j] + J[m, j] * J[n, i]
-    H[:, [i == j for i, j in indices]] *= 0.5
+    if vorder < 2:
+        hdofs = 0
+        H = [[]]
+    else:
+        hdofs = (sd*(sd+1))//2
+        indices = [(i, j) for i in range(sd) for j in range(i, sd)]
+        H = numpy.zeros((hdofs, hdofs), dtype=object)
+        for p, (i, j) in enumerate(indices):
+            for q, (m, n) in enumerate(indices):
+                H[p, q] = J[m, i] * J[n, j] + J[m, j] * J[n, i]
+        H[:, [i == j for i, j in indices]] *= 0.5
 
     s = 0
     for v in sorted(top[0]):
@@ -106,26 +112,24 @@ class Argyris(PhysicallyMappedElement, ScalarFiatElement):
         super().__init__(fiat_element)
 
     def basis_transformation(self, coordinate_mapping):
-        # Jacobian at barycenter
         sd = self.cell.get_spatial_dimension()
         top = self.cell.get_topology()
-        bary, = self.cell.make_points(sd, 0, sd+1)
-        J = coordinate_mapping.jacobian_at(bary)
 
         ndof = self.space_dimension()
         V = numpy.eye(ndof, dtype=object)
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
 
-        _vertex_transform(V, self.cell, J)
-
         vorder = 2
         voffset = comb(sd + vorder, vorder)
         eorder = self.degree - 5
 
+        _vertex_transform(V, vorder, self.cell, coordinate_mapping)
         if self.variant == "integral":
             _edge_transform(V, vorder, eorder, self.cell, coordinate_mapping, avg=self.avg)
         else:
+            bary, = self.cell.make_points(sd, 0, sd+1)
+            J = coordinate_mapping.jacobian_at(bary)
             detJ = coordinate_mapping.detJ_at(bary)
             pel = coordinate_mapping.physical_edge_lengths()
             for e in sorted(top[1]):
@@ -148,16 +152,15 @@ class Argyris(PhysicallyMappedElement, ScalarFiatElement):
                 # second derivatives
                 tau = [Jt[0]*Jt[0], 2*Jt[0]*Jt[1], Jt[1]*Jt[1]]
                 for i in range(len(tau)):
-                    V[s, v1id+3+i] = 1/32 * (Bnt * tau[i])
+                    V[s, v1id+3+i] = 1/32 * Bnt * tau[i]
                     V[s, v0id+3+i] = -1 * V[s, v1id+3+i]
 
         # Patch up conditioning
         h = coordinate_mapping.cell_size()
         for v in sorted(top[0]):
-            for k in range(sd):
-                V[:, voffset*v+1+k] *= 1 / h[v]
-            for k in range((sd+1)*sd//2):
-                V[:, voffset*v+3+k] *= 1 / (h[v]*h[v])
+            s = voffset*v + 1
+            V[:, s:s+sd] *= 1 / h[v]
+            V[:, s+sd:voffset*(v+1)] *= 1 / (h[v]*h[v])
 
         if self.variant == "point":
             eoffset = 2 * eorder + 1
