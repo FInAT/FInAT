@@ -158,7 +158,7 @@ class GaussLegendrePointSet(PointSet):
     This facilitates implementing discontinuous spectral elements.
     """
     def __init__(self, points):
-        super(GaussLegendrePointSet, self).__init__(points)
+        super().__init__(points)
         assert self.points.shape[1] == 1
 
 
@@ -168,7 +168,7 @@ class GaussLobattoLegendrePointSet(PointSet):
     This facilitates implementing continuous spectral elements.
     """
     def __init__(self, points):
-        super(GaussLobattoLegendrePointSet, self).__init__(points)
+        super().__init__(points)
         assert self.points.shape[1] == 1
 
 

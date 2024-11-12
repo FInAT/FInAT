@@ -12,6 +12,7 @@
 # Modified by Matthew Scroggs, 2023
 
 from abc import abstractmethod, abstractproperty
+from hashlib import md5
 
 from ufl import pullback
 from ufl.cell import AbstractCell, as_cell
@@ -81,7 +82,7 @@ class FiniteElementBase(AbstractFiniteElement):
 
     def __hash__(self):
         """Compute hash code for insertion in hashmaps."""
-        return hash(self._ufl_hash_data_())
+        return int.from_bytes(md5(self._ufl_hash_data_().encode()).digest(), byteorder='big')
 
     def __eq__(self, other):
         """Compute element equality for insertion in hashmaps."""
@@ -221,7 +222,8 @@ class FiniteElementBase(AbstractFiniteElement):
 
     def __getitem__(self, index):
         """Restrict finite element to a subdomain, subcomponent or topology (cell)."""
-        if index in ("facet", "interior"):
+        from finat.ufl.restrictedelement import valid_restriction_domains
+        if index in valid_restriction_domains:
             from finat.ufl import RestrictedElement
             return RestrictedElement(self, index)
         else:
