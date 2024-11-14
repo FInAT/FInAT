@@ -456,14 +456,13 @@ class TensorElement(MixedElement):
     def pullback(self):
         """Get pull back."""
         if len(self._symmetry) > 0:
-            # TODO
-            sub_element_value_shape = self.sub_elements[0].value_shape
+            sub_element_value_shape = self.sub_elements[0].reference_value_shape
             for e in self.sub_elements:
-                if e.value_shape != sub_element_value_shape:
+                if e.reference_value_shape != sub_element_value_shape:
                     raise ValueError("Sub-elements must all have the same value size")
             symmetry = {}
             n = 0
-            for i in np.ndindex(self.value_shape[:len(self.value_shape)-len(sub_element_value_shape)]):
+            for i in np.ndindex(self._shape):
                 if i in self._symmetry and self._symmetry[i] in symmetry:
                     symmetry[i] = symmetry[self._symmetry[i]]
                 else:
