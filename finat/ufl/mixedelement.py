@@ -17,7 +17,7 @@ from ufl.cell import as_cell
 from finat.ufl.finiteelement import FiniteElement
 from finat.ufl.finiteelementbase import FiniteElementBase
 from ufl.permutation import compute_indices
-from ufl.pullback import IdentityPullback, MixedPullback, SymmetricPullback
+from ufl.pullback import MixedPullback, SymmetricPullback
 from ufl.utils.indexflattening import flatten_multiindex, shape_to_strides, unflatten_index
 from ufl.utils.sequences import max_degree, product
 
@@ -268,10 +268,7 @@ class MixedElement(FiniteElementBase):
     @property
     def pullback(self):
         """Get the pull back."""
-        for e in self.sub_elements:
-            if not isinstance(e.pullback, IdentityPullback):
-                return MixedPullback(self)
-        return IdentityPullback()
+        return MixedPullback(self)
 
 
 class VectorElement(MixedElement):
@@ -352,6 +349,11 @@ class VectorElement(MixedElement):
         """Format as string for pretty printing."""
         return "Vector<%d x %s>" % (len(self._sub_elements),
                                     self._sub_element.shortstr())
+
+    @property
+    def pullback(self):
+        """Get the pull back."""
+        return self._sub_element.pullback
 
 
 class TensorElement(MixedElement):
@@ -469,7 +471,8 @@ class TensorElement(MixedElement):
                     symmetry[i] = n
                     n += 1
             return SymmetricPullback(self, symmetry)
-        return super().pullback
+
+        return self._sub_element.pullback
 
     def __repr__(self):
         """Doc."""
