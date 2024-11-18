@@ -3,10 +3,59 @@ from math import comb
 
 import FIAT
 
-from gem import Literal, ListTensor, partial_indexed
+from gem import Literal, ListTensor
 
 from finat.fiat_elements import ScalarFiatElement
 from finat.physically_mapped import PhysicallyMappedElement, Citations
+
+
+def _vertex_transform(V, vorder, fiat_cell, coordinate_mapping):
+    """Basis transformation for evaluation, gradient, and hessian at vertices."""
+    sd = fiat_cell.get_spatial_dimension()
+    top = fiat_cell.get_topology()
+    bary, = fiat_cell.make_points(sd, 0, sd+1)
+    J = coordinate_mapping.jacobian_at(bary)
+
+    gdofs = sd
+    G = [[J[j, i] for j in range(sd)] for i in range(sd)]
+
+    if vorder < 2:
+        hdofs = 0
+        H = [[]]
+    else:
+        hdofs = (sd*(sd+1))//2
+        indices = [(i, j) for i in range(sd) for j in range(i, sd)]
+        H = numpy.zeros((hdofs, hdofs), dtype=object)
+        for p, (i, j) in enumerate(indices):
+            for q, (m, n) in enumerate(indices):
+                H[p, q] = J[m, i] * J[n, j] + J[m, j] * J[n, i]
+        H[:, [i == j for i, j in indices]] *= 0.5
+
+    s = 0
+    for v in sorted(top[0]):
+        s += 1
+        V[s:s+gdofs, s:s+gdofs] = G
+        s += gdofs
+        V[s:s+hdofs, s:s+hdofs] = H
+        s += hdofs
+    return V
+
+
+def _normal_tangential_transform(fiat_cell, J, detJ, f):
+    R = numpy.array([[0, 1], [-1, 0]])
+    that = fiat_cell.compute_edge_tangent(f)
+    nhat = R @ that
+    Jn = J @ Literal(nhat)
+    Jt = J @ Literal(that)
+    alpha = Jn @ Jt
+    beta = Jt @ Jt
+    Bnn = detJ / beta
+    Bnt = alpha / beta
+
+    Lhat = numpy.linalg.norm(that)
+    Bnn = Bnn * Lhat
+    Bnt = Bnt / Lhat
+    return Bnn, Bnt, Jt
 
 
 def _edge_transform(V, vorder, eorder, fiat_cell, coordinate_mapping, avg=False):
@@ -21,10 +70,9 @@ def _edge_transform(V, vorder, eorder, fiat_cell, coordinate_mapping, avg=False)
     :kwarg avg: are we scaling integrals by dividing by the edge length?
     """
     sd = fiat_cell.get_spatial_dimension()
-    J = coordinate_mapping.jacobian_at(fiat_cell.make_points(sd, 0, sd+1)[0])
-    rns = coordinate_mapping.reference_normals()
-    pts = coordinate_mapping.physical_tangents()
-    pns = coordinate_mapping.physical_normals()
+    bary, = fiat_cell.make_points(sd, 0, sd+1)
+    J = coordinate_mapping.jacobian_at(bary)
+    detJ = coordinate_mapping.detJ_at(bary)
     pel = coordinate_mapping.physical_edge_lengths()
 
     # number of DOFs per vertex/edge
@@ -32,12 +80,7 @@ def _edge_transform(V, vorder, eorder, fiat_cell, coordinate_mapping, avg=False)
     eoffset = 2 * eorder + 1
     top = fiat_cell.get_topology()
     for e in sorted(top[1]):
-        nhat = partial_indexed(rns, (e, ))
-        n = partial_indexed(pns, (e, ))
-        t = partial_indexed(pts, (e, ))
-        Bn = J @ nhat / pel[e]
-        Bnt = Bn @ t
-        Bnn = Bn @ n
+        Bnn, Bnt, Jt = _normal_tangential_transform(fiat_cell, J, detJ, e)
         if avg:
             Bnn = Bnn * pel[e]
 
@@ -69,75 +112,55 @@ class Argyris(PhysicallyMappedElement, ScalarFiatElement):
         super().__init__(fiat_element)
 
     def basis_transformation(self, coordinate_mapping):
-        # Jacobian at barycenter
-        J = coordinate_mapping.jacobian_at([1/3, 1/3])
+        sd = self.cell.get_spatial_dimension()
+        top = self.cell.get_topology()
 
         ndof = self.space_dimension()
         V = numpy.eye(ndof, dtype=object)
         for multiindex in numpy.ndindex(V.shape):
             V[multiindex] = Literal(V[multiindex])
 
-        sd = self.cell.get_spatial_dimension()
-        top = self.cell.get_topology()
         vorder = 2
         voffset = comb(sd + vorder, vorder)
-        for v in sorted(top[0]):
-            s = voffset * v
-            for i in range(sd):
-                for j in range(sd):
-                    V[s+1+i, s+1+j] = J[j, i]
-            V[s+3, s+3] = J[0, 0]*J[0, 0]
-            V[s+3, s+4] = 2*J[0, 0]*J[1, 0]
-            V[s+3, s+5] = J[1, 0]*J[1, 0]
-            V[s+4, s+3] = J[0, 0]*J[0, 1]
-            V[s+4, s+4] = J[0, 0]*J[1, 1] + J[1, 0]*J[0, 1]
-            V[s+4, s+5] = J[1, 0]*J[1, 1]
-            V[s+5, s+3] = J[0, 1]*J[0, 1]
-            V[s+5, s+4] = 2*J[0, 1]*J[1, 1]
-            V[s+5, s+5] = J[1, 1]*J[1, 1]
-
         eorder = self.degree - 5
+
+        _vertex_transform(V, vorder, self.cell, coordinate_mapping)
         if self.variant == "integral":
             _edge_transform(V, vorder, eorder, self.cell, coordinate_mapping, avg=self.avg)
         else:
-            rns = coordinate_mapping.reference_normals()
-            pns = coordinate_mapping.physical_normals()
-            pts = coordinate_mapping.physical_tangents()
+            bary, = self.cell.make_points(sd, 0, sd+1)
+            J = coordinate_mapping.jacobian_at(bary)
+            detJ = coordinate_mapping.detJ_at(bary)
             pel = coordinate_mapping.physical_edge_lengths()
             for e in sorted(top[1]):
-                nhat = partial_indexed(rns, (e, ))
-                n = partial_indexed(pns, (e, ))
-                t = partial_indexed(pts, (e, ))
-                Bn = J @ nhat
-                Bnt = Bn @ t
-                Bnn = Bn @ n
-
-                s = len(top[0]) * voffset + e
+                s = len(top[0]) * voffset + e * (eorder+1)
                 v0id, v1id = (v * voffset for v in top[1][e])
-                V[s, s] = Bnn
+                Bnn, Bnt, Jt = _normal_tangential_transform(self.cell, J, detJ, e)
+
+                # edge midpoint normal derivative
+                V[s, s] = Bnn * pel[e]
 
                 # vertex points
-                V[s, v1id] = 15/8 * Bnt / pel[e]
+                V[s, v1id] = 15/8 * Bnt
                 V[s, v0id] = -1 * V[s, v1id]
 
                 # vertex derivatives
                 for i in range(sd):
-                    V[s, v1id+1+i] = -7/16 * Bnt * t[i]
+                    V[s, v1id+1+i] = -7/16 * Bnt * Jt[i]
                     V[s, v0id+1+i] = V[s, v1id+1+i]
 
                 # second derivatives
-                tau = [t[0]*t[0], 2*t[0]*t[1], t[1]*t[1]]
+                tau = [Jt[0]*Jt[0], 2*Jt[0]*Jt[1], Jt[1]*Jt[1]]
                 for i in range(len(tau)):
-                    V[s, v1id+3+i] = 1/32 * (pel[e] * Bnt * tau[i])
+                    V[s, v1id+3+i] = 1/32 * Bnt * tau[i]
                     V[s, v0id+3+i] = -1 * V[s, v1id+3+i]
 
         # Patch up conditioning
         h = coordinate_mapping.cell_size()
         for v in sorted(top[0]):
-            for k in range(sd):
-                V[:, voffset*v+1+k] *= 1 / h[v]
-            for k in range((sd+1)*sd//2):
-                V[:, voffset*v+3+k] *= 1 / (h[v]*h[v])
+            s = voffset*v + 1
+            V[:, s:s+sd] *= 1 / h[v]
+            V[:, s+sd:voffset*(v+1)] *= 1 / (h[v]*h[v])
 
         if self.variant == "point":
             eoffset = 2 * eorder + 1
