@@ -39,10 +39,6 @@ class EnrichedElementBase(FiniteElementBase):
         if not all(qs == quad_scheme for qs in quad_schemes):
             raise ValueError("Quadrature scheme mismatch.")
 
-        value_shape = elements[0].value_shape
-        if not all(e.value_shape == value_shape for e in elements[1:]):
-            raise ValueError("Element value shape mismatch.")
-
         reference_value_shape = elements[0].reference_value_shape
         if not all(e.reference_value_shape == reference_value_shape for e in elements[1:]):
             raise ValueError("Element reference value shape mismatch.")
@@ -56,8 +52,7 @@ class EnrichedElementBase(FiniteElementBase):
 
         # Initialize element data
         FiniteElementBase.__init__(self, class_name, cell, degree,
-                                   quad_scheme, value_shape,
-                                   reference_value_shape)
+                                   quad_scheme, reference_value_shape)
 
     def mapping(self):
         """Doc."""
