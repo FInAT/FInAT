@@ -9,7 +9,7 @@ class DiscontinuousElement(FiniteElementBase):
     """Element wrapper that makes a FInAT element discontinuous."""
 
     def __init__(self, element):
-        super(DiscontinuousElement, self).__init__()
+        super().__init__()
         self.element = element
 
     @property

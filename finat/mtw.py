@@ -9,7 +9,7 @@ from finat.physically_mapped import PhysicallyMappedElement, Citations
 
 
 class MardalTaiWinther(PhysicallyMappedElement, FiatElement):
-    def __init__(self, cell, degree):
+    def __init__(self, cell, degree=3):
         if Citations is not None:
             Citations().register("Mardal2002")
         super(MardalTaiWinther, self).__init__(FIAT.MardalTaiWinther(cell, degree))

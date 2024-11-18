@@ -28,7 +28,7 @@ class MixedSubElement(FiniteElementBase):
         assert 0 <= offset <= size
         assert offset + numpy.prod(element.value_shape, dtype=int) <= size
 
-        super(MixedSubElement, self).__init__()
+        super().__init__()
         self.element = element
         self.size = size
         self.offset = offset

@@ -10,8 +10,6 @@ from finat.physically_mapped import PhysicallyMappedElement, Citations
 
 class Morley(PhysicallyMappedElement, ScalarFiatElement):
     def __init__(self, cell, degree=2):
-        if degree != 2:
-            raise ValueError("Degree must be 2 for Morley element")
         if Citations is not None:
             Citations().register("Morley1971")
         super().__init__(FIAT.Morley(cell))

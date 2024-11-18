@@ -111,9 +111,9 @@ register_element("Raviart-Thomas", "RT", 1, HDiv, "contravariant Piola",
 
 # Elements not in the periodic table
 register_element("Argyris", "ARG", 0, H2, "custom", (5, None), ("triangle",))
-register_element("Hsieh-Clough-Tocher", "HCT", 0, H2, "custom", (3, None), ("triangle",))
-register_element("Reduced-Hsieh-Clough-Tocher", "HCT-red", 0, H2, "custom", (3, 3), ("triangle",))
 register_element("Bell", "BELL", 0, H2, "custom", (5, 5), ("triangle",))
+register_element("Bernardi-Raugel", "BR", 1, H1, "contravariant Piola", (1, None), simplices[1:])
+register_element("Bernardi-Raugel Bubble", "BRB", 1, H1, "contravariant Piola", (None, None), simplices[1:])
 register_element("Brezzi-Douglas-Fortin-Marini", "BDFM", 1, HDiv,
                  "contravariant Piola", (1, None), simplices[1:])
 register_element("Crouzeix-Raviart", "CR", 0, L2, "identity", (1, 1),
@@ -128,6 +128,23 @@ register_element("Mardal-Tai-Winther", "MTW", 1, H1, "contravariant Piola", (3, 
                  ("triangle",))
 register_element("Morley", "MOR", 0, H2, "custom", (2, 2), ("triangle",))
 
+# Macro elements
+register_element("QuadraticPowellSabin6", "PS6", 0, H2, "custom", (2, 2), ("triangle",))
+register_element("QuadraticPowellSabin12", "PS12", 0, H2, "custom", (2, 2), ("triangle",))
+register_element("Hsieh-Clough-Tocher", "HCT", 0, H2, "custom", (3, None), ("triangle",))
+register_element("Reduced-Hsieh-Clough-Tocher", "HCT-red", 0, H2, "custom", (3, 3), ("triangle",))
+register_element("Johnson-Mercier", "JM", 2, HDivDiv, "double contravariant Piola", (1, 1), simplices[1:])
+
+register_element("Arnold-Qin", "AQ", 1, H1, "identity", (2, 2), ("triangle",))
+register_element("Reduced-Arnold-Qin", "AQ-red", 1, H1, "contravariant Piola", (2, 2), ("triangle",))
+register_element("Christiansen-Hu", "CH", 1, H1, "contravariant Piola", (1, 1), simplices[1:])
+register_element("Alfeld-Sorokina", "AS", 1, H1, "contravariant Piola", (2, 2), simplices[1:])
+
+register_element("Guzman-Neilan 1st kind H1", "GN", 1, H1, "contravariant Piola", (1, None), simplices[1:])
+register_element("Guzman-Neilan 2nd kind H1", "GN2", 1, H1, "contravariant Piola", (1, None), simplices[1:])
+register_element("Guzman-Neilan H1(div)", "GNH1div", 1, H1, "contravariant Piola", (2, None), simplices[1:])
+register_element("Guzman-Neilan Bubble", "GNB", 1, H1, "contravariant Piola", (None, None), simplices[1:])
+
 # Special elements
 register_element("Boundary Quadrature", "BQ", 0, L2, "identity", (0, None),
                  any_cell)
@@ -135,8 +152,6 @@ register_element("Bubble", "B", 0, H1, "identity", (2, None), simplices)
 register_element("FacetBubble", "FB", 0, H1, "identity", (2, None), simplices)
 register_element("Quadrature", "Quadrature", 0, L2, "identity", (0, None),
                  any_cell)
-register_element("QuadraticPowellSabin6", "PS6", 0, H2, "custom", (2, 2), ("triangle",))
-register_element("QuadraticPowellSabin12", "PS12", 0, H2, "custom", (2, 2), ("triangle",))
 register_element("Real", "R", 0, HInf, "identity", (0, 0),
                  any_cell + ("TensorProductCell",))
 register_element("Undefined", "U", 0, L2, "identity", (0, None), any_cell)
@@ -144,8 +159,6 @@ register_element("Radau", "Rad", 0, L2, "identity", (0, None), ("interval",))
 register_element("Regge", "Regge", 2, HEin, "double covariant Piola",
                  (0, None), simplices[1:])
 register_element("HDiv Trace", "HDivT", 0, L2, "identity", (0, None), any_cell)
-register_element("Johnson-Mercier", "JM", 2, HDivDiv,
-                 "double contravariant Piola", (1, 1), simplices[1:])
 register_element("Hellan-Herrmann-Johnson", "HHJ", 2, HDivDiv,
                  "double contravariant Piola", (0, None), ("triangle",))
 register_element("Nonconforming Arnold-Winther", "AWnc", 2, HDivDiv,
@@ -407,14 +420,12 @@ def canonical_element_description(family, cell, order, form_degree):
     # Get domain dimensions
     if cell is not None:
         tdim = cell.topological_dimension()
-        gdim = cell.geometric_dimension()
         if isinstance(cell, Cell):
             cellname = cell.cellname()
         else:
             cellname = None
     else:
         tdim = None
-        gdim = None
         cellname = None
 
     # Catch general FEEC notation "P" and "S"
@@ -468,21 +479,21 @@ def canonical_element_description(family, cell, order, form_degree):
 
     if value_rank == 2:
         # Tensor valued fundamental elements in HEin have this shape
-        if gdim is None or tdim is None:
+        if tdim is None:
             raise ValueError("Cannot infer shape of element without topological and geometric dimensions.")
         reference_value_shape = (tdim, tdim)
-        value_shape = (gdim, gdim)
     elif value_rank == 1:
         # Vector valued fundamental elements in HDiv and HCurl have a shape
-        if gdim is None or tdim is None:
+        if tdim is None:
             raise ValueError("Cannot infer shape of element without topological and geometric dimensions.")
         reference_value_shape = (tdim,)
-        value_shape = (gdim,)
     elif value_rank == 0:
         # All other elements are scalar values
         reference_value_shape = ()
-        value_shape = ()
     else:
         raise ValueError(f"Invalid value rank {value_rank}.")
 
-    return family, short_name, order, value_shape, reference_value_shape, sobolev_space, mapping
+    embedded_degree = order
+    if any(bubble in family for bubble in ("Guzman-Neilan", "Bernardi-Raugel")):
+        embedded_degree = tdim
+    return family, short_name, order, reference_value_shape, sobolev_space, mapping, embedded_degree

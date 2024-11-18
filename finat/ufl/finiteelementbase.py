@@ -12,6 +12,7 @@
 # Modified by Matthew Scroggs, 2023
 
 from abc import abstractmethod, abstractproperty
+from hashlib import md5
 
 from ufl import pullback
 from ufl.cell import AbstractCell, as_cell
@@ -22,17 +23,15 @@ from ufl.utils.sequences import product
 class FiniteElementBase(AbstractFiniteElement):
     """Base class for all finite elements."""
     __slots__ = ("_family", "_cell", "_degree", "_quad_scheme",
-                 "_value_shape", "_reference_value_shape")
+                 "_reference_value_shape")
 
     # TODO: Not all these should be in the base class! In particular
     # family, degree, and quad_scheme do not belong here.
-    def __init__(self, family, cell, degree, quad_scheme, value_shape,
+    def __init__(self, family, cell, degree, quad_scheme,
                  reference_value_shape):
         """Initialize basic finite element data."""
         if not (degree is None or isinstance(degree, (int, tuple))):
             raise ValueError("Invalid degree type.")
-        if not isinstance(value_shape, tuple):
-            raise ValueError("Invalid value_shape type.")
         if not isinstance(reference_value_shape, tuple):
             raise ValueError("Invalid reference_value_shape type.")
 
@@ -44,7 +43,6 @@ class FiniteElementBase(AbstractFiniteElement):
         self._family = family
         self._cell = cell
         self._degree = degree
-        self._value_shape = value_shape
         self._reference_value_shape = reference_value_shape
         self._quad_scheme = quad_scheme
 
@@ -84,7 +82,7 @@ class FiniteElementBase(AbstractFiniteElement):
 
     def __hash__(self):
         """Compute hash code for insertion in hashmaps."""
-        return hash(self._ufl_hash_data_())
+        return int.from_bytes(md5(self._ufl_hash_data_().encode()).digest(), byteorder='big')
 
     def __eq__(self, other):
         """Compute element equality for insertion in hashmaps."""
@@ -124,19 +122,9 @@ class FiniteElementBase(AbstractFiniteElement):
         return self._is_globally_constant() or self.degree() == 0
 
     @property
-    def value_shape(self):
-        """Return the shape of the value space on the global domain."""
-        return self._value_shape
-
-    @property
     def reference_value_shape(self):
         """Return the shape of the value space on the reference cell."""
         return self._reference_value_shape
-
-    @property
-    def value_size(self):
-        """Return the integer product of the value shape."""
-        return product(self.value_shape)
 
     @property
     def reference_value_size(self):
@@ -153,35 +141,35 @@ class FiniteElementBase(AbstractFiniteElement):
         """
         return {}
 
-    def _check_component(self, i):
+    def _check_component(self, domain, i):
         """Check that component index i is valid."""
-        sh = self.value_shape
+        sh = self.value_shape(domain.geometric_dimension())
         r = len(sh)
         if not (len(i) == r and all(j < k for (j, k) in zip(i, sh))):
             raise ValueError(
                 f"Illegal component index {i} (value rank {len(i)}) "
                 f"for element (value rank {r}).")
 
-    def extract_subelement_component(self, i):
+    def extract_subelement_component(self, domain, i):
         """Extract direct subelement index and subelement relative component index for a given component index."""
         if isinstance(i, int):
             i = (i,)
-        self._check_component(i)
+        self._check_component(domain, i)
         return (None, i)
 
-    def extract_component(self, i):
+    def extract_component(self, domain, i):
         """Recursively extract component index relative to a (simple) element.
 
         and that element for given value component index.
         """
         if isinstance(i, int):
             i = (i,)
-        self._check_component(i)
+        self._check_component(domain, i)
         return (i, self)
 
     def _check_reference_component(self, i):
         """Check that reference component index i is valid."""
-        sh = self.value_shape
+        sh = self.reference_value_shape
         r = len(sh)
         if not (len(i) == r and all(j < k for (j, k) in zip(i, sh))):
             raise ValueError(

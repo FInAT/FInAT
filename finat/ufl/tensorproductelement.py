@@ -54,16 +54,12 @@ class TensorProductElement(FiniteElementBase):
         quad_scheme = None
 
         # match FIAT implementation
-        value_shape = tuple(chain(*[e.value_shape for e in elements]))
         reference_value_shape = tuple(chain(*[e.reference_value_shape for e in elements]))
-        if len(value_shape) > 1:
-            raise ValueError("Product of vector-valued elements not supported")
         if len(reference_value_shape) > 1:
             raise ValueError("Product of vector-valued elements not supported")
 
         FiniteElementBase.__init__(self, family, cell, degree,
-                                   quad_scheme, value_shape,
-                                   reference_value_shape)
+                                   quad_scheme, reference_value_shape)
         self._sub_elements = elements
         self._cell = cell
 
@@ -92,7 +88,8 @@ class TensorProductElement(FiniteElementBase):
             # continuity information parametrized by spatial index
             orders = []
             for e in elements:
-                e_dim = e.cell.geometric_dimension()
+                # TODO: is this the right value for e_dim
+                e_dim = e.cell.topological_dimension()
                 e_order = (e.sobolev_space._order,) * e_dim
                 orders.extend(e_order)
             return DirectionalSobolevSpace(orders)

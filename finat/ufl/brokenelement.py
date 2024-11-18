@@ -23,10 +23,9 @@ class BrokenElement(FiniteElementBase):
         cell = element.cell
         degree = element.degree()
         quad_scheme = element.quadrature_scheme()
-        value_shape = element.value_shape
         reference_value_shape = element.reference_value_shape
         FiniteElementBase.__init__(self, family, cell, degree,
-                                   quad_scheme, value_shape, reference_value_shape)
+                                   quad_scheme, reference_value_shape)
 
     def __repr__(self):
         """Doc."""

@@ -36,7 +36,7 @@ try:
     Citations().add("Clough1965", """
 @inproceedings{Clough1965,
   author =       {R. W. Clough, J. L. Tocher},
-  title =        {Finite element stiffness matricess for analysis of plate bending},
+  title =        {Finite element stiffness matrices for analysis of plate bending},
   booktitle =    {Proc. of the First Conf. on Matrix Methods in Struct. Mech},
   year =         1965,
   pages =        {515-546},
@@ -169,6 +169,62 @@ try:
   publisher={ACM New York, NY, USA}
 }
 """)
+    Citations().add("AlfeldSorokina2016", """
+@article{alfeld2016linear,
+  title={Linear differential operators on bivariate spline spaces and spline vector fields},
+  author={Alfeld, Peter and Sorokina, Tatyana},
+  journal={BIT Numerical Mathematics},
+  volume={56},
+  number={1},
+  pages={15--32},
+  year={2016},
+  publisher={Springer}
+}
+""")
+    Citations().add("ArnoldQin1992", """
+@article{arnold1992quadratic,
+  title={{Quadratic velocity/linear pressure Stokes elements}},
+  author={Arnold, Douglas N and Qin, Jinshui},
+  journal={Advances in computer methods for partial differential equations},
+  volume={7},
+  pages={28--34},
+  year={1992}
+}
+""")
+    Citations().add("ChristiansenHu2019", """
+@article{christiansen2019finite,
+  title={A finite element for Stokes with a commuting diagram },
+  author={Christiansen, Snorre H and Hu, Kaibo},
+  journal={Mathematical Analysis in Fluid and Gas Dynamics},
+  volume={2107},
+  pages={172--183},
+  year={2019}
+}
+""")
+    Citations().add("GuzmanNeilan2018", """
+@article{guzman2018infsup,
+    author = {Guzm\'{a}n, Johnny and Neilan, Michael},
+    title = {{Inf-Sup Stable Finite Elements on Barycentric Refinements Producing Divergence--Free Approximations in Arbitrary Dimensions}},
+    journal = {SIAM Journal on Numerical Analysis},
+    volume = {56},
+    number = {5},
+    pages = {2826-2844},
+    year = {2018},
+    doi = {10.1137/17M1153467}
+}
+""")
+    Citations().add("BernardiRaugel1985", """
+@article{bernardi-raugel-0,
+    AUTHOR = {Bernardi, Christine and Raugel, Genevi\\`eve},
+     TITLE = {Analysis of some finite elements for the {Stokes} problem},
+   JOURNAL = {Mathematics of Computation},
+    VOLUME = {44},
+      YEAR = {1985},
+       DOI = {10.1090/S0025-5718-1985-0771031-7},
+     PAGES = {{71--79}}
+}
+""")
+
 
 except ImportError:
     Citations = None

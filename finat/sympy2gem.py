@@ -42,6 +42,13 @@ def sympy2gem_pow(node, self):
     return gem.Power(*map(self, node.args))
 
 
+@sympy2gem.register(sympy.logic.boolalg.BooleanTrue)
+@sympy2gem.register(sympy.logic.boolalg.BooleanFalse)
+@sympy2gem.register(bool)
+def sympy2gem_boolean(node, self):
+    return gem.Literal(bool(node))
+
+
 @sympy2gem.register(sympy.Integer)
 @sympy2gem.register(symengine.Integer)
 @sympy2gem.register(int)
@@ -135,3 +142,8 @@ def sympy2gem_conditional(node, self):
     for v, c in reversed(pieces):
         expr = gem.Conditional(self(c), self(v), expr)
     return expr
+
+
+@sympy2gem.register(sympy.ITE)
+def sympy2gem_ifthenelse(node, self):
+    return gem.Conditional(*map(self, node.args))
