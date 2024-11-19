@@ -77,11 +77,12 @@ def check_zany_mapping(element, ref_cell, phys_cell, *args, **kwargs):
     # Solve for the basis transformation and compare results
     Phi = ref_vals_piola.reshape(num_bfs, -1)
     phi = phys_vals.reshape(num_bfs, -1)
-    Mh = np.linalg.solve(Phi @ Phi.T, Phi @ phi.T).T
+    Vh, residual, *_ = np.linalg.lstsq(Phi.T, phi.T)
+    Mh = Vh.T
     Mh = Mh[:num_dofs]
     Mh[abs(Mh) < 1E-10] = 0.0
     M[abs(M) < 1E-10] = 0.0
-    assert np.allclose(M, Mh), str(M.T - Mh.T)
+    assert np.allclose(residual, 0), str(M.T - Mh.T)
     assert np.allclose(ref_vals_zany, phys_vals[:num_dofs])
 
 
