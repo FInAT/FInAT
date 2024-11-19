@@ -258,6 +258,8 @@ class FiniteElementBase(AbstractFiniteElement):
             return pullback.double_covariant_piola
         elif self.mapping() == "double contravariant Piola":
             return pullback.double_contravariant_piola
+        elif self.mapping() == "covariant contravariant Piola":
+            return pullback.covariant_contravariant_piola
         elif self.mapping() == "custom":
             return pullback.custom_pullback
         elif self.mapping() == "physical":
