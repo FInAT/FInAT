@@ -79,7 +79,7 @@ class FiatElement(FiniteElementBase):
 
     @property
     def index_shape(self):
-        return (self._element.space_dimension(),)
+        return (self.space_dimension(),)
 
     @property
     def value_shape(self):

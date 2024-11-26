@@ -76,9 +76,5 @@ class Bell(PhysicallyMappedElement, ScalarFiatElement):
     def entity_dofs(self):
         return self._entity_dofs
 
-    @property
-    def index_shape(self):
-        return (18,)
-
     def space_dimension(self):
         return 18

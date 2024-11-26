@@ -99,9 +99,5 @@ class ReducedHsiehCloughTocher(PhysicallyMappedElement, ScalarFiatElement):
     def entity_dofs(self):
         return self._entity_dofs
 
-    @property
-    def index_shape(self):
-        return (9,)
-
     def space_dimension(self):
         return 9

@@ -83,10 +83,6 @@ class ArnoldWintherNC(PhysicallyMappedElement, FiatElement):
                 1: {0: [0, 1, 2, 3], 1: [4, 5, 6, 7], 2: [8, 9, 10, 11]},
                 2: {0: [12, 13, 14]}}
 
-    @property
-    def index_shape(self):
-        return (self.space_dimension(),)
-
     def space_dimension(self):
         return 15
 
@@ -135,10 +131,6 @@ class ArnoldWinther(PhysicallyMappedElement, FiatElement):
                     2: [6, 7, 8]},
                 1: {0: [9, 10, 11, 12], 1: [13, 14, 15, 16], 2: [17, 18, 19, 20]},
                 2: {0: [21, 22, 23]}}
-
-    @property
-    def index_shape(self):
-        return (self.space_dimension(),)
 
     def space_dimension(self):
         return 24

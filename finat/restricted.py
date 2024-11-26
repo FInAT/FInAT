@@ -7,6 +7,7 @@ from FIAT.polynomial_set import mis
 import finat
 from finat.fiat_elements import FiatElement
 from finat.physically_mapped import PhysicallyMappedElement
+from finat.piola_mapped import PiolaMappedElement
 
 
 # Sentinel for when restricted element is empty
@@ -34,6 +35,15 @@ def restrict_fiat(element, domain, take_closure):
     try:
         return FiatElement(FIAT.RestrictedElement(element._element,
                            restriction_domain=domain, take_closure=take_closure))
+    except ValueError:
+        return null_element
+
+
+@restrict.register(PiolaMappedElement)
+def restrict_piola_mapped(element, domain, take_closure):
+    try:
+        return PiolaMappedElement(FIAT.RestrictedElement(element._element,
+                                  restriction_domain=domain, take_closure=take_closure))
     except ValueError:
         return null_element
 

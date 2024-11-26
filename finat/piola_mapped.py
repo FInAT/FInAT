@@ -90,7 +90,7 @@ def normal_tangential_face_transform(fiat_cell, J, detJ, f):
 
 
 class PiolaBubbleElement(PhysicallyMappedElement, FiatElement):
-    """A general class to transform Piola-mapped elements with normal facet bubbles."""
+    """A general class to transform H1 Piola-mapped elements with normal facet bubbles."""
     def __init__(self, fiat_element):
         mapping, = set(fiat_element.mapping())
         if mapping != "contravariant piola":
@@ -112,10 +112,6 @@ class PiolaBubbleElement(PhysicallyMappedElement, FiatElement):
 
     def entity_dofs(self):
         return self._entity_dofs
-
-    @property
-    def index_shape(self):
-        return (self._space_dimension,)
 
     def space_dimension(self):
         return self._space_dimension
@@ -162,4 +158,38 @@ class PiolaBubbleElement(PhysicallyMappedElement, FiatElement):
             cur_dofs = dofs[sd-1][f]
             cur_bfs = bfs[sd-1][f][1:]
             V[numpy.ix_(cur_bfs, cur_dofs)] = rows[..., :len(cur_dofs)]
+        return ListTensor(V.T)
+
+
+class PiolaMappedElement(PhysicallyMappedElement, FiatElement):
+    """A general class to transform H1 Piola-mapped elements."""
+    def __init__(self, fiat_element):
+        mapping, = set(fiat_element.mapping())
+        if mapping != "contravariant piola":
+            raise ValueError(f"{type(fiat_element).__name__} needs to be Piola mapped.")
+        super().__init__(fiat_element)
+
+    def basis_transformation(self, coordinate_mapping):
+        sd = self.cell.get_spatial_dimension()
+        bary, = self.cell.make_points(sd, 0, sd+1)
+        J = coordinate_mapping.jacobian_at(bary)
+        detJ = coordinate_mapping.detJ_at(bary)
+
+        dofs = self.entity_dofs()
+        ndof = self.space_dimension()
+        V = numpy.eye(ndof, dtype=object)
+        for multiindex in numpy.ndindex(V.shape):
+            V[multiindex] = Literal(V[multiindex])
+
+        # Undo the Piola transform for non-interior basis functions
+        Finv = piola_inverse(self.cell, J, detJ)
+        for dim in dofs:
+            if dim == sd:
+                continue
+            for e in sorted(dofs[dim]):
+                k = 0
+                while k < len(dofs[dim][e]):
+                    s = dofs[dim][e][k:k+sd]
+                    V[numpy.ix_(s, s)] = Finv
+                    k += sd
         return ListTensor(V.T)
