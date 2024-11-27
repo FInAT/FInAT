@@ -1,6 +1,7 @@
 from abc import ABCMeta, abstractmethod
 
 import gem
+import numpy
 
 try:
     from firedrake_citations import Citations
@@ -267,8 +268,10 @@ class PhysicallyMappedElement(NeedsCoordinateMappingElement):
         assert coordinate_mapping is not None
 
         M = self.basis_transformation(coordinate_mapping)
+        M, = gem.optimise.constant_fold_zero((M,))
 
         def matvec(table):
+            table, = gem.optimise.constant_fold_zero((table,))
             i, j = gem.indices(2)
             value_indices = self.get_value_indices()
             table = gem.Indexed(table, (j, ) + value_indices)
@@ -372,3 +375,14 @@ class PhysicalGeometry(metaclass=ABCMeta):
 
         :returns: a GEM expression for the physical vertices, shape
                 (gdim, )."""
+
+
+zero = gem.Zero()
+one = gem.Literal(1.0)
+
+
+def identity(*shape):
+    V = numpy.eye(*shape, dtype=object)
+    for multiindex in numpy.ndindex(V.shape):
+        V[multiindex] = zero if V[multiindex] == 0 else one
+    return V

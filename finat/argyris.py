@@ -6,7 +6,7 @@ import FIAT
 from gem import Literal, ListTensor
 
 from finat.fiat_elements import ScalarFiatElement
-from finat.physically_mapped import PhysicallyMappedElement, Citations
+from finat.physically_mapped import Citations, identity, PhysicallyMappedElement
 
 
 def _vertex_transform(V, vorder, fiat_cell, coordinate_mapping):
@@ -115,10 +115,7 @@ class Argyris(PhysicallyMappedElement, ScalarFiatElement):
         sd = self.cell.get_spatial_dimension()
         top = self.cell.get_topology()
 
-        ndof = self.space_dimension()
-        V = numpy.eye(ndof, dtype=object)
-        for multiindex in numpy.ndindex(V.shape):
-            V[multiindex] = Literal(V[multiindex])
+        V = identity(self.space_dimension())
 
         vorder = 2
         voffset = comb(sd + vorder, vorder)

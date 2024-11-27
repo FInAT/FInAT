@@ -1,11 +1,9 @@
-import numpy
-
 import FIAT
 
-from gem import Literal, ListTensor
+from gem import ListTensor
 
 from finat.fiat_elements import FiatElement
-from finat.physically_mapped import PhysicallyMappedElement, Citations
+from finat.physically_mapped import Citations, identity, PhysicallyMappedElement
 from finat.piola_mapped import normal_tangential_edge_transform
 from copy import deepcopy
 
@@ -28,9 +26,7 @@ class MardalTaiWinther(PhysicallyMappedElement, FiatElement):
     def basis_transformation(self, coordinate_mapping):
         numbf = self._element.space_dimension()
         ndof = self.space_dimension()
-        V = numpy.eye(numbf, ndof, dtype=object)
-        for multiindex in numpy.ndindex(V.shape):
-            V[multiindex] = Literal(V[multiindex])
+        V = identity(numbf, ndof)
 
         sd = self.cell.get_spatial_dimension()
         bary, = self.cell.make_points(sd, 0, sd+1)

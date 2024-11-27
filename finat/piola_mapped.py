@@ -1,7 +1,7 @@
 import numpy
 
 from finat.fiat_elements import FiatElement
-from finat.physically_mapped import PhysicallyMappedElement
+from finat.physically_mapped import identity, PhysicallyMappedElement
 from gem import Literal, ListTensor
 from copy import deepcopy
 
@@ -130,9 +130,7 @@ class PiolaBubbleElement(PhysicallyMappedElement, FiatElement):
         bfs = self._element.entity_dofs()
         ndof = self.space_dimension()
         numbf = self._element.space_dimension()
-        V = numpy.eye(numbf, ndof, dtype=object)
-        for multiindex in numpy.ndindex(V.shape):
-            V[multiindex] = Literal(V[multiindex])
+        V = identity(numbf, ndof)
 
         # Undo the Piola transform for non-facet bubble basis functions
         nodes = self._element.get_dual_set().nodes
