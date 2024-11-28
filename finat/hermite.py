@@ -1,10 +1,8 @@
-import numpy
-
 import FIAT
-from gem import Literal, ListTensor
+from gem import ListTensor
 
 from finat.fiat_elements import ScalarFiatElement
-from finat.physically_mapped import PhysicallyMappedElement, Citations
+from finat.physically_mapped import Citations, identity, PhysicallyMappedElement
 
 
 class Hermite(PhysicallyMappedElement, ScalarFiatElement):
@@ -20,12 +18,7 @@ class Hermite(PhysicallyMappedElement, ScalarFiatElement):
         h = coordinate_mapping.cell_size()
 
         d = self.cell.get_dimension()
-        numbf = self.space_dimension()
-
-        M = numpy.eye(numbf, dtype=object)
-
-        for multiindex in numpy.ndindex(M.shape):
-            M[multiindex] = Literal(M[multiindex])
+        M = identity(self.space_dimension())
 
         cur = 0
         for i in range(d+1):

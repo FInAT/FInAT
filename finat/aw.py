@@ -1,10 +1,10 @@
 """Implementation of the Arnold-Winther finite elements."""
 import FIAT
 import numpy
-from gem import ListTensor, Literal
+from gem import ListTensor
 
 from finat.fiat_elements import FiatElement
-from finat.physically_mapped import Citations, PhysicallyMappedElement
+from finat.physically_mapped import Citations, identity, PhysicallyMappedElement
 from finat.piola_mapped import adjugate, normal_tangential_edge_transform, normal_tangential_face_transform
 
 
@@ -16,10 +16,7 @@ def _facet_transform(fiat_cell, facet_moment_degree, coordinate_mapping):
         fiat_cell.construct_subelement(sd-1), facet_moment_degree)
     dofs_per_facet = sd * dimPk_facet
     ndofs = num_facets * dofs_per_facet
-
-    V = numpy.eye(ndofs, dtype=object)
-    for multiindex in numpy.ndindex(V.shape):
-        V[multiindex] = Literal(V[multiindex])
+    V = identity(ndofs)
 
     bary, = fiat_cell.make_points(sd, 0, sd+1)
     J = coordinate_mapping.jacobian_at(bary)
@@ -64,9 +61,7 @@ class ArnoldWintherNC(PhysicallyMappedElement, FiatElement):
         correspond to the constraints."""
         numbf = self._element.space_dimension()
         ndof = self.space_dimension()
-        V = numpy.eye(numbf, ndof, dtype=object)
-        for multiindex in numpy.ndindex(V.shape):
-            V[multiindex] = Literal(V[multiindex])
+        V = identity(numbf, ndof)
 
         V[:12, :12] = _facet_transform(self.cell, 1, coordinate_mapping)
 
@@ -101,9 +96,7 @@ class ArnoldWinther(PhysicallyMappedElement, FiatElement):
         # The extra 6 dofs removed here correspond to the constraints
         numbf = self._element.space_dimension()
         ndof = self.space_dimension()
-        V = numpy.eye(numbf, ndof, dtype=object)
-        for multiindex in numpy.ndindex(V.shape):
-            V[multiindex] = Literal(V[multiindex])
+        V = identity(numbf, ndof)
 
         sd = self.cell.get_spatial_dimension()
         W = _evaluation_transform(self.cell, coordinate_mapping)

@@ -1,10 +1,9 @@
 import FIAT
-import numpy
-from gem import ListTensor, Literal
+from gem import ListTensor
 
 from finat.argyris import _edge_transform
 from finat.fiat_elements import ScalarFiatElement
-from finat.physically_mapped import Citations, PhysicallyMappedElement
+from finat.physically_mapped import Citations, identity, PhysicallyMappedElement
 
 
 class QuadraticPowellSabin6(PhysicallyMappedElement, ScalarFiatElement):
@@ -20,12 +19,7 @@ class QuadraticPowellSabin6(PhysicallyMappedElement, ScalarFiatElement):
         h = coordinate_mapping.cell_size()
 
         d = self.cell.get_dimension()
-        numbf = self.space_dimension()
-
-        M = numpy.eye(numbf, dtype=object)
-
-        for multiindex in numpy.ndindex(M.shape):
-            M[multiindex] = Literal(M[multiindex])
+        M = identity(self.space_dimension())
 
         cur = 0
         for i in range(d+1):
@@ -49,10 +43,7 @@ class QuadraticPowellSabin12(PhysicallyMappedElement, ScalarFiatElement):
     def basis_transformation(self, coordinate_mapping):
         J = coordinate_mapping.jacobian_at([1/3, 1/3])
 
-        ndof = self.space_dimension()
-        V = numpy.eye(ndof, dtype=object)
-        for multiindex in numpy.ndindex(V.shape):
-            V[multiindex] = Literal(V[multiindex])
+        V = identity(self.space_dimension())
 
         sd = self.cell.get_dimension()
         top = self.cell.get_topology()

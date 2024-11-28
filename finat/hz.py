@@ -1,9 +1,8 @@
 """Implementation of the Hu-Zhang finite elements."""
-import numpy
 import FIAT
-from gem import Literal, ListTensor
+from gem import ListTensor
 from finat.fiat_elements import FiatElement
-from finat.physically_mapped import PhysicallyMappedElement, Citations
+from finat.physically_mapped import Citations, identity, PhysicallyMappedElement
 from finat.aw import _facet_transform, _evaluation_transform
 
 
@@ -16,9 +15,7 @@ class HuZhang(PhysicallyMappedElement, FiatElement):
 
     def basis_transformation(self, coordinate_mapping):
         ndofs = self.space_dimension()
-        V = numpy.eye(ndofs, dtype=object)
-        for multiindex in numpy.ndindex(V.shape):
-            V[multiindex] = Literal(V[multiindex])
+        V = identity(ndofs)
 
         sd = self.cell.get_spatial_dimension()
         W = _evaluation_transform(self.cell, coordinate_mapping)
