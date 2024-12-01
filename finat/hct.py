@@ -1,10 +1,9 @@
 import FIAT
-import numpy
 from math import comb
-from gem import ListTensor, Literal
+from gem import ListTensor
 
 from finat.fiat_elements import ScalarFiatElement
-from finat.physically_mapped import Citations, PhysicallyMappedElement
+from finat.physically_mapped import Citations, identity, PhysicallyMappedElement
 from finat.argyris import _vertex_transform, _edge_transform, _normal_tangential_transform
 from copy import deepcopy
 
@@ -19,10 +18,7 @@ class HsiehCloughTocher(PhysicallyMappedElement, ScalarFiatElement):
         super().__init__(FIAT.HsiehCloughTocher(cell, degree))
 
     def basis_transformation(self, coordinate_mapping):
-        ndof = self.space_dimension()
-        V = numpy.eye(ndof, dtype=object)
-        for multiindex in numpy.ndindex(V.shape):
-            V[multiindex] = Literal(V[multiindex])
+        V = identity(self.space_dimension())
 
         sd = self.cell.get_dimension()
         top = self.cell.get_topology()
@@ -59,9 +55,7 @@ class ReducedHsiehCloughTocher(PhysicallyMappedElement, ScalarFiatElement):
         numbf = self._element.space_dimension()
         ndof = self.space_dimension()
         # rectangular to toss out the constraint dofs
-        V = numpy.eye(numbf, ndof, dtype=object)
-        for multiindex in numpy.ndindex(V.shape):
-            V[multiindex] = Literal(V[multiindex])
+        V = identity(numbf, ndof)
 
         vorder = 1
         voffset = comb(sd + vorder, vorder)

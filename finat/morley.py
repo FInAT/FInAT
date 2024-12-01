@@ -1,11 +1,9 @@
-import numpy
-
 import FIAT
 
-from gem import Literal, ListTensor
+from gem import ListTensor
 
 from finat.fiat_elements import ScalarFiatElement
-from finat.physically_mapped import PhysicallyMappedElement, Citations
+from finat.physically_mapped import Citations, identity, PhysicallyMappedElement
 
 
 class Morley(PhysicallyMappedElement, ScalarFiatElement):
@@ -25,9 +23,7 @@ class Morley(PhysicallyMappedElement, ScalarFiatElement):
 
         pel = coordinate_mapping.physical_edge_lengths()
 
-        V = numpy.eye(6, dtype=object)
-        for multiindex in numpy.ndindex(V.shape):
-            V[multiindex] = Literal(V[multiindex])
+        V = identity(self.space_dimension())
 
         for i in range(3):
             V[i+3, i+3] = (rns[i, 0]*(pns[i, 0]*J[0, 0] + pns[i, 1]*J[1, 0])

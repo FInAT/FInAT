@@ -1,9 +1,9 @@
 import FIAT
 import numpy
-from gem import ListTensor, Literal
+from gem import ListTensor
 
 from finat.fiat_elements import FiatElement
-from finat.physically_mapped import Citations, PhysicallyMappedElement
+from finat.physically_mapped import Citations, identity, PhysicallyMappedElement
 from finat.piola_mapped import piola_inverse
 
 
@@ -20,10 +20,7 @@ class AlfeldSorokina(PhysicallyMappedElement, FiatElement):
         detJ = coordinate_mapping.detJ_at(bary)
 
         dofs = self.entity_dofs()
-        ndof = self.space_dimension()
-        V = numpy.eye(ndof, dtype=object)
-        for multiindex in numpy.ndindex(V.shape):
-            V[multiindex] = Literal(V[multiindex])
+        V = identity(self.space_dimension())
 
         # Undo the Piola transform
         nodes = self._element.get_dual_set().nodes
