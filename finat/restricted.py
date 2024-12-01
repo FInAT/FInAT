@@ -40,7 +40,7 @@ def restrict_fiat(element, domain, take_closure):
 
 
 @restrict.register(PiolaMappedElement)
-def restrict_piola_mapped(element, domain, take_closure):
+def restrict_piola_bubble(element, domain, take_closure):
     try:
         return PiolaMappedElement(FIAT.RestrictedElement(element._element,
                                   restriction_domain=domain, take_closure=take_closure))

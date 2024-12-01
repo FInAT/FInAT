@@ -1,8 +1,9 @@
 import numpy
 
+from FIAT.functional import PointDivergence, FrobeniusIntegralMoment
 from finat.fiat_elements import FiatElement
 from finat.physically_mapped import identity, PhysicallyMappedElement
-from gem import Literal, ListTensor
+from gem import Literal, ListTensor, Power
 from copy import deepcopy
 
 
@@ -53,8 +54,7 @@ def normal_tangential_edge_transform(fiat_cell, J, detJ, f):
     """Return the basis transformation of
     normal and tangential edge moments"""
     R = numpy.array([[0, 1], [-1, 0]])
-    that = fiat_cell.compute_edge_tangent(f)
-    that /= numpy.linalg.norm(that)
+    that = fiat_cell.compute_normalized_edge_tangent(f)
     nhat = R @ that
     Jn = J @ Literal(nhat)
     Jt = J @ Literal(that)
@@ -89,6 +89,69 @@ def normal_tangential_face_transform(fiat_cell, J, detJ, f):
     return rows
 
 
+class PiolaMappedElement(PhysicallyMappedElement, FiatElement):
+    """A general class to transform H1 Piola-mapped elements."""
+    def __init__(self, fiat_element):
+        mapping, = set(fiat_element.mapping())
+        if mapping != "contravariant piola":
+            raise ValueError(f"{type(fiat_element).__name__} needs to be Piola mapped.")
+        super().__init__(fiat_element)
+
+    def basis_transformation(self, coordinate_mapping):
+        nodes = self._element.dual_basis()
+        sd = self.cell.get_spatial_dimension()
+        bary, = self.cell.make_points(sd, 0, sd+1)
+        J = coordinate_mapping.jacobian_at(bary)
+        detJ = coordinate_mapping.detJ_at(bary)
+
+        dofs = self.entity_dofs()
+        V = identity(self.space_dimension())
+        one = V[0, 0]
+
+        Finv = piola_inverse(self.cell, J, detJ)
+        if sd == 2:
+            transform = normal_tangential_edge_transform
+        elif sd == 3:
+            transform = normal_tangential_face_transform
+
+        half = Literal(0.5)
+        for dim in dofs:
+            if dim == sd:
+                continue
+
+            for entity in sorted(dofs[dim]):
+                edofs = dofs[dim][entity]
+                if dim == sd-1:
+                    thats = self.cell.compute_tangents(dim, entity)
+                    nhat = numpy.dot([[0, 1], [-1, 0]], *thats) if sd == 2 else numpy.cross(*thats)
+                    ref_norms = numpy.linalg.norm((nhat, *thats), axis=1)
+
+                    Jt = J @ Literal(thats.T)
+                    G = Jt.T @ Jt
+                    phys_norms = [Power(determinant(G), half)]
+                    phys_norms.extend(Power(G[i, i], half) for i in range(dim))
+                    scale = [phys_norms[i] / ref_norms[i] for i in range(dim+1)]
+                    scale = [one]*len(scale)
+
+                    rows = identity(sd)
+                    rows[1:] = transform(self.cell, J, detJ, entity)
+                    for j in range(rows.shape[1]):
+                        rows[:, j] *= scale[j]
+
+                k = 0
+                while k < len(edofs):
+                    s = edofs[k:k+sd]
+                    if dim == sd-1 and isinstance(nodes[s[0]], FrobeniusIntegralMoment):
+                        # Deal with normal and tangential moments
+                        V[numpy.ix_(s, s)] = rows
+                    else:
+                        # Undo the Piola transform
+                        V[numpy.ix_(s, s)] = Finv
+                    k += len(s)
+
+        return ListTensor(V.T)
+
+
 class PiolaBubbleElement(PhysicallyMappedElement, FiatElement):
     """A general class to transform H1 Piola-mapped elements with normal facet bubbles."""
     def __init__(self, fiat_element):
@@ -117,6 +180,7 @@ class PiolaBubbleElement(PhysicallyMappedElement, FiatElement):
         return self._space_dimension
 
     def basis_transformation(self, coordinate_mapping):
+        nodes = self._element.dual_basis()
         sd = self.cell.get_spatial_dimension()
         bary, = self.cell.make_points(sd, 0, sd+1)
         J = coordinate_mapping.jacobian_at(bary)
@@ -129,7 +193,6 @@ class PiolaBubbleElement(PhysicallyMappedElement, FiatElement):
         V = identity(numbf, ndof)
 
         # Undo the Piola transform for non-facet bubble basis functions
-        nodes = self._element.get_dual_set().nodes
         Finv = piola_inverse(self.cell, J, detJ)
         for dim in dofs:
             if dim == sd-1:
@@ -138,13 +201,14 @@ class PiolaBubbleElement(PhysicallyMappedElement, FiatElement):
                 k = 0
                 while k < len(dofs[dim][e]):
                     cur = dofs[dim][e][k]
-                    if len(nodes[cur].deriv_dict) > 0:
+                    if isinstance(nodes[cur], PointDivergence):
                         V[cur, cur] = detJ
                         k += 1
                     else:
                         s = dofs[dim][e][k:k+sd]
                         V[numpy.ix_(s, s)] = Finv
                         k += sd
+
         # Unpick the normal component for the facet bubbles
         if sd == 2:
             transform = normal_tangential_edge_transform
@@ -153,41 +217,12 @@ class PiolaBubbleElement(PhysicallyMappedElement, FiatElement):
 
         for f in sorted(dofs[sd-1]):
             rows = numpy.asarray(transform(self.cell, J, detJ, f))
-            cur_dofs = dofs[sd-1][f]
-            cur_bfs = bfs[sd-1][f][1:]
-            V[numpy.ix_(cur_bfs, cur_dofs)] = rows[..., :len(cur_dofs)]
-        return ListTensor(V.T)
-
-
-class PiolaMappedElement(PhysicallyMappedElement, FiatElement):
-    """A general class to transform H1 Piola-mapped elements."""
-    def __init__(self, fiat_element):
-        mapping, = set(fiat_element.mapping())
-        if mapping != "contravariant piola":
-            raise ValueError(f"{type(fiat_element).__name__} needs to be Piola mapped.")
-        super().__init__(fiat_element)
-
-    def basis_transformation(self, coordinate_mapping):
-        sd = self.cell.get_spatial_dimension()
-        bary, = self.cell.make_points(sd, 0, sd+1)
-        J = coordinate_mapping.jacobian_at(bary)
-        detJ = coordinate_mapping.detJ_at(bary)
-
-        dofs = self.entity_dofs()
-        ndof = self.space_dimension()
-        V = numpy.eye(ndof, dtype=object)
-        for multiindex in numpy.ndindex(V.shape):
-            V[multiindex] = Literal(V[multiindex])
-
-        # Undo the Piola transform for non-interior basis functions
-        Finv = piola_inverse(self.cell, J, detJ)
-        for dim in dofs:
-            if dim == sd:
-                continue
-            for e in sorted(dofs[dim]):
-                k = 0
-                while k < len(dofs[dim][e]):
-                    s = dofs[dim][e][k:k+sd]
-                    V[numpy.ix_(s, s)] = Finv
-                    k += sd
+            k = 0
+            num_facet_dofs = len(dofs[sd-1][f])
+            num_facet_bfs = len(bfs[sd-1][f])
+            while k < num_facet_bfs:
+                cur_bfs = bfs[sd-1][f][k+1:k+sd]
+                cur_dofs = dofs[sd-1][f][k:max(k+sd, num_facet_dofs)]
+                V[numpy.ix_(cur_bfs, cur_dofs)] = rows[..., :len(cur_dofs)]
+                k += sd
         return ListTensor(V.T)
