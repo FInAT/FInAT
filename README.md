@@ -1,3 +1,7 @@
+# FInAT is now developed within the FIAT repository
+
+We have merged the FInAT and FIAT repositories into the FIAT repository. For current code and to report any issues, please see: https://github.com/firedrakeproject/fiat
+
 # FInAT: a smarter library of finite elements
 
 Unlike [FIAT](https://github.com/FEniCS/fiat "FInite element Automatic
